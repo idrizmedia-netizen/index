@@ -86,6 +86,18 @@
             color: white;
         }
 
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            margin-left: 10px;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
         /* Loyihalar qismi */
         .section { padding: 80px 20px; max-width: 1100px; margin: auto; }
         .grid {
@@ -145,7 +157,10 @@
             Fizika o'qituvchisi, Dasturchi va IT tadbirkor. 
             Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
         </p>
-        <a href="#projects" class="btn" data-aos="zoom-in" data-aos-delay="400">Loyihalarni ko'rish</a>
+        <div data-aos="zoom-in" data-aos-delay="400">
+            <a href="#projects" class="btn">Loyihalarni ko'rish</a>
+            <a href="https://testmasters-hze9zhsn5ubbpmfdshvbej.streamlit.app/" target="_blank" class="btn btn-outline">Testmasters</a>
+        </div>
     </section>
 
     <section class="section" id="projects">
@@ -164,16 +179,16 @@
             <div class="card" data-aos="flip-left" data-aos-delay="400">
                 <i class="fas fa-chart-line"></i>
                 <h3>Tadbirkorlik</h3>
-                <p>Biznes jarayonlarini avtomatlashtirish va YouTube orqali tajriba almashish.</p>
+                <p>Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
             </div>
         </div>
     </section>
 
     <footer id="contact">
         <div class="social-links" data-aos="fade-up">
-            <a href="#"><i class="fab fa-telegram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-github"></i></a>
+            <a href="https://t.me/Ziyomap" target="_blank"><i class="fab fa-telegram"></i></a>
+            <a href="https://instagram.com/izzatillobeey" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://github.com/idrizmedia-netizen/Testmasters" target="_blank"><i class="fab fa-github"></i></a>
         </div>
         <p style="margin-top: 20px;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan.</p>
     </footer>
