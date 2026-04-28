@@ -125,6 +125,30 @@
 
         .card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px; }
 
+        /* Interaktiv Laboratoriya stili */
+        .lab-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .test-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: left;
+        }
+
+        .test-btn:hover { background: #e2e8f0; }
+
         /* Blog qo'shimcha stil */
         .blog-date { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; display: block; }
 
@@ -171,13 +195,14 @@
         <div class="container">
             <a href="#home">Asosiy</a>
             <a href="#projects">Loyihalar</a>
+            <a href="#lab">Laboratoriya</a>
             <a href="#blog">Blog</a>
             <a href="#contact">Aloqa</a>
         </div>
     </nav>
 
     <section class="hero" id="home">
-        <h1 data-aos="fade-up">Assalomu alaykum!</h1>
+        <h1 id="greeting" data-aos="fade-up">Assalomu alaykum!</h1>
         <p data-aos="fade-up" data-aos-delay="200">
             Fizika o'qituvchisi, Dasturchi va IT tadbirkor. 
             Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
@@ -205,6 +230,31 @@
                 <i class="fas fa-chart-line"></i>
                 <h3>Tadbirkorlik</h3>
                 <p>Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="lab">
+        <h2 style="text-align: center;" data-aos="fade-down">Interaktiv Laboratoriya</h2>
+        <div class="grid">
+            <div class="card" data-aos="zoom-in">
+                <i class="fas fa-bolt"></i>
+                <h3>Om qonuni kalkulyatori</h3>
+                <p>Kuchlanish (V) va Qarshilikni (R) kiriting:</p>
+                <input type="number" id="voltage" class="lab-input" placeholder="V (Volt)">
+                <input type="number" id="resistance" class="lab-input" placeholder="R (Om)">
+                <button onclick="calculateCurrent()" class="btn" style="width:100%; margin-top:10px;">Hisoblash</button>
+                <p id="calcResult" style="margin-top:15px; font-weight:bold; color:var(--primary-color);"></p>
+            </div>
+
+            <div class="card" data-aos="zoom-in" data-aos-delay="200">
+                <i class="fas fa-brain"></i>
+                <h3>Tezkor Test</h3>
+                <p>Energiyaning saqlanish qonunini kim kashf etgan?</p>
+                <button class="test-btn" onclick="checkAnswer(false)">A) Isaak Nyuton</button>
+                <button class="test-btn" onclick="checkAnswer(true)">B) Yulius Mayer</button>
+                <button class="test-btn" onclick="checkAnswer(false)">C) Arximed</button>
+                <p id="testStatus" style="margin-top:15px; font-weight:bold;"></p>
             </div>
         </div>
     </section>
@@ -254,6 +304,42 @@
             duration: 1000,
             once: true
         });
+
+        // 1. Aqlli salomlashish
+        const now = new Date();
+        const hour = now.getHours();
+        const greeting = document.getElementById('greeting');
+        if (hour < 12) greeting.innerText = "Xayrli tong!";
+        else if (hour < 18) greeting.innerText = "Xayrli kun!";
+        else greeting.innerText = "Xayrli kech!";
+
+        // 2. Om qonuni hisob-kitobi
+        function calculateCurrent() {
+            const v = document.getElementById('voltage').value;
+            const r = document.getElementById('resistance').value;
+            const resDisplay = document.getElementById('calcResult');
+            
+            if(v && r && r > 0) {
+                const i = (v / r).toFixed(2);
+                resDisplay.innerText = `Tok kuchi: I = ${i} Amper`;
+                resDisplay.style.color = "var(--primary-color)";
+            } else {
+                resDisplay.innerText = "Iltimos, to'g'ri qiymatlarni kiriting!";
+                resDisplay.style.color = "red";
+            }
+        }
+
+        // 3. Test tekshiruvi
+        function checkAnswer(isCorrect) {
+            const status = document.getElementById('testStatus');
+            if(isCorrect) {
+                status.innerText = "To'g'ri! 🚀 Fizika bilimingiz a'lo.";
+                status.style.color = "green";
+            } else {
+                status.innerText = "Xato! ❌ Yana bir bor urinib ko'ring.";
+                status.style.color = "red";
+            }
+        }
     </script>
 </body>
 </html>
