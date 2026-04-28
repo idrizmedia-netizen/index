@@ -3,129 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mening Portfoliom</title>
+    <title>IdrizMedia | Portfolio</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Umumiy uslublar */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --dark-color: #1e293b;
+            --light-bg: #f8fafc;
         }
 
-        header {
-            background: #ffffff;
-            padding: 20px 0;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--dark-color);
+            scroll-behavior: smooth;
+        }
+
+        /* Navigatsiya */
+        nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav .container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
         }
 
         nav a {
-            margin: 0 15px;
             text-decoration: none;
-            color: #555;
-            font-weight: bold;
+            color: var(--dark-color);
+            font-weight: 600;
+            transition: 0.3s;
         }
 
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-            padding: 40px 0;
-        }
+        nav a:hover { color: var(--primary-color); }
 
-        /* Hero qismi */
+        /* Hero Section */
         .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
+            color: white;
             text-align: center;
-            padding: 50px 20px;
+            padding: 0 20px;
         }
 
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+        .hero h1 { font-size: 3.5rem; margin-bottom: 10px; }
+        .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; }
+
+        /* Tugmalar */
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: var(--primary-color);
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        /* Portfolio loyihalari */
-        .portfolio-grid {
+        .btn:hover {
+            transform: scale(1.05);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Loyihalar qismi */
+        .section { padding: 80px 20px; max-width: 1100px; margin: auto; }
+        .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .project-card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .project-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .project-card h3 {
-            margin-top: 0;
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #333;
-            color: #fff;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
             margin-top: 40px;
         }
 
-        /* Mobil qurilmalar uchun moslashuvchanlik */
-        @media (max-width: 768px) {
-            .container {
-                width: 90%;
-            }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: 0.4s;
+            border-bottom: 4px solid transparent;
         }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-bottom: 4px solid var(--primary-color);
+        }
+
+        .card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px; }
+
+        footer {
+            background: var(--dark-color);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 15px;
+            transition: 0.3s;
+        }
+
+        .social-links a:hover { color: #60a5fa; }
     </style>
 </head>
 <body>
 
-    <header>
-        <nav>
+    <nav>
+        <div class="container">
+            <a href="#home">Asosiy</a>
             <a href="#about">Men haqimda</a>
-            <a href="#portfolio">Portfolio</a>
+            <a href="#projects">Loyihalar</a>
             <a href="#contact">Aloqa</a>
-        </nav>
-    </header>
+        </div>
+    </nav>
 
-    <div class="container">
-        <section class="hero" id="about">
-            <h1>Salom, men Ismingiz!</h1>
-            <p>Menga minimalist va zamonaviy web sahifalar yaratish juda yoqadi. Frontend texnologiyalari bilan ishlashni sevaman.</p>
-        </section>
+    <section class="hero" id="home">
+        <h1 data-aos="fade-up">Assalomu alaykum!</h1>
+        <p data-aos="fade-up" data-aos-delay="200">
+            Fizika o'qituvchisi, Dasturchi va IT tadbirkor. 
+            Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
+        </p>
+        <a href="#projects" class="btn" data-aos="zoom-in" data-aos-delay="400">Loyihalarni ko'rish</a>
+    </section>
 
-        <section id="portfolio">
-            <h2 style="text-align: center;">Mening loyihalarim</h2>
-            <div class="portfolio-grid">
-                <div class="project-card">
-                    <h3>Loyiha 1</h3>
-                    <p>Minimalistik web sahifa dizayni.</p>
-                </div>
-                <div class="project-card">
-                    <h3>Loyiha 2</h3>
-                    <p>Responsiv va zamonaviy interfeys.</p>
-                </div>
-                <div class="project-card">
-                    <h3>Loyiha 3</h3>
-                    <p>Foydalanuvchilar uchun qulay tajriba.</p>
-                </div>
+    <section class="section" id="projects">
+        <h2 style="text-align: center;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
+        <div class="grid">
+            <div class="card" data-aos="flip-left">
+                <i class="fas fa-atom"></i>
+                <h3>Fizika va Ta'lim</h3>
+                <p>O'quvchilar uchun interaktiv darslar va fizik jarayonlarning raqamli modellarini yarataman.</p>
             </div>
-        </section>
-    </div>
+            <div class="card" data-aos="flip-left" data-aos-delay="200">
+                <i class="fas fa-code"></i>
+                <h3>Dasturlash</h3>
+                <p>Python (Streamlit), Flutter va Web texnologiyalar yordamida foydali ilovalar ishlab chiqaman.</p>
+            </div>
+            <div class="card" data-aos="flip-left" data-aos-delay="400">
+                <i class="fas fa-chart-line"></i>
+                <h3>Tadbirkorlik</h3>
+                <p>Biznes jarayonlarini avtomatlashtirish va YouTube orqali tajriba almashish.</p>
+            </div>
+        </div>
+    </section>
 
     <footer id="contact">
-        <p>&copy; 2026. Barcha huquqlar himoyalangan. Email: info@example.com</p>
+        <div class="social-links" data-aos="fade-up">
+            <a href="#"><i class="fab fa-telegram"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+        </div>
+        <p style="margin-top: 20px;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan.</p>
     </footer>
 
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+    </script>
 </body>
 </html>
