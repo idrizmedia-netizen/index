@@ -78,6 +78,8 @@
             margin-top: 20px;
             transition: 0.3s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
         }
 
         .btn:hover {
@@ -98,7 +100,7 @@
             color: var(--primary-color);
         }
 
-        /* Loyihalar qismi */
+        /* Loyihalar, Blog va Forma qismlari */
         .section { padding: 80px 20px; max-width: 1100px; margin: auto; }
         .grid {
             display: grid;
@@ -123,6 +125,29 @@
 
         .card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px; }
 
+        /* Blog qo'shimcha stil */
+        .blog-date { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; display: block; }
+
+        /* Forma stili */
+        .contact-form {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            max-width: 600px;
+            margin: 40px auto;
+        }
+
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
         footer {
             background: var(--dark-color);
             color: white;
@@ -145,8 +170,8 @@
     <nav>
         <div class="container">
             <a href="#home">Asosiy</a>
-            <a href="#about">Men haqimda</a>
             <a href="#projects">Loyihalar</a>
+            <a href="#blog">Blog</a>
             <a href="#contact">Aloqa</a>
         </div>
     </nav>
@@ -159,7 +184,7 @@
         </p>
         <div data-aos="zoom-in" data-aos-delay="400">
             <a href="#projects" class="btn">Loyihalarni ko'rish</a>
-            <a href="https://testmasters-hze9zhsn5ubbpmfdshvbej.streamlit.app/" target="_blank" class="btn btn-outline">Testmasters</a>
+            <a href="https://ziyomap.streamlit.app/" target="_blank" class="btn btn-outline">Ziyomap</a>
         </div>
     </section>
 
@@ -184,7 +209,37 @@
         </div>
     </section>
 
-    <footer id="contact">
+    <section class="section" id="blog" style="background-color: #f1f5f9; max-width: 100%;">
+        <div style="max-width: 1100px; margin: auto;">
+            <h2 style="text-align: center;" data-aos="fade-down">Blog</h2>
+            <div class="grid">
+                <div class="card" data-aos="fade-up">
+                    <span class="blog-date">28-Aprel, 2026</span>
+                    <h3>Fizika darslarida AI</h3>
+                    <p>Sun'iy intellekt yordamida darslarni qanday qiziqarli qilish mumkin? Tajribalarim bilan o'rtoqlashaman.</p>
+                </div>
+                <div class="card" data-aos="fade-up" data-aos-delay="200">
+                    <span class="blog-date">25-Aprel, 2026</span>
+                    <h3>Ziyomap Loyihasi</h3>
+                    <p>Ziyomap platformasining imkoniyatlari va ta'lim tizimidagi o'rni haqida batafsil ma'lumot.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="contact">
+        <h2 style="text-align: center;" data-aos="fade-down">Men bilan bog'laning</h2>
+        <div class="contact-form" data-aos="zoom-in">
+            <form action="mailto:ishingiz@example.com" method="post" enctype="text-plain">
+                <input type="text" placeholder="Ismingiz" required>
+                <input type="email" placeholder="Email manzilingiz" required>
+                <textarea rows="5" placeholder="Xabaringizni yozing..." required></textarea>
+                <button type="submit" class="btn" style="background-color: var(--primary-color); color: white; width: 100%;">Yuborish</button>
+            </form>
+        </div>
+    </section>
+
+    <footer id="footer">
         <div class="social-links" data-aos="fade-up">
             <a href="https://t.me/Ziyomap" target="_blank"><i class="fab fa-telegram"></i></a>
             <a href="https://instagram.com/izzatillobeey" target="_blank"><i class="fab fa-instagram"></i></a>
