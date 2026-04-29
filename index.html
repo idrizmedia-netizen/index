@@ -11,20 +11,51 @@
             --primary-color: #2563eb;
             --secondary-color: #3b82f6;
             --dark-color: #1e293b;
-            --light-bg: #f8fafc;
+            --light-bg: #f0f9ff; /* Kunda yumshoq havorang */
             --text-color: #1e293b;
-            --card-bg: white;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --gradient-bg: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
         }
-        /* TUN REJIMI - BOYITILGAN RANGLAR */
+
+        /* TUN REJIMI - DINAMIK VA BOYITILGAN */
         body.dark-theme {
             --primary-color: #38bdf8;
             --secondary-color: #1d4ed8;
             --dark-color: #f1f5f9;
-            --light-bg: #020617; /* Chuqur ko'k */
+            --light-bg: #020617; /* Chuqur kosmik ko'k */
             --text-color: #f1f5f9;
-            --card-bg: rgba(30, 41, 59, 0.8); /* Shaffof effekt */
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
         }
-        
+
+        /* UMUMIY STIL VA DINAMIK FON */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--gradient-bg);
+            background-attachment: fixed;
+            color: var(--text-color);
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        /* Orqa fondagi harakatlanuvchi nurli dog'lar (Blobs) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -10%; left: -10%;
+            width: 40%; height: 40%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            animation: moveBlob 20s infinite alternate;
+        }
+
+        @keyframes moveBlob {
+            from { transform: translate(0, 0); }
+            to { transform: translate(100vw, 100vh); }
+        }
+
         /* PRELOADER STILI */
         #preloader {
             position: fixed;
@@ -39,11 +70,11 @@
         }
         .preloader-content { text-align: center; }
         .ziyomap-loader {
-            font-size: 5rem;
+            font-size: clamp(2rem, 10vw, 5rem);
             font-weight: 900;
             color: #38bdf8;
             text-transform: uppercase;
-            letter-spacing: 15px;
+            letter-spacing: clamp(5px, 2vw, 15px);
             margin: 0;
             animation: pulse-glow 2s infinite alternate;
             text-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
@@ -54,34 +85,28 @@
         }
         .fade-out { opacity: 0; pointer-events: none; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--light-bg);
-            color: var(--text-color);
-            scroll-behavior: smooth;
-        }
-
-        /* Navigatsiya */
+        /* NAVIGATSIYA - RESPONSIVE TAKOMILLASHTIRILGAN */
         nav {
-           background: var(--card-bg);
-            backdrop-filter: blur(10px);
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
             position: fixed;
             width: 100%;
             top: 0;
             z-index: 1000;
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 12px 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
         }
 
         nav .container {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
-        /* Navigatsiyadagi Ziyomap yozuvi */
         .logo-brand {
             font-size: 1.5rem;
             font-weight: 800;
@@ -90,14 +115,51 @@
             letter-spacing: 1px;
         }
 
-        nav a {
+        /* Menyu elementlari */
+        .nav-menu {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .nav-menu a {
             text-decoration: none;
             color: var(--dark-color);
             font-weight: 600;
             transition: 0.3s;
+            font-size: 0.95rem;
         }
 
-        nav a:hover { color: var(--primary-color); }
+        .nav-menu a:hover { color: var(--primary-color); }
+
+        /* Hamburger menyu tugmasi */
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary-color);
+        }
+
+        /* MOBIL QURILMALARDA MENYU */
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                flex-direction: column;
+                background: var(--card-bg);
+                width: 100%;
+                height: calc(100vh - 70px);
+                padding: 40px 0;
+                transition: 0.4s ease-in-out;
+                backdrop-filter: blur(25px);
+                text-align: center;
+                gap: 30px;
+            }
+            .nav-menu.active { left: 0; }
+            .profile-dropdown { flex-direction: column; }
+        }
 
         .profile-dropdown {
             display: flex;
@@ -110,80 +172,29 @@
             color: white !important;
             padding: 10px 25px;
             border-radius: 25px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             border: none;
+            cursor: pointer;
             font-size: 14px;
             box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-            transition: 0.3s;
+            white-space: nowrap;
         }
-        #login-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5); }
 
         .dropdown-content {
             display: none;
             position: absolute;
-            right: 0;
+            right: 20px;
             background-color: var(--card-bg);
-            min-width: 260px;
-            box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+            min-width: 280px;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
             z-index: 1100;
-            border-radius: 15px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 25px;
             margin-top: 15px;
-            text-align: left;
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
-        .dropdown-content.show {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .dropdown-content img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-            border: 2px solid var(--primary-color);
-        }
-
-        .dropdown-content h4 {
-            margin: 5px 0;
-            color: var(--dark-color);
-            font-size: 1rem;
-        }
-
-        .dropdown-content p {
-            margin: 0;
-            color: #64748b;
-            font-size: 0.85rem;
-            word-break: break-all;
-        }
-
-        .dropdown-divider {
-            height: 1px;
-            background-color: var(--secondary-color);
-            margin: 15px 0;
-            opacity: 0.3;
-        }
-
-        .logout-link {
-            color: #ef4444 !important;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .dropdown-content.show { display: block; animation: fadeIn 0.3s ease; }
+        .dropdown-content img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--primary-color); }
 
         /* Hero Section */
         .hero {
@@ -195,9 +206,8 @@
             text-align: center;
             padding: 0 20px;
         }
-
-        .hero h1 { font-size: 3.5rem; margin-bottom: 10px; }
-        .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; }
+        .hero h1 { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 800; margin-bottom: 20px; }
+        .hero p { font-size: 1.2rem; max-width: 700px; line-height: 1.6; }
 
         /* PREMIUM TUGMALAR */
         .btn {
@@ -205,157 +215,51 @@
             padding: 14px 35px;
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white !important;
-            border-radius: 30px;
+            border-radius: 50px;
             text-decoration: none;
             font-weight: bold;
-            margin-top: 20px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            transition: all 0.4s;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
             border: none;
-            cursor: pointer;
+            margin: 10px;
         }
+        .btn:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4); }
+        .btn-outline { background: transparent; color: var(--text-color) !important; border: 2px solid var(--primary-color); }
 
-        .btn:hover {
-            transform: scale(1.05) translateY(-5px);
-            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--text-color) !important;
-            border: 2px solid var(--primary-color);
-            margin-left: 10px;
-            box-shadow: none;
-        }
-
-        .btn-outline:hover {
-            background: var(--primary-color);
-            color: white !important;
-        }
-
-        /* Loyihalar, Blog va Forma qismlari */
-        .section { 
-            padding: 80px 20px; 
-            max-width: 1100px; 
-            margin: auto; 
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
-
+        /* Sectionlar va Cardlar */
+        .section { padding: 100px 20px; max-width: 1200px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 40px; }
+        
         .card {
             background: var(--card-bg);
-            color: var(--text-color);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            transition: 0.4s;
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
             border: 1px solid rgba(255,255,255,0.1);
+            transition: 0.4s;
         }
-
-        .card:hover {
-            transform: translateY(-10px);
-            border-color: var(--primary-color);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-
-        .card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px; }
+        .card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
+        .card i { font-size: 3rem; color: var(--primary-color); margin-bottom: 20px; display: block; }
 
         .lab-input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 10px;
-            box-sizing: border-box;
-            background: var(--light-bg);
-            color: var(--text-color);
+            width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color);
         }
 
         .test-btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            margin: 8px 0;
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            color: var(--text-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: 0.3s;
-            text-align: left;
-            font-weight: 500;
+            width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px;
+            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2);
+            color: var(--text-color); cursor: pointer; text-align: left; transition: 0.3s;
         }
-
         .test-btn:hover { background: var(--primary-color); color: white; }
 
-        .blog-date { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; display: block; }
-
-        .contact-form {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            max-width: 600px;
-            margin: 40px auto;
-        }
-
-        .contact-form input, .contact-form textarea {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            outline: none;
-            box-sizing: border-box;
-            background: var(--light-bg);
-            color: var(--text-color);
-        }
-
-        footer {
-            background: #020617;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .social-links a {
-            color: white;
-            font-size: 1.5rem;
-            margin: 0 15px;
-            transition: 0.3s;
-        }
-
-        .social-links a:hover { color: #38bdf8; transform: translateY(-3px); display: inline-block; }
+        footer { background: #020617; color: white; padding: 60px 20px; text-align: center; }
+        .social-links a { font-size: 1.8rem; color: white; margin: 0 20px; transition: 0.3s; }
+        .social-links a:hover { color: var(--primary-color); transform: scale(1.2); }
 
         #results-sidebar {
-            margin-top: 30px;
-            padding: 20px;
-            background: var(--card-bg);
-            border: 2px dashed var(--primary-color);
-            border-radius: 15px;
-        }
-
-        #results-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .result-item {
-            background: var(--light-bg);
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            margin-top: 40px; padding: 30px; background: var(--card-bg);
+            border: 2px dashed var(--primary-color); border-radius: 20px;
         }
     </style>
 </head>
@@ -370,28 +274,37 @@
     <nav>
         <div class="container">
             <a href="#home" class="logo-brand">Ziyomap</a>
-            <a href="#projects">Loyihalar</a>
-            <a href="#lab">Laboratoriya</a>
-            <a href="#blog">Blog</a>
-            <a href="#contact">Aloqa</a>
             
-            <div class="profile-dropdown">
-                <i class="fas fa-moon" id="theme-toggle" style="cursor:pointer; font-size: 1.2rem;"></i>
-                <a href="#" id="login-btn">...</a>
+            <div class="menu-toggle" id="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
             </div>
+
+            <div class="nav-menu" id="nav-links">
+                <a href="#home">Asosiy</a>
+                <a href="#projects">Loyihalar</a>
+                <a href="#lab">Laboratoriya</a>
+                <a href="#blog">Blog</a>
+                <a href="#contact">Aloqa</a>
+                
+                <div class="profile-dropdown">
+                    <i class="fas fa-moon" id="theme-toggle" style="cursor:pointer; font-size: 1.2rem;"></i>
+                    <a href="#" id="login-btn">...</a>
+                </div>
+            </div>
+
             <div id="myDropdown" class="dropdown-content">
                 <div id="user-info" style="text-align: center;">
                     <img id="user-photo" src="" alt="User">
-                    <h4 id="user-name">Foydalanuvchi</h4>
+                    <h4 id="user-name" style="margin-top:10px;">Foydalanuvchi</h4>
                     <p id="user-email">email@example.com</p>
                 </div>
-                <div class="dropdown-divider"></div>
-                <div style="font-size: 0.9rem; margin-bottom: 10px; color: var(--dark-color);">
+                <div style="height:1px; background:rgba(59,130,246,0.2); margin:15px 0;"></div>
+                <div style="font-size: 0.9rem; color: var(--dark-color);">
                     <i class="fas fa-award" style="color: #f59e0b;"></i> 
                     Laboratoriya ballari: <span id="user-points" style="font-weight: bold;">0</span>
                 </div>
-                <div class="dropdown-divider"></div>
-                <a href="#" class="logout-link" id="logout-btn">
+                <div style="height:1px; background:rgba(59,130,246,0.2); margin:15px 0;"></div>
+                <a href="#" class="logout-link" id="logout-btn" style="color:#ef4444; text-decoration:none; font-weight:bold;">
                     <i class="fas fa-sign-out-alt"></i> Chiqish
                 </a>
             </div>
@@ -411,7 +324,7 @@
     </section>
 
     <section class="section" id="projects">
-        <h2 style="text-align: center;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
+        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
         <div class="grid">
             <div class="card" data-aos="flip-left">
                 <i class="fas fa-atom"></i>
@@ -432,7 +345,7 @@
     </section>
 
     <section class="section" id="lab">
-        <h2 style="text-align: center;" data-aos="fade-down">Interaktiv Laboratoriya</h2>
+        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Interaktiv Laboratoriya</h2>
         <div class="grid">
             <div class="card" data-aos="zoom-in">
                 <i class="fas fa-bolt"></i>
@@ -440,7 +353,7 @@
                 <p>Kuchlanish (V) va Qarshilikni (R) kiriting:</p>
                 <input type="number" id="voltage" class="lab-input" placeholder="V (Volt)">
                 <input type="number" id="resistance" class="lab-input" placeholder="R (Om)">
-                <button onclick="calculateCurrent()" class="btn" style="width:100%; margin-top:10px;">Hisoblash</button>
+                <button onclick="calculateCurrent()" class="btn" style="width:100%; margin:10px 0;">Hisoblash</button>
                 <p id="calcResult" style="margin-top:15px; font-weight:bold; color:var(--primary-color);"></p>
             </div>
 
@@ -456,43 +369,41 @@
         </div>
 
         <div id="results-sidebar" data-aos="fade-up">
-            <h4 style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+            <h4 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-clipboard-list" style="font-size: 1.2rem; color: var(--primary-color);"></i> 
                 Olingan natijalar jadvali
             </h4>
             <div id="results-list">
                 <p style="color: #94a3b8; font-style: italic;">Hali natijalar yo'q. Laboratoriya tajribasini yakunlang.</p>
             </div>
-            <button onclick="clearResults()" class="btn btn-outline" style="margin-top: 15px; font-size: 0.8rem; padding: 5px 15px;">Tozalash</button>
+            <button onclick="clearResults()" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 20px;">Tozalash</button>
         </div>
     </section>
 
-    <section class="section" id="blog" style="background-color: var(--light-bg); max-width: 100%;">
-        <div style="max-width: 1100px; margin: auto;">
-            <h2 style="text-align: center;" data-aos="fade-down">Blog</h2>
-            <div class="grid">
-                <div class="card" data-aos="fade-up">
-                    <span class="blog-date">28-Aprel, 2026</span>
-                    <h3>Fizika darslarida AI</h3>
-                    <p>Sun'iy intellekt yordamida darslarni qanday qiziqarli qilish mumkin? Tajribalarim bilan o'rtoqlashaman.</p>
-                </div>
-                <div class="card" data-aos="fade-up" data-aos-delay="200">
-                    <span class="blog-date">25-Aprel, 2026</span>
-                    <h3>Ziyomap Loyihasi</h3>
-                    <p>Ziyomap platformasining imkoniyatlari va ta'lim tizimidagi o'rni haqida batafsil ma'lumot.</p>
-                </div>
+    <section class="section" id="blog">
+        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Blog</h2>
+        <div class="grid">
+            <div class="card" data-aos="fade-up">
+                <span style="color: #64748b; font-size: 0.85rem; margin-bottom: 10px; display: block;">28-Aprel, 2026</span>
+                <h3>Fizika darslarida AI</h3>
+                <p>Sun'iy intellekt yordamida darslarni qanday qiziqarli qilish mumkin? Tajribalarim bilan o'rtoqlashaman.</p>
+            </div>
+            <div class="card" data-aos="fade-up" data-aos-delay="200">
+                <span style="color: #64748b; font-size: 0.85rem; margin-bottom: 10px; display: block;">25-Aprel, 2026</span>
+                <h3>Ziyomap Loyihasi</h3>
+                <p>Ziyomap platformasining imkoniyatlari va ta'lim tizimidagi o'rni haqida batafsil ma'lumot.</p>
             </div>
         </div>
     </section>
 
     <section class="section" id="contact">
-        <h2 style="text-align: center;" data-aos="fade-down">Men bilan bog'laning</h2>
-        <div class="contact-form" data-aos="zoom-in">
+        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Men bilan bog'laning</h2>
+        <div style="max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);" data-aos="zoom-in">
             <form action="mailto:ishingiz@example.com" method="post">
-                <input type="text" placeholder="Ismingiz" required>
-                <input type="email" placeholder="Email manzilingiz" required>
-                <textarea rows="5" placeholder="Xabaringizni yozing..." required></textarea>
-                <button type="submit" class="btn" style="width: 100%;">Yuborish</button>
+                <input type="text" placeholder="Ismingiz" required class="lab-input">
+                <input type="email" placeholder="Email manzilingiz" required class="lab-input">
+                <textarea rows="5" placeholder="Xabaringizni yozing..." required class="lab-input"></textarea>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Yuborish</button>
             </form>
         </div>
     </section>
@@ -503,7 +414,7 @@
             <a href="https://instagram.com/izzatillobeey" target="_blank"><i class="fab fa-instagram"></i></a>
             <a href="https://github.com/idrizmedia-netizen/Testmasters" target="_blank"><i class="fab fa-github"></i></a>
         </div>
-        <p style="margin-top: 20px;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan.</p>
+        <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
 
     <script type="module">
@@ -562,12 +473,27 @@
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // PRELOADER LOGIKASI
+        // PRELOADER
         window.addEventListener('load', () => {
             const preloader = document.getElementById('preloader');
-            setTimeout(() => {
-                preloader.classList.add('fade-out');
-            }, 2000); // 2 soniya ko'rinadi
+            setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
+        });
+
+        // MOBIL MENYU LOGIKASI
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const navLinks = document.getElementById('nav-links');
+        mobileBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            mobileBtn.querySelector('i').classList.toggle('fa-bars');
+            mobileBtn.querySelector('i').classList.toggle('fa-times');
+        });
+
+        // Menyu bosilganda avtomatik yopilishi (mobil uchun)
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                mobileBtn.querySelector('i').classList.replace('fa-times', 'fa-bars');
+            });
         });
 
         AOS.init({ duration: 1000, once: true });
@@ -587,14 +513,14 @@
             themeToggle.classList.replace('fa-moon', 'fa-sun');
         }
 
-        // Greeting
+        // Greeting (Vaqtga qarab salomlashish)
         const hour = new Date().getHours();
         const greeting = document.getElementById('greeting');
         if (hour < 12) greeting.innerText = "Xayrli tong!";
         else if (hour < 18) greeting.innerText = "Xayrli kun!";
         else greeting.innerText = "Xayrli kech!";
 
-        // Physics Logic
+        // Physics Logic (Laboratoriya)
         window.calculateCurrent = function() {
             const v = document.getElementById('voltage').value;
             const r = document.getElementById('resistance').value;
@@ -605,23 +531,29 @@
                 let p = parseInt(localStorage.getItem('lab_points') || 0);
                 localStorage.setItem('lab_points', p + 5);
                 document.getElementById('user-points').innerText = p + 5;
+                
+                const list = document.getElementById('results-list');
+                if(list.innerHTML.includes('Hali natijalar yo\'q')) list.innerHTML = '';
+                list.innerHTML += `<div style="background:var(--light-bg); padding:10px; border-radius:10px; margin-bottom:5px;">V=${v}V, R=${r}Ω => I=${i}A</div>`;
             }
         }
 
         window.checkAnswer = function(isCorrect) {
             const status = document.getElementById('testStatus');
             if(isCorrect) {
-                status.innerText = "To'g'ri! 🚀";
+                status.innerText = "To'g'ri! 🚀 +10 ball";
+                status.style.color = "#10b981";
                 let p = parseInt(localStorage.getItem('lab_points') || 0);
                 localStorage.setItem('lab_points', p + 10);
                 document.getElementById('user-points').innerText = p + 10;
             } else {
-                status.innerText = "Xato! ❌";
+                status.innerText = "Xato! ❌ Qaytadan urining";
+                status.style.color = "#ef4444";
             }
         }
 
         window.clearResults = function() {
-            document.getElementById('results-list').innerHTML = '<p>Tozalandi.</p>';
+            document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
     </script>
 
