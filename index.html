@@ -33,7 +33,7 @@ body.dark-theme {
 
         /* Navigatsiya */
         nav {
-            background: rgba(255, 255, 255, 0.8);
+           background: var(--card-bg);
             backdrop-filter: blur(10px);
             position: fixed;
             width: 100%;
@@ -58,11 +58,12 @@ body.dark-theme {
 
         nav a:hover { color: var(--primary-color); }
 
-        /* Profil va Dropdown stili */
         .profile-dropdown {
-            position: relative;
-            display: inline-block;
-        }
+    display: flex;       /* Elementlarni yonma-yon qilish uchun */
+    align-items: center; /* Vertikal tekislash uchun */
+    gap: 15px;           /* Tugmalar orasidagi masofa */
+}
+    
 
         #login-btn {
             background: var(--primary-color);
@@ -147,7 +148,7 @@ body.dark-theme {
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
+            background: var(--light-bg)
             color: white;
             text-align: center;
             padding: 0 20px;
@@ -191,16 +192,16 @@ body.dark-theme {
         }
 
         /* Loyihalar, Blog va Forma qismlari */
-        .section { padding: 80px 20px; max-width: 1100px; margin: auto; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 40px;
-        }
+        .section { 
+    padding: 80px 20px; 
+    max-width: 1100px; 
+    margin: auto; 
+    background-color: var(--light-bg); /* Mana shu qatorni qo'shing */
+}
 
         .card {
-            background: white;
+            background: var(--card-bg);
+            color: var(--text-color);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
