@@ -187,6 +187,32 @@
         }
 
         .social-links a:hover { color: #60a5fa; }
+
+        /* Natijalar Paneli uchun maxsus stillar */
+        #results-sidebar {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 15px;
+        }
+        #results-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .result-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -236,6 +262,7 @@
 
     <section class="section" id="lab">
         <h2 style="text-align: center;" data-aos="fade-down">Interaktiv Laboratoriya</h2>
+        
         <div class="grid">
             <div class="card" data-aos="zoom-in">
                 <i class="fas fa-bolt"></i>
@@ -256,6 +283,17 @@
                 <button class="test-btn" onclick="checkAnswer(false)">C) Arximed</button>
                 <p id="testStatus" style="margin-top:15px; font-weight:bold;"></p>
             </div>
+        </div>
+
+        <div id="results-sidebar" data-aos="fade-up">
+            <h4 style="color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-clipboard-list" style="font-size: 1.2rem; color: var(--primary-color);"></i> 
+                Olingan natijalar jadvali
+            </h4>
+            <div id="results-list">
+                <p style="color: #94a3b8; font-style: italic;">Hali natijalar yo'q. Laboratoriya tajribasini yakunlang.</p>
+            </div>
+            <button onclick="clearResults()" class="btn btn-outline" style="margin-top: 15px; font-size: 0.8rem; padding: 5px 15px; color: var(--dark-color); border-color: #cbd5e1;">Tozalash</button>
         </div>
     </section>
 
@@ -323,6 +361,8 @@
                 const i = (v / r).toFixed(2);
                 resDisplay.innerText = `Tok kuchi: I = ${i} Amper`;
                 resDisplay.style.color = "var(--primary-color)";
+                // Kalkulyator natijasini ham saqlash paneliga qo'shish
+                if(typeof saveResult === "function") saveResult(`Om qonuni: V=${v}V, R=${r}Ω => I=${i}A`);
             } else {
                 resDisplay.innerText = "Iltimos, to'g'ri qiymatlarni kiriting!";
                 resDisplay.style.color = "red";
@@ -339,6 +379,12 @@
                 status.innerText = "Xato! ❌ Yana bir bor urinib ko'ring.";
                 status.style.color = "red";
             }
+        }
+
+        // Natijalarni tozalash (UI qismi)
+        function clearResults() {
+            const list = document.getElementById('results-list');
+            list.innerHTML = '<p style="color: #94a3b8; font-style: italic;">Hali natijalar yo\'q. Laboratoriya tajribasini yakunlang.</p>';
         }
     </script>
 
