@@ -3,484 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdrizMedia | Portfolio & Virtual Lab</title>
-    
+    <title>IdrizMedia | Portfolio</title>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --primary-color: #2563eb;
             --secondary-color: #3b82f6;
             --dark-color: #1e293b;
             --light-bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --nav-bg: rgba(255, 255, 255, 0.9);
-            --border: #e2e8f0;
-            --hero-grad: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
-        }
-
-        [data-theme="dark"] {
-            --primary-color: #60a5fa;
-            --secondary-color: #2563eb;
-            --dark-color: #f8fafc;
-            --light-bg: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f1f5f9;
-            --nav-bg: rgba(15, 23, 42, 0.95);
-            --border: #334155;
-            --hero-grad: linear-gradient(135deg, #020617 0%, #1e293b 100%);
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             background-color: var(--light-bg);
-            color: var(--text-main);
+            color: var(--dark-color);
             scroll-behavior: smooth;
-            transition: 0.3s ease;
         }
 
         /* Navigatsiya */
         nav {
-            background: var(--nav-bg);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             position: fixed;
             width: 100%;
-            height: 80px;
-            top: 0; z-index: 2000;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .nav-container {
-            width: 90%;
-            max-width: 1300px;
-            margin: auto;
+        nav .container {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             align-items: center;
         }
 
-        .nav-links { display: flex; align-items: center; gap: 20px; }
-        
-        .nav-links a {
+        nav a {
             text-decoration: none;
-            color: var(--text-main);
+            color: var(--dark-color);
             font-weight: 600;
             transition: 0.3s;
         }
 
-        .nav-links a:hover { color: var(--primary-color); }
+        nav a:hover { color: var(--primary-color); }
 
-        /* Buttons & Controls */
-        .controls { display: flex; align-items: center; gap: 15px; }
-        
-        .theme-toggle, .lang-select {
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            color: var(--text-main);
-            cursor: pointer;
+        /* Profil va Dropdown stili */
+        .profile-dropdown {
+            position: relative;
+            display: inline-block;
         }
 
         #login-btn {
             background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            border: none;
+            color: white !important;
+            padding: 8px 20px;
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            font-size: 14px;
         }
 
-        /* Hero */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 260px;
+            box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+            z-index: 1100;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+        }
+
+        .dropdown-content.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .dropdown-content img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .dropdown-content h4 {
+            margin: 5px 0;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .dropdown-content p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.85rem;
+            word-break: break-all;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: #e2e8f0;
+            margin: 15px 0;
+        }
+
+        .logout-link {
+            color: #ef4444 !important;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
         .hero {
             height: 100vh;
-            background: var(--hero-grad);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
             color: white;
             text-align: center;
             padding: 0 20px;
         }
 
-        .hero h1 { font-size: 4rem; margin: 0; font-weight: 900; }
-        .hero p { font-size: 1.3rem; margin: 20px 0; max-width: 700px; opacity: 0.9; }
+        .hero h1 { font-size: 3.5rem; margin-bottom: 10px; }
+        .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; }
 
-        /* Cards & Layout */
-        .section { padding: 100px 20px; max-width: 1200px; margin: auto; }
+        /* Tugmalar */
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: white;
+            color: var(--primary-color);
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            margin-left: 10px;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--primary-color);
+        }
+
+        /* Loyihalar, Blog va Forma qismlari */
+        .section { padding: 80px 20px; max-width: 1100px; margin: auto; }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-            margin-top: 50px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
         }
 
         .card {
-            background: var(--card-bg);
+            background: white;
             padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             transition: 0.4s;
+            border-bottom: 4px solid transparent;
         }
 
-        .card:hover { transform: translateY(-10px); }
+        .card:hover {
+            transform: translateY(-10px);
+            border-bottom: 4px solid var(--primary-color);
+        }
 
+        .card i { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px; }
+
+        /* Interaktiv Laboratoriya stili */
         .lab-input {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             margin: 10px 0;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--light-bg);
-            color: var(--text-main);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-sizing: border-box;
         }
 
-        /* Dropdown */
-        .dropdown {
-            display: none;
-            position: absolute;
-            top: 70px; right: 0;
-            background: var(--card-bg);
-            width: 250px;
-            padding: 20px;
+        .test-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .test-btn:hover { background: #e2e8f0; }
+
+        /* Blog qo'shimcha stil */
+        .blog-date { font-size: 0.85rem; color: #64748b; margin-bottom: 10px; display: block; }
+
+        /* Forma stili */
+        .contact-form {
+            background: white;
+            padding: 40px;
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            border: 1px solid var(--border);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            max-width: 600px;
+            margin: 40px auto;
         }
-        .dropdown.active { display: block; }
 
-        /* Results Panel */
-        #results-sidebar {
-            margin-top: 50px;
-            padding: 30px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            border: 2px dashed var(--primary-color);
+        .contact-form input, .contact-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            box-sizing: border-box;
         }
 
         footer {
             background: var(--dark-color);
             color: white;
-            padding: 60px 20px;
+            padding: 40px 20px;
             text-align: center;
         }
 
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 2.5rem; }
+        .social-links a {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 15px;
+            transition: 0.3s;
+        }
+
+        .social-links a:hover { color: #60a5fa; }
+
+        #results-sidebar {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 15px;
+        }
+        #results-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .result-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
     </style>
 </head>
-<body data-theme="light">
+<body>
 
     <nav>
-        <div class="nav-container">
-            <a href="#" style="font-weight: 900; font-size: 1.5rem; text-decoration: none; color: var(--primary-color);">IdrizMedia</a>
+        <div class="container">
+            <a href="#home">Asosiy</a>
+            <a href="#projects">Loyihalar</a>
+            <a href="#lab">Laboratoriya</a>
+            <a href="#blog">Blog</a>
+            <a href="#contact">Aloqa</a>
             
-            <div class="nav-links">
-                <a href="#home" id="nav-home">Asosiy</a>
-                <a href="#projects" id="nav-projects">Loyihalar</a>
-                <a href="#lab" id="nav-lab">Laboratoriya</a>
-                <a href="#blog" id="nav-blog">Blog</a>
-                <a href="#contact" id="nav-contact">Aloqa</a>
-            </div>
-
-            <div class="controls">
-                <button class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
-                
-                <select class="lang-select" onchange="changeLang(this.value)">
-                    <option value="uz">UZ</option>
-                    <option value="ru">RU</option>
-                    <option value="en">EN</option>
-                </select>
-
-                <div style="position: relative;">
-                    <button id="login-btn"><i class="fab fa-google"></i> <span id="btn-text">Kirish</span></button>
-                    <div id="userMenu" class="dropdown">
-                        <div style="text-align: center;">
-                            <img id="u-img" src="" style="width: 60px; border-radius: 50%;">
-                            <h4 id="u-name" style="margin: 10px 0;">Foydalanuvchi</h4>
-                            <p id="u-points-wrap">Ballar: <span id="u-points">0</span></p>
-                            <hr>
-                            <button onclick="logout()" style="width: 100%; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer;">Chiqish</button>
-                        </div>
+            <div class="profile-dropdown">
+                <a href="#" id="login-btn"><i class="fab fa-google"></i> Kirish</a>
+                <div id="myDropdown" class="dropdown-content">
+                    <div id="user-info" style="text-align: center;">
+                        <img id="user-photo" src="" alt="User">
+                        <h4 id="user-name">Foydalanuvchi</h4>
+                        <p id="user-email">email@example.com</p>
                     </div>
+                    <div class="dropdown-divider"></div>
+                    <div style="font-size: 0.9rem; margin-bottom: 10px; color: var(--dark-color);">
+                        <i class="fas fa-award" style="color: #f59e0b;"></i> 
+                        Laboratoriya ballari: <span id="user-points" style="font-weight: bold;">0</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="logout-link" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Chiqish
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
     <section class="hero" id="home">
-        <h1 id="hero-title">Xayrli kun!</h1>
-        <p id="hero-desc">Fizika o'qituvchisi, Dasturchi va IT tadbirkor. Bilim va texnologiya birlashgan joyda yangi imkoniyatlar yarataman.</p>
-        <a href="#projects" class="lab-input" style="width: auto; background: white; color: var(--primary-color); font-weight: bold; text-decoration: none; padding: 15px 40px; border-radius: 30px;" id="hero-btn">LOYIHALARNI KO'RISH</a>
+        <h1 id="greeting" data-aos="fade-up">Assalomu alaykum!</h1>
+        <p data-aos="fade-up" data-aos-delay="200">
+            Fizika o'qituvchisi, Dasturchi va IT tadbirkor. 
+            Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
+        </p>
+        <div data-aos="zoom-in" data-aos-delay="400">
+            <a href="#projects" class="btn">Loyihalarni ko'rish</a>
+            <a href="https://ziyomap.streamlit.app/" target="_blank" class="btn btn-outline">Ziyomap</a>
+        </div>
     </section>
 
     <section class="section" id="projects">
-        <h2 style="text-align: center;" id="proj-title">Nimalar bilan shug'ullanaman?</h2>
+        <h2 style="text-align: center;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
         <div class="grid">
-            <div class="card" data-aos="fade-up">
-                <i class="fas fa-atom" style="font-size: 2.5rem; color: var(--primary-color);"></i>
-                <h3 id="card1-h">Fizika va Ta'lim</h3>
-                <p id="card1-p">O'quvchilar uchun interaktiv darslar va fizik jarayonlarning raqamli modellarini yarataman.</p>
+            <div class="card" data-aos="flip-left">
+                <i class="fas fa-atom"></i>
+                <h3>Fizika va Ta'lim</h3>
+                <p>O'quvchilar uchun interaktiv darslar va fizik jarayonlarning raqamli modellarini yarataman.</p>
             </div>
-            <div class="card" data-aos="fade-up" data-aos-delay="100">
-                <i class="fas fa-code" style="font-size: 2.5rem; color: #10b981;"></i>
-                <h3 id="card2-h">Dasturlash</h3>
-                <p id="card2-p">Python, Flutter va Web texnologiyalar yordamida foydali ilovalar ishlab chiqaman.</p>
+            <div class="card" data-aos="flip-left" data-aos-delay="200">
+                <i class="fas fa-code"></i>
+                <h3>Dasturlash</h3>
+                <p>Python (Streamlit), Flutter va Web texnologiyalar yordamida foydali ilovalar ishlab chiqaman.</p>
             </div>
-            <div class="card" data-aos="fade-up" data-aos-delay="200">
-                <i class="fas fa-chart-line" style="font-size: 2.5rem; color: #f59e0b;"></i>
-                <h3 id="card3-h">Tadbirkorlik</h3>
-                <p id="card3-p">Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
+            <div class="card" data-aos="flip-left" data-aos-delay="400">
+                <i class="fas fa-chart-line"></i>
+                <h3>Tadbirkorlik</h3>
+                <p>Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
             </div>
         </div>
     </section>
 
     <section class="section" id="lab">
-        <h2 style="text-align: center;" id="lab-main-h">Virtual Laboratoriya</h2>
+        <h2 style="text-align: center;" data-aos="fade-down">Interaktiv Laboratoriya</h2>
         <div class="grid">
             <div class="card" data-aos="zoom-in">
-                <h3><i class="fas fa-bolt"></i> Om qonuni</h3>
-                <label id="lab-v-label">Kuchlanish (V):</label>
-                <input type="number" id="v-val" class="lab-input" placeholder="Volt">
-                <label id="lab-r-label">Qarshilik (R):</label>
-                <input type="number" id="r-val" class="lab-input" placeholder="Om">
-                <button onclick="calcOhm()" id="lab-btn-calc" style="width:100%; padding:12px; background:var(--primary-color); color:white; border:none; border-radius:10px; cursor:pointer;">HISOBLASH</button>
-                <p id="ohm-res" style="margin-top:15px; font-weight:bold;"></p>
-            </div>
-
-            <div class="card" data-aos="zoom-in" data-aos-delay="100">
-                <h3><i class="fas fa-eye"></i> Yupqa linza</h3>
-                <label id="lab-f-label">Fokus masofasi (F):</label>
-                <input type="number" id="f-val" class="lab-input" placeholder="metr">
-                <label id="lab-d-label">Narsagacha masofa (d):</label>
-                <input type="number" id="d-val" class="lab-input" placeholder="metr">
-                <button onclick="calcLens()" id="lab-btn-lens" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:10px; cursor:pointer;">TASVIRNI TOPISH</button>
-                <p id="lens-res" style="margin-top:15px; font-weight:bold;"></p>
+                <i class="fas fa-bolt"></i>
+                <h3>Om qonuni kalkulyatori</h3>
+                <p>Kuchlanish (V) va Qarshilikni (R) kiriting:</p>
+                <input type="number" id="voltage" class="lab-input" placeholder="V (Volt)">
+                <input type="number" id="resistance" class="lab-input" placeholder="R (Om)">
+                <button onclick="calculateCurrent()" class="btn" style="width:100%; margin-top:10px;">Hisoblash</button>
+                <p id="calcResult" style="margin-top:15px; font-weight:bold; color:var(--primary-color);"></p>
             </div>
 
             <div class="card" data-aos="zoom-in" data-aos-delay="200">
-                <h3><i class="fas fa-cog"></i> Nyuton 2-qonuni</h3>
-                <label id="lab-m-label">Massa (m):</label>
-                <input type="number" id="m-val" class="lab-input" placeholder="kg">
-                <label id="lab-a-label">Tezlanish (a):</label>
-                <input type="number" id="a-val" class="lab-input" placeholder="m/s²">
-                <button onclick="calcForce()" id="lab-btn-force" style="width:100%; padding:12px; background:#f59e0b; color:white; border:none; border-radius:10px; cursor:pointer;">KUCHNI ANIQLASH</button>
-                <p id="force-res" style="margin-top:15px; font-weight:bold;"></p>
+                <i class="fas fa-brain"></i>
+                <h3>Tezkor Test</h3>
+                <p>Energiyaning saqlanish qonunini kim kashf etgan?</p>
+                <button class="test-btn" onclick="checkAnswer(false)">A) Isaak Nyuton</button>
+                <button class="test-btn" onclick="checkAnswer(true)">B) Yulius Mayer</button>
+                <button class="test-btn" onclick="checkAnswer(false)">C) Arximed</button>
+                <p id="testStatus" style="margin-top:15px; font-weight:bold;"></p>
             </div>
         </div>
 
-        <div id="results-sidebar">
-            <h4 id="res-title">Tajriba natijalari jadvali:</h4>
-            <div id="res-list"><p id="res-empty">Hali natijalar yo'q...</p></div>
+        <div id="results-sidebar" data-aos="fade-up">
+            <h4 style="color: #1e293b; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-clipboard-list" style="font-size: 1.2rem; color: var(--primary-color);"></i> 
+                Olingan natijalar jadvali
+            </h4>
+            <div id="results-list">
+                <p style="color: #94a3b8; font-style: italic;">Hali natijalar yo'q. Laboratoriya tajribasini yakunlang.</p>
+            </div>
+            <button onclick="clearResults()" class="btn btn-outline" style="margin-top: 15px; font-size: 0.8rem; padding: 5px 15px; color: var(--dark-color); border-color: #cbd5e1;">Tozalash</button>
         </div>
     </section>
 
-    <section class="section" id="blog" style="background: var(--light-bg);">
-        <h2 style="text-align: center;" id="blog-title">Blog</h2>
-        <div class="grid">
-            <div class="card">
-                <span style="font-size: 0.8rem; color: #64748b;">29-Aprel, 2026</span>
-                <h3 id="b1-h">Fizika darslarida AI</h3>
-                <p id="b1-p">Sun'iy intellekt yordamida darslarni qanday qiziqarli qilish mumkin? Tajribalarim bilan o'rtoqlashaman.</p>
-            </div>
-            <div class="card">
-                <span style="font-size: 0.8rem; color: #64748b;">25-Aprel, 2026</span>
-                <h3 id="b2-h">Ziyomap Loyihasi</h3>
-                <p id="b2-p">Ziyomap platformasining imkoniyatlari va ta'lim tizimidagi o'rni haqida batafsil ma'lumot.</p>
+    <section class="section" id="blog" style="background-color: #f1f5f9; max-width: 100%;">
+        <div style="max-width: 1100px; margin: auto;">
+            <h2 style="text-align: center;" data-aos="fade-down">Blog</h2>
+            <div class="grid">
+                <div class="card" data-aos="fade-up">
+                    <span class="blog-date">28-Aprel, 2026</span>
+                    <h3>Fizika darslarida AI</h3>
+                    <p>Sun'iy intellekt yordamida darslarni qanday qiziqarli qilish mumkin? Tajribalarim bilan o'rtoqlashaman.</p>
+                </div>
+                <div class="card" data-aos="fade-up" data-aos-delay="200">
+                    <span class="blog-date">25-Aprel, 2026</span>
+                    <h3>Ziyomap Loyihasi</h3>
+                    <p>Ziyomap platformasining imkoniyatlari va ta'lim tizimidagi o'rni haqida batafsil ma'lumot.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <footer>
-        <p>&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan.</p>
-        <div style="font-size: 1.5rem; margin-top: 20px;">
-            <a href="https://t.me/Ziyomap" style="color:white; margin: 0 10px;"><i class="fab fa-telegram"></i></a>
-            <a href="https://github.com/idrizmedia-netizen/Testmasters" style="color:white; margin: 0 10px;"><i class="fab fa-github"></i></a>
+    <section class="section" id="contact">
+        <h2 style="text-align: center;" data-aos="fade-down">Men bilan bog'laning</h2>
+        <div class="contact-form" data-aos="zoom-in">
+            <form action="mailto:ishingiz@example.com" method="post" enctype="text-plain">
+                <input type="text" placeholder="Ismingiz" required>
+                <input type="email" placeholder="Email manzilingiz" required>
+                <textarea rows="5" placeholder="Xabaringizni yozing..." required></textarea>
+                <button type="submit" class="btn" style="background-color: var(--primary-color); color: white; width: 100%;">Yuborish</button>
+            </form>
         </div>
+    </section>
+
+    <footer id="footer">
+        <div class="social-links" data-aos="fade-up">
+            <a href="https://t.me/Ziyomap" target="_blank"><i class="fab fa-telegram"></i></a>
+            <a href="https://instagram.com/izzatillobeey" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://github.com/idrizmedia-netizen/Testmasters" target="_blank"><i class="fab fa-github"></i></a>
+        </div>
+        <p style="margin-top: 20px;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan.</p>
     </footer>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
-            authDomain: "ziyomap.firebaseapp.com",
-            projectId: "ziyomap",
-            storageBucket: "ziyomap.firebasestorage.app",
-            messagingSenderId: "982123868162",
-            appId: "1:982123868162:web:6845723988c030fcd1f71b"
-        };
+      const firebaseConfig = {
+        apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
+        authDomain: "ziyomap.firebaseapp.com",
+        projectId: "ziyomap",
+        storageBucket: "ziyomap.firebasestorage.app",
+        messagingSenderId: "982123868162",
+        appId: "1:982123868162:web:6845723988c030fcd1f71b",
+        measurementId: "G-Y3EQ1ZJW3B"
+      };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
 
-        const loginBtn = document.getElementById('login-btn');
-        const userMenu = document.getElementById('userMenu');
+      const loginBtn = document.getElementById('login-btn');
+      const dropdown = document.getElementById('myDropdown');
+      const logoutBtn = document.getElementById('logout-btn');
 
-        loginBtn.onclick = () => {
-            if(!auth.currentUser) signInWithPopup(auth, provider);
-            else userMenu.classList.toggle('active');
-        };
+      // Login/Dropdown ochish mantiqi
+      loginBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (!auth.currentUser) {
+              signInWithPopup(auth, provider)
+              .then((result) => { console.log("Kirildi"); })
+              .catch((err) => { console.error(err); });
+          } else {
+              dropdown.classList.toggle('show');
+          }
+      });
 
-        window.logout = () => signOut(auth).then(() => userMenu.classList.remove('active'));
+      // Chiqish mantiqi
+      logoutBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
+              signOut(auth).then(() => {
+                  dropdown.classList.remove('show');
+              });
+          }
+      });
 
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
-                document.getElementById('btn-text').innerText = user.displayName.split(' ')[0];
-                document.getElementById('u-img').src = user.photoURL;
-                document.getElementById('u-name').innerText = user.displayName;
-                document.getElementById('u-points').innerText = localStorage.getItem('pts') || 0;
-            } else {
-                document.getElementById('btn-text').innerText = "Kirish";
-            }
-        });
-    </script>
+      // Foydalanuvchi holatini kuzatish
+      onAuthStateChanged(auth, (user) => {
+          if (user) {
+              loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${user.displayName}`;
+              loginBtn.style.background = "#10b981";
+              
+              // Dropdown ichini to'ldirish
+              document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/60';
+              document.getElementById('user-name').innerText = user.displayName;
+              document.getElementById('user-email').innerText = user.email;
+              
+              // Ballarni olish
+              const points = localStorage.getItem('lab_points') || 0;
+              document.getElementById('user-points').innerText = points;
+          } else {
+              loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
+              loginBtn.style.background = "var(--primary-color)";
+          }
+      });
 
-    <script>
-        const translations = {
-            uz: {
-                navHome: "Asosiy", navProj: "Loyihalar", navLab: "Laboratoriya", navBlog: "Blog", navCont: "Aloqa",
-                heroH: "Xayrli kun!", heroD: "Fizika o'qituvchisi, Dasturchi va IT tadbirkor.", heroB: "LOYIHALARNI KO'RISH",
-                pTitle: "Nimalar bilan shug'ullanaman?", c1h: "Fizika va Ta'lim", c1p: "Interaktiv darslar va modellar.",
-                lTitle: "Virtual Laboratoriya", lV: "Kuchlanish (V):", lR: "Qarshilik (R):", lCalc: "HISOBLASH",
-                rTitle: "Natijalar jadvali:", rEmpty: "Hozircha natijalar yo'q...", bTitle: "Blog",
-                b1h: "Fizika darslarida AI", b2h: "Ziyomap Loyihasi"
-            },
-            ru: {
-                navHome: "Главная", navProj: "Проекты", navLab: "Лаборатория", navBlog: "Блог", navCont: "Контакт",
-                heroH: "Добрый день!", heroD: "Учитель физики, программист и ИТ-предприниматель.", heroB: "СМОТРЕТЬ ПРОЕКТЫ",
-                pTitle: "Чем я занимаюсь?", c1h: "Физика и Образование", c1p: "Интерактивные уроки и модели.",
-                lTitle: "Виртуальная Лаборатория", lV: "Напряжение (V):", lR: "Сопротивление (R):", lCalc: "РАССЧИТАТЬ",
-                rTitle: "Таблица результатов:", rEmpty: "Результатов пока нет...", bTitle: "Блог",
-                b1h: "ИИ в уроках физики", b2h: "Проект Ziyomap"
-            },
-            en: {
-                navHome: "Home", navProj: "Projects", navLab: "Lab", navBlog: "Blog", navCont: "Contact",
-                heroH: "Good Day!", heroD: "Physics Teacher, Developer and IT Entrepreneur.", heroB: "VIEW PROJECTS",
-                pTitle: "What I do?", c1h: "Physics & Education", c1p: "Interactive lessons and models.",
-                lTitle: "Virtual Laboratory", lV: "Voltage (V):", lR: "Resistance (R):", lCalc: "CALCULATE",
-                rTitle: "Results Table:", rEmpty: "No results yet...", bTitle: "Blog",
-                b1h: "AI in Physics", b2h: "Ziyomap Project"
-            }
-        };
-
-        function changeLang(l) {
-            const t = translations[l];
-            document.getElementById('nav-home').innerText = t.navHome;
-            document.getElementById('nav-projects').innerText = t.navProj;
-            document.getElementById('nav-lab').innerText = t.navLab;
-            document.getElementById('nav-blog').innerText = t.navBlog;
-            document.getElementById('hero-title').innerText = t.heroH;
-            document.getElementById('hero-desc').innerText = t.heroD;
-            document.getElementById('hero-btn').innerText = t.heroB;
-            document.getElementById('proj-title').innerText = t.pTitle;
-            document.getElementById('card1-h').innerText = t.c1h;
-            document.getElementById('card1-p').innerText = t.c1p;
-            document.getElementById('lab-main-h').innerText = t.lTitle;
-            document.getElementById('lab-v-label').innerText = t.lV;
-            document.getElementById('lab-r-label').innerText = t.lR;
-            document.getElementById('lab-btn-calc').innerText = t.lCalc;
-            document.getElementById('res-title').innerText = t.rTitle;
-            if(document.getElementById('res-empty')) document.getElementById('res-empty').innerText = t.rEmpty;
-            document.getElementById('blog-title').innerText = t.bTitle;
-            document.getElementById('b1-h').innerText = t.b1h;
-            document.getElementById('b2-h').innerText = t.b2h;
-            localStorage.setItem('lang', l);
-        }
-
-        function toggleTheme() {
-            const b = document.body;
-            const theme = b.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-            b.setAttribute('data-theme', theme);
-            document.getElementById('theme-icon').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('theme', theme);
-        }
-
-        // Lab funksiyalari
-        function calcOhm() {
-            const v = document.getElementById('v-val').value;
-            const r = document.getElementById('r-val').value;
-            if(v && r > 0) {
-                const i = (v/r).toFixed(2);
-                document.getElementById('ohm-res').innerText = `I = ${i} A`;
-                saveRes(`Elektr: ${i} A`);
-                addPts(5);
-            }
-        }
-
-        function calcLens() {
-            const f = document.getElementById('f-val').value;
-            const d = document.getElementById('d-val').value;
-            if(f && d && d != f) {
-                const f_small = ((d * f) / (d - f)).toFixed(2);
-                document.getElementById('lens-res').innerText = `f = ${f_small} m`;
-                saveRes(`Optika: f=${f_small}m`);
-                addPts(5);
-            }
-        }
-
-        function calcForce() {
-            const m = document.getElementById('m-val').value;
-            const a = document.getElementById('a-val').value;
-            if(m && a) {
-                const f = (m * a).toFixed(2);
-                document.getElementById('force-res').innerText = `F = ${f} N`;
-                saveRes(`Mexanika: ${f} N`);
-                addPts(5);
-            }
-        }
-
-        function addPts(n) {
-            let p = parseInt(localStorage.getItem('pts') || 0) + n;
-            localStorage.setItem('pts', p);
-            document.getElementById('u-points').innerText = p;
-        }
-
-        function saveRes(txt) {
-            const list = document.getElementById('res-list');
-            if(document.getElementById('res-empty')) list.innerHTML = '';
-            const p = document.createElement('p');
-            p.style.background = 'var(--primary-color)';
-            p.style.color = 'white';
-            p.style.padding = '10px';
-            p.style.borderRadius = '8px';
-            p.style.display = 'inline-block';
-            p.style.margin = '5px';
-            p.innerText = txt;
-            list.appendChild(p);
-        }
-
-        window.onload = () => {
-            const t = localStorage.getItem('theme') || 'light';
-            document.body.setAttribute('data-theme', t);
-            document.getElementById('theme-icon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            
-            const l = localStorage.getItem('lang') || 'uz';
-            document.querySelector('.lang-select').value = l;
-            changeLang(l);
-
-            const hr = new Date().getHours();
-            const gt = document.getElementById('hero-title');
-            if(hr < 12) gt.innerText = "Xayrli tong!";
-            else if(hr < 18) gt.innerText = "Xayrli kun!";
-            else gt.innerText = "Xayrli kech!";
-        };
+      // Tashqariga bossa dropdown yopilsin
+      window.addEventListener('click', (e) => {
+          if (!e.target.closest('.profile-dropdown')) {
+              dropdown.classList.remove('show');
+          }
+      });
     </script>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>AOS.init();</script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+
+        // 1. Aqlli salomlashish
+        const now = new Date();
+        const hour = now.getHours();
+        const greeting = document.getElementById('greeting');
+        if (greeting) {
+            if (hour < 12) greeting.innerText = "Xayrli tong!";
+            else if (hour < 18) greeting.innerText = "Xayrli kun!";
+            else greeting.innerText = "Xayrli kech!";
+        }
+
+        // 2. Om qonuni hisob-kitobi
+        window.calculateCurrent = function() {
+            const v = document.getElementById('voltage').value;
+            const r = document.getElementById('resistance').value;
+            const resDisplay = document.getElementById('calcResult');
+            
+            if(v && r && r > 0) {
+                const i = (v / r).toFixed(2);
+                resDisplay.innerText = `Tok kuchi: I = ${i} Amper`;
+                resDisplay.style.color = "var(--primary-color)";
+                
+                // Ball qo'shish (namuna uchun)
+                let currentPoints = parseInt(localStorage.getItem('lab_points') || 0);
+                localStorage.setItem('lab_points', currentPoints + 5);
+                document.getElementById('user-points').innerText = currentPoints + 5;
+                
+            } else {
+                resDisplay.innerText = "Iltimos, to'g'ri qiymatlarni kiriting!";
+                resDisplay.style.color = "red";
+            }
+        }
+
+        // 3. Test tekshiruvi
+        window.checkAnswer = function(isCorrect) {
+            const status = document.getElementById('testStatus');
+            if(isCorrect) {
+                status.innerText = "To'g'ri! 🚀 Fizika bilimingiz a'lo.";
+                status.style.color = "green";
+                let currentPoints = parseInt(localStorage.getItem('lab_points') || 0);
+                localStorage.setItem('lab_points', currentPoints + 10);
+                document.getElementById('user-points').innerText = currentPoints + 10;
+            } else {
+                status.innerText = "Xato! ❌ Yana bir bor urinib ko'ring.";
+                status.style.color = "red";
+            }
+        }
+
+        window.clearResults = function() {
+            const list = document.getElementById('results-list');
+            list.innerHTML = '<p style="color: #94a3b8; font-style: italic;">Hali natijalar yo\'q. Laboratoriya tajribasini yakunlang.</p>';
+        }
+    </script>
+
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script src="labs/mexanika.js"></script>
+    <script src="labs/optika.js"></script>
+    <script src="labs/elektr.js"></script>
 </body>
 </html>
