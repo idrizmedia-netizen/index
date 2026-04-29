@@ -5,8 +5,8 @@ function createFilterButtons() {
     
     if (!labSection || !grid) return;
 
-    // Mavjud kategoriyalarni aniqlash (Takrorlanmas qilib olish)
-    const categories = ['all', ...new Set(physicsLabs.map(lab => lab.category))];
+    // Mavjud kategoriyalarni aniqlash (Takrorlanmas va kichik harflarda olish)
+    const categories = ['all', ...new Set(physicsLabs.map(lab => lab.category.toLowerCase()))];
 
     // Tugmalar uchun konteyner yaratish
     let filterContainer = document.querySelector(".filter-container");
@@ -34,9 +34,10 @@ function renderLabs(filterCategory = 'all') {
 
     labGrid.innerHTML = "";
 
+    // Filtrlashda trim() va toLowerCase() qo'shildi (Xatolikni oldini olish uchun)
     const filteredLabs = filterCategory === 'all' 
         ? physicsLabs 
-        : physicsLabs.filter(lab => lab.category === filterCategory);
+        : physicsLabs.filter(lab => lab.category.trim().toLowerCase() === filterCategory.trim().toLowerCase());
 
     filteredLabs.forEach(lab => {
         const card = document.createElement("div");
@@ -54,16 +55,19 @@ function renderLabs(filterCategory = 'all') {
         `;
         labGrid.appendChild(card);
     });
+
+    // Yangi kartochkalar uchun animatsiyani yangilash
+    if (window.AOS) {
+        AOS.refresh();
+    }
 }
 
 // 3. Avtomatik ishga tushirish (Dynamic Caller)
 function openLab(componentName) {
-    // window[componentName] - bu JS-da stringni funksiya sifatida chaqirishning eng zo'r yo'li
     if (typeof window[componentName] === "function") {
         window[componentName]();
         document.getElementById('lab').scrollIntoView({ behavior: 'smooth' });
     } else {
-        // Agar funksiya hali yozilmagan bo'lsa, avtomatik "Tez kunda" xabari chiqadi
         const grid = document.querySelector("#lab .grid");
         grid.innerHTML = `
             <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 50px;">
@@ -78,6 +82,6 @@ function openLab(componentName) {
 
 // Sahifa yuklanganda ishga tushirish
 document.addEventListener("DOMContentLoaded", () => {
-    createFilterButtons(); // Tugmalarni yaratish
-    renderLabs();          // Kartochkalarni chiqarish
+    createFilterButtons(); 
+    renderLabs();          
 });
