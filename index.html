@@ -336,6 +336,25 @@
         <p style="margin-top: 20px;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan.</p>
     </footer>
 
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
+        authDomain: "ziyomap.firebaseapp.com",
+        projectId: "ziyomap",
+        storageBucket: "ziyomap.firebasestorage.app",
+        messagingSenderId: "982123868162",
+        appId: "1:982123868162:web:6845723988c030fcd1f71b",
+        measurementId: "G-Y3EQ1ZJW3B"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+      console.log("Firebase muvaffaqiyatli ulandi!");
+    </script>
+
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init({
@@ -361,7 +380,6 @@
                 const i = (v / r).toFixed(2);
                 resDisplay.innerText = `Tok kuchi: I = ${i} Amper`;
                 resDisplay.style.color = "var(--primary-color)";
-                // Kalkulyator natijasini ham saqlash paneliga qo'shish
                 if(typeof saveResult === "function") saveResult(`Om qonuni: V=${v}V, R=${r}Ω => I=${i}A`);
             } else {
                 resDisplay.innerText = "Iltimos, to'g'ri qiymatlarni kiriting!";
@@ -381,7 +399,6 @@
             }
         }
 
-        // Natijalarni tozalash (UI qismi)
         function clearResults() {
             const list = document.getElementById('results-list');
             list.innerHTML = '<p style="color: #94a3b8; font-style: italic;">Hali natijalar yo\'q. Laboratoriya tajribasini yakunlang.</p>';
