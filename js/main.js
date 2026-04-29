@@ -1,36 +1,54 @@
-// 1. Laboratoriyalarni ekranda chiroyli chiqarish funksiyasi
+// 1. Filtr tugmalarini avtomatik yaratish funksiyasi
+function createFilterButtons() {
+    const labSection = document.querySelector("#lab");
+    const grid = document.querySelector("#lab .grid");
+    
+    if (!labSection || !grid) return;
+
+    // Mavjud kategoriyalarni aniqlash (Takrorlanmas qilib olish)
+    const categories = ['all', ...new Set(physicsLabs.map(lab => lab.category))];
+
+    // Tugmalar uchun konteyner yaratish
+    let filterContainer = document.querySelector(".filter-container");
+    if (!filterContainer) {
+        filterContainer = document.createElement("div");
+        filterContainer.className = "filter-container";
+        filterContainer.style.textAlign = "center";
+        filterContainer.style.marginBottom = "30px";
+        labSection.insertBefore(filterContainer, grid);
+    }
+
+    // Tugmalarni chizish
+    filterContainer.innerHTML = categories.map(cat => `
+        <button onclick="renderLabs('${cat}')" class="btn btn-outline" 
+                style="margin: 5px; padding: 8px 20px; text-transform: capitalize; border-color: #2563eb; color: #2563eb;">
+            ${cat === 'all' ? 'Hammasi' : cat.replace('-', ' ')}
+        </button>
+    `).join('');
+}
+
+// 2. Laboratoriyalarni ekranda chiqarish
 function renderLabs(filterCategory = 'all') {
     const labGrid = document.querySelector("#lab .grid");
-    
-    // Agar sahifada grid topilmasa, funksiyani to'xtatish
     if (!labGrid) return;
 
-    // Gridni tozalash
     labGrid.innerHTML = "";
 
-    // Ma'lumotlarni filtrlash
     const filteredLabs = filterCategory === 'all' 
         ? physicsLabs 
         : physicsLabs.filter(lab => lab.category === filterCategory);
 
-    // Har bir laboratoriya uchun kartochka yaratish
     filteredLabs.forEach(lab => {
         const card = document.createElement("div");
         card.className = "card";
-        card.setAttribute("data-aos", "fade-up"); // Animatsiya qo'shish
+        card.setAttribute("data-aos", "fade-up");
 
         card.innerHTML = `
             <div style="text-align: center;">
-                <i class="fas ${lab.icon}" style="font-size: 3rem; color: #2563eb; margin-bottom: 15px;"></i>
-                <h3 style="margin: 10px 0;">${lab.title}</h3>
-                <span style="font-size: 0.8rem; color: #64748b; background: #e2e8f0; padding: 3px 10px; border-radius: 12px; text-transform: uppercase;">
-                    ${lab.category}
-                </span>
-                <p style="font-size: 0.9rem; color: #475569; margin: 15px 0;">
-                    Ushbu bo'limda interaktiv tajribani boshlashingiz mumkin.
-                </p>
-                <button onclick="openLab('${lab.component}')" class="btn" style="width: 100%; border: none; cursor: pointer;">
-                    Boshlash <i class="fas fa-play" style="font-size: 0.8rem; margin-left: 5px;"></i>
+                <i class="fas ${lab.icon}" style="font-size: 2.5rem; color: #2563eb; margin-bottom: 15px;"></i>
+                <h3 style="margin: 10px 0; font-size: 1.1rem;">${lab.title}</h3>
+                <button onclick="openLab('${lab.component}')" class="btn" style="width: 100%; font-size: 0.9rem;">
+                    Boshlash
                 </button>
             </div>
         `;
@@ -38,18 +56,28 @@ function renderLabs(filterCategory = 'all') {
     });
 }
 
-// 2. Laboratoriya oynasini ochish funksiyasi
+// 3. Avtomatik ishga tushirish (Dynamic Caller)
 function openLab(componentName) {
-    // Hozircha oddiy xabar chiqaramiz, keyinchalik har bir faylni shu yerda ulaymiz
-    console.log(`Ishga tushirilmoqda: ${componentName}`);
-    alert(`Tez kunda: ${componentName} laboratoriyasi to'liq ishga tushadi! Hozirda kodlash jarayoni ketmoqda.`);
+    // window[componentName] - bu JS-da stringni funksiya sifatida chaqirishning eng zo'r yo'li
+    if (typeof window[componentName] === "function") {
+        window[componentName]();
+        document.getElementById('lab').scrollIntoView({ behavior: 'smooth' });
+    } else {
+        // Agar funksiya hali yozilmagan bo'lsa, avtomatik "Tez kunda" xabari chiqadi
+        const grid = document.querySelector("#lab .grid");
+        grid.innerHTML = `
+            <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 50px;">
+                <i class="fas fa-tools" style="font-size: 4rem; color: #94a3b8; margin-bottom: 20px;"></i>
+                <h2>Ushbu laboratoriya tayyorlanmoqda</h2>
+                <p>Tez kunda "${componentName}" moduli to'liq ishga tushadi.</p>
+                <button onclick="renderLabs()" class="btn" style="margin-top: 20px;">Orqaga qaytish</button>
+            </div>
+        `;
+    }
 }
 
-// 3. Sahifa yuklanganda ishlidigan qism
+// Sahifa yuklanganda ishga tushirish
 document.addEventListener("DOMContentLoaded", () => {
-    // Laboratoriyalarni chiqarish
-    renderLabs();
-
-    // Navigatsiyadagi filtrlash tugmalarini yaratish (ixtiyoriy, lekin foydali)
-    console.log("Laboratoriya tizimi muvaffaqiyatli yuklandi.");
+    createFilterButtons(); // Tugmalarni yaratish
+    renderLabs();          // Kartochkalarni chiqarish
 });
