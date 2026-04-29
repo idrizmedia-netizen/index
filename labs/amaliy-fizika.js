@@ -1,184 +1,248 @@
 // ==========================================
-// AMALIY FIZIKA LABORATORIYALARI (V3.0)
+// AMALIY FIZIKA: YUQORI DARAJADAGI LABORATORIYALAR
 // ==========================================
 
-// 1. GIDRAVLIK PRESS (Paskal qonuni: F1/S1 = F2/S2)
-function initHydraulicPress() {
+// 1. AVTOMOBIL TORMOZLANISHI (ID: 71)
+function initBrakingDistance() {
+    clearResultsForNewLab();
+    const grid = document.querySelector("#lab .grid");
+    grid.innerHTML = `
+        <div class="card" style="grid-column: 1 / -1; border-top: 5px solid #ef4444; background: #fff1f2;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <button onclick="renderLabs()" class="btn btn-outline">Orqaga</button>
+                <h3 style="color:#991b1b;"><i class="fas fa-car-crash"></i> Avtomobil Xavfsizligi va Ishqalanish</h3>
+                <div style="display: flex; gap: 10px;">
+                    <span class="badge" style="background:#ef4444; color:white; padding:5px 10px; border-radius:4px;">ABS Tizimi: ON</span>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+                <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                    <div style="margin-bottom:20px;">
+                        <label>Tezlik Spidometri: <b id="v_text">60</b> km/soat</label>
+                        <input type="range" id="v_input" min="0" max="180" value="60" style="width:100%" oninput="updateBrakeUI()">
+                    </div>
+                    
+                    <div style="margin-bottom:20px;">
+                        <label>Yo'l qoplamasi:</label>
+                        <select id="road_mu" class="btn btn-outline" style="width:100%" onchange="updateBrakeUI()">
+                            <option value="0.8">Quruq Asfalt (μ=0.8)</option>
+                            <option value="0.4">Yomg'irli yo'l (μ=0.4)</option>
+                            <option value="0.15">Muzlama (μ=0.15)</option>
+                        </select>
+                    </div>
+
+                    <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0;">
+                        <p style="font-size:0.8rem; color:#64748b;">HISOBLANGAN NATIJA:</p>
+                        <p>Kinetik Energiya: <b id="k_energy">0</b> J</p>
+                        <p>Tormoz yo'li: <b id="s_dist" style="color:#ef4444; font-size:1.2rem;">0 m</b></p>
+                    </div>
+                    
+                    <button onclick="startBrakingSim()" class="btn" style="width:100%; margin-top:15px; background:#ef4444; color:white; font-weight:bold;">TORMOZNI BOSISH!</button>
+                </div>
+
+                <div style="background: #1e293b; border-radius: 15px; position: relative; height: 350px; overflow: hidden; border: 4px solid #334155;">
+                    <div id="road_stripes" style="position:absolute; top:55%; width:200%; height:4px; background:repeating-linear-gradient(90deg, white, white 40px, transparent 40px, transparent 80px);"></div>
+                    
+                    <div id="ruler" style="position:absolute; bottom:20px; width:100%; height:30px; display:flex; color:rgba(255,255,255,0.5); font-size:10px; border-top:1px solid rgba(255,255,255,0.2);"></div>
+
+                    <div id="sim_car" style="position:absolute; left:50px; top:130px; transition: 0.1s linear;">
+                        <div style="position:relative;">
+                            <i class="fas fa-car-side" style="font-size:4rem; color:#fbbf24;"></i>
+                            <div id="brake_light" style="position:absolute; right:75px; top:25px; width:8px; height:15px; background:red; filter:blur(4px); display:none;"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="crash_wall" style="position:absolute; right:0; top:0; width:20px; height:100%; background:repeating-linear-gradient(45deg, #f59e0b, #f59e0b 10px, #000 10px, #000 20px);"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    updateBrakeUI();
+    drawRuler();
+}
+
+// 2. LIFT VA VAZNSIZLIK (ID: 72)
+function initWeightless() {
+    clearResultsForNewLab();
+    const grid = document.querySelector("#lab .grid");
+    grid.innerHTML = `
+        <div class="card" style="grid-column: 1 / -1; border-top: 5px solid #8b5cf6; background: #f5f3ff;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3><i class="fas fa-arrows-alt-v"></i> Liftda Ortiqcha Yuklanish va Vaznsizlik</h3>
+                <div id="g_meter" style="background:#1e293b; color:#10b981; padding:5px 15px; border-radius:20px; font-family:monospace;">G-FORCE: 1.0g</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-top:20px;">
+                <div style="background:white; border-radius:15px; height:450px; position:relative; border:8px solid #cbd5e1; display:flex; justify-content:center;">
+                    <div id="lift_cabin" style="width:160px; height:220px; background:#e2e8f0; border:4px solid #475569; position:absolute; bottom:20px; transition: 2s cubic-bezier(0.45, 0, 0.55, 1); display:flex; flex-direction:column; align-items:center; padding:10px;">
+                        <div style="width:100%; height:5px; background:#94a3b8; margin-bottom:10px;"></div>
+                        <div style="width:60px; height:80px; border:2px solid #1e293b; position:relative; background:white;">
+                            <div id="spring" style="width:2px; background:#1e293b; margin:0 auto; height:30px; transition:0.3s;"></div>
+                            <div id="weight_ball" style="width:20px; height:20px; background:#ef4444; border-radius:50%; margin:-5px auto 0;"></div>
+                        </div>
+                        <i class="fas fa-user-tie" style="font-size:4rem; margin-top:10px; color:#1e293b;"></i>
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="card" style="background:white;">
+                        <p>Harakatni tanlang:</p>
+                        <button onclick="liftAction('up')" class="btn" style="background:#8b5cf6; color:white; width:100%; margin-bottom:5px;">Tezlanish bilan yuqoriga</button>
+                        <button onclick="liftAction('down')" class="btn" style="background:#3b82f6; color:white; width:100%; margin-bottom:5px;">Tezlanish bilan pastga</button>
+                        <button onclick="liftAction('stop')" class="btn btn-outline" style="width:100%;">To'xtash (Inertsiya)</button>
+                    </div>
+                    <div class="card" style="background:#1e293b; color:#34d399; text-align:center;">
+                        <small>OG'IRLIK (P):</small>
+                        <h1 id="p_val">700 N</h1>
+                        <small id="status_text" style="color:#94a3b8;">Tinch holat</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 3. GIDRAVLIK PRESS (ID: 73)
+function initHydraulic() {
     clearResultsForNewLab();
     const grid = document.querySelector("#lab .grid");
     grid.innerHTML = `
         <div class="card" style="grid-column: 1 / -1; border-top: 5px solid #0ea5e9; background: #f0f9ff;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <button onclick="renderLabs()" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Orqaga</button>
-                <h3><i class="fas fa-weight-hanging"></i> Gidravlik press simulyatori</h3>
-                <div style="font-family: monospace; background: #0c4a6e; color: #38bdf8; padding: 5px 15px; border-radius: 5px;">P = F / S</div>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-                <div style="flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    <label>Kichik porshen kuchi (F₁): <b id="f1_val">100</b> N</label>
-                    <input type="range" id="forceF1" min="10" max="500" value="100" style="width:100%" oninput="updatePress()">
+            <h3><i class="fas fa-oil-can"></i> Gidravlik Mashina: Kuchda Yutuq</h3>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:30px; margin-top:20px;">
+                <div style="background:white; padding:20px; border-radius:15px;">
+                    <label>Kichik porshen yuzasi (S₁): <b>10 cm²</b></label><br>
+                    <label>Katta porshen yuzasi (S₂): <b id="s2_text">100 cm²</b></label>
+                    <input type="range" id="s2_input" min="20" max="200" value="100" style="width:100%" oninput="updateHydSim()">
                     
-                    <label style="margin-top:15px; display:block;">Yuzalar nisbati (S₂/S₁): <b id="s_ratio">5</b> marta</label>
-                    <input type="range" id="ratioS" min="2" max="10" value="5" style="width:100%" oninput="updatePress()">
+                    <hr style="margin:20px 0;">
                     
-                    <div style="margin-top:20px; padding:15px; background:#e0f2fe; border-radius:10px; border-left:5px solid #0ea5e9;">
-                        <p>Katta porshendagi kuch (F₂):</p>
-                        <h2 id="f2_result" style="color:#0369a1;">500 N</h2>
-                        <small style="color:#64748b;">*Gidravlik mashina kuchda yutuq beradi.</small>
+                    <label>Berilayotgan kuch (F₁): <b id="f1_text">50 N</b></label>
+                    <input type="range" id="f1_input" min="0" max="500" value="50" style="width:100%" oninput="updateHydSim()">
+                    
+                    <div style="margin-top:20px; background:#e0f2fe; padding:20px; border-radius:10px; border-left:5px solid #0ea5e9;">
+                        <p>Chiquvchi kuch (F₂):</p>
+                        <h1 id="f2_res" style="color:#0369a1;">500 N</h1>
+                        <p id="lift_capacity" style="font-size:0.8rem; color:#64748b;">Bu kuch bilan 51.0 kg yukni ko'tarish mumkin.</p>
                     </div>
                 </div>
-                <div style="flex: 2; min-width: 350px; background: white; border: 2px solid #e2e8f0; border-radius: 20px; height: 350px; display: flex; align-items: flex-end; justify-content: center; gap: 0; padding-bottom: 40px; overflow: hidden;">
-                    <div style="display: flex; flex-direction: column; align-items: center;">
-                        <div id="piston1_weight" style="margin-bottom: 5px; transition: 0.3s;"><i class="fas fa-arrow-down" style="color:#0ea5e9;"></i></div>
-                        <div id="piston1" style="width: 40px; height: 100px; background: #38bdf8; border: 2px solid #0c4a6e; border-top-width: 8px; position:relative;"></div>
-                    </div>
-                    <div style="width: 100px; height: 30px; background: #38bdf8; border-bottom: 2px solid #0c4a6e; border-top: 2px solid #0c4a6e;"></div>
-                    <div style="display: flex; flex-direction: column; align-items: center;">
-                        <div id="piston2_weight" style="width: 80px; height: 60px; background: #64748b; color:white; display:flex; align-items:center; justify-content:center; border-radius: 5px; margin-bottom: 5px; transition: 0.3s; font-size: 0.8rem;">YUK</div>
-                        <div id="piston2" style="width: 120px; height: 60px; background: #38bdf8; border: 2px solid #0c4a6e; border-top-width: 10px; position:relative;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    updatePress();
-}
 
-// 2. AVTOMOBIL TORMOZ TIZIMI (Ishqalanish kuchi)
-function initCarBrakes() {
-    clearResultsForNewLab();
-    const grid = document.querySelector("#lab .grid");
-    grid.innerHTML = `
-        <div class="card" style="grid-column: 1 / -1; border-top: 5px solid #ef4444; background: #fef2f2;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <button onclick="renderLabs()" class="btn btn-outline">Orqaga</button>
-                <h3><i class="fas fa-car-crash"></i> Tormozlanish masofasi</h3>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-                <div style="flex: 1; min-width: 280px; background: white; padding: 20px; border-radius: 15px;">
-                    <label>Tezlik (v): <b id="v_car">60</b> km/soat</label>
-                    <input type="range" id="speedV" min="20" max="150" value="60" style="width:100%" oninput="updateBrakes()">
-                    
-                    <label style="margin-top:15px; display:block;">Yo'l holati:</label>
-                    <select id="roadType" class="btn btn-outline" style="width:100%" onchange="updateBrakes()">
-                        <option value="0.7">Quruq asfalt (μ=0.7)</option>
-                        <option value="0.4">Ho'l yo'l (μ=0.4)</option>
-                        <option value="0.1">Muzlama (μ=0.1)</option>
-                    </select>
-                    
-                    <div style="margin-top:20px; border-left:5px solid #ef4444; padding-left:15px;">
-                        <p>Tormoz yo'li: <b id="stopDist" style="font-size:1.5rem; color:#ef4444;">---</b></p>
+                <div style="background:white; border-radius:15px; padding:20px; position:relative; height:350px; display:flex; align-items:flex-end; justify-content:center; gap:0;">
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <div id="p1_block" style="width:30px; height:150px; background:#38bdf8; border:3px solid #0369a1; border-top:8px solid #475569; transition:0.3s;"></div>
+                        <div style="width:30px; height:30px; background:#38bdf8; border-left:3px solid #0369a1; border-right:3px solid #0369a1;"></div>
                     </div>
-                    <button onclick="startBrakeTest()" class="btn" style="width:100%; margin-top:15px; background:#ef4444; color:white;">Sinovni boshlash</button>
-                </div>
-                <div style="flex: 2; background: #334155; border-radius: 15px; height: 300px; position: relative; overflow: hidden; display: flex; align-items: center;">
-                    <div style="width:100%; height:2px; background:white; position:absolute; top:50%; border:1px dashed rgba(255,255,255,0.3);"></div>
-                    <div id="car_model" style="position:absolute; left: 0; transition: 0s; font-size: 2.5rem; color: #fbbf24;">
-                        <i class="fas fa-car"></i>
-                    </div>
-                    <div id="stop_line" style="position:absolute; left: 80%; height:100px; width:10px; background:#ef4444; display:none;"></div>
-                </div>
-            </div>
-        </div>
-    `;
-    updateBrakes();
-}
-
-// 3. LIFTDA VAZNSIZLIK (Inertsiya va Og'irlik)
-function initElevatorPhysics() {
-    clearResultsForNewLab();
-    const grid = document.querySelector("#lab .grid");
-    grid.innerHTML = `
-        <div class="card" style="grid-column: 1 / -1; border-top: 5px solid #8b5cf6;">
-            <h3><i class="fas fa-arrows-alt-v"></i> Liftda vazn o'zgarishi</h3>
-            <div style="display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap;">
-                <div style="flex: 1; background: #f5f3ff; padding: 20px; border-radius: 15px;">
-                    <p>Lift harakati:</p>
-                    <button onclick="moveElevator('up')" class="btn" style="width:100%; margin-bottom:10px;">Tezlanish bilan yuqoriga (a > 0)</button>
-                    <button onclick="moveElevator('down')" class="btn" style="width:100%; margin-bottom:10px;">Tezlanish bilan pastga (a < 0)</button>
-                    <button onclick="moveElevator('const')" class="btn btn-outline" style="width:100%;">Tekis harakat (a = 0)</button>
-                    
-                    <div style="margin-top:20px; padding:15px; background:white; border-radius:10px; text-align:center;">
-                        <p>Dinamometr ko'rsatkichi:</p>
-                        <h2 id="weightP" style="color:#8b5cf6;">700 N</h2>
-                    </div>
-                </div>
-                <div style="flex: 2; background: #f1f5f9; border-radius: 15px; height: 350px; position: relative; display: flex; justify-content: center; overflow: hidden; border: 2px solid #ddd;">
-                    <div id="elevator_cabin" style="width:120px; height:180px; background:#cbd5e1; border:4px solid #475569; position:absolute; bottom: 50px; transition: 2s cubic-bezier(0.45, 0.05, 0.55, 0.95); display:flex; flex-direction:column; align-items:center; justify-content:center;">
-                        <div style="width:40px; height:10px; background:#1e293b; margin-bottom: 50px;"></div> <i class="fas fa-user" style="font-size: 3rem; color:#1e293b;"></i>
+                    <div style="width:120px; height:30px; background:#38bdf8; border-bottom:3px solid #0369a1; border-top:3px solid transparent;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                         <div id="p2_weight" style="width:80px; height:50px; background:#64748b; margin-bottom:2px; border-radius:5px; color:white; display:flex; align-items:center; justify-content:center; font-size:0.7rem;">YUK</div>
+                         <div id="p2_block" style="width:100px; height:80px; background:#38bdf8; border:3px solid #0369a1; border-top:10px solid #475569; transition:0.3s;"></div>
+                         <div style="width:100px; height:30px; background:#38bdf8; border-left:3px solid #0369a1; border-right:3px solid #0369a1;"></div>
                     </div>
                 </div>
             </div>
         </div>
     `;
+    updateHydSim();
 }
 
-// --- LOGIKA VA ANIMATSIYALAR ---
+// --- LOGIKA FUNKSIYALARI ---
 
-function updatePress() {
-    const f1 = parseFloat(document.getElementById('forceF1').value);
-    const ratio = parseFloat(document.getElementById('ratioS').value);
-    const f2 = f1 * ratio;
+function updateBrakeUI() {
+    const v = document.getElementById('v_input').value;
+    const mu = document.getElementById('road_mu').value;
+    document.getElementById('v_text').innerText = v;
     
-    document.getElementById('f1_val').innerText = f1;
-    document.getElementById('s_ratio').innerText = ratio;
-    document.getElementById('f2_result').innerText = f2 + " N";
-
-    // Vizual balandliklarni o'zgartirish (Suyuqlik hajmi saqlanishi)
-    const p1 = document.getElementById('piston1');
-    const p2 = document.getElementById('piston2');
-    const h1 = 100 - (f1 / 10);
-    const h2 = 60 + (f1 / (10 * ratio));
+    // S = v^2 / (2 * mu * g) | v m/s da bo'lishi kerak
+    const v_ms = v / 3.6;
+    const s = (v_ms * v_ms) / (2 * mu * 9.8);
+    const ke = 0.5 * 1200 * v_ms * v_ms; // 1200 kg moshina uchun
     
-    p1.style.height = h1 + "px";
-    p2.style.height = h2 + "px";
+    document.getElementById('s_dist').innerText = s.toFixed(1) + " m";
+    document.getElementById('k_energy').innerText = Math.round(ke).toLocaleString() + " J";
 }
 
-function updateBrakes() {
-    const v = parseFloat(document.getElementById('speedV').value) / 3.6; // m/s
-    const mu = parseFloat(document.getElementById('roadType').value);
-    const g = 9.8;
-    const s = (v * v) / (2 * mu * g);
+function startBrakingSim() {
+    const car = document.getElementById('sim_car');
+    const light = document.getElementById('brake_light');
+    const v = document.getElementById('v_input').value;
+    const s = parseFloat(document.getElementById('s_dist').innerText);
     
-    document.getElementById('v_car').innerText = Math.round(v * 3.6);
-    document.getElementById('stopDist').innerText = s.toFixed(1) + " metr";
-    return s;
-}
-
-function startBrakeTest() {
-    const car = document.getElementById('car_model');
-    const s = updateBrakes();
-    const line = document.getElementById('stop_line');
-    
+    light.style.display = "block";
     car.style.transition = "0s";
-    car.style.left = "0%";
-    line.style.display = "block";
-    line.style.left = (s * 5) + "px"; // Masshtablash
-
+    car.style.left = "50px";
+    
     setTimeout(() => {
-        car.style.transition = "2s ease-out";
-        car.style.left = (s * 5) + "px";
+        car.style.transition = `left ${v/20}s ease-out`;
+        car.style.left = (50 + s * 5) + "px"; // Masshtab 1m = 5px
+        
+        if((50 + s * 5) > 600) { // Devorga urilish
+            setTimeout(() => { 
+                car.style.color = "red";
+                alert("AVARIYA! Tormoz yo'li yetmadi.");
+            }, (v/20)*800);
+        }
     }, 100);
 }
 
-function moveElevator(dir) {
-    const cabin = document.getElementById('elevator_cabin');
-    const p = document.getElementById('weightP');
-    const m = 70; // kg
-    const g = 9.8;
-    const a = 2.5; // m/s^2 tezlanish
+function liftAction(type) {
+    const lift = document.getElementById('lift_cabin');
+    const pText = document.getElementById('p_val');
+    const gText = document.getElementById('g_meter');
+    const spring = document.getElementById('spring');
+    const status = document.getElementById('status_text');
+    
+    let m = 70; // kg
+    let g = 9.8;
+    let a = 0;
 
-    if(dir === 'up') {
-        cabin.style.bottom = "150px";
-        p.innerText = Math.round(m * (g + a)) + " N (Ortiqcha yuklanish!)";
-        p.style.color = "#ef4444";
-    } else if(dir === 'down') {
-        cabin.style.bottom = "10px";
-        p.innerText = Math.round(m * (g - a)) + " N (Vaznsizlikka yaqin)";
-        p.style.color = "#3b82f6";
+    if(type === 'up') {
+        lift.style.bottom = "200px";
+        a = 3;
+        status.innerText = "Tezlanuvchan yuqoriga";
+        status.style.color = "#ef4444";
+    } else if(type === 'down') {
+        lift.style.bottom = "20px";
+        a = -4;
+        status.innerText = "Tezlanuvchan pastga";
+        status.style.color = "#3b82f6";
     } else {
-        cabin.style.bottom = "80px";
-        p.innerText = Math.round(m * g) + " N (Normal)";
-        p.style.color = "#8b5cf6";
+        a = 0;
+        status.innerText = "Tinch / Tekis";
+        status.style.color = "#94a3b8";
+    }
+
+    const P = m * (g + a);
+    const G = (g + a) / 9.8;
+    
+    pText.innerText = Math.round(P) + " N";
+    gText.innerText = `G-FORCE: ${G.toFixed(1)}g`;
+    spring.style.height = (30 + a * 5) + "px";
+}
+
+function updateHydSim() {
+    const f1 = document.getElementById('f1_input').value;
+    const s2 = document.getElementById('s2_input').value;
+    const s1 = 10;
+    
+    const f2 = (f1 * s2) / s1;
+    document.getElementById('f1_text').innerText = f1 + " N";
+    document.getElementById('s2_text').innerText = s2 + " cm²";
+    document.getElementById('f2_res').innerText = Math.round(f2) + " N";
+    document.getElementById('lift_capacity').innerText = `Bu kuch bilan ${(f2/9.8).toFixed(1)} kg yukni ko'tarish mumkin.`;
+    
+    // Porshenlar harakati
+    document.getElementById('p1_block').style.height = (150 - f1/10) + "px";
+    document.getElementById('p2_block').style.height = (80 + f1/(s2/10)) + "px";
+}
+
+function drawRuler() {
+    const ruler = document.getElementById('ruler');
+    for(let i=0; i<200; i+=20) {
+        const mark = document.createElement('div');
+        mark.style.width = "100px";
+        mark.style.borderLeft = "1px solid white";
+        mark.innerText = i + "m";
+        ruler.appendChild(mark);
     }
 }
