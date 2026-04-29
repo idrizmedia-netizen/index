@@ -12,14 +12,22 @@
             --secondary-color: #3b82f6;
             --dark-color: #1e293b;
             --light-bg: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: white;
         }
-
+body.dark-theme {
+    --primary-color: #3b82f6;
+    --dark-color: #f8fafc;
+    --light-bg: #0f172a;
+    --text-color: #f1f5f9;
+    --card-bg: #1e293b;
+}
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
             background-color: var(--light-bg);
-            color: var(--dark-color);
+            color: var(--text-color);
             scroll-behavior: smooth;
         }
 
@@ -112,7 +120,7 @@
 
         .dropdown-divider {
             height: 1px;
-            background-color: #e2e8f0;
+            background-color: var(--secondary-color);
             margin: 15px 0;
         }
 
@@ -308,8 +316,11 @@
             <a href="#blog">Blog</a>
             <a href="#contact">Aloqa</a>
             
-            <div class="profile-dropdown">
-                <a href="#" id="login-btn"><i class="fab fa-google"></i> Kirish</a>
+           <div class="profile-dropdown">
+    <i class="fas fa-moon" id="theme-toggle" style="cursor: pointer; margin-right: 15px; font-size: 1.2rem;"></i>
+    
+    <a href="#" id="login-btn">...</a>
+</div>
                 <div id="myDropdown" class="dropdown-content">
                     <div id="user-info" style="text-align: center;">
                         <img id="user-photo" src="" alt="User">
@@ -451,6 +462,31 @@
         appId: "1:982123868162:web:6845723988c030fcd1f71b",
         measurementId: "G-Y3EQ1ZJW3B"
       };
+
+        // --- DARK MODE KODI ---
+const themeToggle = document.getElementById('theme-toggle');
+const body = document.body;
+
+if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-theme');
+        const isDark = body.classList.contains('dark-theme');
+        
+        // Ikonkani almashtirish
+        themeToggle.classList.toggle('fa-sun', isDark);
+        themeToggle.classList.toggle('fa-moon', !isDark);
+        
+        // Tanlovni saqlash
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+}
+
+// Sahifa yuklanganda holatni tiklash
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+    body.classList.add('dark-theme');
+    if(themeToggle) themeToggle.classList.replace('fa-moon', 'fa-sun');
+}
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
