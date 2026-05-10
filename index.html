@@ -408,6 +408,31 @@
         </div>
     </section>
 
+    <!-- AI CHATBOT UI - INTEGRATSIYA QILINGAN QISM -->
+    <div id="ai-chat-wrapper" style="position: fixed; bottom: 30px; right: 30px; z-index: 2000;">
+        <button id="chat-toggle" style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-color); border: none; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); transition: 0.3s;">
+            <i class="fas fa-robot"></i>
+        </button>
+
+        <div id="chat-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 450px; background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 15px 50px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden;">
+            <div style="background: var(--primary-color); padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: bold;"><i class="fas fa-brain"></i> Ziyomap AI Tutor</span>
+                <i class="fas fa-times" id="close-chat" style="cursor: pointer;"></i>
+            </div>
+            <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
+                <div style="background: rgba(56, 189, 248, 0.1); padding: 10px; border-radius: 15px 15px 15px 0; align-self: flex-start; max-width: 80%;">
+                    Salom! Men Ziyomap AI yordamchisiman. Fizika yoki dasturlash bo'yicha savolingiz bormi?
+                </div>
+            </div>
+            <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; gap: 10px;">
+                <input type="text" id="user-input-ai" placeholder="Savolingizni yozing..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color); outline: none;">
+                <button id="send-btn-ai" style="background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="social-links" data-aos="fade-up">
             <a href="https://t.me/Ziyomap" target="_blank"><i class="fab fa-telegram"></i></a>
@@ -555,6 +580,77 @@
         window.clearResults = function() {
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
+
+        // AI CHATBOT LOGIKASI
+        const chatToggle = document.getElementById('chat-toggle');
+        const chatWindow = document.getElementById('chat-window');
+        const closeChat = document.getElementById('close-chat');
+        const sendBtnAi = document.getElementById('send-btn-ai');
+        const userInputAi = document.getElementById('user-input-ai');
+        const chatMessages = document.getElementById('chat-messages');
+
+        chatToggle.addEventListener('click', () => {
+            chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
+        });
+
+        closeChat.addEventListener('click', () => {
+            chatWindow.style.display = 'none';
+        });
+
+        async function sendAiMessage() {
+            const text = userInputAi.value.trim();
+            if (!text) return;
+
+            appendAiMessage('user', text);
+            userInputAi.value = '';
+
+            const loadingId = appendAiMessage('ai', 'Oylayapman...');
+
+            try {
+                // Bu qism backend ulanganidan so'ng API bilan ishlaydi
+                setTimeout(() => {
+                    updateAiMessage(loadingId, "Salom! Hozircha men dizayn sifatida qo'shildim. Python backend orqali meni haqiqiy aqlli yordamchiga aylantira olasiz!");
+                }, 1000);
+            } catch (error) {
+                updateAiMessage(loadingId, "Xatolik yuz berdi.");
+            }
+        }
+
+        function appendAiMessage(sender, text) {
+            const id = Date.now();
+            const msgDiv = document.createElement('div');
+            msgDiv.id = id;
+            msgDiv.style.padding = '10px';
+            msgDiv.style.borderRadius = '15px';
+            msgDiv.style.maxWidth = '80%';
+            msgDiv.style.marginBottom = '5px';
+
+            if (sender === 'user') {
+                msgDiv.style.alignSelf = 'flex-end';
+                msgDiv.style.background = 'var(--primary-color)';
+                msgDiv.style.color = 'white';
+                msgDiv.style.borderRadius = '15px 15px 0 15px';
+            } else {
+                msgDiv.style.alignSelf = 'flex-start';
+                msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
+                msgDiv.style.color = 'var(--text-color)';
+                msgDiv.style.borderRadius = '15px 15px 15px 0';
+            }
+
+            msgDiv.innerText = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function updateAiMessage(id, text) {
+            const el = document.getElementById(id);
+            if(el) el.innerText = text;
+        }
+
+        sendBtnAi.addEventListener('click', sendAiMessage);
+        userInputAi.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAiMessage(); });
+
     </script>
 
     <script src="js/data.js"></script>
