@@ -115,7 +115,6 @@
             letter-spacing: 1px;
         }
 
-        /* Menyu elementlari */
         .nav-menu {
             display: flex;
             gap: 25px;
@@ -132,7 +131,6 @@
 
         .nav-menu a:hover { color: var(--primary-color); }
 
-        /* Hamburger menyu tugmasi */
         .menu-toggle {
             display: none;
             font-size: 1.5rem;
@@ -140,7 +138,6 @@
             color: var(--primary-color);
         }
 
-        /* MOBIL QURILMALARDA MENYU */
         @media (max-width: 768px) {
             .menu-toggle { display: block; }
             .nav-menu {
@@ -158,7 +155,6 @@
                 gap: 30px;
             }
             .nav-menu.active { left: 0; }
-            .profile-dropdown { flex-direction: column; }
         }
 
         .profile-dropdown {
@@ -196,7 +192,6 @@
         .dropdown-content.show { display: block; animation: fadeIn 0.3s ease; }
         .dropdown-content img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--primary-color); }
 
-        /* Hero Section */
         .hero {
             height: 100vh;
             display: flex;
@@ -209,7 +204,6 @@
         .hero h1 { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 800; margin-bottom: 20px; }
         .hero p { font-size: 1.2rem; max-width: 700px; line-height: 1.6; }
 
-        /* PREMIUM TUGMALAR */
         .btn {
             display: inline-block;
             padding: 14px 35px;
@@ -226,7 +220,6 @@
         .btn:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4); }
         .btn-outline { background: transparent; color: var(--text-color) !important; border: 2px solid var(--primary-color); }
 
-        /* Sectionlar va Cardlar */
         .section { padding: 100px 20px; max-width: 1200px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 40px; }
         
@@ -408,7 +401,6 @@
         </div>
     </section>
 
-    <!-- AI CHATBOT UI - INTEGRATSIYA QILINGAN QISM -->
     <div id="ai-chat-wrapper" style="position: fixed; bottom: 30px; right: 30px; z-index: 2000;">
         <button id="chat-toggle" style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-color); border: none; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); transition: 0.3s;">
             <i class="fas fa-robot"></i>
@@ -421,7 +413,7 @@
             </div>
             <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
                 <div style="background: rgba(56, 189, 248, 0.1); padding: 10px; border-radius: 15px 15px 15px 0; align-self: flex-start; max-width: 80%;">
-                    Salom! Men Ziyomap AI yordamchisiman. Fizika yoki dasturlash bo'yicha savolingiz bormi?
+                    Assalomu alaykum, xush kelibsiz! Nima bilan shug'ullanamiz?
                 </div>
             </div>
             <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; gap: 10px;">
@@ -504,7 +496,7 @@
             setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
         });
 
-        // MOBIL MENYU LOGIKASI
+        // MOBIL MENYU
         const mobileBtn = document.getElementById('mobile-menu-btn');
         const navLinks = document.getElementById('nav-links');
         mobileBtn.addEventListener('click', () => {
@@ -513,7 +505,6 @@
             mobileBtn.querySelector('i').classList.toggle('fa-times');
         });
 
-        // Menyu bosilganda avtomatik yopilishi (mobil uchun)
         document.querySelectorAll('.nav-menu a').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
@@ -538,14 +529,14 @@
             themeToggle.classList.replace('fa-moon', 'fa-sun');
         }
 
-        // Greeting (Vaqtga qarab salomlashish)
+        // Greeting
         const hour = new Date().getHours();
         const greeting = document.getElementById('greeting');
         if (hour < 12) greeting.innerText = "Xayrli tong!";
         else if (hour < 18) greeting.innerText = "Xayrli kun!";
         else greeting.innerText = "Xayrli kech!";
 
-        // Physics Logic (Laboratoriya)
+        // Physics Logic
         window.calculateCurrent = function() {
             const v = document.getElementById('voltage').value;
             const r = document.getElementById('resistance').value;
@@ -581,7 +572,7 @@
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
 
-        // AI CHATBOT LOGIKASI
+        // --- YANGI: AI CHATBOT API INTEGRATSIYASI ---
         const chatToggle = document.getElementById('chat-toggle');
         const chatWindow = document.getElementById('chat-window');
         const closeChat = document.getElementById('close-chat');
@@ -604,15 +595,23 @@
             appendAiMessage('user', text);
             userInputAi.value = '';
 
-            const loadingId = appendAiMessage('ai', 'Oylayapman...');
+            // Loading holati: Tayyorlanmoqda...
+            const loadingId = appendAiMessage('ai', 'Tayyorlanmoqda...');
 
             try {
-                // Bu qism backend ulanganidan so'ng API bilan ishlaydi
-                setTimeout(() => {
-                    updateAiMessage(loadingId, "Salom! Hozircha men dizayn sifatida qo'shildim. Python backend orqali meni haqiqiy aqlli yordamchiga aylantira olasiz!");
-                }, 1000);
+                // Vercel-dagi serverless funksiyaga so'rov yuborish
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                if (!response.ok) throw new Error('API xatosi');
+
+                const data = await response.json();
+                updateAiMessage(loadingId, data.reply);
             } catch (error) {
-                updateAiMessage(loadingId, "Xatolik yuz berdi.");
+                updateAiMessage(loadingId, "Xatolik: API bilan bog'lanib bo'lmadi. Vercel sozlamalarini tekshiring.");
             }
         }
 
