@@ -401,26 +401,46 @@
         </div>
     </section>
 
+    <!-- AI CHATBOT INTERFEYSI (YANGILANGAN) -->
     <div id="ai-chat-wrapper" style="position: fixed; bottom: 30px; right: 30px; z-index: 2000;">
         <button id="chat-toggle" style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-color); border: none; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); transition: 0.3s;">
             <i class="fas fa-robot"></i>
         </button>
 
-        <div id="chat-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 450px; background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 15px 50px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden;">
+        <div id="chat-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 500px; background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 15px 50px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden;">
             <div style="background: var(--primary-color); padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-weight: bold;"><i class="fas fa-brain"></i> Ziyomap AI Tutor</span>
                 <i class="fas fa-times" id="close-chat" style="cursor: pointer;"></i>
             </div>
+            
             <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
                 <div style="background: rgba(56, 189, 248, 0.1); padding: 10px; border-radius: 15px 15px 15px 0; align-self: flex-start; max-width: 80%;">
-                    Assalomu alaykum, xush kelibsiz! Nima bilan shug'ullanamiz?
+                    Assalomu alaykum, xush kelibsiz! Rasm yuklashingiz yoki savol berishingiz mumkin.
                 </div>
             </div>
-            <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; gap: 10px;">
-                <input type="text" id="user-input-ai" placeholder="Savolingizni yozing..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color); outline: none;">
-                <button id="send-btn-ai" style="background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+
+            <!-- Rasm preview qismi -->
+            <div id="image-preview-box" style="display: none; padding: 10px; background: rgba(56, 189, 248, 0.05); border-top: 1px solid rgba(56, 189, 248, 0.1);">
+                <div style="position: relative; display: inline-block;">
+                    <img id="preview-img" src="" style="max-height: 80px; border-radius: 8px; border: 1px solid var(--primary-color);">
+                    <i class="fas fa-times-circle" onclick="cancelImage()" style="position: absolute; top: -5px; right: -5px; color: #ef4444; cursor: pointer; background: white; border-radius: 50%;"></i>
+                </div>
+            </div>
+
+            <!-- Inputlar (Yangilangan) -->
+            <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label for="file-upload" style="cursor: pointer; color: var(--primary-color); font-size: 1.2rem;">
+                        <i class="fas fa-paperclip"></i>
+                    </label>
+                    <input type="file" id="file-upload" accept="image/*" style="display: none;">
+                    
+                    <input type="text" id="user-input-ai" placeholder="Savol yoki rasm tavsifi..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color); outline: none;">
+                    
+                    <button id="send-btn-ai" style="background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -572,13 +592,19 @@
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
 
-        // --- YANGI: AI CHATBOT API INTEGRATSIYASI ---
+        // --- YANGI: MULTIMODAL AI CHATBOT LOGIKASI (YUKLAB OLISH BILAN) ---
+        let currentFileBase64 = null;
+        let currentFileType = null;
+
         const chatToggle = document.getElementById('chat-toggle');
         const chatWindow = document.getElementById('chat-window');
         const closeChat = document.getElementById('close-chat');
         const sendBtnAi = document.getElementById('send-btn-ai');
         const userInputAi = document.getElementById('user-input-ai');
         const chatMessages = document.getElementById('chat-messages');
+        const fileInput = document.getElementById('file-upload');
+        const previewBox = document.getElementById('image-preview-box');
+        const previewImg = document.getElementById('preview-img');
 
         chatToggle.addEventListener('click', () => {
             chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
@@ -588,28 +614,66 @@
             chatWindow.style.display = 'none';
         });
 
+        // Faylni tanlash va preview qilish
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentFileType = file.type;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    currentFileBase64 = event.target.result.split(',')[1];
+                    if (file.type.startsWith('image/')) {
+                        previewImg.src = event.target.result;
+                        previewBox.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        window.cancelImage = function() {
+            currentFileBase64 = null;
+            currentFileType = null;
+            previewBox.style.display = 'none';
+            fileInput.value = '';
+        }
+
         async function sendAiMessage() {
             const text = userInputAi.value.trim();
-            if (!text) return;
+            if (!text && !currentFileBase64) return;
 
-            appendAiMessage('user', text);
+            // User xabarini ko'rsatish
+            appendAiMessage('user', text + (currentFileBase64 ? " [Rasm yuborildi]" : ""));
+            
+            const imageToSend = currentFileBase64;
+            const typeToSend = currentFileType;
+            
             userInputAi.value = '';
+            cancelImage();
 
-            const loadingId = appendAiMessage('ai', 'Tayyorlanmoqda...');
+            const loadingId = appendAiMessage('ai', 'Gemini 3.1 tahlil qilmoqda...');
 
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: text })
+                    body: JSON.stringify({ 
+                        message: text,
+                        image: imageToSend,
+                        mimeType: typeToSend
+                    })
                 });
 
                 if (!response.ok) throw new Error('API xatosi');
 
                 const data = await response.json();
-                updateAiMessage(loadingId, data.reply);
+                const aiReply = data.reply || "Javob olinmadi.";
+                
+                updateAiMessage(loadingId, aiReply);
+                addDownloadBtn(loadingId, aiReply); // Yuklab olish tugmasini qo'shish
+
             } catch (error) {
-                updateAiMessage(loadingId, "Xatolik: API bilan bog'lanib bo'lmadi. Vercel sozlamalarini tekshiring.");
+                updateAiMessage(loadingId, "Xatolik: API bilan bog'lanib bo'lmadi.");
             }
         }
 
@@ -621,6 +685,7 @@
             msgDiv.style.borderRadius = '15px';
             msgDiv.style.maxWidth = '80%';
             msgDiv.style.marginBottom = '5px';
+            msgDiv.style.position = 'relative';
 
             if (sender === 'user') {
                 msgDiv.style.alignSelf = 'flex-end';
@@ -645,12 +710,30 @@
             if(el) el.innerText = text;
         }
 
+        function addDownloadBtn(msgId, content) {
+            const msgDiv = document.getElementById(msgId);
+            const btn = document.createElement('button');
+            btn.innerHTML = '<i class="fas fa-download"></i> Natijani saqlash';
+            btn.style = "display: block; margin-top: 10px; padding: 5px 8px; font-size: 0.7rem; cursor: pointer; border-radius: 5px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.3s;";
+            
+            btn.onmouseover = () => { btn.style.background = "var(--primary-color)"; btn.style.color = "white"; };
+            btn.onmouseout = () => { btn.style.background = "transparent"; btn.style.color = "var(--primary-color)"; };
+
+            btn.onclick = () => {
+                const blob = new Blob([content], { type: 'text/plain' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Ziyomap_AI_Javob_${msgId}.txt`;
+                link.click();
+            };
+            msgDiv.appendChild(btn);
+        }
+
         sendBtnAi.addEventListener('click', sendAiMessage);
         userInputAi.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAiMessage(); });
 
     </script>
 
-    <!-- Barcha script bog'lamalari saqlab qolindi -->
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script src="labs/mexanika.js"></script>
