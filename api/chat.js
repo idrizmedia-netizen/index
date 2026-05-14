@@ -13,8 +13,9 @@ export default async function handler(req, res) {
     }
 
     try {
-        // MUHIM: v1beta emas, v1 ishlatamiz. Model esa barqaror gemini-1.5-flash
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        // Skrinshotdagi eng yangi va bepul tarifda ishlash ehtimoli yuqori bo'lgan model: 
+        // Gemini 3.1 Flash Lite. Endpoint esa v1beta bo'lishi shart.
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`;
         
         // Google API uchun xabar strukturasini shakllantirish
         const promptParts = [];
@@ -59,8 +60,7 @@ export default async function handler(req, res) {
         // Xatoliklarni tekshirish
         if (data.error) {
             console.error("Google API xatosi:", data.error.message);
-            // Agar kvota xatosi bo'lsa, aniqroq xabar berish
-            return res.status(400).json({ error: "API limiti yoki mintaqa cheklovi: " + data.error.message });
+            return res.status(400).json({ error: data.error.message });
         }
 
         // Javobni qaytarish
