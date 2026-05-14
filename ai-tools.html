@@ -9,7 +9,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+            svg: { fontCache: 'global' },
+            options: { enableMenu: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -109,6 +116,15 @@
             font-size: 14pt;
         }
 
+        /* PDF uchun formulalar ustma-ust tushishiga qarshi CSS */
+        mjx-container {
+            display: inline-block !important;
+            margin: 5px 0 !important;
+            max-width: 100%;
+            overflow-x: visible !important;
+            overflow-y: visible !important;
+        }
+
         #result-area h1, #result-area h2, #result-area h3 { color: var(--primary-color); margin-top: 20px; }
         #result-area ul { padding-left: 20px; }
 
@@ -148,11 +164,11 @@
         table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8fafc; }
 
-        /* PDF eksport vaqtida stilning buzilmasligi uchun */
         .pdf-export-mode {
             background: white !important;
             color: black !important;
             display: block !important;
+            width: 100% !important;
         }
     </style>
 </head>
@@ -272,19 +288,21 @@
     }
     window.onload = checkGoogleAuth;
 
-    // KUCHAYTIRILGAN TOZALASH FUNKSIYASI
+    // KUCHAYTIRILGAN TOZALASH FUNKSIYASI (PDF uchun $ belgilarini tozalaydi lekin LaTeXni saqlaydi)
     function cleanMarkdown(text) {
         if (!text) return "";
-        return text
-            .replace(/\\_/g, '_')      // Ortiqcha backslashlarni olib tashlash
+        let cleaned = text
+            .replace(/\\_/g, '_')
             .replace(/\\\*/g, '*')
-            .replace(/\\\[/g, '$$$$') 
-            .replace(/\\\]/g, '$$$$')
-            .replace(/\\\(/g, '$$')
-            .replace(/\\\)/g, '$$')
             .replace(/\\\{/g, '{')
             .replace(/\\\}/g, '}')
             .replace(/\\#/g, '#');
+        
+        // AI ba'zan formulani \$ ko'rinishida yuboradi, buni to'g'irlaymiz
+        cleaned = cleaned.replace(/\\\$/g, '$');
+        
+        // PDF-da xom ko'rinadigan qoldiqlarni tozalash
+        return cleaned;
     }
 
     // DARS ISHLANMASI
@@ -308,7 +326,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida professional dars ishlanmasi tuz. Jadvallar, metodlar va formulalarni ($...$) ishlating.` 
+                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida professional dars ishlanmasi tuz. Jadvallar, metodlar va formulalarni LaTeX ($...$) ko'rinishida ishlating. Hech qanday tushuntirishsiz faqat dars rejasini yoz.` 
                 })
             });
 
@@ -349,7 +367,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar va qoidalar (konspekt). Markdown formatida.` 
+                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar va qoidalar. Formulalar LaTeX $...$ formatida bo'lsin.` 
                 })
             });
 
@@ -368,7 +386,7 @@
         }
     }
 
-    // PDF EKSPORT (BO'SH CHIQISHINI OLDINI OLISH VA FORMULALAR BILAN)
+    // MUKAMMAL PDF EKSPORT FUNKSIYASI
     async function exportToPDF(elementId, fileName) {
         const element = document.getElementById(elementId);
         
@@ -376,35 +394,36 @@
             return alert("Avval ma'lumot yarating!");
         }
 
-        // 1. MathJax render bo'lganini tekshirish
+        // Render to'liqligini kutish
         if (window.MathJax) {
             await MathJax.typesetPromise([element]);
         }
 
-        // 2. Vaqtinchalik stil qo'shish (PDF oq chiqmasligi uchun)
         element.classList.add('pdf-export-mode');
 
+        // Professional PDF sozlamalari
         const opt = {
-            margin:       [10, 10, 10, 10], 
-            filename:     `${fileName}_${Date.now()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2, 
+            margin: [15, 15, 15, 15],
+            filename: `${fileName}_${Date.now()}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { 
+                scale: 3, // Yuqori aniqlik
                 useCORS: true, 
                 logging: false,
-                letterRendering: true,
-                scrollY: 0
+                letterRendering: false,
+                backgroundColor: '#ffffff'
             },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         try {
-            // Ozgina kutish (render to'liq bo'lishi uchun)
+            // Formulalar "pishishi" uchun 1.5 soniya kutamiz
             setTimeout(async () => {
-                await html2pdf().set(opt).from(element).save();
+                const worker = html2pdf().set(opt).from(element);
+                await worker.save();
                 element.classList.remove('pdf-export-mode');
-            }, 1000);
+            }, 1500);
         } catch (err) {
             console.error("PDF Xatosi:", err);
             alert("PDF yuklashda xatolik.");
