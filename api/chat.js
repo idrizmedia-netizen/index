@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Gemini 1.5 Flash modeli - multimodal (rasm + matn) uchun eng mos va tezkor model
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+        // Rasmdagi eng kuchli model (Gemini 3.1 Pro Preview) va unga mos API manzili
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${API_KEY}`;
         
         // Google API uchun xabar strukturasini shakllantirish
         const promptParts = [];
@@ -75,11 +75,3 @@ export default async function handler(req, res) {
         res.status(500).json({ error: "Serverda ichki xatolik: " + error.message });
     }
 }
-
-
-
-
-
-
-
-
