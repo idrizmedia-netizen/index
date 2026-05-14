@@ -258,13 +258,24 @@
             border: 2px dashed var(--primary-color); border-radius: 20px;
         }
 
-        /* YANGI: FULL SCREEN VA CHAT STYLE */
+        /* YANGI: TO'LIQ EKRAN REJIMI UCHUN STIL QO'SHILDI */
         #chat-window.full-screen {
-            width: 100% !important;
-            height: 100% !important;
-            bottom: 0 !important;
-            right: 0 !important;
-            border-radius: 0 !important;
+            width: 90vw !important; /* Ekran kengligining 90 foizi */
+            height: 85vh !important; /* Ekran balandligining 85 foizi */
+            bottom: 20px !important;
+            right: 20px !important;
+            max-width: none !important;
+        }
+
+        /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
+        @media (max-width: 600px) {
+            #chat-window.full-screen {
+                width: 100vw !important;
+                height: 100vh !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                border-radius: 0 !important;
+            }
         }
     </style>
 </head>
@@ -504,9 +515,6 @@
       });
       onAuthStateChanged(auth, (user) => {
           const userInput = document.getElementById('user-input-ai');
-          const fileUp = document.getElementById('file-upload');
-          const sendBtn = document.getElementById('send-btn-ai');
-
           if (user) {
               loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${user.displayName}`;
               loginBtn.style.background = "#10b981";
@@ -515,15 +523,11 @@
               document.getElementById('user-email').innerText = user.email;
               const points = localStorage.getItem('lab_points') || 0;
               document.getElementById('user-points').innerText = points;
-
-              // Auth muvaffaqiyatli - inputlarni ochamiz
               userInput.disabled = false;
               userInput.placeholder = "Savol yoki rasm tavsifi...";
           } else {
               loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
               loginBtn.style.background = "var(--primary-color)";
-
-              // Auth yo'q - inputlarni yopamiz
               userInput.disabled = true;
               userInput.placeholder = "Faqat Google orqali kirganlar yozishi mumkin";
           }
@@ -532,12 +536,10 @@
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // PRELOADER
         window.addEventListener('load', () => {
             const preloader = document.getElementById('preloader');
             setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
         });
-        // MOBIL MENYU
         const mobileBtn = document.getElementById('mobile-menu-btn');
         const navLinks = document.getElementById('nav-links');
         mobileBtn.addEventListener('click', () => {
@@ -553,7 +555,6 @@
         });
         AOS.init({ duration: 1000, once: true });
 
-        // Dark Mode
         const themeToggle = document.getElementById('theme-toggle');
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark-theme');
@@ -567,13 +568,12 @@
             themeToggle.classList.replace('fa-moon', 'fa-sun');
         }
 
-        // Greeting
         const hour = new Date().getHours();
         const greeting = document.getElementById('greeting');
         if (hour < 12) greeting.innerText = "Xayrli tong!";
         else if (hour < 18) greeting.innerText = "Xayrli kun!";
         else greeting.innerText = "Xayrli kech!";
-        // Physics Logic
+
         window.calculateCurrent = function() {
             const v = document.getElementById('voltage').value;
             const r = document.getElementById('resistance').value;
@@ -584,7 +584,6 @@
                 let p = parseInt(localStorage.getItem('lab_points') || 0);
                 localStorage.setItem('lab_points', p + 5);
                 document.getElementById('user-points').innerText = p + 5;
-                
                 const list = document.getElementById('results-list');
                 if(list.innerHTML.includes('Hali natijalar yo\'q')) list.innerHTML = '';
                 list.innerHTML += `<div style="background:var(--light-bg); padding:10px; border-radius:10px; margin-bottom:5px;">V=${v}V, R=${r}Ω => I=${i}A</div>`;
@@ -609,10 +608,9 @@
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
 
-        // --- YANGI: MULTIMODAL AI CHATBOT LOGIKASI + TARIX + FULL SCREEN ---
         let currentFileBase64 = null;
         let currentFileType = null;
-        let chatHistory = []; // Suhbat tarixinini saqlash
+        let chatHistory = []; 
 
         const chatToggle = document.getElementById('chat-toggle');
         const chatWindow = document.getElementById('chat-window');
@@ -639,7 +637,6 @@
             fullScreenBtn.classList.toggle('fa-compress-alt');
         });
 
-        // Faylni tanlash va preview qilish
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -651,7 +648,6 @@
                         previewImg.src = event.target.result;
                         previewBox.style.display = 'block';
                     } else {
-                        // PDF yoki TXT bo'lsa faqat ikon ko'rsatish mumkin
                         previewBox.style.display = 'none';
                     }
                 };
@@ -669,44 +665,31 @@
         async function sendAiMessage() {
             const text = userInputAi.value.trim();
             if (!text && !currentFileBase64) return;
-
-            // User xabarini ko'rsatish
             appendAiMessage('user', text + (currentFileBase64 ? " [Fayl yuborildi]" : ""));
-            
             const imageToSend = currentFileBase64;
             const typeToSend = currentFileType;
-            
             userInputAi.value = '';
             cancelImage();
-
             const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
-
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         message: text,
-                        history: chatHistory, // Tarixni yuborish
+                        history: chatHistory, 
                         image: imageToSend,
                         mimeType: typeToSend
                     })
                 });
-
-                if (!response.ok) throw new Error('API xatosi');
-
                 const data = await response.json();
                 const aiReply = data.reply || "Javob olinmadi.";
-                
                 updateAiMessage(loadingId, aiReply);
                 addDownloadBtn(loadingId, aiReply);
-
-                // Tarixni yangilash
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
                 chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
-
             } catch (error) {
-                updateAiMessage(loadingId, "Xatolik: API bilan bog'lanib bo'lmadi.");
+                updateAiMessage(loadingId, "Xatolik yuz berdi.");
             }
         }
 
@@ -718,8 +701,6 @@
             msgDiv.style.borderRadius = '15px';
             msgDiv.style.maxWidth = '80%';
             msgDiv.style.marginBottom = '5px';
-            msgDiv.style.position = 'relative';
-
             if (sender === 'user') {
                 msgDiv.style.alignSelf = 'flex-end';
                 msgDiv.style.background = 'var(--primary-color)';
@@ -731,7 +712,6 @@
                 msgDiv.style.color = 'var(--text-color)';
                 msgDiv.style.borderRadius = '15px 15px 15px 0';
             }
-
             msgDiv.innerText = text;
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -750,7 +730,6 @@
             btn.style = "display: block; margin-top: 10px; padding: 5px 8px; font-size: 0.7rem; cursor: pointer; border-radius: 5px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.3s;";
             btn.onmouseover = () => { btn.style.background = "var(--primary-color)"; btn.style.color = "white"; };
             btn.onmouseout = () => { btn.style.background = "transparent"; btn.style.color = "var(--primary-color)"; };
-
             btn.onclick = () => {
                 const blob = new Blob([content], { type: 'text/plain' });
                 const link = document.createElement('a');
