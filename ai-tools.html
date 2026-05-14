@@ -96,21 +96,19 @@
 
         .btn-ai:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
 
-        /* NATIJA MAYDONI UCHUN STIL */
         #result-area, #formula-result {
             margin-top: 25px;
-            padding: 40px; /* PDF uchun kengroq padding */
+            padding: 40px; 
             background: #fff;
             border-radius: 15px;
             border-left: 5px solid var(--primary-color);
             display: none;
             line-height: 1.8;
             white-space: normal; 
-            color: #000; /* PDFda yaxshi chiqishi uchun */
+            color: #000;
             font-size: 14pt;
         }
 
-        /* Markdown sarlavhalarini chiroyli qilish */
         #result-area h1, #result-area h2, #result-area h3 { color: var(--primary-color); margin-top: 20px; }
         #result-area ul { padding-left: 20px; }
 
@@ -145,6 +143,11 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Jadvallar PDFda chiqishi uchun stil */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f8fafc; }
     </style>
 </head>
 <body>
@@ -249,12 +252,10 @@
 <script>
     AOS.init();
 
-    // AUTH TEKSHIRUV
     function checkGoogleAuth() {
         const user = localStorage.getItem('user'); 
         const guard1 = document.getElementById('auth-guard-1');
         const guard2 = document.getElementById('auth-guard-2');
-
         if (user) {
             if(guard1) guard1.style.display = 'none';
             if(guard2) guard2.style.display = 'none';
@@ -264,6 +265,16 @@
         }
     }
     window.onload = checkGoogleAuth;
+
+    // MATNNI TOZALASH FUNKSIYASI (Belgilar qolmasligi uchun)
+    function cleanMarkdown(text) {
+        return text
+            .replace(/\\\[/g, '$$$$') // AI ba'zan \[ ishlatadi
+            .replace(/\\\]/g, '$$$$')
+            .replace(/\\\(/g, '$$')
+            .replace(/\\\)/g, '$$')
+            .replace(/\\_/g, '_');    // Pastki chiziqni xatolardan himoya qilish
+    }
 
     // DARS ISHLANMASI
     async function generateLesson() {
@@ -279,29 +290,23 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="loading-spinner"></span> Tayyorlanmoqda...';
         resultArea.style.display = "block";
-        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini va formulalarni mukammal formatda tuzmoqda...</i>";
+        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini tuzmoqda...</i>";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuzib ber. 
-                    Formatlash qoidalari: 
-                    1. Sarlavhalarni ### bilan belgilang. 
-                    2. Muhim joylarni **qalin** qiling.
-                    3. Barcha fizik/matematik formulalarni LaTeX ($$ ... $$) formatida yozing.
-                    Tuzilishi: Maqsad, Jihozlar, Metodlar, Darsning borishi, Mustahkamlash.` 
+                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuz. Jadvallardan foydalan. Barcha formulalarni faqat $...$ yoki $$...$$ ichida yoz.` 
                 })
             });
 
             const data = await response.json();
             
-            // MARKED.JS ORQALI MARKDOWN-NI HTML-GA O'GIRAMIZ
-            const rawReply = data.reply;
-            resultArea.innerHTML = marked.parse(rawReply);
+            marked.setOptions({ breaks: true, gfm: true });
+            const cleanedText = cleanMarkdown(data.reply);
+            resultArea.innerHTML = marked.parse(cleanedText);
             
-            // MATHJAX ORQALI FORMULALARNI CHIARAMIZ
             if (window.MathJax) {
                 await MathJax.typesetPromise([resultArea]);
             }
@@ -333,13 +338,12 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar va qoidalar to'plamini (shpargalka) ber. 
-                    Sarlavhalar va ro'yxatdan foydalan. Formulalar LaTeX ($$ ... $$) bo'lsin.` 
+                    message: `"${query}" bo'yicha konspekt va formulalar. Standart Markdown ishlat.` 
                 })
             });
 
             const data = await response.json();
-            resultArea.innerHTML = marked.parse(data.reply);
+            resultArea.innerHTML = marked.parse(cleanMarkdown(data.reply));
             
             if (window.MathJax) {
                 await MathJax.typesetPromise([resultArea]);
@@ -353,22 +357,44 @@
         }
     }
 
-    // YUQORI SIFATLI KO'P VAROQLI PDF EKSPORT (html2pdf)
-    function exportToPDF(elementId, fileName) {
+    // PDF EKSPORT (BO'SH SAHIFA VA BELGILAR TUZATILGAN)
+    async function exportToPDF(elementId, fileName) {
         const element = document.getElementById(elementId);
         
-        // PDF sozlamalari
+        // 1. MathJax to'liq render bo'lishini kutish
+        if (window.MathJax) {
+            await MathJax.typesetPromise([element]);
+        }
+
+        // 2. PDF uchun vaqtinchalik sozlamalar (matn qora bo'lishi shart)
+        const originalStyle = element.getAttribute('style');
+        element.style.color = "black";
+        element.style.display = "block";
+
         const opt = {
-            margin:       [15, 15, 15, 15], // [tepa, chap, past, o'ng]
-            filename:     `${fileName}_${new Date().getTime()}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            margin:       [15, 10, 15, 10], 
+            filename:     `${fileName}.pdf`,
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                letterRendering: true
+            },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Sahifalarni aqlli bo'lish
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
-        // PDF generatsiya qilish
-        html2pdf().set(opt).from(element).save();
+        try {
+            // PDF generatsiya
+            await html2pdf().set(opt).from(element).save();
+        } catch (err) {
+            console.error("PDF Xatosi:", err);
+            alert("PDF yuklashda xatolik.");
+        } finally {
+            // Stilni qaytarish
+            element.setAttribute('style', originalStyle);
+        }
     }
 </script>
 
