@@ -108,46 +108,10 @@
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="lesson-subject">
-                <option value="" disabled selected>Fanni tanlang...</option>
-                <optgroup label="Aniq fanlar">
-                    <option value="Matematika">Matematika</option>
-                    <option value="Algebra">Algebra</option>
-                    <option value="Geometriya">Geometriya</option>
-                    <option value="Informatika">Informatika</option>
-                </optgroup>
-                <optgroup label="Tabiiy fanlar">
-                    <option value="Fizika">Fizika</option>
-                    <option value="Kimyo">Kimyo</option>
-                    <option value="Biologiya">Biologiya</option>
-                    <option value="Tabiiy fan (Science)">Tabiiy fan (Science)</option>
-                    <option value="Geografiya va iqtisodiyot">Geografiya va iqtisodiyot</option>
-                    <option value="Astronomiya">Astronomiya</option>
-                </optgroup>
-                <optgroup label="Filologiya fanlari">
-                    <option value="O'zbek tili">O'zbek tili</option>
-                    <option value="Adabiyot">Adabiyot</option>
-                    <option value="Rus tili">Rus tili</option>
-                    <option value="Ingliz tili">Ingliz tili</option>
-                    <option value="Nemis tili">Nemis tili</option>
-                    <option value="Fransuz tili">Fransuz tili</option>
-                    <option value="Ona tili">Ona tili</option>
-                </optgroup>
-                <optgroup label="Ijtimoiy fanlar">
-                    <option value="Tarix">Tarix</option>
-                    <option value="O'zbekiston tarixi">O'zbekiston tarixi</option>
-                    <option value="Jahon tarixi">Jahon tarixi</option>
-                    <option value="Tarbiya">Tarbiya</option>
-                    <option value="Huquq (Davlat va huquq asoslari)">Huquq</option>
-                    <option value="Falsafa">Falsafa</option>
-                </optgroup>
-                <optgroup label="Amaliy va ijodiy fanlar">
-                    <option value="Tasviriy san'at">Tasviriy san'at</option>
-                    <option value="Musiqa madaniyati">Musiqa madaniyati</option>
-                    <option value="Texnologiya">Texnologiya</option>
-                    <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
-                    <option value="Chizmachilik">Chizmachilik</option>
-                    <option value="Hayot xavfsizligi asoslari">CHYOT (HXA)</option>
-                </optgroup>
+                <option value="Fizika">Fizika</option>
+                <option value="Matematika">Matematika</option>
+                <option value="Kimyo">Kimyo</option>
+                <option value="Tarix">Tarix</option>
             </select>
         </div>
 
@@ -172,20 +136,25 @@
 <script>
     AOS.init();
 
+    // 1. AUTH TEKSHIRUV (Simulyatsiya yoki Firebase ulanishi)
     let isLoggedIn = false; 
 
     function checkAuth() {
+        // Bu yerda foydalanuvchi login qilganmi yoki yo'qligini tekshirasiz
+        // Masalan: localStorage.getItem('user_token')
         if (isLoggedIn) {
             document.getElementById('auth-lock').style.display = 'none';
         }
     }
 
     function loginWithGoogle() {
+        // Bu yerda sizning mavjud Google Auth kodingiz bo'lishi kerak
         alert("Google orqali tizimga kirish funksiyasini index.html dagi kabi ulang.");
-        isLoggedIn = true; 
+        isLoggedIn = true; // Sinov uchun
         checkAuth();
     }
 
+    // 2. GENERATSIYA FUNKSIYASI
     async function generateLesson() {
         if (!isLoggedIn) return alert("Iltimos, avval tizimga kiring!");
 
@@ -193,7 +162,6 @@
         const topic = document.getElementById('lesson-topic').value;
         const resultArea = document.getElementById('result-area');
 
-        if (!subject) return alert("Iltimos, fanni tanlang!");
         if (!topic) return alert("Mavzuni yozing!");
 
         resultArea.style.display = "block";
@@ -204,13 +172,14 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `${subject} fanidan "${topic}" mavzusida dars ishlanmasi tuz. Reja quyidagilardan iborat bo'lsin: 1. Maqsad, 2. Metodlar, 3. Borishi, 4. Baholash. Formulalarni LaTeX formatida (masalan, $$ ... $$) yoz.` 
+                    message: `${subject} fanidan "${topic}" mavzusida dars ishlanmasi tuz. Formulalarni LaTeX formatida (masalan, $$ ... $$) yoz.` 
                 })
             });
 
             const data = await response.json();
             resultArea.innerHTML = data.reply;
             
+            // MathJax orqali formulalarni chiroyli qilish
             if (window.MathJax) {
                 MathJax.typesetPromise();
             }
@@ -221,6 +190,7 @@
         }
     }
 
+    // 3. HTML2CANVAS + JSPDF (FORMULALARNI BUZMASDAN SAQLASH)
     async function exportToPDF(elementId) {
         const element = document.getElementById(elementId);
         const canvas = await html2canvas(element, { scale: 2 });
