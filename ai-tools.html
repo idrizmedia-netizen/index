@@ -163,16 +163,23 @@
         table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8fafc; }
 
-        /* PDF uchun maxsus Off-screen rendering stili */
+        /* PDF uchun maxsus Off-screen rendering stili (Yangilandi: Oq varaqni oldini oladi) */
         .pdf-offscreen-container {
             position: fixed;
             left: -9999px;
             top: 0;
-            width: 210mm; /* A4 kengligi */
+            width: 190mm; /* A4 kengligidan biroz kichikroq bo'shliqlar uchun */
             background: white !important;
             color: black !important;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
             font-family: 'Inter', serif;
+            overflow: visible !important;
+        }
+        
+        /* PDF nusxasi ichidagi ortiqcha marginlarni o'chirish */
+        .pdf-offscreen-container * {
+            max-height: 1000000px !important;
         }
     </style>
 </head>
@@ -381,7 +388,7 @@
         }
     }
 
-    // --- ENG YUQORI DARAJADAGI PDF EKSPORT (PROFESSIONAL YANGILANISH) ---
+    // --- MUKAMMAL PDF EKSPORT (ZARRACHA ZIYONSIZ YANGILANDI) ---
     async function exportToPDF(elementId, fileName) {
         const originalElement = document.getElementById(elementId);
         
@@ -393,9 +400,12 @@
         const container = document.createElement('div');
         container.className = 'pdf-offscreen-container';
         
-        // 2. Elementni nusxalaymiz (Clone)
+        // 2. Elementni nusxalaymiz va PDF uchun tozalaymiz
         const clone = originalElement.cloneNode(true);
         clone.style.display = 'block';
+        clone.style.margin = '0'; // PDF varag'i uchun marginni nolga tushiramiz
+        clone.style.padding = '0';
+        
         container.appendChild(clone);
         document.body.appendChild(container);
 
@@ -405,34 +415,38 @@
         }
 
         const opt = {
-            margin: [15, 12, 15, 12],
+            margin: [10, 10, 10, 10], // Bo'sh varaq chiqmasligi uchun marginni biroz kamaytirdik
             filename: `${fileName}_${Date.now()}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { 
-                scale: 3, // Yuqori tiniqlik
+                scale: 2.5, // 3 scale ba'zan RAM to'lib oq varaq chiqaradi, 2.5 — eng optimal
                 useCORS: true, 
                 logging: false,
-                letterRendering: false,
+                letterRendering: true,
                 backgroundColor: '#ffffff',
                 scrollY: 0
             },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+            // Sahifa uzilishlarini aqlli boshqarish (Oq sahifaga qarshi asosiy dori)
+            pagebreak: { mode: ['css', 'legacy'], avoid: ['img', 'table', 'mjx-container'] }
         };
 
         try {
-            // Brauzerga barcha elementlarni RAM-ga chizib olishi uchun vaqt beramiz
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Elementlar to'liq chizilishini kutamiz
+            await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // PDF-ni yaratish va saqlash
-            await html2pdf().set(opt).from(container).save();
+            // PDF-ni yaratish
+            const worker = html2pdf().set(opt).from(container);
+            await worker.save();
             
         } catch (err) {
             console.error("PDF Xatosi:", err);
             alert("PDF yuklashda xatolik yuz berdi.");
         } finally {
-            // Vaqtinchalik konteynerni o'chiramiz
-            document.body.removeChild(container);
+            // Tozalash
+            if (document.body.contains(container)) {
+                document.body.removeChild(container);
+            }
         }
     }
 </script>
