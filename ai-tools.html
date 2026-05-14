@@ -144,10 +144,16 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Jadvallar PDFda chiqishi uchun stil */
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8fafc; }
+
+        /* PDF eksport vaqtida stilning buzilmasligi uchun */
+        .pdf-export-mode {
+            background: white !important;
+            color: black !important;
+            display: block !important;
+        }
     </style>
 </head>
 <body>
@@ -266,14 +272,19 @@
     }
     window.onload = checkGoogleAuth;
 
-    // MATNNI TOZALASH FUNKSIYASI (Belgilar qolmasligi uchun)
+    // KUCHAYTIRILGAN TOZALASH FUNKSIYASI
     function cleanMarkdown(text) {
+        if (!text) return "";
         return text
-            .replace(/\\\[/g, '$$$$') // AI ba'zan \[ ishlatadi
+            .replace(/\\_/g, '_')      // Ortiqcha backslashlarni olib tashlash
+            .replace(/\\\*/g, '*')
+            .replace(/\\\[/g, '$$$$') 
             .replace(/\\\]/g, '$$$$')
             .replace(/\\\(/g, '$$')
             .replace(/\\\)/g, '$$')
-            .replace(/\\_/g, '_');    // Pastki chiziqni xatolardan himoya qilish
+            .replace(/\\\{/g, '{')
+            .replace(/\\\}/g, '}')
+            .replace(/\\#/g, '#');
     }
 
     // DARS ISHLANMASI
@@ -288,16 +299,16 @@
         if (!topic) return alert("Mavzuni yozing!");
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="loading-spinner"></span> Tayyorlanmoqda...';
+        btn.innerHTML = '<span class="loading-spinner"></span> Tezkor yaratilmoqda...';
         resultArea.style.display = "block";
-        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini tuzmoqda...</i>";
+        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini mukammal formatda tuzmoqda...</i>";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuz. Jadvallardan foydalan. Barcha formulalarni faqat $...$ yoki $$...$$ ichida yoz.` 
+                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida professional dars ishlanmasi tuz. Jadvallar, metodlar va formulalarni ($...$) ishlating.` 
                 })
             });
 
@@ -313,7 +324,7 @@
 
             actionBtns.style.display = "flex";
         } catch (error) {
-            resultArea.innerText = "Xatolik! Server bilan ulanishda muammo.";
+            resultArea.innerText = "Xatolik! Internet bilan ulanishni tekshiring.";
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-magic"></i> Reja yaratish';
@@ -338,7 +349,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `"${query}" bo'yicha konspekt va formulalar. Standart Markdown ishlat.` 
+                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar va qoidalar (konspekt). Markdown formatida.` 
                 })
             });
 
@@ -357,43 +368,47 @@
         }
     }
 
-    // PDF EKSPORT (BO'SH SAHIFA VA BELGILAR TUZATILGAN)
+    // PDF EKSPORT (BO'SH CHIQISHINI OLDINI OLISH VA FORMULALAR BILAN)
     async function exportToPDF(elementId, fileName) {
         const element = document.getElementById(elementId);
         
-        // 1. MathJax to'liq render bo'lishini kutish
+        if (!element || element.innerHTML.trim() === "") {
+            return alert("Avval ma'lumot yarating!");
+        }
+
+        // 1. MathJax render bo'lganini tekshirish
         if (window.MathJax) {
             await MathJax.typesetPromise([element]);
         }
 
-        // 2. PDF uchun vaqtinchalik sozlamalar (matn qora bo'lishi shart)
-        const originalStyle = element.getAttribute('style');
-        element.style.color = "black";
-        element.style.display = "block";
+        // 2. Vaqtinchalik stil qo'shish (PDF oq chiqmasligi uchun)
+        element.classList.add('pdf-export-mode');
 
         const opt = {
-            margin:       [15, 10, 15, 10], 
-            filename:     `${fileName}.pdf`,
-            image:        { type: 'jpeg', quality: 1.0 },
+            margin:       [10, 10, 10, 10], 
+            filename:     `${fileName}_${Date.now()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { 
                 scale: 2, 
                 useCORS: true, 
                 logging: false,
-                letterRendering: true
+                letterRendering: true,
+                scrollY: 0
             },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         try {
-            // PDF generatsiya
-            await html2pdf().set(opt).from(element).save();
+            // Ozgina kutish (render to'liq bo'lishi uchun)
+            setTimeout(async () => {
+                await html2pdf().set(opt).from(element).save();
+                element.classList.remove('pdf-export-mode');
+            }, 1000);
         } catch (err) {
             console.error("PDF Xatosi:", err);
             alert("PDF yuklashda xatolik.");
-        } finally {
-            // Stilni qaytarish
-            element.setAttribute('style', originalStyle);
+            element.classList.remove('pdf-export-mode');
         }
     }
 </script>
