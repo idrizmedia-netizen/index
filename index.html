@@ -22,176 +22,80 @@
             --primary-color: #38bdf8;
             --secondary-color: #1d4ed8;
             --dark-color: #f1f5f9;
-            --light-bg: #020617; /* Chuqur kosmik ko'k */
+            --light-bg: #0f172a; /* To'q ko'k/qora fon */
             --text-color: #f1f5f9;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            --card-bg: rgba(30, 41, 59, 0.8);
+            --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         }
 
-        /* UMUMIY STIL VA DINAMIK FON */
         body {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
             background: var(--gradient-bg);
-            background-attachment: fixed;
             color: var(--text-color);
-            scroll-behavior: smooth;
+            margin: 0;
+            transition: all 0.5s ease;
             overflow-x: hidden;
         }
 
-        /* Orqa fondagi harakatlanuvchi nurli dog'lar (Blobs) */
-        body::before {
-            content: "";
+        /* Yuklanish animatsiyasi */
+        #loader {
             position: fixed;
-            top: -10%; left: -10%;
-            width: 40%; height: 40%;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
-            z-index: -1;
-            animation: moveBlob 20s infinite alternate;
-        }
-
-        @keyframes moveBlob {
-            from { transform: translate(0, 0); }
-            to { transform: translate(100vw, 100vh); }
-        }
-
-        /* PRELOADER STILI */
-        #preloader {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #020617;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--light-bg);
+            display: flex; justify-content: center; align-items: center;
             z-index: 9999;
-            transition: opacity 0.8s ease;
         }
-        .preloader-content { text-align: center; }
-        .ziyomap-loader {
-            font-size: clamp(2rem, 10vw, 5rem);
-            font-weight: 900;
-            color: #38bdf8;
-            text-transform: uppercase;
-            letter-spacing: clamp(5px, 2vw, 15px);
-            margin: 0;
-            animation: pulse-glow 2s infinite alternate;
-            text-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
-        }
-        @keyframes pulse-glow {
-            from { transform: scale(1); opacity: 0.6; text-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
-            to { transform: scale(1.05); opacity: 1; text-shadow: 0 0 50px rgba(56, 189, 248, 0.9); }
-        }
-        .fade-out { opacity: 0; pointer-events: none; }
 
-        /* NAVIGATSIYA - RESPONSIVE TAKOMILLASHTIRILGAN */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--secondary-color);
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         nav {
             background: var(--card-bg);
             backdrop-filter: blur(15px);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            padding: 12px 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
-        }
-
-        nav .container {
+            padding: 15px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            position: fixed;
+            width: 90%;
+            top: 20px;
+            left: 5%;
+            z-index: 1000;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .logo-brand {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--primary-color);
-            text-decoration: none;
-            letter-spacing: 1px;
-        }
+        .logo { font-size: 1.8rem; font-weight: 800; color: var(--primary-color); text-transform: uppercase; letter-spacing: 2px; }
 
-        .nav-menu {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
+        .nav-links { display: flex; gap: 30px; list-style: none; align-items: center; }
+        .nav-links a { text-decoration: none; color: var(--text-color); font-weight: 600; transition: 0.3s; position: relative; }
+        .nav-links a::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -5px; left: 0; background: var(--primary-color); transition: 0.3s; }
+        .nav-links a:hover::after { width: 100%; }
 
-        .nav-menu a {
-            text-decoration: none;
-            color: var(--dark-color);
+        .theme-toggle, .login-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
             font-weight: 600;
             transition: 0.3s;
-            font-size: 0.95rem;
+            display: flex; align-items: center; gap: 8px;
         }
 
-        .nav-menu a:hover { color: var(--primary-color); }
+        .theme-toggle:hover { opacity: 0.9; transform: scale(1.05); }
 
-        .menu-toggle {
-            display: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--primary-color);
-        }
-
-        @media (max-width: 768px) {
-            .menu-toggle { display: block; }
-            .nav-menu {
-                position: fixed;
-                top: 70px;
-                left: -100%;
-                flex-direction: column;
-                background: var(--card-bg);
-                width: 100%;
-                height: calc(100vh - 70px);
-                padding: 40px 0;
-                transition: 0.4s ease-in-out;
-                backdrop-filter: blur(25px);
-                text-align: center;
-                gap: 30px;
-            }
-            .nav-menu.active { left: 0; }
-        }
-
-        .profile-dropdown {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        #login-btn {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white !important;
-            padding: 10px 25px;
-            border-radius: 25px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
-            white-space: nowrap;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 20px;
-            background-color: var(--card-bg);
-            min-width: 280px;
-            box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
-            z-index: 1100;
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 15px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-
-        .dropdown-content.show { display: block; animation: fadeIn 0.3s ease; }
-        .dropdown-content img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--primary-color); }
-
+        /* Hero Section */
         .hero {
             height: 100vh;
             display: flex;
@@ -199,536 +103,287 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 0 20px;
+            padding: 0 10%;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png');
         }
-        .hero h1 { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 800; margin-bottom: 20px; }
-        .hero p { font-size: 1.2rem; max-width: 700px; line-height: 1.6; }
 
-        .btn {
-            display: inline-block;
-            padding: 14px 35px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white !important;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.4s;
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
-            border: none;
-            margin: 10px;
+        .hero h1 { font-size: 4rem; margin-bottom: 20px; background: linear-gradient(90deg, var(--primary-color), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.2rem; max-width: 600px; line-height: 1.8; opacity: 0.8; }
+
+        /* AI CHAT FLOATING BUTTON */
+        #ai-trigger {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.4);
+            z-index: 1001;
+            transition: 0.3s;
         }
-        .btn:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4); }
-        .btn-outline { background: transparent; color: var(--text-color) !important; border: 2px solid var(--primary-color); }
 
-        .section { padding: 100px 20px; max-width: 1200px; margin: auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 40px; }
-        
-        .card {
+        #ai-trigger:hover { transform: rotate(15deg) scale(1.1); }
+
+        /* AI CHAT PANEL */
+        #ai-panel {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 380px;
+            height: 550px;
             background: var(--card-bg);
-            padding: 35px;
+            backdrop-filter: blur(20px);
             border-radius: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            overflow: hidden;
+        }
+
+        .ai-header { padding: 20px; background: var(--primary-color); color: white; display: flex; justify-content: space-between; align-items: center; }
+        #ai-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 80%; font-size: 0.95rem; line-height: 1.4; position: relative; }
+        .user-msg { background: var(--primary-color); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .ai-msg { background: #f1f5f9; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #e2e8f0; }
+
+        .ai-input-area { padding: 15px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; gap: 10px; }
+        .ai-input-area input { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; outline: none; }
+        .ai-input-area button { background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer; }
+
+        /* GRID TOOLS */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 100px 10%;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
             transition: 0.4s;
-        }
-        .card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
-        .card i { font-size: 3rem; color: var(--primary-color); margin-bottom: 20px; display: block; }
-
-        .lab-input {
-            width: 100%;
-            padding: 14px; margin: 10px 0; border-radius: 12px;
-            border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
         }
 
-        .test-btn {
-            width: 100%;
-            padding: 15px; margin: 8px 0; border-radius: 12px;
-            background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2);
-            color: var(--text-color); cursor: pointer; text-align: left; transition: 0.3s;
+        .tool-card:hover { transform: translateY(-15px); box-shadow: 0 25px 50px rgba(0,0,0,0.1); border-color: var(--primary-color); }
+        .tool-icon { font-size: 3rem; color: var(--primary-color); margin-bottom: 20px; }
+        
+        .user-profile {
+            display: none;
+            align-items: center;
+            gap: 10px;
         }
-        .test-btn:hover { background: var(--primary-color); color: white; }
-
-        footer { background: #020617; color: white; padding: 60px 20px; text-align: center; }
-        .social-links a { font-size: 1.8rem; color: white; margin: 0 20px; transition: 0.3s; }
-        .social-links a:hover { color: var(--primary-color); transform: scale(1.2); }
-
-        #results-sidebar {
-            margin-top: 40px;
-            padding: 30px; background: var(--card-bg);
-            border: 2px dashed var(--primary-color); border-radius: 20px;
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
         }
 
-        /* YANGI: TO'LIQ EKRAN REJIMI UCHUN STIL QO'SHILDI */
-        #chat-window.full-screen {
-            width: 90vw !important; /* Ekran kengligining 90 foizi */
-            height: 85vh !important; /* Ekran balandligining 85 foizi */
-            bottom: 20px !important;
-            right: 20px !important;
-            max-width: none !important;
-        }
-
-        /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
-        @media (max-width: 600px) {
-            #chat-window.full-screen {
-                width: 100vw !important;
-                height: 100vh !important;
-                bottom: 0 !important;
-                right: 0 !important;
-                border-radius: 0 !important;
-            }
-        }
+        /* Footer */
+        footer { padding: 50px 10%; background: var(--dark-color); color: white; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="preloader">
-        <div class="preloader-content">
-            <h1 class="ziyomap-loader">Ziyomap</h1>
-        </div>
-    </div>
+    <div id="loader"><div class="spinner"></div></div>
 
     <nav>
-        <div class="container">
-            <a href="#home" class="logo-brand">Ziyomap</a>
-            
-            <div class="menu-toggle" id="mobile-menu-btn">
-                <i class="fas fa-bars"></i>
-            </div>
-
-            <div class="nav-menu" id="nav-links">
-                <a href="#home">Asosiy</a>
-                <a href="#projects">Loyihalar</a>
-                <a href="#lab">Laboratoriya</a>
-                <a href="#blog">Blog</a>
-                <a href="#contact">Aloqa</a>
-                
-                <div class="profile-dropdown">
-                    <i class="fas fa-moon" id="theme-toggle" style="cursor:pointer; font-size: 1.2rem;"></i>
-                    <a href="#" id="login-btn">...</a>
+        <div class="logo">ZIYOMAP</div>
+        <ul class="nav-links">
+            <li><a href="#home">Asosiy</a></li>
+            <li><a href="ai-tools.html">AI Asboblar</a></li>
+            <li><a href="#labs">Virtual Laboratoriya</a></li>
+            <li><button class="theme-toggle" id="theme-btn"><i class="fas fa-moon"></i></button></li>
+            <li>
+                <button class="login-btn" id="login-google"><i class="fab fa-google"></i> Kirish</button>
+                <div class="user-profile" id="user-info">
+                    <img id="user-pic" src="" alt="">
+                    <span id="user-name"></span>
                 </div>
-            </div>
-
-            <div id="myDropdown" class="dropdown-content">
-                <div id="user-info" style="text-align: center;">
-                    <img id="user-photo" src="" alt="User">
-                    <h4 id="user-name" style="margin-top:10px;">Foydalanuvchi</h4>
-                    <p id="user-email">email@example.com</p>
-                </div>
-                <div style="height:1px; background:rgba(59,130,246,0.2); margin:15px 0;"></div>
-                <div style="font-size: 0.9rem; color: var(--dark-color);">
-                    <i class="fas fa-award" style="color: #f59e0b;"></i> 
-                    Laboratoriya ballari: <span id="user-points" style="font-weight: bold;">0</span>
-                </div>
-                <div style="height:1px; background:rgba(59,130,246,0.2); margin:15px 0;"></div>
-                <a href="#" class="logout-link" id="logout-btn" style="color:#ef4444; text-decoration:none; font-weight:bold;">
-                    <i class="fas fa-sign-out-alt"></i> Chiqish
-                </a>
-            </div>
-        </div>
+            </li>
+        </ul>
     </nav>
 
     <section class="hero" id="home">
-        <h1 id="greeting" data-aos="fade-up">Assalomu alaykum!</h1>
+        <h1 data-aos="zoom-in">Pedagogik Innovatsiyalar</h1>
         <p data-aos="fade-up" data-aos-delay="200">
-            Fizika o'qituvchisi, Dasturchi va IT tadbirkor. 
-            Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
+            Fizika va texnologiyani o'qitishda zamonaviy AI yechimlar. Dars ishlanmalari, virtual tajribalar va aqlli assistent - hammasi bitta platformada.
         </p>
-        <div data-aos="zoom-in" data-aos-delay="400">
-            <a href="#projects" class="btn">Loyihalarni ko'rish</a>
-            <a href="https://ziyomap.streamlit.app/" target="_blank" class="btn btn-outline">Ziyomap</a>
-            <a href="ai-tools.html" class="btn" style="margin-left: 10px;">AI Asboblar</a>
+        <div style="margin-top: 30px; display: flex; gap: 20px;" data-aos="fade-up" data-aos-delay="400">
+            <button class="theme-toggle" style="padding: 15px 35px; font-size: 1.1rem;" onclick="location.href='ai-tools.html'">Boshlash</button>
+            <button class="theme-toggle" style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color); padding: 15px 35px; font-size: 1.1rem;">Ma'lumot</button>
         </div>
     </section>
 
-    <section class="section" id="projects">
-        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
-        <div class="grid">
-            <div class="card" data-aos="flip-left">
-                <i class="fas fa-atom"></i>
-                <h3>Fizika va Ta'lim</h3>
-                <p>O'quvchilar uchun interaktiv darslar va fizik jarayonlarning raqamli modellarini yarataman.</p>
-            </div>
-            <div class="card" data-aos="flip-left" data-aos-delay="200">
-                <i class="fas fa-code"></i>
-                <h3>Dasturlash</h3>
-                <p>Python (Streamlit), Flutter va Web texnologiyalar yordamida foydali ilovalar ishlab chiqaman.</p>
-            </div>
-            <div class="card" data-aos="flip-left" data-aos-delay="400">
-                <i class="fas fa-chart-line"></i>
-                <h3>Tadbirkorlik</h3>
-                <p>Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
-            </div>
+    <div class="tools-grid">
+        <div class="tool-card" data-aos="flip-left">
+            <div class="tool-icon"><i class="fas fa-robot"></i></div>
+            <h3>AI Dars Rejasi</h3>
+            <p>Bir necha soniya ichida istalgan fan bo'yicha mukammal dars ishlanmasini yarating.</p>
         </div>
-    </section>
-
-    <section class="section" id="lab">
-        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Interaktiv Laboratoriya</h2>
-        <div class="grid">
-            <div class="card" data-aos="zoom-in">
-                <i class="fas fa-bolt"></i>
-                <h3>Om qonuni kalkulyatori</h3>
-                <p>Kuchlanish (V) va Qarshilikni (R) kiriting:</p>
-                <input type="number" id="voltage" class="lab-input" placeholder="V (Volt)">
-                <input type="number" id="resistance" class="lab-input" placeholder="R (Om)">
-                <button onclick="calculateCurrent()" class="btn" style="width:100%; margin:10px 0;">Hisoblash</button>
-                <p id="calcResult" style="margin-top:15px; font-weight:bold; color:var(--primary-color);"></p>
-            </div>
-
-            <div class="card" data-aos="zoom-in" data-aos-delay="200">
-                <i class="fas fa-brain"></i>
-                <h3>Tezkor Test</h3>
-                <p>Energiyaning saqlanish qonunini kim kashf etgan?</p>
-                <button class="test-btn" onclick="checkAnswer(false)">A) Isaak Nyuton</button>
-                <button class="test-btn" onclick="checkAnswer(true)">B) Yulius Mayer</button>
-                <button class="test-btn" onclick="checkAnswer(false)">C) Arximed</button>
-                <p id="testStatus" style="margin-top:15px; font-weight:bold;"></p>
-            </div>
+        <div class="tool-card" data-aos="flip-left" data-aos-delay="200">
+            <div class="tool-icon"><i class="fas fa-flask"></i></div>
+            <h3>Virtual Lablar</h3>
+            <p>Interaktiv fizik tajribalar va simulyatsiyalar (Mexanika, Optika, Elektr).</p>
         </div>
-
-        <div id="results-sidebar" data-aos="fade-up">
-            <h4 style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-clipboard-list" style="font-size: 1.2rem; color: var(--primary-color);"></i> 
-                Olingan natijalar jadvali
-            </h4>
-            <div id="results-list">
-                <p style="color: #94a3b8; font-style: italic;">Hali natijalar yo'q. Laboratoriya tajribasini yakunlang.</p>
-            </div>
-            <button onclick="clearResults()" class="btn btn-outline" style="font-size: 0.8rem; padding: 8px 20px;">Tozalash</button>
+        <div class="tool-card" data-aos="flip-left" data-aos-delay="400">
+            <div class="tool-icon"><i class="fas fa-file-pdf"></i></div>
+            <h3>Aqlli Eksport</h3>
+            <p>Tayyorlangan ma'lumotlarni sifatli PDF formatida yuklab oling.</p>
         </div>
-    </section>
+    </div>
 
-    <section class="section" id="blog">
-        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Blog</h2>
-        <div class="grid">
-            <div class="card" data-aos="fade-up">
-                <span style="color: #64748b; font-size: 0.85rem; margin-bottom: 10px; display: block;">28-Aprel, 2026</span>
-                <h3>Fizika darslarida AI</h3>
-                <p>Sun'iy intellekt yordamida darslarni qanday qiziqarli qilish mumkin? Tajribalarim bilan o'rtoqlashaman.</p>
-            </div>
-            <div class="card" data-aos="fade-up" data-aos-delay="200">
-                <span style="color: #64748b; font-size: 0.85rem; margin-bottom: 10px; display: block;">25-Aprel, 2026</span>
-                <h3>Ziyomap Loyihasi</h3>
-                <p>Ziyomap platformasining imkoniyatlari va ta'lim tizimidagi o'rni haqida batafsil ma'lumot.</p>
-            </div>
+    <div id="ai-trigger"><i class="fas fa-comment-dots"></i></div>
+    <div id="ai-panel">
+        <div class="ai-header">
+            <span>Ziyomap AI Assistent</span>
+            <i class="fas fa-times" id="close-ai" style="cursor: pointer;"></i>
         </div>
-    </section>
-
-    <section class="section" id="contact">
-        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Men bilan bog'laning</h2>
-        <div style="max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);" data-aos="zoom-in">
-            <form action="mailto:ishingiz@example.com" method="post">
-                <input type="text" placeholder="Ismingiz" required class="lab-input">
-                <input type="email" placeholder="Email manzilingiz" required class="lab-input">
-                <textarea rows="5" placeholder="Xabaringizni yozing..." required class="lab-input"></textarea>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Yuborish</button>
-            </form>
+        <div id="ai-messages">
+            <div class="msg ai-msg">Salom! Men sizga fizika fanidan masalalar yechishda yoki dars rejasini tuzishda yordam bera olaman.</div>
         </div>
-    </section>
-
-    <div id="ai-chat-wrapper" style="position: fixed; bottom: 30px; right: 30px; z-index: 2000;">
-        <button id="chat-toggle" style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-color); border: none; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); transition: 0.3s;">
-            <i class="fas fa-robot"></i>
-        </button>
-
-        <div id="chat-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 500px; background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 15px 50px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden;">
-            <div style="background: var(--primary-color); padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: bold;"><i class="fas fa-brain"></i> Ziyomap AI</span>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <i class="fas fa-expand-alt" id="full-screen-chat" style="cursor: pointer; font-size: 0.9rem;"></i>
-                    <i class="fas fa-times" id="close-chat" style="cursor: pointer;"></i>
-                </div>
-            </div>
-            
-            <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
-                <div style="background: rgba(56, 189, 248, 0.1); padding: 10px; border-radius: 15px 15px 15px 0; align-self: flex-start; max-width: 80%;">
-                    Assalomu alaykum, xush kelibsiz! Rasm yuklashingiz yoki savol berishingiz mumkin.
-                </div>
-            </div>
-
-            <div id="image-preview-box" style="display: none; padding: 10px; background: rgba(56, 189, 248, 0.05); border-top: 1px solid rgba(56, 189, 248, 0.1);">
-                <div style="position: relative; display: inline-block;">
-                    <img id="preview-img" src="" style="max-height: 80px; border-radius: 8px; border: 1px solid var(--primary-color);">
-                    <i class="fas fa-times-circle" onclick="cancelImage()" style="position: absolute; top: -5px; right: -5px; color: #ef4444; cursor: pointer; background: white; border-radius: 50%;"></i>
-                </div>
-            </div>
-
-            <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; flex-direction: column; gap: 5px;">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <label for="file-upload" style="cursor: pointer; color: var(--primary-color); font-size: 1.2rem;">
-                        <i class="fas fa-paperclip"></i>
-                    </label>
-                    <input type="file" id="file-upload" accept="image/*, application/pdf, text/plain" style="display: none;">
-                    
-                    <input type="text" id="user-input-ai" placeholder="Savol yoki rasm tavsifi..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color); outline: none;">
-                    
-                    <button id="send-btn-ai" style="background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
+        <div class="ai-input-area">
+            <input type="text" id="user-input-ai" placeholder="Savolingizni yozing...">
+            <button id="send-btn-ai"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
     <footer>
-        <div class="social-links" data-aos="fade-up">
-            <a href="https://t.me/Ziyomap" target="_blank"><i class="fab fa-telegram"></i></a>
-            <a href="https://instagram.com/izzatillobeey" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://github.com/idrizmedia-netizen/Testmasters" target="_blank"><i class="fab fa-github"></i></a>
+        <p>&copy; 2026 Ziyomap. Barcha huquqlar himoyalangan.</p>
+        <div style="margin-top: 20px; display: flex; justify-content: center; gap: 20px;">
+            <i class="fab fa-telegram fa-2x"></i>
+            <i class="fab fa-github fa-2x"></i>
+            <i class="fab fa-youtube fa-2x"></i>
         </div>
-        <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
 
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
-
-      const firebaseConfig = {
-        apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
-        authDomain: "ziyomap.firebaseapp.com",
-        projectId: "ziyomap",
-        storageBucket: "ziyomap.firebasestorage.app",
-        messagingSenderId: "982123868162",
-        appId: "1:982123868162:web:6845723988c030fcd1f71b",
-        measurementId: "G-Y3EQ1ZJW3B"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
-
-      const loginBtn = document.getElementById('login-btn');
-      const dropdown = document.getElementById('myDropdown');
-      const logoutBtn = document.getElementById('logout-btn');
-
-      loginBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (!auth.currentUser) {
-              signInWithPopup(auth, provider).catch((err) => { console.error(err); });
-          } else {
-              dropdown.classList.toggle('show');
-          }
-      });
-      logoutBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
-              signOut(auth).then(() => { dropdown.classList.remove('show'); });
-          }
-      });
-      onAuthStateChanged(auth, (user) => {
-          const userInput = document.getElementById('user-input-ai');
-          if (user) {
-              loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${user.displayName}`;
-              loginBtn.style.background = "#10b981";
-              document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/60';
-              document.getElementById('user-name').innerText = user.displayName;
-              document.getElementById('user-email').innerText = user.email;
-              const points = localStorage.getItem('lab_points') || 0;
-              document.getElementById('user-points').innerText = points;
-              userInput.disabled = false;
-              userInput.placeholder = "Savol yoki rasm tavsifi...";
-          } else {
-              loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
-              loginBtn.style.background = "var(--primary-color)";
-              userInput.disabled = true;
-              userInput.placeholder = "Faqat Google orqali kirganlar yozishi mumkin";
-          }
-      });
-    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        window.addEventListener('load', () => {
-            const preloader = document.getElementById('preloader');
-            setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
-        });
-        const mobileBtn = document.getElementById('mobile-menu-btn');
-        const navLinks = document.getElementById('nav-links');
-        mobileBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            mobileBtn.querySelector('i').classList.toggle('fa-bars');
-            mobileBtn.querySelector('i').classList.toggle('fa-times');
-        });
-        document.querySelectorAll('.nav-menu a').forEach(link => {
-            link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-                mobileBtn.querySelector('i').classList.replace('fa-times', 'fa-bars');
-            });
-        });
         AOS.init({ duration: 1000, once: true });
 
-        const themeToggle = document.getElementById('theme-toggle');
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-theme');
-            const isDark = document.body.classList.contains('dark-theme');
-            themeToggle.classList.toggle('fa-sun', isDark);
-            themeToggle.classList.toggle('fa-moon', !isDark);
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        window.addEventListener('load', () => {
+            document.getElementById('loader').style.display = 'none';
         });
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-theme');
-            themeToggle.classList.replace('fa-moon', 'fa-sun');
-        }
 
-        const hour = new Date().getHours();
-        const greeting = document.getElementById('greeting');
-        if (hour < 12) greeting.innerText = "Xayrli tong!";
-        else if (hour < 18) greeting.innerText = "Xayrli kun!";
-        else greeting.innerText = "Xayrli kech!";
+        // FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyAs-SIZNING-API-KALITINGIZ",
+            authDomain: "ziyomap-auth.firebaseapp.com",
+            projectId: "ziyomap-auth",
+            storageBucket: "ziyomap-auth.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-        window.calculateCurrent = function() {
-            const v = document.getElementById('voltage').value;
-            const r = document.getElementById('resistance').value;
-            const resDisplay = document.getElementById('calcResult');
-            if(v && r && r > 0) {
-                const i = (v / r).toFixed(2);
-                resDisplay.innerText = `Tok kuchi: I = ${i} Amper`;
-                let p = parseInt(localStorage.getItem('lab_points') || 0);
-                localStorage.setItem('lab_points', p + 5);
-                document.getElementById('user-points').innerText = p + 5;
-                const list = document.getElementById('results-list');
-                if(list.innerHTML.includes('Hali natijalar yo\'q')) list.innerHTML = '';
-                list.innerHTML += `<div style="background:var(--light-bg); padding:10px; border-radius:10px; margin-bottom:5px;">V=${v}V, R=${r}Ω => I=${i}A</div>`;
+        // GOOGLE LOGIN INTEGRATSIYASI
+        const loginBtn = document.getElementById('login-google');
+        loginBtn.onclick = () => {
+            auth.signInWithPopup(provider).then((result) => {
+                const user = result.user;
+                
+                // MEHNATINGIZNI QADRLAGAN HOLDA: Foydalanuvchini brauzer xotirasiga saqlaymiz
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                console.log("Tizimga kirildi:", user.displayName);
+                updateUI(user);
+            }).catch(err => alert("Kirishda xatolik: " + err.message));
+        };
+
+        function updateUI(user) {
+            if (user) {
+                loginBtn.style.display = 'none';
+                const userInfo = document.getElementById('user-info');
+                userInfo.style.display = 'flex';
+                document.getElementById('user-pic').src = user.photoURL;
+                document.getElementById('user-name').innerText = user.displayName;
             }
         }
 
-        window.checkAnswer = function(isCorrect) {
-            const status = document.getElementById('testStatus');
-            if(isCorrect) {
-                status.innerText = "To'g'ri! 🚀 +10 ball";
-                status.style.color = "#10b981";
-                let p = parseInt(localStorage.getItem('lab_points') || 0);
-                localStorage.setItem('lab_points', p + 10);
-                document.getElementById('user-points').innerText = p + 10;
-            } else {
-                status.innerText = "Xato! ❌ Qaytadan urining";
-                status.style.color = "#ef4444";
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                localStorage.setItem('user', JSON.stringify(user));
+                updateUI(user);
             }
-        }
+        });
 
-        window.clearResults = function() {
-            document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
-        }
+        // THEME TOGGLE
+        const themeBtn = document.getElementById('theme-btn');
+        themeBtn.onclick = () => {
+            document.body.classList.toggle('dark-theme');
+            const icon = themeBtn.querySelector('i');
+            icon.classList.toggle('fa-moon');
+            icon.classList.toggle('fa-sun');
+        };
 
-        let currentFileBase64 = null;
-        let currentFileType = null;
-        let chatHistory = []; 
-
-        const chatToggle = document.getElementById('chat-toggle');
-        const chatWindow = document.getElementById('chat-window');
-        const closeChat = document.getElementById('close-chat');
-        const fullScreenBtn = document.getElementById('full-screen-chat');
+        // AI CHAT MANTIQI
+        const aiTrigger = document.getElementById('ai-trigger');
+        const aiPanel = document.getElementById('ai-panel');
+        const closeAi = document.getElementById('close-ai');
         const sendBtnAi = document.getElementById('send-btn-ai');
         const userInputAi = document.getElementById('user-input-ai');
-        const chatMessages = document.getElementById('chat-messages');
-        const fileInput = document.getElementById('file-upload');
-        const previewBox = document.getElementById('image-preview-box');
-        const previewImg = document.getElementById('preview-img');
+        const aiMessages = document.getElementById('ai-messages');
 
-        chatToggle.addEventListener('click', () => {
-            chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
-        });
-
-        closeChat.addEventListener('click', () => {
-            chatWindow.style.display = 'none';
-        });
-
-        fullScreenBtn.addEventListener('click', () => {
-            chatWindow.classList.toggle('full-screen');
-            fullScreenBtn.classList.toggle('fa-expand-alt');
-            fullScreenBtn.classList.toggle('fa-compress-alt');
-        });
-
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                currentFileType = file.type;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    currentFileBase64 = event.target.result.split(',')[1];
-                    if (file.type.startsWith('image/')) {
-                        previewImg.src = event.target.result;
-                        previewBox.style.display = 'block';
-                    } else {
-                        previewBox.style.display = 'none';
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        window.cancelImage = function() {
-            currentFileBase64 = null;
-            currentFileType = null;
-            previewBox.style.display = 'none';
-            fileInput.value = '';
-        }
+        aiTrigger.onclick = () => aiPanel.style.display = 'flex';
+        closeAi.onclick = () => aiPanel.style.display = 'none';
 
         async function sendAiMessage() {
             const text = userInputAi.value.trim();
-            if (!text && !currentFileBase64) return;
-            appendAiMessage('user', text + (currentFileBase64 ? " [Fayl yuborildi]" : ""));
-            const imageToSend = currentFileBase64;
-            const typeToSend = currentFileType;
+            if(!text) return;
+
+            appendMessage('user', text);
             userInputAi.value = '';
-            cancelImage();
-            const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
+
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: text,
-                        history: chatHistory, 
-                        image: imageToSend,
-                        mimeType: typeToSend
-                    })
+                    body: JSON.stringify({ message: text })
                 });
                 const data = await response.json();
-                const aiReply = data.reply || "Javob olinmadi.";
-                updateAiMessage(loadingId, aiReply);
-                addDownloadBtn(loadingId, aiReply);
-                chatHistory.push({ role: "user", parts: [{ text: text }] });
-                chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
-            } catch (error) {
-                updateAiMessage(loadingId, "Xatolik yuz berdi.");
+                appendMessage('ai', data.reply);
+            } catch (err) {
+                appendMessage('ai', "Hozircha javob berolmayman. Backend ulanmagan.");
             }
         }
 
-        function appendAiMessage(sender, text) {
-            const id = Date.now();
+        function appendMessage(sender, content) {
             const msgDiv = document.createElement('div');
-            msgDiv.id = id;
-            msgDiv.style.padding = '10px';
-            msgDiv.style.borderRadius = '15px';
-            msgDiv.style.maxWidth = '80%';
-            msgDiv.style.marginBottom = '5px';
-            if (sender === 'user') {
-                msgDiv.style.alignSelf = 'flex-end';
-                msgDiv.style.background = 'var(--primary-color)';
-                msgDiv.style.color = 'white';
-                msgDiv.style.borderRadius = '15px 15px 0 15px';
-            } else {
-                msgDiv.style.alignSelf = 'flex-start';
-                msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
-                msgDiv.style.color = 'var(--text-color)';
-                msgDiv.style.borderRadius = '15px 15px 15px 0';
+            msgDiv.className = `msg ${sender}-msg`;
+            msgDiv.innerText = content;
+            aiMessages.appendChild(msgDiv);
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+
+            if(sender === 'ai') {
+                addDownloadBtn(msgDiv, content);
             }
-            msgDiv.innerText = text;
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return id;
         }
 
-        function updateAiMessage(id, text) {
-            const el = document.getElementById(id);
-            if(el) el.innerText = text;
-        }
-
-        function addDownloadBtn(msgId, content) {
-            const msgDiv = document.getElementById(msgId);
+        function addDownloadBtn(msgDiv, content) {
             const btn = document.createElement('button');
-            btn.innerHTML = '<i class="fas fa-download"></i> Saqlash';
-            btn.style = "display: block; margin-top: 10px; padding: 5px 8px; font-size: 0.7rem; cursor: pointer; border-radius: 5px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.3s;";
+            const msgId = Date.now();
+            btn.innerHTML = '<i class="fas fa-download"></i>';
+            btn.style.cssText = "margin-top: 5px; font-size: 0.7rem; cursor: pointer; border-radius: 5px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.3s;";
             btn.onmouseover = () => { btn.style.background = "var(--primary-color)"; btn.style.color = "white"; };
             btn.onmouseout = () => { btn.style.background = "transparent"; btn.style.color = "var(--primary-color)"; };
             btn.onclick = () => {
@@ -751,10 +406,8 @@
     <script src="labs/optika.js"></script>
     <script src="labs/elektr.js"></script>
     <script src="labs/astronomiya.js"></script>
+    <script src="labs/yadrofizika.js"></script>
     <script src="labs/termodinamika.js"></script>
-    <script src="labs/yadro-fizikasi.js"></script>
-    <script src="labs/tolqinlar.js"></script>
-    <script src="labs/amaliy-fizika.js"></script>
-    <script src="labs/paradokslar.js"></script>
+    <script src="labs/kvant.js"></script>
 </body>
 </html>
