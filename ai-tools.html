@@ -111,20 +111,20 @@
     </a>
 
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-file-invoice"></i> Universal Dars Ishlanmasi Generatori</h2>
-        <p>Istalgan fan va mavzuni kiriting, AI sizga darsning to'liq rejasini tuzib beradi.</p>
-
+        <h2><i class="fas fa-file-invoice"></i> Universal AI Dars Ishlanmasi</h2>
+        
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="lesson-subject">
                 <option value="Fizika">Fizika</option>
                 <option value="Matematika">Matematika</option>
+                <option value="Kimyo">Kimyo</option>
+                <option value="Biologiya">Biologiya</option>
                 <option value="Tarix">Tarix</option>
                 <option value="O'zbek tili">O'zbek tili</option>
                 <option value="Ingliz tili">Ingliz tili</option>
-                <option value="Kimyo">Kimyo</option>
-                <option value="Biologiya">Biologiya</option>
                 <option value="Informatika">Informatika</option>
+                <option value="Geografiya">Geografiya</option>
             </select>
         </div>
 
@@ -162,11 +162,9 @@
 
     <div class="tool-card" data-aos="fade-up" data-aos-delay="200">
         <h2><i class="fas fa-bolt"></i> Aqlli "Shpargalka" & Konspekt</h2>
-        <p>Mavzu yoki bo'limni kiriting, AI barcha muhim formula, matn va tushunchalarni chiqarib beradi.</p>
-        
         <div class="input-group">
-            <label>Mavzu yoki Bo'limni kiriting:</label>
-            <input type="text" id="formula-query" placeholder="Masalan: Optika formulalari yoki Logarifm qoidalari...">
+            <label>Mavzu yoki bo'limni kiriting (Barcha fanlardan):</label>
+            <input type="text" id="formula-query" placeholder="Mavzuni yozing...">
         </div>
 
         <button class="btn-ai" onclick="generateCheatSheet()">
@@ -187,7 +185,6 @@
 <script>
     AOS.init();
 
-    // Dars ishlanmasi yaratish funksiyasi
     async function generateLesson() {
         const subject = document.getElementById('lesson-subject').value;
         const topic = document.getElementById('lesson-topic').value;
@@ -198,14 +195,15 @@
         if (!topic) return alert("Mavzuni yozing!");
 
         resultArea.style.display = "block";
-        resultArea.innerText = "AI dars rejasini tuzmoqda, iltimos kuting...";
+        resultArea.innerText = "Ziyomap AI dars rejasini tuzmoqda...";
 
         try {
+            // SIZNING AVVALGI ISHLAGAN ENDPOINTINGIZ
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida mukammal dars ishlanmasi tuzib ber. Reja: 1. Dars maqsadi. 2. Metodlar. 3. Darsning borishi. 4. Savol-javoblar.` 
+                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuzib ber. Reja: 1. Maqsad. 2. Metodlar. 3. Borishi. 4. Savollar.` 
                 })
             });
 
@@ -213,27 +211,26 @@
             resultArea.innerText = data.reply;
             actionBtns.style.display = "flex";
         } catch (error) {
-            resultArea.innerText = "Xatolik yuz berdi. Backend ulanishini tekshiring.";
+            resultArea.innerText = "Xatolik! Backend ulanishi topilmadi.";
         }
     }
 
-    // Shpargalka va Konspekt yaratish funksiyasi
     async function generateCheatSheet() {
         const query = document.getElementById('formula-query').value;
         const resultArea = document.getElementById('formula-result');
         const actionBtns = document.getElementById('formula-action-btns');
 
-        if (!query) return alert("Mavzu yoki bo'limni yozing!");
+        if (!query) return alert("Mavzuni yozing!");
 
         resultArea.style.display = "block";
-        resultArea.innerText = "Ma'lumotlar tahlil qilinmoqda...";
+        resultArea.innerText = "Ma'lumotlar qidirilmoqda...";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `"${query}" haqida barcha muhim formulalar, qisqa konspekt, qoidalar va agar bo'lsa chizmalarni matnli tavsifini chiqarib ber. Ma'lumot juda aniq va o'quvchiga tushunarli bo'lsin.` 
+                    message: `"${query}" mavzusi bo'yicha barcha muhim formulalar, konspekt, qisqa qoidalar va matnli chizmalar tavsifini ber. Har qanday umumta'lim fani bo'lishi mumkin.` 
                 })
             });
 
@@ -245,7 +242,6 @@
         }
     }
 
-    // PDF yuklab olish (Universal)
     function downloadPDF(elementId) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -253,12 +249,11 @@
         const title = elementId === 'result-area' ? "Dars_Ishlanmasi" : "Konspekt";
 
         doc.setFontSize(14);
-        doc.text("Ziyomap AI - Ta'lim Ressursi", 10, 10);
+        doc.text("Ziyomap AI Materiali", 10, 10);
         doc.setFontSize(10);
-        
         const splitText = doc.splitTextToSize(text, 180);
         doc.text(splitText, 10, 20);
-        doc.save(`${title}_${Date.now()}.pdf`);
+        doc.save(`${title}_Ziyomap.pdf`);
     }
 </script>
 
