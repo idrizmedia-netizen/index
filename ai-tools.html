@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ziyomap AI Asboblari | Dars Ishlanmasi & Export</title>
+    <title>Ziyomap AI Asboblari | Dars Ishlanmasi & PDF</title>
     
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -19,6 +19,9 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/gh/clauderic/html-docx-js@master/dist/html-docx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
         :root {
@@ -129,7 +132,7 @@
 
         .action-buttons {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             margin-top: 15px;
             display: none;
             flex-wrap: wrap;
@@ -139,17 +142,19 @@
             background: #f1f5f9;
             color: var(--dark-color);
             border: 1px solid #cbd5e1;
-            padding: 12px 24px;
-            border-radius: 12px;
+            padding: 10px 20px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             transition: 0.2s;
         }
-
-        .btn-secondary:hover { background: #e2e8f0; }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
 
         .loading-spinner {
             display: inline-block;
@@ -167,24 +172,21 @@
         table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8fafc; }
 
-        /* PDF va Word uchun maxsus tozalangan konteyner */
-        .export-container {
+        .pdf-offscreen-container {
             position: fixed;
             left: -9999px;
             top: 0;
-            width: 185mm; /* Ortiqcha varaqqa o'tmaslik uchun biroz toraytirildi */
+            width: 190mm;
             background: white !important;
             color: black !important;
-            padding: 0 !important;
-            margin: 0 !important;
+            padding: 0;
+            margin: 0;
+            font-family: 'Inter', serif;
             overflow: visible !important;
         }
         
-        /* PDF ichidagi barcha elementlar o'zgarishi */
-        .export-container * {
-            box-sizing: border-box !important;
-            max-height: none !important;
-            margin-bottom: 10px !important;
+        .pdf-offscreen-container * {
+            max-height: 1000000px !important;
         }
     </style>
 </head>
@@ -199,7 +201,10 @@
         <div id="auth-guard-1" class="auth-overlay">
             <i class="fas fa-lock fa-3x" style="color: var(--primary-color); margin-bottom: 15px;"></i>
             <h3>Kirish cheklangan</h3>
-            <p>Iltimos, avval tizimga kiring.</p>
+            <p>Ushbu vositadan foydalanish uchun asosiy sahifada Google orqali tizimga kiring.</p>
+            <button class="btn-ai" onclick="window.location.href='index.html'">
+                <i class="fab fa-google"></i> Tizimga kirish
+            </button>
         </div>
 
         <h2><i class="fas fa-file-invoice"></i> Universal AI Dars Ishlanmasi</h2>
@@ -207,22 +212,33 @@
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="lesson-subject">
-                <option value="Fizika" selected>Fizika</option>
-                <option value="Matematika">Matematika</option>
-                <option value="Kimyo">Kimyo</option>
-                <option value="Informatika">Informatika</option>
+                <optgroup label="Aniq fanlar">
+                    <option value="Matematika">Matematika</option>
+                    <option value="Algebra">Algebra</option>
+                    <option value="Geometriya">Geometriya</option>
+                    <option value="Informatika">Informatika</option>
+                </optgroup>
+                <optgroup label="Tabiiy fanlar">
+                    <option value="Fizika" selected>Fizika</option>
+                    <option value="Kimyo">Kimyo</option>
+                    <option value="Biologiya">Biologiya</option>
+                    <option value="Geografiya">Geografiya</option>
+                </optgroup>
                 <option value="Tarix">Tarix</option>
+                <option value="Ona tili">Ona tili</option>
+                <option value="Ingliz tili">Ingliz tili</option>
             </select>
         </div>
 
         <div class="input-group">
             <label>Mavzu nomi:</label>
-            <input type="text" id="lesson-topic" placeholder="Mavzuni kiriting...">
+            <input type="text" id="lesson-topic" placeholder="Masalan: Nyuton qonunlari yoki Optika...">
         </div>
 
         <div class="input-group">
             <label>Sinf:</label>
             <select id="lesson-grade">
+                <option value="1-4">Boshlang'ich (1-4 sinf)</option>
                 <option value="5">5-sinf</option>
                 <option value="6">6-sinf</option>
                 <option value="7">7-sinf</option>
@@ -241,10 +257,38 @@
 
         <div class="action-buttons" id="action-btns">
             <button class="btn-secondary" onclick="exportToPDF('result-area', 'Dars_Ishlanmasi')">
-                <i class="fas fa-file-pdf" style="color: #e11d48;"></i> PDF (Tiniq)
+                <i class="fas fa-file-pdf" style="color: #e11d48;"></i> PDF yuklash
             </button>
             <button class="btn-secondary" onclick="exportToWord('result-area', 'Dars_Ishlanmasi')">
-                <i class="fas fa-file-word" style="color: #2563eb;"></i> Word (.doc)
+                <i class="fas fa-file-word" style="color: #2563eb;"></i> Word (.doc) yuklash
+            </button>
+        </div>
+    </div>
+
+    <div class="tool-card" data-aos="fade-up" data-aos-delay="200">
+        <div id="auth-guard-2" class="auth-overlay">
+            <i class="fas fa-lock fa-3x" style="color: var(--primary-color); margin-bottom: 15px;"></i>
+            <h3>Kirish cheklangan</h3>
+        </div>
+
+        <h2><i class="fas fa-bolt"></i> Aqlli "Shpargalka" & Konspekt</h2>
+        <div class="input-group">
+            <label>Mavzu yoki bo'limni kiriting:</label>
+            <input type="text" id="formula-query" placeholder="Formulalar va qisqa ma'lumotlar uchun...">
+        </div>
+
+        <button class="btn-ai" id="gen-btn-2" onclick="generateCheatSheet()">
+            <i class="fas fa-search"></i> Ma'lumotlarni topish
+        </button>
+
+        <div id="formula-result"></div>
+
+        <div class="action-buttons" id="formula-action-btns">
+            <button class="btn-secondary" onclick="exportToPDF('formula-result', 'Konspekt')">
+                <i class="fas fa-file-pdf" style="color: #e11d48;"></i> PDF yuklash
+            </button>
+            <button class="btn-secondary" onclick="exportToWord('formula-result', 'Konspekt')">
+                <i class="fas fa-file-word" style="color: #2563eb;"></i> Word (.doc) yuklash
             </button>
         </div>
     </div>
@@ -254,21 +298,30 @@
 <script>
     AOS.init();
 
-    // Avtorizatsiyani tekshirish
     function checkGoogleAuth() {
         const user = localStorage.getItem('user'); 
         const guard1 = document.getElementById('auth-guard-1');
+        const guard2 = document.getElementById('auth-guard-2');
         if (user) {
             if(guard1) guard1.style.display = 'none';
+            if(guard2) guard2.style.display = 'none';
         } else {
             if(guard1) guard1.style.display = 'flex';
+            if(guard2) guard2.style.display = 'flex';
         }
     }
     window.onload = checkGoogleAuth;
 
     function cleanMarkdown(text) {
         if (!text) return "";
-        return text.replace(/\\_/g, '_').replace(/\\\*/g, '*').replace(/\\\{/g, '{').replace(/\\\}/g, '}').replace(/\\#/g, '#').replace(/\\\$/g, '$');
+        let cleaned = text
+            .replace(/\\_/g, '_')
+            .replace(/\\\*/g, '*')
+            .replace(/\\\{/g, '{')
+            .replace(/\\\}/g, '}')
+            .replace(/\\#/g, '#')
+            .replace(/\\\$/g, '$');
+        return cleaned;
     }
 
     async function generateLesson() {
@@ -282,46 +335,83 @@
         if (!topic) return alert("Mavzuni yozing!");
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="loading-spinner"></span> Yaratilmoqda...';
+        btn.innerHTML = '<span class="loading-spinner"></span> Tezkor yaratilmoqda...';
         resultArea.style.display = "block";
-        resultArea.innerHTML = "<i>AI reja tuzmoqda...</i>";
+        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini mukammal formatda tuzmoqda...</i>";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuz. LaTeX ishlating.` 
+                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida professional dars ishlanmasi tuz. Jadvallar, metodlar va formulalarni LaTeX ($...$) ko'rinishida ishlating. Hech qanday tushuntirishsiz faqat dars rejasini yoz.` 
                 })
             });
 
             const data = await response.json();
             marked.setOptions({ breaks: true, gfm: true });
-            resultArea.innerHTML = marked.parse(cleanMarkdown(data.reply));
+            const cleanedText = cleanMarkdown(data.reply);
+            resultArea.innerHTML = marked.parse(cleanedText);
             
-            if (window.MathJax) await MathJax.typesetPromise([resultArea]);
+            if (window.MathJax) {
+                await MathJax.typesetPromise([resultArea]);
+            }
             actionBtns.style.display = "flex";
         } catch (error) {
-            resultArea.innerText = "Xatolik yuz berdi.";
+            resultArea.innerText = "Xatolik! Internet bilan ulanishni tekshiring.";
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-magic"></i> Reja yaratish';
         }
     }
 
-    // --- PDF EKSPORT (OQ VARAQ MUAMMOSI YECHILDI) ---
+    async function generateCheatSheet() {
+        const query = document.getElementById('formula-query').value;
+        const resultArea = document.getElementById('formula-result');
+        const actionBtns = document.getElementById('formula-action-btns');
+        const btn = document.getElementById('gen-btn-2');
+
+        if (!query) return alert("Mavzuni yozing!");
+
+        btn.disabled = true;
+        resultArea.style.display = "block";
+        resultArea.innerHTML = "<i>Ma'lumotlar yig'ilmoqda...</i>";
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar va qoidalar. Formulalar LaTeX $...$ formatida bo'lsin.` 
+                })
+            });
+
+            const data = await response.json();
+            resultArea.innerHTML = marked.parse(cleanMarkdown(data.reply));
+            
+            if (window.MathJax) {
+                await MathJax.typesetPromise([resultArea]);
+            }
+            actionBtns.style.display = "flex";
+        } catch (error) {
+            resultArea.innerText = "Xatolik yuz berdi.";
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-search"></i> Ma\'lumotlarni topish';
+        }
+    }
+
+    // --- PDF EKSPORT ---
     async function exportToPDF(elementId, fileName) {
-        const original = document.getElementById(elementId);
-        if (!original) return;
+        const originalElement = document.getElementById(elementId);
+        if (!originalElement || originalElement.innerHTML.trim() === "") return alert("Avval ma'lumot yarating!");
 
         const container = document.createElement('div');
-        container.className = 'export-container';
-        
-        // Nusxa yaratish va oxiridagi bo'shliqlarni olib tashlash
-        const clone = original.cloneNode(true);
-        clone.style.padding = "0";
-        clone.style.margin = "0";
-        
+        container.className = 'pdf-offscreen-container';
+        const clone = originalElement.cloneNode(true);
+        clone.style.display = 'block';
+        clone.style.margin = '0';
+        clone.style.padding = '0';
         container.appendChild(clone);
         document.body.appendChild(container);
 
@@ -329,34 +419,69 @@
 
         const opt = {
             margin: [10, 10, 10, 10],
-            filename: fileName + '.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            // Oq varaqni yo'qotish uchun asosiy buyruq:
-            pagebreak: { mode: 'avoid-all' } 
+            filename: `${fileName}_${Date.now()}.pdf`,
+            image: { type: 'jpeg', quality: 1.0 },
+            html2canvas: { scale: 2.5, useCORS: true, backgroundColor: '#ffffff' },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+            pagebreak: { mode: ['css', 'legacy'], avoid: ['img', 'table', 'mjx-container'] }
         };
 
         try {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await html2pdf().set(opt).from(container).save();
         } finally {
-            document.body.removeChild(container);
+            if (document.body.contains(container)) document.body.removeChild(container);
         }
     }
 
-    // --- WORD EKSPORT FUNKSIYASI ---
-    function exportToWord(elementId, fileName) {
-        const content = document.getElementById(elementId).innerHTML;
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:Arial;}</style></head><body>";
-        const footer = "</body></html>";
-        const source = header + content + footer;
+    // --- WORD EKSPORT (FORMULALARNI RASMGA O'GIRIB YUKLASH) ---
+    async function exportToWord(elementId, fileName) {
+        const originalElement = document.getElementById(elementId);
+        if (!originalElement || originalElement.innerHTML.trim() === "") return alert("Avval ma'lumot yarating!");
 
-        const blob = new Blob(['\ufeff', source], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName + '.doc';
-        link.click();
+        const clone = originalElement.cloneNode(true);
+        
+        // MathJax formulalarini Word-ga rasm sifatida kiritish uchun ishlov beramiz
+        const containers = clone.querySelectorAll('mjx-container');
+        for (const container of containers) {
+            const svg = container.querySelector('svg');
+            if (svg) {
+                // SVG ni o'lchamlarini olish
+                const bbox = svg.getBBox();
+                svg.setAttribute("width", bbox.width);
+                svg.setAttribute("height", bbox.height);
+                
+                // SVG ni base64 formatiga o'tkazish
+                const svgString = new XMLSerializer().serializeToString(svg);
+                const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
+                const img = document.createElement('img');
+                
+                // Word tushunishi uchun biroz kattalashtiramiz
+                img.src = `data:image/svg+xml;base64,${svgBase64}`;
+                img.style.verticalAlign = "middle";
+                img.style.margin = "5px";
+                
+                container.parentNode.replaceChild(img, container);
+            }
+        }
+
+        const content = clone.innerHTML;
+        const style = `
+            <style>
+                body { font-family: 'Times New Roman', serif; line-height: 1.5; font-size: 12pt; }
+                table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+                th, td { border: 1px solid #000; padding: 5px; text-align: left; }
+                h1, h2, h3 { color: #2563eb; }
+            </style>
+        `;
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'>" + style + "</head><body>";
+        const footer = "</body></html>";
+        const html = header + content + footer;
+
+        // html-docx kutubxonasi yordamida blob yaratish
+        const converted = htmlDocx.asBlob(html);
+        saveAs(converted, `${fileName}_${Date.now()}.docx`);
     }
 </script>
 
