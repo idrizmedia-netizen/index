@@ -116,7 +116,6 @@
             font-size: 14pt;
         }
 
-        /* PDF uchun formulalar ustma-ust tushishiga qarshi CSS */
         mjx-container {
             display: inline-block !important;
             margin: 5px 0 !important;
@@ -164,11 +163,16 @@
         table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
         th { background-color: #f8fafc; }
 
-        .pdf-export-mode {
+        /* PDF uchun maxsus Off-screen rendering stili */
+        .pdf-offscreen-container {
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            width: 210mm; /* A4 kengligi */
             background: white !important;
             color: black !important;
-            display: block !important;
-            width: 100% !important;
+            padding: 20px;
+            font-family: 'Inter', serif;
         }
     </style>
 </head>
@@ -288,7 +292,6 @@
     }
     window.onload = checkGoogleAuth;
 
-    // KUCHAYTIRILGAN TOZALASH FUNKSIYASI (PDF uchun $ belgilarini tozalaydi lekin LaTeXni saqlaydi)
     function cleanMarkdown(text) {
         if (!text) return "";
         let cleaned = text
@@ -296,16 +299,11 @@
             .replace(/\\\*/g, '*')
             .replace(/\\\{/g, '{')
             .replace(/\\\}/g, '}')
-            .replace(/\\#/g, '#');
-        
-        // AI ba'zan formulani \$ ko'rinishida yuboradi, buni to'g'irlaymiz
-        cleaned = cleaned.replace(/\\\$/g, '$');
-        
-        // PDF-da xom ko'rinadigan qoldiqlarni tozalash
+            .replace(/\\#/g, '#')
+            .replace(/\\\$/g, '$');
         return cleaned;
     }
 
-    // DARS ISHLANMASI
     async function generateLesson() {
         const subject = document.getElementById('lesson-subject').value;
         const topic = document.getElementById('lesson-topic').value;
@@ -331,7 +329,6 @@
             });
 
             const data = await response.json();
-            
             marked.setOptions({ breaks: true, gfm: true });
             const cleanedText = cleanMarkdown(data.reply);
             resultArea.innerHTML = marked.parse(cleanedText);
@@ -339,7 +336,6 @@
             if (window.MathJax) {
                 await MathJax.typesetPromise([resultArea]);
             }
-
             actionBtns.style.display = "flex";
         } catch (error) {
             resultArea.innerText = "Xatolik! Internet bilan ulanishni tekshiring.";
@@ -349,7 +345,6 @@
         }
     }
 
-    // SHPARGALKA
     async function generateCheatSheet() {
         const query = document.getElementById('formula-query').value;
         const resultArea = document.getElementById('formula-result');
@@ -377,57 +372,67 @@
             if (window.MathJax) {
                 await MathJax.typesetPromise([resultArea]);
             }
-
             actionBtns.style.display = "flex";
         } catch (error) {
             resultArea.innerText = "Xatolik yuz berdi.";
         } finally {
             btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-search"></i> Ma\'lumotlarni topish';
         }
     }
 
-    // MUKAMMAL PDF EKSPORT FUNKSIYASI
+    // --- ENG YUQORI DARAJADAGI PDF EKSPORT (PROFESSIONAL YANGILANISH) ---
     async function exportToPDF(elementId, fileName) {
-        const element = document.getElementById(elementId);
+        const originalElement = document.getElementById(elementId);
         
-        if (!element || element.innerHTML.trim() === "") {
+        if (!originalElement || originalElement.innerHTML.trim() === "") {
             return alert("Avval ma'lumot yarating!");
         }
 
-        // Render to'liqligini kutish
+        // 1. Off-screen container yaratamiz
+        const container = document.createElement('div');
+        container.className = 'pdf-offscreen-container';
+        
+        // 2. Elementni nusxalaymiz (Clone)
+        const clone = originalElement.cloneNode(true);
+        clone.style.display = 'block';
+        container.appendChild(clone);
+        document.body.appendChild(container);
+
+        // 3. Nusxa ichidagi MathJax formulalarni PDF uchun qayta render qilamiz
         if (window.MathJax) {
-            await MathJax.typesetPromise([element]);
+            await MathJax.typesetPromise([container]);
         }
 
-        element.classList.add('pdf-export-mode');
-
-        // Professional PDF sozlamalari
         const opt = {
-            margin: [15, 15, 15, 15],
+            margin: [15, 12, 15, 12],
             filename: `${fileName}_${Date.now()}.pdf`,
             image: { type: 'jpeg', quality: 1.0 },
             html2canvas: { 
-                scale: 3, // Yuqori aniqlik
+                scale: 3, // Yuqori tiniqlik
                 useCORS: true, 
                 logging: false,
                 letterRendering: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                scrollY: 0
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
             pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
         };
 
         try {
-            // Formulalar "pishishi" uchun 1.5 soniya kutamiz
-            setTimeout(async () => {
-                const worker = html2pdf().set(opt).from(element);
-                await worker.save();
-                element.classList.remove('pdf-export-mode');
-            }, 1500);
+            // Brauzerga barcha elementlarni RAM-ga chizib olishi uchun vaqt beramiz
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // PDF-ni yaratish va saqlash
+            await html2pdf().set(opt).from(container).save();
+            
         } catch (err) {
             console.error("PDF Xatosi:", err);
-            alert("PDF yuklashda xatolik.");
-            element.classList.remove('pdf-export-mode');
+            alert("PDF yuklashda xatolik yuz berdi.");
+        } finally {
+            // Vaqtinchalik konteynerni o'chiramiz
+            document.body.removeChild(container);
         }
     }
 </script>
