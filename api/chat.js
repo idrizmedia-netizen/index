@@ -13,8 +13,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Rasmdagi eng kuchli model (Gemini 3.1 Pro Preview) va unga mos API manzili
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${API_KEY}`;
+        // MUHIM: v1beta emas, v1 ishlatamiz. Model esa barqaror gemini-1.5-flash
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
         
         // Google API uchun xabar strukturasini shakllantirish
         const promptParts = [];
@@ -59,7 +59,8 @@ export default async function handler(req, res) {
         // Xatoliklarni tekshirish
         if (data.error) {
             console.error("Google API xatosi:", data.error.message);
-            return res.status(400).json({ error: data.error.message });
+            // Agar kvota xatosi bo'lsa, aniqroq xabar berish
+            return res.status(400).json({ error: "API limiti yoki mintaqa cheklovi: " + data.error.message });
         }
 
         // Javobni qaytarish
