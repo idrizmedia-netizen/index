@@ -10,9 +10,8 @@
     
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -49,7 +48,6 @@
             overflow: hidden;
         }
 
-        /* Google Auth uchun qulflash ekrani */
         .auth-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -98,16 +96,23 @@
 
         .btn-ai:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
 
+        /* NATIJA MAYDONI UCHUN STIL */
         #result-area, #formula-result {
             margin-top: 25px;
-            padding: 20px;
+            padding: 40px; /* PDF uchun kengroq padding */
             background: #fff;
             border-radius: 15px;
             border-left: 5px solid var(--primary-color);
             display: none;
-            line-height: 1.6;
+            line-height: 1.8;
             white-space: normal; 
+            color: #000; /* PDFda yaxshi chiqishi uchun */
+            font-size: 14pt;
         }
+
+        /* Markdown sarlavhalarini chiroyli qilish */
+        #result-area h1, #result-area h2, #result-area h3 { color: var(--primary-color); margin-top: 20px; }
+        #result-area ul { padding-left: 20px; }
 
         .action-buttons {
             display: flex;
@@ -124,9 +129,22 @@
             border-radius: 10px;
             cursor: pointer;
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .hidden { display: none !important; }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -140,7 +158,7 @@
         <div id="auth-guard-1" class="auth-overlay">
             <i class="fas fa-lock fa-3x" style="color: var(--primary-color); margin-bottom: 15px;"></i>
             <h3>Kirish cheklangan</h3>
-            <p>Ushbu vositadan foydalanish uchun asosiy sahifada Google orqali tizimga kiring.</p>
+            <p>Ushbu vositadan foydalanish uchun asosiy sahibada Google orqali tizimga kiring.</p>
             <button class="btn-ai" onclick="window.location.href='index.html'">
                 <i class="fab fa-google"></i> Tizimga kirish
             </button>
@@ -162,28 +180,10 @@
                     <option value="Kimyo">Kimyo</option>
                     <option value="Biologiya">Biologiya</option>
                     <option value="Geografiya">Geografiya</option>
-                    <option value="Tabiiy fan (Science)">Tabiiy fan (Science)</option>
                 </optgroup>
-                <optgroup label="Filologiya">
-                    <option value="O'zbek tili">O'zbek tili</option>
-                    <option value="Ona tili va adabiyot">Ona tili va adabiyot</option>
-                    <option value="Rus tili">Rus tili</option>
-                    <option value="Ingliz tili">Ingliz tili</option>
-                </optgroup>
-                <optgroup label="Ijtimoiy fanlar">
-                    <option value="Tarix">Tarix</option>
-                    <option value="O'zbekiston tarixi">O'zbekiston tarixi</option>
-                    <option value="Jahon tarixi">Jahon tarixi</option>
-                    <option value="Tarbiya">Tarbiya</option>
-                    <option value="Huquq">Huquq</option>
-                </optgroup>
-                <optgroup label="Amaliy fanlar">
-                    <option value="Tasviriy san'at">Tasviriy san'at</option>
-                    <option value="Musiqa">Musiqa</option>
-                    <option value="Texnologiya">Texnologiya</option>
-                    <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
-                    <option value="CHYOT">CHYOT</option>
-                </optgroup>
+                <option value="Tarix">Tarix</option>
+                <option value="Ona tili">Ona tili</option>
+                <option value="Ingliz tili">Ingliz tili</option>
             </select>
         </div>
 
@@ -206,15 +206,15 @@
             </select>
         </div>
 
-        <button class="btn-ai" onclick="generateLesson()">
+        <button class="btn-ai" id="gen-btn-1" onclick="generateLesson()">
             <i class="fas fa-magic"></i> Reja yaratish
         </button>
 
         <div id="result-area"></div>
 
         <div class="action-buttons" id="action-btns">
-            <button class="btn-secondary" onclick="exportPDF('result-area')">
-                <i class="fas fa-file-pdf"></i> PDF yuklab olish (Sifatli)
+            <button class="btn-secondary" onclick="exportToPDF('result-area', 'Dars_Ishlanmasi')">
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
             </button>
         </div>
     </div>
@@ -231,14 +231,14 @@
             <input type="text" id="formula-query" placeholder="Formulalar va qisqa ma'lumotlar uchun...">
         </div>
 
-        <button class="btn-ai" onclick="generateCheatSheet()">
+        <button class="btn-ai" id="gen-btn-2" onclick="generateCheatSheet()">
             <i class="fas fa-search"></i> Ma'lumotlarni topish
         </button>
 
         <div id="formula-result"></div>
 
         <div class="action-buttons" id="formula-action-btns">
-            <button class="btn-secondary" onclick="exportPDF('formula-result')">
+            <button class="btn-secondary" onclick="exportToPDF('formula-result', 'Konspekt')">
                 <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
@@ -249,40 +249,37 @@
 <script>
     AOS.init();
 
-    // SIZ SO'RAGAN GOOGLE AUTH TEKSHIRUV FUNKSIYASI
+    // AUTH TEKSHIRUV
     function checkGoogleAuth() {
-        // Brauzer xotirasidan 'user' kalitini qidiramiz
         const user = localStorage.getItem('user'); 
-        
         const guard1 = document.getElementById('auth-guard-1');
         const guard2 = document.getElementById('auth-guard-2');
 
         if (user) {
-            // Agar ma'lumot bo'lsa, blokirovka (Overlay) ni yashiramiz
             if(guard1) guard1.style.display = 'none';
             if(guard2) guard2.style.display = 'none';
         } else {
-            // Ma'lumot bo'lmasa, blokirovka ochiq turadi
             if(guard1) guard1.style.display = 'flex';
             if(guard2) guard2.style.display = 'flex';
         }
     }
-
-    // Sahifa yuklanishi bilan ishga tushadi
     window.onload = checkGoogleAuth;
 
-    // DARS ISHLANMASI GENERATSIYASI
+    // DARS ISHLANMASI
     async function generateLesson() {
         const subject = document.getElementById('lesson-subject').value;
         const topic = document.getElementById('lesson-topic').value;
         const grade = document.getElementById('lesson-grade').value;
         const resultArea = document.getElementById('result-area');
         const actionBtns = document.getElementById('action-btns');
+        const btn = document.getElementById('gen-btn-1');
 
         if (!topic) return alert("Mavzuni yozing!");
 
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span> Tayyorlanmoqda...';
         resultArea.style.display = "block";
-        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini va formulalarni tayyorlamoqda...</i>";
+        resultArea.innerHTML = "<i>Ziyomap AI dars rejasini va formulalarni mukammal formatda tuzmoqda...</i>";
 
         try {
             const response = await fetch('/api/chat', {
@@ -290,77 +287,88 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuzib ber. 
-                    MUHIM: Barcha fizik yoki matematik formulalarni LaTeX formatida yoz (masalan, $$E=mc^2$$). 
-                    Reja: 1. Maqsad. 2. Metodlar. 3. Borishi. 4. Savollar va topshiriqlar.` 
+                    Formatlash qoidalari: 
+                    1. Sarlavhalarni ### bilan belgilang. 
+                    2. Muhim joylarni **qalin** qiling.
+                    3. Barcha fizik/matematik formulalarni LaTeX ($$ ... $$) formatida yozing.
+                    Tuzilishi: Maqsad, Jihozlar, Metodlar, Darsning borishi, Mustahkamlash.` 
                 })
             });
 
             const data = await response.json();
-            resultArea.innerHTML = data.reply.replace(/\n/g, '<br>');
             
+            // MARKED.JS ORQALI MARKDOWN-NI HTML-GA O'GIRAMIZ
+            const rawReply = data.reply;
+            resultArea.innerHTML = marked.parse(rawReply);
+            
+            // MATHJAX ORQALI FORMULALARNI CHIARAMIZ
             if (window.MathJax) {
-                MathJax.typesetPromise([resultArea]);
+                await MathJax.typesetPromise([resultArea]);
             }
 
             actionBtns.style.display = "flex";
         } catch (error) {
-            resultArea.innerText = "Xatolik! Backend ulanishi topilmadi.";
+            resultArea.innerText = "Xatolik! Server bilan ulanishda muammo.";
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Reja yaratish';
         }
     }
 
-    // SHPARGALKA GENERATSIYASI
+    // SHPARGALKA
     async function generateCheatSheet() {
         const query = document.getElementById('formula-query').value;
         const resultArea = document.getElementById('formula-result');
         const actionBtns = document.getElementById('formula-action-btns');
+        const btn = document.getElementById('gen-btn-2');
 
         if (!query) return alert("Mavzuni yozing!");
 
+        btn.disabled = true;
         resultArea.style.display = "block";
-        resultArea.innerHTML = "<i>Qidirilmoqda...</i>";
+        resultArea.innerHTML = "<i>Ma'lumotlar yig'ilmoqda...</i>";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar, qisqa konspekt va qoidalar ber. 
-                    Formulalarni albatta LaTeX ($$ ... $$) ko'rinishida ber.` 
+                    message: `"${query}" mavzusi bo'yicha eng muhim formulalar va qoidalar to'plamini (shpargalka) ber. 
+                    Sarlavhalar va ro'yxatdan foydalan. Formulalar LaTeX ($$ ... $$) bo'lsin.` 
                 })
             });
 
             const data = await response.json();
-            resultArea.innerHTML = data.reply.replace(/\n/g, '<br>');
+            resultArea.innerHTML = marked.parse(data.reply);
             
             if (window.MathJax) {
-                MathJax.typesetPromise([resultArea]);
+                await MathJax.typesetPromise([resultArea]);
             }
 
             actionBtns.style.display = "flex";
         } catch (error) {
             resultArea.innerText = "Xatolik yuz berdi.";
+        } finally {
+            btn.disabled = false;
         }
     }
 
-    // PDF EKSPORT (html2canvas orqali)
-    async function exportPDF(elementId) {
+    // YUQORI SIFATLI KO'P VAROQLI PDF EKSPORT (html2pdf)
+    function exportToPDF(elementId, fileName) {
         const element = document.getElementById(elementId);
-        const { jsPDF } = window.jspdf;
+        
+        // PDF sozlamalari
+        const opt = {
+            margin:       [15, 15, 15, 15], // [tepa, chap, past, o'ng]
+            filename:     `${fileName}_${new Date().getTime()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] } // Sahifalarni aqlli bo'lish
+        };
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff"
-        });
-
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`Ziyomap_Eksport_${new Date().getTime()}.pdf`);
+        // PDF generatsiya qilish
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 
