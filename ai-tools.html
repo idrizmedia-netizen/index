@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ziyomap AI Asboblari | Dars Ishlanmasi & PDF</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #3b82f6;
+            --dark-color: #1e293b;
+            --light-bg: #f0f9ff;
+            --text-color: #1e293b;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            margin-bottom: 30px;
+        }
+
+        h2 { color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
+
+        .input-group { margin-bottom: 20px; }
+
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            background: white;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn-ai:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
+
+        #result-area {
+            margin-top: 25px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-color);
+            display: none;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--dark-color);
+            border: 1px solid #cbd5e1;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <a href="index.html" style="text-decoration: none; color: var(--primary-color); font-weight: bold;">
+        <i class="fas fa-arrow-left"></i> Orqaga qaytish
+    </a>
+
+    <div class="tool-card" data-aos="fade-up">
+        <h2><i class="fas fa-file-invoice"></i> AI Dars Ishlanmasi Generatori</h2>
+        <p>Mavzuni kiriting, AI sizga darsning to'liq rejasini (maqsad, metod, borishi) tuzib beradi.</p>
+
+        <div class="input-group">
+            <label>Mavzu nomi:</label>
+            <input type="text" id="lesson-topic" placeholder="Masalan: Yorug'likning sinishi yoki Nyuton qonunlari">
+        </div>
+
+        <div class="input-group">
+            <label>Sinf:</label>
+            <select id="lesson-grade">
+                <option value="6">6-sinf</option>
+                <option value="7">7-sinf</option>
+                <option value="8">8-sinf</option>
+                <option value="9" selected>9-sinf</option>
+                <option value="10">10-sinf</option>
+                <option value="11">11-sinf</option>
+            </select>
+        </div>
+
+        <button class="btn-ai" onclick="generateLesson()">
+            <i class="fas fa-magic"></i> Reja yaratish
+        </button>
+
+        <div id="result-area"></div>
+
+        <div class="action-buttons" id="action-btns">
+            <button class="btn-secondary" onclick="speakResult()">
+                <i class="fas fa-volume-up"></i> Ovozli eshitish
+            </button>
+            <button class="btn-secondary" onclick="downloadPDF()">
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
+            </button>
+        </div>
+    </div>
+
+    <div class="tool-card" data-aos="fade-up" data-aos-delay="200">
+        <h2><i class="fas fa-bolt"></i> Fizika "Shpargalka" (Konspektlar)</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="padding: 15px; background: #e0f2fe; border-radius: 12px; text-align: center;">
+                <h4>Mexanika</h4>
+                <button onclick="downloadFormula('Mexanika')" style="border:none; background:var(--primary-color); color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Yuklash</button>
+            </div>
+            <div style="padding: 15px; background: #fef9c3; border-radius: 12px; text-align: center;">
+                <h4>Optika</h4>
+                <button onclick="downloadFormula('Optika')" style="border:none; background:var(--primary-color); color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Yuklash</button>
+            </div>
+            <div style="padding: 15px; background: #dcfce7; border-radius: 12px; text-align: center;">
+                <h4>Elektr</h4>
+                <button onclick="downloadFormula('Elektr')" style="border:none; background:var(--primary-color); color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Yuklash</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init();
+
+    async function generateLesson() {
+        const topic = document.getElementById('lesson-topic').value;
+        const grade = document.getElementById('lesson-grade').value;
+        const resultArea = document.getElementById('result-area');
+        const actionBtns = document.getElementById('action-btns');
+
+        if (!topic) return alert("Mavzuni kiriting!");
+
+        resultArea.style.display = "block";
+        resultArea.innerText = "AI dars rejasini tuzmoqda, iltimos kuting...";
+
+        try {
+            // Bu yerda sizning serverdagi /api/chat endpointingizga murojaat qilamiz
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    message: `Fizika fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuzib ber. Reja quyidagilardan iborat bo'lsin: 1. Darsning maqsadi. 2. Metodlar. 3. Darsning borishi. 4. Mustahkamlash uchun savollar.` 
+                })
+            });
+
+            const data = await response.json();
+            resultArea.innerText = data.reply;
+            actionBtns.style.display = "flex";
+        } catch (error) {
+            resultArea.innerText = "Xatolik yuz berdi. Backend ulanishini tekshiring.";
+        }
+    }
+
+    // 5-taklif: Ovozli eshitish
+    function speakResult() {
+        const text = document.getElementById('result-area').innerText;
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'uz-UZ'; // O'zbek tili qo'llab-quvvatlansa
+        synth.speak(utterance);
+    }
+
+    // 4-taklif: PDF yuklab olish
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const text = document.getElementById('result-area').innerText;
+        const topic = document.getElementById('lesson-topic').value;
+
+        doc.setFontSize(16);
+        doc.text(`Dars Ishlanmasi: ${topic}`, 10, 10);
+        doc.setFontSize(10);
+        
+        // Matnni PDF sahifasiga sig'dirish
+        const splitText = doc.splitTextToSize(text, 180);
+        doc.text(splitText, 10, 20);
+        doc.save(`Dars_Ishlanmasi_${topic}.pdf`);
+    }
+
+    function downloadFormula(subject) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text(`Fizika: ${subject} bo'limi formulalari`, 10, 10);
+        doc.text(`1. F = m * a\n2. E = m * c^2\n3. P = U * I`, 10, 20); // Bu yerda tayyor formulalar ro'yxati bo'lishi mumkin
+        doc.save(`${subject}_Formulalar.pdf`);
+    }
+</script>
+
+</body>
+</html>
