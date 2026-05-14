@@ -595,11 +595,9 @@
             appendAiMessage('user', text);
             userInputAi.value = '';
 
-            // Loading holati: Tayyorlanmoqda...
             const loadingId = appendAiMessage('ai', 'Tayyorlanmoqda...');
 
             try {
-                // Vercel-dagi serverless funksiyaga so'rov yuborish
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -652,6 +650,7 @@
 
     </script>
 
+    <!-- Barcha script bog'lamalari saqlab qolindi -->
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script src="labs/mexanika.js"></script>
