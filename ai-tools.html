@@ -106,7 +106,6 @@
             border-left: 5px solid var(--primary-color);
             display: none;
             line-height: 1.6;
-            /* MathJax uchun white-space pre-wrap'ni HTML rejimiga moslaymiz */
             white-space: normal; 
         }
 
@@ -250,18 +249,29 @@
 <script>
     AOS.init();
 
-    // 1. GOOGLE AUTH TEKSHIRUVI
-    // index.html sahifasida tizimga kirganda localStorage'ga 'isLoggedIn' saqlangan bo'lishi kerak
+    // SIZ SO'RAGAN GOOGLE AUTH TEKSHIRUV FUNKSIYASI
     function checkGoogleAuth() {
-        const user = localStorage.getItem('user'); // Firebase yoki o'zingizning auth tizimingizdan keladigan ma'lumot
+        // Brauzer xotirasidan 'user' kalitini qidiramiz
+        const user = localStorage.getItem('user'); 
+        
+        const guard1 = document.getElementById('auth-guard-1');
+        const guard2 = document.getElementById('auth-guard-2');
+
         if (user) {
-            document.getElementById('auth-guard-1').classList.add('hidden');
-            document.getElementById('auth-guard-2').classList.add('hidden');
+            // Agar ma'lumot bo'lsa, blokirovka (Overlay) ni yashiramiz
+            if(guard1) guard1.style.display = 'none';
+            if(guard2) guard2.style.display = 'none';
+        } else {
+            // Ma'lumot bo'lmasa, blokirovka ochiq turadi
+            if(guard1) guard1.style.display = 'flex';
+            if(guard2) guard2.style.display = 'flex';
         }
     }
+
+    // Sahifa yuklanishi bilan ishga tushadi
     window.onload = checkGoogleAuth;
 
-    // 2. DARS ISHLANMASI GENERATSIYASI
+    // DARS ISHLANMASI GENERATSIYASI
     async function generateLesson() {
         const subject = document.getElementById('lesson-subject').value;
         const topic = document.getElementById('lesson-topic').value;
@@ -286,10 +296,8 @@
             });
 
             const data = await response.json();
-            // Markdown formatini HTMLga biroz o'girish (ixtiyoriy) yoki to'g'ridan-to'g'ri chiqarish
             resultArea.innerHTML = data.reply.replace(/\n/g, '<br>');
             
-            // MathJax orqali formulalarni render qilish
             if (window.MathJax) {
                 MathJax.typesetPromise([resultArea]);
             }
@@ -300,7 +308,7 @@
         }
     }
 
-    // 3. SHPARGALKA GENERATSIYASI
+    // SHPARGALKA GENERATSIYASI
     async function generateCheatSheet() {
         const query = document.getElementById('formula-query').value;
         const resultArea = document.getElementById('formula-result');
@@ -334,14 +342,13 @@
         }
     }
 
-    // 4. SIFATLI PDF YUKLAB OLISH (html2canvas orqali)
+    // PDF EKSPORT (html2canvas orqali)
     async function exportPDF(elementId) {
         const element = document.getElementById(elementId);
         const { jsPDF } = window.jspdf;
 
-        // html2canvas elementni rasmga oladi (formulalar bilan birga)
         const canvas = await html2canvas(element, {
-            scale: 2, // Sifatni oshirish
+            scale: 2,
             useCORS: true,
             backgroundColor: "#ffffff"
         });
