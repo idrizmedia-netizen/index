@@ -505,11 +505,11 @@
           if (!auth.currentUser) {
               signInWithPopup(auth, provider).then((result) => {
                   const user = result.user;
-                  // Mana shu yerda foydalanuvchini brauzer xotirasiga saqlaymiz
+                  // Google Login funksiyangiz ichida:
                   localStorage.setItem('user', JSON.stringify(user));
-                  
-                  // Keyin boshqa sahifaga o'tish yoki UI ni yangilash
                   console.log("Tizimga kirildi:", user.displayName);
+                  // Login bo'lgach sahifani yangilash blok ochilishi uchun muhim
+                  window.location.reload(); 
               }).catch((err) => { console.error(err); });
           } else {
               dropdown.classList.toggle('show');
@@ -521,7 +521,8 @@
           if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
               signOut(auth).then(() => { 
                   dropdown.classList.remove('show'); 
-                  localStorage.removeItem('user'); // Chiqishda xotirani tozalash
+                  localStorage.removeItem('user'); 
+                  window.location.reload();
               });
           }
       });
@@ -529,6 +530,8 @@
       onAuthStateChanged(auth, (user) => {
           const userInput = document.getElementById('user-input-ai');
           if (user) {
+              // Firebase holati va localStorage sinxronligini ta'minlaymiz
+              localStorage.setItem('user', JSON.stringify(user));
               loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${user.displayName}`;
               loginBtn.style.background = "#10b981";
               document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/60';
