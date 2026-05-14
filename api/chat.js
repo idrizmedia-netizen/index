@@ -4,7 +4,9 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: "Method not allowed" });
     }
 
-    const { message, image, mimeType } = req.body;
+    // history - frontenddan keladigan xabarlar massivi
+    // image o'zgaruvchisini endi umumiy 'file' deb ham tushunish mumkin
+    const { message, image, mimeType, history } = req.body;
     const API_KEY = process.env.GEMINI_API_KEY;
 
     // API Key mavjudligini tekshirish
@@ -13,39 +15,45 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Skrinshotdagi eng yangi va bepul tarifda ishlash ehtimoli yuqori bo'lgan model: 
-        // Gemini 3.1 Flash Lite. Endpoint esa v1beta bo'lishi shart.
+        // Ziyomap AI uchun eng optimal model
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`;
         
-        // Google API uchun xabar strukturasini shakllantirish
-        const promptParts = [];
+        // 1. Chat tarixini shakllantiramiz (agar bo'sh bo'lsa, yangi massiv)
+        let contents = history || [];
 
-        // Agar matn bo'lsa qo'shamiz
+        // 2. Yangi xabar uchun qismlarni (parts) tayyorlaymiz
+        let newParts = [];
+
+        // Matn bo'lsa qo'shamiz
         if (message) {
-            promptParts.push({ text: message });
-        } else if (image) {
-            // Agar faqat rasm bo'lsa, standart so'rov yuboramiz
-            promptParts.push({ text: "Ushbu tasvirni tahlil qiling va tushuntirib bering." });
+            newParts.push({ text: message });
+        } else if (image && !message) {
+            // Agar faqat fayl yuborilgan bo'lsa, uni turiga qarab so'rov yuboramiz
+            const isPDF = mimeType && mimeType.includes('pdf');
+            newParts.push({ text: isPDF ? "Ushbu hujjatni tahlil qiling va qisqacha mazmunini ayting." : "Ushbu tasvirni tahlil qiling va tushuntirib bering." });
         }
 
-        // Agar rasm (Base64) yuborilgan bo'lsa, uni struktura qo'shamiz
+        // Fayl (Rasm, PDF yoki matnli hujjat) bo'lsa qo'shamiz
         if (image && mimeType) {
-            promptParts.push({
+            newParts.push({
                 inline_data: {
-                    mime_type: mimeType,
-                    data: image // Frontenddan kelayotgan toza Base64 kodi
+                    mime_type: mimeType, // Bu yerda 'application/pdf' yoki 'image/jpeg' ketaveradi
+                    data: image // Base64 formatidagi fayl kodi
                 }
             });
         }
+
+        // 3. Yangi xabarni tarixga qo'shamiz
+        contents.push({
+            role: "user",
+            parts: newParts
+        });
 
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{
-                    parts: promptParts
-                }],
-                // AI javobini biroz cheklash yoki sozlash mumkin (ixtiyoriy)
+                contents: contents, // Barcha tarix yuboriladi
                 generationConfig: {
                     temperature: 0.7,
                     topP: 0.95,
@@ -66,7 +74,12 @@ export default async function handler(req, res) {
         // Javobni qaytarish
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
             const aiReply = data.candidates[0].content.parts[0].text;
-            res.status(200).json({ reply: aiReply });
+            
+            // Ziyomap AI nomi bilan javob qaytaramiz
+            res.status(200).json({ 
+                reply: aiReply,
+                role: "model" 
+            });
         } else {
             res.status(500).json({ error: "AI javob berishda qiynaldi yoki kontent bloklandi." });
         }
