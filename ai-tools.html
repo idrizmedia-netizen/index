@@ -20,7 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/gh/clauderic/html-docx-js@master/dist/html-docx.js"></script>
+    <script src="https://unpkg.com/html-docx-js-typescript@0.1.5/dist/html-docx.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
@@ -401,7 +401,7 @@
         }
     }
 
-    // --- PDF EKSPORT ---
+    // --- PDF EKSPORT (MUSTAHKAMLANDI) ---
     async function exportToPDF(elementId, fileName) {
         const originalElement = document.getElementById(elementId);
         if (!originalElement || originalElement.innerHTML.trim() === "") return alert("Avval ma'lumot yarating!");
@@ -427,8 +427,11 @@
         };
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Renderlashga ulgurishi uchun 1.5 soniya kutamiz
+            await new Promise(resolve => setTimeout(resolve, 1500));
             await html2pdf().set(opt).from(container).save();
+        } catch (err) {
+            alert("PDF yaratishda xato: " + err);
         } finally {
             if (document.body.contains(container)) document.body.removeChild(container);
         }
@@ -446,17 +449,14 @@
         for (const container of containers) {
             const svg = container.querySelector('svg');
             if (svg) {
-                // SVG ni o'lchamlarini olish
                 const bbox = svg.getBBox();
                 svg.setAttribute("width", bbox.width);
                 svg.setAttribute("height", bbox.height);
                 
-                // SVG ni base64 formatiga o'tkazish
                 const svgString = new XMLSerializer().serializeToString(svg);
                 const svgBase64 = btoa(unescape(encodeURIComponent(svgString)));
                 const img = document.createElement('img');
                 
-                // Word tushunishi uchun biroz kattalashtiramiz
                 img.src = `data:image/svg+xml;base64,${svgBase64}`;
                 img.style.verticalAlign = "middle";
                 img.style.margin = "5px";
@@ -479,9 +479,19 @@
         const footer = "</body></html>";
         const html = header + content + footer;
 
-        // html-docx kutubxonasi yordamida blob yaratish
-        const converted = htmlDocx.asBlob(html);
-        saveAs(converted, `${fileName}_${Date.now()}.docx`);
+        try {
+            // html-docx kutubxonasi yordamida blob yaratish
+            if (typeof htmlDocx !== 'undefined') {
+                const converted = htmlDocx.asBlob(html);
+                saveAs(converted, `${fileName}_${Date.now()}.docx`);
+            } else {
+                // Fallback: Agar kutubxona yuklanmasa oddiy blob orqali
+                const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+                saveAs(blob, `${fileName}.doc`);
+            }
+        } catch (e) {
+            alert("Word eksportda xatolik yuz berdi.");
+        }
     }
 </script>
 
