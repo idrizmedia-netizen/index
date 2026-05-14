@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ziyomap AI Asboblari | Dars Ishlanmasi & PDF</title>
+    
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -25,10 +32,7 @@
             padding: 20px;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-        }
+        .container { max-width: 1000px; margin: 40px auto; }
 
         .tool-card {
             background: var(--card-bg);
@@ -38,68 +42,47 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.05);
             border: 1px solid rgba(56, 189, 248, 0.2);
             margin-bottom: 30px;
+            position: relative;
+        }
+
+        /* Cheklash ekrani stili */
+        .locked-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 25px;
+            text-align: center;
+            padding: 20px;
         }
 
         h2 { color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
-
         .input-group { margin-bottom: 20px; }
-
-        label { display: block; margin-bottom: 8px; font-weight: 600; }
-
-        input, textarea, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            background: white;
-            font-size: 1rem;
-            outline: none;
-            box-sizing: border-box;
+        input, select {
+            width: 100%; padding: 12px; border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.3); font-size: 1rem; outline: none;
         }
 
         .btn-ai {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
+            color: white; border: none; padding: 15px 30px; border-radius: 50px;
+            cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%;
         }
-
-        .btn-ai:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
 
         #result-area, #formula-result {
-            margin-top: 25px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 15px;
-            border-left: 5px solid var(--primary-color);
-            display: none;
-            line-height: 1.6;
-            white-space: pre-wrap;
+            margin-top: 25px; padding: 25px; background: #fff; border-radius: 15px;
+            border-left: 5px solid var(--primary-color); display: none; line-height: 1.8;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            display: none;
-        }
-
+        .action-buttons { display: none; gap: 10px; margin-top: 15px; }
         .btn-secondary {
-            background: #f1f5f9;
-            color: var(--dark-color);
-            border: 1px solid #cbd5e1;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.9rem;
+            background: #f1f5f9; color: var(--dark-color); border: 1px solid #cbd5e1;
+            padding: 10px 20px; border-radius: 10px; cursor: pointer;
         }
     </style>
 </head>
@@ -110,21 +93,61 @@
         <i class="fas fa-arrow-left"></i> Orqaga qaytish
     </a>
 
-    <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-file-invoice"></i> Universal AI Dars Ishlanmasi</h2>
+    <div class="tool-card" id="main-tool-card" data-aos="fade-up">
+        <div id="auth-lock" class="locked-overlay">
+            <i class="fas fa-lock fa-3x" style="color: var(--primary-color); margin-bottom: 15px;"></i>
+            <h3>Ushbu bo'limdan foydalanish uchun tizimga kiring</h3>
+            <p>Faqat Google orqali ro'yxatdan o'tgan foydalanuvchilar dars ishlanmasi yaratishi mumkin.</p>
+            <button class="btn-ai" style="width: auto;" onclick="loginWithGoogle()">
+                <i class="fab fa-google"></i> Google orqali kirish
+            </button>
+        </div>
+
+        <h2><i class="fas fa-magic"></i> Universal AI Dars Ishlanmasi</h2>
         
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="lesson-subject">
-                <option value="Fizika">Fizika</option>
-                <option value="Matematika">Matematika</option>
-                <option value="Kimyo">Kimyo</option>
-                <option value="Biologiya">Biologiya</option>
-                <option value="Tarix">Tarix</option>
-                <option value="O'zbek tili">O'zbek tili</option>
-                <option value="Ingliz tili">Ingliz tili</option>
-                <option value="Informatika">Informatika</option>
-                <option value="Geografiya">Geografiya</option>
+                <option value="" disabled selected>Fanni tanlang...</option>
+                <optgroup label="Aniq fanlar">
+                    <option value="Matematika">Matematika</option>
+                    <option value="Algebra">Algebra</option>
+                    <option value="Geometriya">Geometriya</option>
+                    <option value="Informatika">Informatika</option>
+                </optgroup>
+                <optgroup label="Tabiiy fanlar">
+                    <option value="Fizika">Fizika</option>
+                    <option value="Kimyo">Kimyo</option>
+                    <option value="Biologiya">Biologiya</option>
+                    <option value="Tabiiy fan (Science)">Tabiiy fan (Science)</option>
+                    <option value="Geografiya va iqtisodiyot">Geografiya va iqtisodiyot</option>
+                    <option value="Astronomiya">Astronomiya</option>
+                </optgroup>
+                <optgroup label="Filologiya fanlari">
+                    <option value="O'zbek tili">O'zbek tili</option>
+                    <option value="Adabiyot">Adabiyot</option>
+                    <option value="Rus tili">Rus tili</option>
+                    <option value="Ingliz tili">Ingliz tili</option>
+                    <option value="Nemis tili">Nemis tili</option>
+                    <option value="Fransuz tili">Fransuz tili</option>
+                    <option value="Ona tili">Ona tili</option>
+                </optgroup>
+                <optgroup label="Ijtimoiy fanlar">
+                    <option value="Tarix">Tarix</option>
+                    <option value="O'zbekiston tarixi">O'zbekiston tarixi</option>
+                    <option value="Jahon tarixi">Jahon tarixi</option>
+                    <option value="Tarbiya">Tarbiya</option>
+                    <option value="Huquq (Davlat va huquq asoslari)">Huquq</option>
+                    <option value="Falsafa">Falsafa</option>
+                </optgroup>
+                <optgroup label="Amaliy va ijodiy fanlar">
+                    <option value="Tasviriy san'at">Tasviriy san'at</option>
+                    <option value="Musiqa madaniyati">Musiqa madaniyati</option>
+                    <option value="Texnologiya">Texnologiya</option>
+                    <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
+                    <option value="Chizmachilik">Chizmachilik</option>
+                    <option value="Hayot xavfsizligi asoslari">CHYOT (HXA)</option>
+                </optgroup>
             </select>
         </div>
 
@@ -133,49 +156,13 @@
             <input type="text" id="lesson-topic" placeholder="Mavzuni yozing...">
         </div>
 
-        <div class="input-group">
-            <label>Sinf:</label>
-            <select id="lesson-grade">
-                <option value="1-4">Boshlang'ich (1-4 sinf)</option>
-                <option value="5">5-sinf</option>
-                <option value="6">6-sinf</option>
-                <option value="7">7-sinf</option>
-                <option value="8">8-sinf</option>
-                <option value="9" selected>9-sinf</option>
-                <option value="10">10-sinf</option>
-                <option value="11">11-sinf</option>
-            </select>
-        </div>
-
-        <button class="btn-ai" onclick="generateLesson()">
-            <i class="fas fa-magic"></i> Reja yaratish
-        </button>
+        <button class="btn-ai" onclick="generateLesson()">Reja yaratish</button>
 
         <div id="result-area"></div>
 
         <div class="action-buttons" id="action-btns">
-            <button class="btn-secondary" onclick="downloadPDF('result-area')">
-                <i class="fas fa-file-pdf"></i> PDF yuklab olish
-            </button>
-        </div>
-    </div>
-
-    <div class="tool-card" data-aos="fade-up" data-aos-delay="200">
-        <h2><i class="fas fa-bolt"></i> Aqlli "Shpargalka" & Konspekt</h2>
-        <div class="input-group">
-            <label>Mavzu yoki bo'limni kiriting (Barcha fanlardan):</label>
-            <input type="text" id="formula-query" placeholder="Mavzuni yozing...">
-        </div>
-
-        <button class="btn-ai" onclick="generateCheatSheet()">
-            <i class="fas fa-search"></i> Ma'lumotlarni topish
-        </button>
-
-        <div id="formula-result"></div>
-
-        <div class="action-buttons" id="formula-action-btns">
-            <button class="btn-secondary" onclick="downloadPDF('formula-result')">
-                <i class="fas fa-file-pdf"></i> PDF yuklab olish
+            <button class="btn-secondary" onclick="exportToPDF('result-area')">
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish (Sifatli)
             </button>
         </div>
     </div>
@@ -185,76 +172,71 @@
 <script>
     AOS.init();
 
-    async function generateLesson() {
-        const subject = document.getElementById('lesson-subject').value;
-        const topic = document.getElementById('lesson-topic').value;
-        const grade = document.getElementById('lesson-grade').value;
-        const resultArea = document.getElementById('result-area');
-        const actionBtns = document.getElementById('action-btns');
+    let isLoggedIn = false; 
 
-        if (!topic) return alert("Mavzuni yozing!");
-
-        resultArea.style.display = "block";
-        resultArea.innerText = "Ziyomap AI dars rejasini tuzmoqda...";
-
-        try {
-            // SIZNING AVVALGI ISHLAGAN ENDPOINTINGIZ
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    message: `${subject} fanidan ${grade}-sinf uchun "${topic}" mavzusida dars ishlanmasi tuzib ber. Reja: 1. Maqsad. 2. Metodlar. 3. Borishi. 4. Savollar.` 
-                })
-            });
-
-            const data = await response.json();
-            resultArea.innerText = data.reply;
-            actionBtns.style.display = "flex";
-        } catch (error) {
-            resultArea.innerText = "Xatolik! Backend ulanishi topilmadi.";
+    function checkAuth() {
+        if (isLoggedIn) {
+            document.getElementById('auth-lock').style.display = 'none';
         }
     }
 
-    async function generateCheatSheet() {
-        const query = document.getElementById('formula-query').value;
-        const resultArea = document.getElementById('formula-result');
-        const actionBtns = document.getElementById('formula-action-btns');
+    function loginWithGoogle() {
+        alert("Google orqali tizimga kirish funksiyasini index.html dagi kabi ulang.");
+        isLoggedIn = true; 
+        checkAuth();
+    }
 
-        if (!query) return alert("Mavzuni yozing!");
+    async function generateLesson() {
+        if (!isLoggedIn) return alert("Iltimos, avval tizimga kiring!");
+
+        const subject = document.getElementById('lesson-subject').value;
+        const topic = document.getElementById('lesson-topic').value;
+        const resultArea = document.getElementById('result-area');
+
+        if (!subject) return alert("Iltimos, fanni tanlang!");
+        if (!topic) return alert("Mavzuni yozing!");
 
         resultArea.style.display = "block";
-        resultArea.innerText = "Ma'lumotlar qidirilmoqda...";
+        resultArea.innerHTML = "Ziyomap AI tayyorlamoqda...";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    message: `"${query}" mavzusi bo'yicha barcha muhim formulalar, konspekt, qisqa qoidalar va matnli chizmalar tavsifini ber. Har qanday umumta'lim fani bo'lishi mumkin.` 
+                    message: `${subject} fanidan "${topic}" mavzusida dars ishlanmasi tuz. Reja quyidagilardan iborat bo'lsin: 1. Maqsad, 2. Metodlar, 3. Borishi, 4. Baholash. Formulalarni LaTeX formatida (masalan, $$ ... $$) yoz.` 
                 })
             });
 
             const data = await response.json();
-            resultArea.innerText = data.reply;
-            actionBtns.style.display = "flex";
+            resultArea.innerHTML = data.reply;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+            
+            document.getElementById('action-btns').style.display = "flex";
         } catch (error) {
             resultArea.innerText = "Xatolik yuz berdi.";
         }
     }
 
-    function downloadPDF(elementId) {
+    async function exportToPDF(elementId) {
+        const element = document.getElementById(elementId);
+        const canvas = await html2canvas(element, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        
         const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const text = document.getElementById(elementId).innerText;
-        const title = elementId === 'result-area' ? "Dars_Ishlanmasi" : "Konspekt";
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-        doc.setFontSize(14);
-        doc.text("Ziyomap AI Materiali", 10, 10);
-        doc.setFontSize(10);
-        const splitText = doc.splitTextToSize(text, 180);
-        doc.text(splitText, 10, 20);
-        doc.save(`${title}_Ziyomap.pdf`);
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save("Dars_Ishlanmasi_Ziyomap.pdf");
     }
+
+    window.onload = checkAuth;
 </script>
 
 </body>
