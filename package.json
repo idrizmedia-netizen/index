@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "sanity build",
-    "deploy": "sanity deploy --project 25lh4m7u --dataset production --yes --hostname ziyomap"
+    "deploy": "npx sanity deploy --project 25lh4m7u --dataset production --yes --hostname ziyomap"
   },
   "dependencies": {
     "sanity": "^3.0.0",
