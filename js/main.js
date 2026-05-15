@@ -1,14 +1,17 @@
-// 1. Filtr tugmalarini avtomatik yaratish funksiyasi
+/* ==========================================================
+   1. LABORATORIYA TIZIMI (ESKI KOD - O'ZGARISHLARSIZ)
+   ========================================================== */
+
+// Filtr tugmalarini avtomatik yaratish funksiyasi
 function createFilterButtons() {
     const labSection = document.querySelector("#lab");
     const grid = document.querySelector("#lab .grid");
     
     if (!labSection || !grid) return;
 
-    // Mavjud kategoriyalarni aniqlash (Takrorlanmas va kichik harflarda olish)
+    // Mavjud kategoriyalarni aniqlash
     const categories = ['all', ...new Set(physicsLabs.map(lab => lab.category.toLowerCase()))];
 
-    // Tugmalar uchun konteyner yaratish
     let filterContainer = document.querySelector(".filter-container");
     if (!filterContainer) {
         filterContainer = document.createElement("div");
@@ -18,7 +21,6 @@ function createFilterButtons() {
         labSection.insertBefore(filterContainer, grid);
     }
 
-    // Tugmalarni chizish
     filterContainer.innerHTML = categories.map(cat => `
         <button onclick="renderLabs('${cat}')" class="btn btn-outline" 
                 style="margin: 5px; padding: 8px 20px; text-transform: capitalize; border-color: #2563eb; color: #2563eb;">
@@ -27,14 +29,13 @@ function createFilterButtons() {
     `).join('');
 }
 
-// 2. Laboratoriyalarni ekranda chiqarish
+// Laboratoriyalarni ekranda chiqarish
 function renderLabs(filterCategory = 'all') {
     const labGrid = document.querySelector("#lab .grid");
     if (!labGrid) return;
 
     labGrid.innerHTML = "";
 
-    // Filtrlashda trim() va toLowerCase() qo'shildi (Xatolikni oldini olish uchun)
     const filteredLabs = filterCategory === 'all' 
         ? physicsLabs 
         : physicsLabs.filter(lab => lab.category.trim().toLowerCase() === filterCategory.trim().toLowerCase());
@@ -56,13 +57,12 @@ function renderLabs(filterCategory = 'all') {
         labGrid.appendChild(card);
     });
 
-    // Yangi kartochkalar uchun animatsiyani yangilash
     if (window.AOS) {
         AOS.refresh();
     }
 }
 
-// 3. Avtomatik ishga tushirish (Dynamic Caller)
+// Avtomatik ishga tushirish (Dynamic Caller)
 function openLab(componentName) {
     if (typeof window[componentName] === "function") {
         window[componentName]();
@@ -80,8 +80,63 @@ function openLab(componentName) {
     }
 }
 
-// Sahifa yuklanganda ishga tushirish
+/* ==========================================================
+   2. BLOG TIZIMI (SANITY CMS INTEGRATSIYASI)
+   ========================================================== */
+
+const PROJECT_ID = "25lh4m7u"; 
+const DATASET = "production";
+const QUERY = encodeURIComponent('*[_type == "post"]{title, date, category, preview, telegramLink, "imageUrl": mainImage.asset->url}');
+const URL = `https://${PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${DATASET}?query=${QUERY}`;
+
+async function fetchArticles() {
+    try {
+        const response = await fetch(URL);
+        const data = await response.json();
+        if(data.result) {
+            renderArticles(data.result);
+        }
+    } catch (error) {
+        console.error("Sanity-dan ma'lumot olishda xato:", error);
+    }
+}
+
+function renderArticles(articles) {
+    const blogContainer = document.querySelector('.blog-grid') || document.getElementById('blog-container');
+    if(!blogContainer) return;
+    
+    blogContainer.innerHTML = ''; 
+
+    articles.forEach(article => {
+        blogContainer.innerHTML += `
+            <div class="blog-card" data-aos="fade-up">
+                <div class="card-img">
+                    <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" alt="${article.title}" style="width: 100%; border-radius: 8px;">
+                </div>
+                <div class="card-body" style="padding: 15px 0;">
+                    <span class="category" style="color: #2563eb; font-weight: bold; font-size: 0.8rem;">${article.category || 'Maqola'}</span>
+                    <h3 style="margin: 10px 0;">${article.title}</h3>
+                    <p style="font-size: 0.9rem; color: #64748b;">${article.preview || ''}</p>
+                    <a href="${article.telegramLink}" target="_blank" class="btn-tg" style="display: inline-block; margin-top: 10px; color: #2563eb; text-decoration: none; font-weight: bold;">
+                         Telegramda o'qish →
+                    </a>
+                </div>
+            </div>
+        `;
+    });
+}
+
+/* ==========================================================
+   3. SAHIFA YUKLANISHI (BARCHASINI ISHGA TUSHIRISH)
+   ========================================================== */
+
 document.addEventListener("DOMContentLoaded", () => {
-    createFilterButtons(); 
-    renderLabs();          
+    // Laboratoriya qismini yuklash
+    if (typeof physicsLabs !== 'undefined') {
+        createFilterButtons(); 
+        renderLabs(); 
+    }
+
+    // Blog qismini yuklash (Sanity)
+    fetchArticles();
 });
