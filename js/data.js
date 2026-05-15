@@ -49,7 +49,7 @@ const physicsLabs = [
 
 // Rasmdagi ma'lumotlar asosida:
 const sanityConfig = {
-    projectId: "9p8sh62p", // Rasmdan olindi
+    projectId: "25lh4m7u", // Rasmdan olindi
     dataset: "production",
     useCdn: true,
     apiVersion: "2023-05-03"
