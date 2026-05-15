@@ -43,30 +43,20 @@
         .action-btns { display: none; gap: 10px; margin-top: 20px; }
         .btn-action { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; font-weight: 600; transition: 0.2s; }
         .btn-action:hover { background: #f8fafc; border-color: var(--primary); }
-        
-        /* YANGILANGAN PRINT (PDF) SOZLAMALARI */
-        @media print {
-            body * { visibility: hidden; margin: 0; padding: 0; }
-            .print-area, .print-area * { visibility: visible; }
-            .print-area { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-                border: none; 
-                padding: 0; 
-                margin: 0;
-                display: block !important;
-            }
-            h1, h2, h3 { page-break-after: avoid; }
-            table { page-break-inside: auto; width: 100%; border-collapse: collapse; }
-            table, th, td { border: 1px solid #000; padding: 8px; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-        }
+
+        /* Rasmga olish uchun maxsus konteyner (Faqat rasm vaqtida vaqtincha ishlaydi) */
+        .capture-clone { width: 850px !important; padding: 40px !important; position: absolute; left: -9999px; top: 0; display: block !important; background: white; }
 
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         table, th, td { border: 1px solid #000; padding: 12px; }
         th { background: #f1f5f9; }
+
+        /* Mobil qurilmalar uchun moslashuv */
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .tool-card { padding: 20px; }
+            .result-area { padding: 20px; font-size: 12pt; }
+        }
     </style>
 </head>
 <body>
@@ -117,8 +107,8 @@
         
         <div id="res-lesson" class="result-area"></div>
         <div class="action-btns" id="btns-lesson">
-            <button class="btn-action" onclick="printDoc('res-lesson')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> PDF Sifatli</button>
-            <button class="btn-action" onclick="saveAsImages('res-lesson')"><i class="fas fa-images" style="color:#10b981"></i> Listlarga bo'lib rasmga olish</button>
+            <button class="btn-action" onclick="perfectPrint('res-lesson')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> PDF Sifatli</button>
+            <button class="btn-action" onclick="perfectImage('res-lesson')"><i class="fas fa-images" style="color:#10b981"></i> Listlarga bo'lib rasmga olish</button>
         </div>
     </div>
 
@@ -134,8 +124,8 @@
         
         <div id="res-info" class="result-area"></div>
         <div class="action-btns" id="btns-info">
-            <button class="btn-action" onclick="printDoc('res-info')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> PDF Sifatli</button>
-            <button class="btn-action" onclick="saveAsImages('res-info')"><i class="fas fa-images" style="color:#10b981"></i> Rasm ko'rinishida</button>
+            <button class="btn-action" onclick="perfectPrint('res-info')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> PDF Sifatli</button>
+            <button class="btn-action" onclick="perfectImage('res-info')"><i class="fas fa-images" style="color:#10b981"></i> Rasm ko'rinishida</button>
         </div>
     </div>
 </div>
@@ -180,43 +170,65 @@
         }
     }
 
-    // YANGILANGAN PRINT FUNKSIYASI
-    function printDoc(id) {
-        const area = document.getElementById(id);
-        document.querySelectorAll('.result-area').forEach(el => el.classList.remove('print-area'));
-        area.classList.add('print-area');
-        window.print();
-        setTimeout(() => area.classList.remove('print-area'), 1000);
+    // BO'SH SAHIFASIZ PDF CHOP ETISH (VIRTUAL WINDOW USULI)
+    function perfectPrint(id) {
+        const content = document.getElementById(id).innerHTML;
+        const pWin = window.open('', '', 'height=700,width=900');
+        pWin.document.write('<html><head><title>Ziyomap AI - PDF</title>');
+        pWin.document.write('<style>body{font-family:serif;padding:40px;line-height:1.6;color:#000;} table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{border:1px solid #000;padding:10px;text-align:left;} th{background:#f0f0f0;}</style>');
+        pWin.document.write('</head><body>');
+        pWin.document.write(content);
+        pWin.document.write('</body></html>');
+        pWin.document.close();
+        
+        setTimeout(() => {
+            pWin.print();
+            pWin.close();
+        }, 600);
     }
 
-    async function saveAsImages(id) {
-        const element = document.getElementById(id);
+    // MOBIL VA KOMPYUTER UCHUN BIRXIL SIFATLI RASM (CLONE USULI)
+    async function perfectImage(id) {
+        const original = document.getElementById(id);
         const btn = event.currentTarget;
-        btn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Bo\'linmoqda...';
+        const oldBtnText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tayyorlanmoqda...';
 
-        const totalHeight = element.scrollHeight;
-        const pageHeight = 1100; 
-        let currentPosition = 0;
-        let pageNum = 1;
+        // Vaqtincha nusxa yaratamiz (A4 kengligiga mos)
+        const clone = original.cloneNode(true);
+        clone.classList.add('capture-clone');
+        document.body.appendChild(clone);
 
-        while (currentPosition < totalHeight) {
-            await html2canvas(element, {
-                y: currentPosition,
-                height: Math.min(pageHeight, totalHeight - currentPosition),
-                scale: 2,
-                backgroundColor: "#ffffff",
-                scrollX: 0,
-                scrollY: -currentPosition
-            }).then(canvas => {
+        const totalHeight = clone.scrollHeight;
+        const pageHeight = 1150; 
+        let currentPos = 0;
+        let pNum = 1;
+
+        try {
+            while (currentPos < totalHeight) {
+                const canvas = await html2canvas(clone, {
+                    y: currentPos,
+                    height: Math.min(pageHeight, totalHeight - currentPos),
+                    scale: 2,
+                    useCORS: true,
+                    width: 850,
+                    backgroundColor: "#ffffff"
+                });
+                
                 const link = document.createElement('a');
-                link.download = `Ziyomap_Varaq_${pageNum}.png`;
+                link.download = `Ziyomap_Varaq_${pNum}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-            });
-            currentPosition += pageHeight;
-            pageNum++;
+                
+                currentPos += pageHeight;
+                pNum++;
+            }
+        } catch (err) {
+            alert("Rasmga olishda xatolik yuz berdi.");
+        } finally {
+            document.body.removeChild(clone);
+            btn.innerHTML = oldBtnText;
         }
-        btn.innerHTML = '<i class="fas fa-images" style="color:#10b981"></i> Listlarga bo\'lib rasmga olish';
     }
 </script>
 </body>
