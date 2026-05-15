@@ -8,8 +8,6 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.10.0/dist/pptxgen.bundle.js"></script>
     
     <script>
         window.MathJax = {
@@ -20,27 +18,20 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
     <style>
-        :root { --primary: #2563eb; --secondary: #10b981; --accent: #f59e0b; --bg: #f8fafc; }
+        :root { --primary: #2563eb; --secondary: #10b981; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
-
-        /* Tab menyu stili */
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding: 5px; }
-        .tab-btn { padding: 12px 25px; border-radius: 15px; border: none; cursor: pointer; background: white; font-weight: bold; color: #64748b; transition: 0.3s; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .tab-btn.active { background: var(--primary); color: white; }
-
-        .tool-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; display: none; }
-        .tool-card.active { display: block; animation: fadeIn 0.4s ease; }
+        .tool-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         h2 { color: var(--primary); display: flex; align-items: center; gap: 10px; margin-top: 0; }
         .input-group { margin-bottom: 15px; }
         label { font-weight: 600; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; display: block; }
         input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 1rem; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
         
         .btn-ai { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; font-size: 1rem; }
         .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
+        .btn-search { background: var(--secondary); }
 
         .result-area { 
             margin-top: 25px; padding: 40px; border-radius: 15px; 
@@ -49,114 +40,102 @@
         }
 
         .action-btns { display: none; gap: 10px; margin-top: 20px; }
-        .btn-action { flex: 1; padding: 15px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
-        .btn-pdf { background: #ef4444; }
-        .btn-pptx { background: var(--accent); }
+        .btn-pdf { flex: 1; padding: 15px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: #ef4444; color: white; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
+        .btn-pdf:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239,68,68,0.3); }
 
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         table, th, td { border: 1px solid #000; padding: 12px; }
-        
-        #qr-hidden { display: none; }
+        th { background: #f1f5f9; }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .tool-card { padding: 20px; }
+            .result-area { padding: 20px; font-size: 12pt; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="tabs" data-aos="fade-down">
-        <button class="tab-btn active" onclick="openTab('lesson-tab', this)"><i class="fas fa-book"></i> Dars Ishlanmasi</button>
-        <button class="tab-btn" onclick="openTab('info-tab', this)"><i class="fas fa-search"></i> Ma'lumot Topish</button>
-        <button class="tab-btn" onclick="openTab('pptx-tab', this)"><i class="fas fa-file-powerpoint"></i> Taqdimot Generator</button>
-    </div>
-
-    <div id="lesson-tab" class="tool-card active" data-aos="fade-up">
+    <div class="tool-card" data-aos="fade-up">
         <h2><i class="fas fa-chalkboard-teacher"></i> Professional Dars Ishlanmasi</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <div class="input-group">
-                <label>Fanni tanlang:</label>
-                <select id="subject-1">
-                    <option>Matematika</option><option>Fizika</option><option>Kimyo</option><option>Biologiya</option><option>Informatika</option>
-                    <option>O'zbek tili</option><option>Ingliz tili</option><option>Tarix</option><option>Geografiya</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Sinfni tanlang:</label>
-                <select id="grade-1"><script>for(let i=1; i<=11; i++) document.write(`<option value="${i}">${i}-sinf</option>`);</script></select>
-            </div>
+        <div class="input-group">
+            <label>Fanni tanlang:</label>
+            <select id="subject">
+                <option value="Matematika">Matematika</option>
+                <option value="Fizika">Fizika</option>
+                <option value="Kimyo">Kimyo</option>
+                <option value="Biologiya">Biologiya</option>
+                <option value="Informatika">Informatika</option>
+                <option value="O'zbek tili">O'zbek tili</option>
+                <option value="Adabiyot">Adabiyot</option>
+                <option value="Ingliz tili">Ingliz tili</option>
+                <option value="Tarix">Tarix</option>
+                <option value="Geografiya">Geografiya</option>
+                <option value="Huquq">Huquq</option>
+                <option value="Iqtisodiyot">Iqtisodiyot</option>
+                <option value="Tarbiya">Tarbiya</option>
+                <option value="Tasviriy san'at">Tasviriy san'at</option>
+                <option value="Musiqa">Musiqa</option>
+                <option value="Texnologiya">Texnologiya</option>
+                <option value="Chizmachilik">Chizmachilik</option>
+                <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
+            </select>
         </div>
-        <div class="input-group"><label>Mavzu nomi:</label><input type="text" id="topic-1" placeholder="Mavzuni to'liq yozing..."></div>
-        <button class="btn-ai" onclick="generate('lesson', this)"><i class="fas fa-wand-magic-sparkles"></i> Mukammal reja yaratish</button>
+        <div class="input-group">
+            <label>Sinfni tanlang:</label>
+            <select id="grade">
+                <script>
+                    for(let i=1; i<=11; i++) {
+                        document.write(`<option value="${i}">${i}-sinf</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Mavzu nomi:</label>
+            <input type="text" id="topic" placeholder="Mavzuni to'liq yozing...">
+        </div>
+        <button class="btn-ai" onclick="generate('lesson', this)">
+            <i class="fas fa-wand-magic-sparkles"></i> Mukammal reja yaratish
+        </button>
+        
         <div id="res-lesson" class="result-area"></div>
         <div class="action-btns" id="btns-lesson">
-            <button class="btn-action btn-pdf" onclick="perfectPrint('res-lesson', 'topic-1', 'subject-1')"><i class="fas fa-file-pdf"></i> PDF + QR Yuklab olish</button>
+            <button class="btn-pdf" onclick="perfectPrint('res-lesson')">
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
+            </button>
         </div>
     </div>
 
-    <div id="info-tab" class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-microscope" style="color: var(--secondary);"></i> Chuqur Ma'lumot Tahlili</h2>
-        <div class="input-group"><label>Mavzu, qoida yoki termin nomi:</label><input type="text" id="topic-2" placeholder="Nima haqida ma'lumot kerak?"></div>
-        <button class="btn-ai btn-search" style="background: var(--secondary);" onclick="generate('info', this)"><i class="fas fa-brain"></i> Akademik tahlil qilish</button>
+    <div class="tool-card" data-aos="fade-up">
+        <h2><i class="fas fa-search-plus" style="color: #f59e0b;"></i> Mukammal Ma'lumot Topish</h2>
+        <div class="input-group">
+            <label>Mavzu, qoida yoki termin nomi:</label>
+            <input type="text" id="info-topic" placeholder="Nima haqida ma'lumot kerak?">
+        </div>
+        <button class="btn-ai btn-search" onclick="generate('info', this)">
+            <i class="fas fa-microscope"></i> Chuqur tahlil qilish
+        </button>
+        
         <div id="res-info" class="result-area"></div>
         <div class="action-btns" id="btns-info">
-            <button class="btn-action btn-pdf" onclick="perfectPrint('res-info', 'topic-2', null)"><i class="fas fa-file-pdf"></i> PDF + QR Yuklab olish</button>
+            <button class="btn-pdf" onclick="perfectPrint('res-info')">
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
+            </button>
         </div>
     </div>
-
-    <div id="pptx-tab" class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-desktop" style="color: var(--accent);"></i> AI Taqdimot Generator</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <div class="input-group">
-                <label>Fanni tanlang:</label>
-                <select id="subject-3">
-                    <option>Biologiya</option><option>Tarix</option><option>Geografiya</option><option>Fizika</option><option>Informatika</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Sinfni tanlang:</label>
-                <select id="grade-3"><script>for(let i=1; i<=11; i++) document.write(`<option value="${i}">${i}-sinf</option>`);</script></select>
-            </div>
-        </div>
-        <div class="input-group"><label>Taqdimot mavzusi:</label><input type="text" id="topic-3" placeholder="Slaydlar uchun mavzu..."></div>
-        <button class="btn-ai" style="background: var(--accent);" onclick="generate('pptx', this)"><i class="fas fa-bolt"></i> Slaydlarni tayyorlash</button>
-        <div id="res-pptx" class="result-area"></div>
-        <div class="action-btns" id="btns-pptx">
-            <button class="btn-action btn-pptx" onclick="exportPPTX()"><i class="fas fa-file-powerpoint"></i> PPTX Fayl</button>
-            <button class="btn-action btn-pdf" onclick="perfectPrint('res-pptx', 'topic-3', 'subject-3')"><i class="fas fa-file-pdf"></i> Slayd matni (PDF+QR)</button>
-        </div>
-    </div>
-
-    <div id="qr-hidden"></div>
 </div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     AOS.init();
-    let lastContent = "";
-
-    function openTab(id, btn) {
-        document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        btn.classList.add('active');
-    }
 
     async function generate(type, btn) {
-        let topic, resArea, btns, prompt;
-        if(type === 'lesson') {
-            topic = document.getElementById('topic-1').value;
-            resArea = document.getElementById('res-lesson');
-            btns = document.getElementById('btns-lesson');
-            prompt = `${document.getElementById('subject-1').value} fani ${document.getElementById('grade-1').value}-sinf "${topic}" mavzusida dars ishlanmasi. LaTeX $..$ ichida.`;
-        } else if(type === 'info') {
-            topic = document.getElementById('topic-2').value;
-            resArea = document.getElementById('res-info');
-            btns = document.getElementById('btns-info');
-            prompt = `"${topic}" haqida akademik darajada batafsil ma'lumot ber. Tarixi, qoidalari va faktlar jadvali bo'lsin.`;
-        } else {
-            topic = document.getElementById('topic-3').value;
-            resArea = document.getElementById('res-pptx');
-            btns = document.getElementById('btns-pptx');
-            prompt = `${document.getElementById('subject-3').value} fani ${document.getElementById('grade-3').value}-sinf "${topic}" mavzusida taqdimot slaydlari uchun tekst tayyorla. Har bir slaydni "SLAYD X:" deb ajrat.`;
-        }
+        const isLesson = type === 'lesson';
+        const topic = document.getElementById(isLesson ? 'topic' : 'info-topic').value;
+        const resArea = document.getElementById(isLesson ? 'res-lesson' : 'res-info');
+        const btns = document.getElementById(isLesson ? 'btns-lesson' : 'btns-info');
 
         if(!topic) return alert("Iltimos, mavzuni kiriting!");
 
@@ -164,7 +143,11 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> AI mantiqiy tahlil qilmoqda...';
         resArea.style.display = "block";
-        resArea.innerHTML = "<div style='text-align:center'><i class='fas fa-brain fa-pulse'></i> Ma'lumotlar tayyorlanmoqda...</div>";
+        resArea.innerHTML = "<div style='text-align:center'><i class='fas fa-brain fa-pulse'></i> Ma'lumotlar kengaytirilmoqda, iltimos kuting...</div>";
+
+        let prompt = isLesson 
+            ? `${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida O'zbekiston darslik standartlariga mos dars ishlanmasi. Tarkibi: Mavzu maqsadi, metodlar, yangi mavzu bayoni (kengaytirilgan), amaliy mashqlar, savol-javoblar va jadvallar. LaTeX formulalarni $..$ ichida yoz.`
+            : `"${topic}" mavzusi haqida akademik darajada batafsil ma'lumot ber. Tarixi, asosiy qoidalari, amaliy ahamiyati va jadval ko'rinishida qisqa faktlar bo'lsin. LaTeX ishlatilsin.`;
 
         try {
             const response = await fetch('/api/chat', {
@@ -173,64 +156,83 @@
                 body: JSON.stringify({ message: prompt })
             });
             const data = await response.json();
-            lastContent = data.reply;
-            resArea.innerHTML = marked.parse(lastContent);
+            resArea.innerHTML = marked.parse(data.reply);
             if(window.MathJax) await MathJax.typesetPromise([resArea]);
             btns.style.display = "flex";
-        } catch (e) { resArea.innerHTML = "Xato!"; }
-        finally { btn.disabled = false; btn.innerHTML = oldHTML; }
+        } catch (e) { 
+            resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi! Qayta urinib ko'ring.</span>"; 
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = oldHTML;
+        }
     }
 
-    async function perfectPrint(id, topicId, subId) {
+    // MUKAMMAL PDF PRINT: Eng oxirgi kafolatlangan usul
+    async function perfectPrint(id) {
         const area = document.getElementById(id);
-        const qrDiv = document.getElementById('qr-hidden');
-        qrDiv.innerHTML = "";
         
-        const topic = document.getElementById(topicId).value;
-        const sub = subId ? document.getElementById(subId).value : "Ziyomap AI Tahlili";
-        const date = new Date().toLocaleDateString('uz-UZ');
-        const qrText = `🛡️ ZIYOMAP AI TASDIQLAYDI:\n------------------\n📖 Mavzu: ${topic}\n📚 Fan: ${sub}\n📅 Sana: ${date}\n✅ Rasmiy tasdiqlangan hujjat.`;
-        
-        new QRCode(qrDiv, { text: qrText, width: 100, height: 100, correctLevel: QRCode.CorrectLevel.H });
+        // 1. Asosiy sahifada formulalar render bo'lganini kutamiz
+        if (window.MathJax) {
+            await MathJax.typesetPromise([area]);
+        }
 
-        setTimeout(() => {
-            const qrImg = qrDiv.querySelector('img').src;
-            const content = area.innerHTML;
-            const pWin = window.open('', '', 'height=900,width=1100');
-            pWin.document.write(`
-                <html><head><style>
-                    body { font-family: serif; padding: 40px; line-height: 1.6; }
-                    .h { display: flex; justify-content: space-between; border-bottom: 3px solid #2563eb; padding-bottom: 15px; margin-bottom: 25px; }
-                    mjx-container { display: inline-block !important; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th, td { border: 1px solid #000; padding: 8px; }
-                </style></head>
+        const content = area.innerHTML;
+        const pWin = window.open('', '', 'height=900,width=1100');
+        
+        pWin.document.write(`
+            <html>
+                <head>
+                    <title>Ziyomap AI - Export</title>
+                    <style>
+                        body { 
+                            font-family: 'Times New Roman', serif; 
+                            padding: 40px; 
+                            line-height: 1.6; 
+                            color: #000; 
+                            background: #fff; 
+                        }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #000; padding: 10px; text-align: left; }
+                        th { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+                        
+                        /* MathJax SVG formulalarini PDF-da to'g'ri ko'rsatish */
+                        mjx-container { 
+                            display: inline-block !important; 
+                            vertical-align: middle;
+                            margin: 5px 0;
+                            line-height: 0;
+                        }
+                        svg { max-width: 100%; }
+
+                        @media print {
+                            @page { size: A4; margin: 1.5cm; }
+                            body { padding: 0; }
+                        }
+                    </style>
+                </head>
                 <body>
-                    <div class="h">
-                        <div><h1 style="color:#2563eb;margin:0">ZIYOMAP AI</h1><p style="margin:0">Professional Metodik Hujjat</p></div>
-                        <div style="text-align:center"><img src="${qrImg}" width="80"><p style="margin:0;font-size:10px;color:#2563eb">VERIFIED BY AI</p></div>
+                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:30px;">
+                        <h1 style="margin:0">ZIYOMAP AI</h1>
+                        <p style="margin:5px 0">Professional Ta'lim va Metodik Platforma</p>
                     </div>
-                    ${content}
-                    <script>window.onload=()=>{setTimeout(()=>{window.print();},1000);}<\/script>
-                </body></html>
-            `);
-            pWin.document.close();
-        }, 600);
-    }
+                    
+                    <div id="print-content">
+                        ${content}
+                    </div>
 
-    function exportPPTX() {
-        let pptx = new PptxGenJS();
-        let slide = pptx.addSlide();
-        slide.background = { color: "F1F5F9" };
-        slide.addText("ZIYOMAP AI TAQDIMOTI", { x:1, y:1, fontSize:32, color:'2563EB', bold:true });
-        slide.addText(document.getElementById('topic-3').value, { x:1, y:2.2, fontSize:22, color:'475569' });
-
-        const parts = lastContent.split(/SLAYD \d+:/i).filter(p => p.trim().length > 10);
-        parts.forEach((text, i) => {
-            let s = pptx.addSlide();
-            s.addText(text.replace(/[#*]/g, '').trim(), { x:0.5, y:0.5, w:'90%', h:'80%', fontSize:18, color:'1E293B', align:'left', valign:'top' });
-        });
-        pptx.writeFile({ fileName: `Ziyomap_Taqdimot.pptx` });
+                    <script>
+                        window.onload = function() {
+                            // Rasmlar va SVG-lar to'liq yuklanishi uchun ozgina kutamiz
+                            setTimeout(() => {
+                                window.print();
+                                // window.close(); 
+                            }, 800); 
+                        };
+                    <\/script>
+                </body>
+            </html>
+        `);
+        pWin.document.close();
     }
 </script>
 </body>
