@@ -469,18 +469,22 @@ const provider = new GoogleAuthProvider();
 const loginBtn = document.getElementById('login-btn');
 const dropdown = document.getElementById('myDropdown');
 const logoutBtn = document.getElementById('logout-btn');
-      if (loginBtn) {
-    loginBtn.addEventListener('click', (e) => {
+      const loginBtn = document.getElementById('login-btn');
+
+if (loginBtn) {
+    loginBtn.addEventListener('click', async (e) => {
         e.preventDefault();
-        if (!auth.currentUser) {
-            signInWithPopup(auth, provider).then((result) => {
+        try {
+            if (!auth.currentUser) {
+                const result = await signInWithPopup(auth, provider);
                 localStorage.setItem('user', JSON.stringify(result.user));
                 window.location.reload(); 
-            }).catch((err) => { 
-                console.error("Kirishda xato:", err);
-            });
-        } else if (dropdown) {
-            dropdown.classList.toggle('show');
+            } else {
+                const dropdown = document.getElementById('myDropdown');
+                if(dropdown) dropdown.classList.toggle('show');
+            }
+        } catch (err) {
+            console.error("Kirishda xato tafsiloti:", err);
         }
     });
 }
