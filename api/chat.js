@@ -1,91 +1,187 @@
-export default async function handler(req, res) {
-    // Faqat POST so'rovlarini qabul qilamiz
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: "Method not allowed" });
-    }
+/* ==========================================================
+   ZIYOMAP AI - CHAT TIZIMI (TO'LIQ VERSIYA)
+   ========================================================== */
 
-    // history - frontenddan keladigan xabarlar massivi
-    // image o'zgaruvchisini endi umumiy 'file' deb ham tushunish mumkin
-    const { message, image, mimeType, history } = req.body;
-    const API_KEY = process.env.GEMINI_API_KEY;
+let currentFileBase64 = null;
+let currentFileType = null;
+let chatHistory = []; // Suhbat tarixini saqlash uchun
 
-    // API Key mavjudligini tekshirish
-    if (!API_KEY) {
-        return res.status(500).json({ error: "API Key topilmadi. Vercel sozlamalarini tekshiring." });
-    }
+const chatToggle = document.getElementById('chat-toggle');
+const chatWindow = document.getElementById('chat-window');
+const closeChat = document.getElementById('close-chat');
+const fullScreenBtn = document.getElementById('full-screen-chat');
+const sendBtnAi = document.getElementById('send-btn-ai');
+const userInputAi = document.getElementById('user-input-ai');
+const chatMessages = document.getElementById('chat-messages');
+const fileInput = document.getElementById('file-upload');
+const previewBox = document.getElementById('image-preview-box');
+const previewImg = document.getElementById('preview-img');
 
-    try {
-        // Ziyomap AI uchun eng optimal model
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`;
-        
-        // 1. Chat tarixini shakllantiramiz (agar bo'sh bo'lsa, yangi massiv)
-        let contents = history || [];
+// Chat oynasini ochish/yopish
+if (chatToggle) {
+    chatToggle.addEventListener('click', () => {
+        chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
+    });
+}
 
-        // 2. Yangi xabar uchun qismlarni (parts) tayyorlaymiz
-        let newParts = [];
+if (closeChat) {
+    closeChat.addEventListener('click', () => {
+        chatWindow.style.display = 'none';
+    });
+}
 
-        // Matn bo'lsa qo'shamiz
-        if (message) {
-            newParts.push({ text: message });
-        } else if (image && !message) {
-            // Agar faqat fayl yuborilgan bo'lsa, uni turiga qarab so'rov yuboramiz
-            const isPDF = mimeType && mimeType.includes('pdf');
-            newParts.push({ text: isPDF ? "Ushbu hujjatni tahlil qiling va qisqacha mazmunini ayting." : "Ushbu tasvirni tahlil qiling va tushuntirib bering." });
-        }
+// To'liq ekran rejimi
+if (fullScreenBtn) {
+    fullScreenBtn.addEventListener('click', () => {
+        chatWindow.classList.toggle('full-screen');
+        fullScreenBtn.classList.toggle('fa-expand-alt');
+        fullScreenBtn.classList.toggle('fa-compress-alt');
+    });
+}
 
-        // Fayl (Rasm, PDF yoki matnli hujjat) bo'lsa qo'shamiz
-        if (image && mimeType) {
-            newParts.push({
-                inline_data: {
-                    mime_type: mimeType, // Bu yerda 'application/pdf' yoki 'image/jpeg' ketaveradi
-                    data: image // Base64 formatidagi fayl kodi
+// Fayl yuklash va uni Base64 ga o'tkazish
+if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            currentFileType = file.type;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Backend uchun Base64 qismini olish
+                currentFileBase64 = event.target.result.split(',')[1];
+                
+                // Agar rasm bo'lsa, preview ko'rsatish
+                if (file.type.startsWith('image/')) {
+                    previewImg.src = event.target.result;
+                    previewBox.style.display = 'block';
+                } else {
+                    previewBox.style.display = 'none';
                 }
-            });
+            };
+            reader.readAsDataURL(file);
         }
+    });
+}
 
-        // 3. Yangi xabarni tarixga qo'shamiz
-        contents.push({
-            role: "user",
-            parts: newParts
-        });
+// Faylni bekor qilish
+window.cancelImage = function() {
+    currentFileBase64 = null;
+    currentFileType = null;
+    if (previewBox) previewBox.style.display = 'none';
+    if (fileInput) fileInput.value = '';
+}
 
-        const response = await fetch(url, {
+// Xabar yuborish funksiyasi
+async function sendAiMessage() {
+    const text = userInputAi.value.trim();
+    if (!text && !currentFileBase64) return;
+    
+    // Foydalanuvchi xabarini ko'rsatish
+    appendAiMessage('user', text + (currentFileBase64 ? " [Fayl ilova qilindi]" : ""));
+    
+    const imageToSend = currentFileBase64;
+    const typeToSend = currentFileType;
+    
+    userInputAi.value = '';
+    cancelImage();
+    
+    // Yuklanish holati
+    const loadingId = appendAiMessage('ai', 'Ziyomap AI oylamoqda...');
+    
+    try {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: contents, // Barcha tarix yuboriladi
-                generationConfig: {
-                    temperature: 0.7,
-                    topP: 0.95,
-                    topK: 40,
-                    maxOutputTokens: 2048,
-                }
+            body: JSON.stringify({ 
+                message: text,
+                history: chatHistory, 
+                image: imageToSend,
+                mimeType: typeToSend
             })
         });
 
         const data = await response.json();
-
-        // Xatoliklarni tekshirish
-        if (data.error) {
-            console.error("Google API xatosi:", data.error.message);
-            return res.status(400).json({ error: data.error.message });
+        const aiReply = data.reply || "Kechirasiz, javob olishda xatolik yuz berdi.";
+        
+        // AI javobini yangilash
+        updateAiMessage(loadingId, aiReply);
+        
+        // Agar javob uzun bo'lsa, yuklab olish tugmasini qo'shish
+        if (aiReply.length > 300) {
+            addDownloadBtn(loadingId, aiReply);
         }
 
-        // Javobni qaytarish
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            const aiReply = data.candidates[0].content.parts[0].text;
-            
-            // Ziyomap AI nomi bilan javob qaytaramiz
-            res.status(200).json({ 
-                reply: aiReply,
-                role: "model" 
-            });
-        } else {
-            res.status(500).json({ error: "AI javob berishda qiynaldi yoki kontent bloklandi." });
-        }
+        // Tarixga qo'shish
+        chatHistory.push({ role: "user", parts: [{ text: text }] });
+        chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
 
     } catch (error) {
-        console.error("Server xatosi:", error);
-        res.status(500).json({ error: "Serverda ichki xatolik: " + error.message });
+        updateAiMessage(loadingId, "Server bilan bog'lanishda xato yuz berdi.");
+        console.error("Chat Error:", error);
     }
+}
+
+// Xabar blokini yaratish
+function appendAiMessage(sender, text) {
+    const id = Date.now();
+    const msgDiv = document.createElement('div');
+    msgDiv.id = id;
+    msgDiv.className = `message ${sender}-message`;
+    
+    // Stil berish (Mehnatingizdagi dizayn saqlab qolindi)
+    msgDiv.style.padding = '12px';
+    msgDiv.style.borderRadius = '15px';
+    msgDiv.style.marginBottom = '10px';
+    msgDiv.style.maxWidth = '85%';
+    msgDiv.style.fontSize = '0.95rem';
+    msgDiv.style.lineHeight = '1.5';
+    
+    if (sender === 'user') {
+        msgDiv.style.alignSelf = 'flex-end';
+        msgDiv.style.background = 'var(--primary-color)';
+        msgDiv.style.color = 'white';
+        msgDiv.style.borderRadius = '15px 15px 0 15px';
+    } else {
+        msgDiv.style.alignSelf = 'flex-start';
+        msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
+        msgDiv.style.borderLeft = '4px solid var(--primary-color)';
+        msgDiv.style.color = 'var(--text-color)';
+        msgDiv.style.borderRadius = '0 15px 15px 15px';
+    }
+    
+    msgDiv.innerText = text;
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    return id;
+}
+
+// Xabarni matn bilan yangilash
+function updateAiMessage(id, text) {
+    const el = document.getElementById(id);
+    if(el) el.innerText = text;
+}
+
+// Yuklab olish tugmasi
+function addDownloadBtn(msgId, content) {
+    const msgDiv = document.getElementById(msgId);
+    const btn = document.createElement('button');
+    btn.innerHTML = '<i class="fas fa-download"></i> Saqlash (.txt)';
+    btn.style = "display: block; margin-top: 10px; padding: 5px 10px; font-size: 0.75rem; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color);";
+    
+    btn.onclick = () => {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Ziyomap_Javob.txt`;
+        link.click();
+    };
+    msgDiv.appendChild(btn);
+}
+
+// Event listenerlar
+if (sendBtnAi) sendBtnAi.addEventListener('click', sendAiMessage);
+if (userInputAi) {
+    userInputAi.addEventListener('keypress', (e) => { 
+        if(e.key === 'Enter') sendAiMessage(); 
+    });
 }
