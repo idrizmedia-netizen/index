@@ -167,12 +167,17 @@
         }
     }
 
-    // MUKAMMAL PDF PRINT: Formulalarni PDF oynasida qayta chizib beradi
-    function perfectPrint(id) {
+    // MUKAMMAL PDF PRINT: Eng oxirgi kafolatlangan usul
+    async function perfectPrint(id) {
         const area = document.getElementById(id);
-        const content = area.innerHTML;
         
-        const pWin = window.open('', '', 'height=800,width=950');
+        // 1. Asosiy sahifada formulalar render bo'lganini kutamiz
+        if (window.MathJax) {
+            await MathJax.typesetPromise([area]);
+        }
+
+        const content = area.innerHTML;
+        const pWin = window.open('', '', 'height=900,width=1100');
         
         pWin.document.write(`
             <html>
@@ -181,38 +186,47 @@
                     <style>
                         body { 
                             font-family: 'Times New Roman', serif; 
-                            padding: 50px; 
+                            padding: 40px; 
                             line-height: 1.6; 
                             color: #000; 
                             background: #fff; 
                         }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; page-break-inside: auto; }
-                        tr { page-break-inside: avoid; page-break-after: auto; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
                         th, td { border: 1px solid #000; padding: 10px; text-align: left; }
                         th { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-                        h2, h3 { color: #000; }
                         
-                        @media print {
-                            @page { size: A4; margin: 2cm; }
-                            body { width: 100%; }
+                        /* MathJax SVG formulalarini PDF-da to'g'ri ko'rsatish */
+                        mjx-container { 
+                            display: inline-block !important; 
+                            vertical-align: middle;
+                            margin: 5px 0;
+                            line-height: 0;
                         }
-                        /* Formulalar tiniqligi uchun */
-                        mjx-container { font-size: 110% !important; margin: 5px 0; }
+                        svg { max-width: 100%; }
+
+                        @media print {
+                            @page { size: A4; margin: 1.5cm; }
+                            body { padding: 0; }
+                        }
                     </style>
-                    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async><\/script>
                 </head>
                 <body>
-                    <div style="text-align:center; border-bottom:1px solid #ccc; padding-bottom:10px; margin-bottom:30px;">
-                        <h2 style="margin:0">ZIYOMAP AI</h2>
-                        <small>Professional Ta'lim va Metodik Yordamchi</small>
+                    <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:30px;">
+                        <h1 style="margin:0">ZIYOMAP AI</h1>
+                        <p style="margin:5px 0">Professional Ta'lim va Metodik Platforma</p>
                     </div>
-                    ${content}
+                    
+                    <div id="print-content">
+                        ${content}
+                    </div>
+
                     <script>
                         window.onload = function() {
+                            // Rasmlar va SVG-lar to'liq yuklanishi uchun ozgina kutamiz
                             setTimeout(() => {
                                 window.print();
-                                window.close();
-                            }, 1500); // Formulalar chizilishi uchun vaqt
+                                // window.close(); 
+                            }, 800); 
                         };
                     <\/script>
                 </body>
