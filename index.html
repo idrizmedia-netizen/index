@@ -449,8 +449,8 @@
     </footer>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
@@ -463,28 +463,24 @@
       };
 
       const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
+     const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-      const loginBtn = document.getElementById('login-btn');
-      const dropdown = document.getElementById('myDropdown');
-      const logoutBtn = document.getElementById('logout-btn');
+const loginBtn = document.getElementById('login-btn');
+const dropdown = document.getElementById('myDropdown');
+const logoutBtn = document.getElementById('logout-btn');
 
       loginBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (!auth.currentUser) {
-              signInWithPopup(auth, provider).then((result) => {
-                  const user = result.user;
-                  // Google Login funksiyangiz ichida:
-                  localStorage.setItem('user', JSON.stringify(user));
-                  console.log("Tizimga kirildi:", user.displayName);
-                  // Login bo'lgach sahifani yangilash blok ochilishi uchun muhim
-                  window.location.reload(); 
-              }).catch((err) => { console.error(err); });
-          } else {
-              dropdown.classList.toggle('show');
-          }
-      });
+    e.preventDefault();
+    if (!auth.currentUser) {
+        signInWithPopup(auth, provider).then((result) => {
+            localStorage.setItem('user', JSON.stringify(result.user));
+            window.location.reload(); 
+        }).catch((err) => { console.error("Kirishda xato:", err); });
+    } else {
+        dropdown.classList.toggle('show');
+    }
+});
 
       logoutBtn.addEventListener('click', (e) => {
           e.preventDefault();
