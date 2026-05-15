@@ -3,147 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ziyomap AI | Dars Ishlanmasi</title>
+    <title>Ziyomap AI | Professional Ta'lim Asboblari</title>
     
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         window.MathJax = {
-            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
             svg: { fontCache: 'global' }
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
+        :root { --primary: #2563eb; --secondary: #3b82f6; --bg: #f0f4f8; --card: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: auto; }
-        .tool-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* Kirish cheklangan dizayni */
-        .auth-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; border-radius: 20px; }
-        
-        .input-group { margin-bottom: 15px; }
-        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-top: 5px; }
-        
-        .btn-ai { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
-        .btn-ai:hover { opacity: 0.9; transform: scale(1.02); }
-
-        /* Natija maydoni */
-        #result-area, #formula-result { 
-            margin-top: 20px; padding: 25px; border-left: 5px solid var(--primary); 
-            background: #fff; display: none; overflow-x: auto;
+        .tool-card { 
+            background: var(--card); padding: 30px; border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); margin-bottom: 30px; 
+            position: relative; overflow: hidden; border: 1px solid rgba(37, 99, 235, 0.1);
         }
 
-        .action-btns { display: none; gap: 10px; margin-top: 15px; }
-        .btn-download { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; }
+        /* Auth Overlay */
+        .auth-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.95); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 10; text-align: center;
+        }
+
+        h2 { color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 10px; }
+        .input-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .full-width { grid-column: span 2; }
         
-        /* PRINT (YUKLASH) UCHUN MAXSUS STIL */
+        input, select { 
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #d1d5db; 
+            font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box;
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .btn-ai { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; border: none; padding: 16px; border-radius: 12px; 
+            cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; font-size: 16px;
+        }
+        .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3); }
+
+        /* Natija maydonlari */
+        .output-area { 
+            margin-top: 25px; padding: 30px; border-radius: 16px; 
+            background: #fff; border: 1px solid #e5e7eb; display: none;
+            line-height: 1.7; font-size: 13pt; color: #000;
+        }
+
+        .action-btns { display: none; gap: 12px; margin-top: 20px; }
+        .btn-download { 
+            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #e5e7eb; 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            gap: 8px; background: white; font-weight: 600; transition: 0.2s;
+        }
+        .btn-download:hover { background: #f9fafb; border-color: #d1d5db; }
+
+        /* PRINT STILI */
         @media print {
             body * { visibility: hidden; }
-            .print-section, .print-section * { visibility: visible; }
-            .print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; font-size: 12pt; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #000; padding: 8px; }
+            .print-active, .print-active * { visibility: visible; }
+            .print-active { position: absolute; left: 0; top: 0; width: 100%; padding: 0; }
+            .action-btns, .btn-ai, .input-group, h2 { display: none !important; }
         }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        table, th, td { border: 1px solid #333; padding: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="tool-card" style="position: relative;">
-        <div id="auth-guard" class="auth-overlay" style="display: none;">
-            <i class="fas fa-lock fa-2x"></i>
-            <p>Tizimga kiring</p>
+    <div class="tool-card" data-aos="fade-up">
+        <div id="auth-guard" class="auth-overlay" style="display:none;">
+            <i class="fas fa-lock fa-3x" style="color: var(--primary);"></i>
+            <p style="font-weight:bold; margin-top:10px;">Foydalanish uchun tizimga kiring</p>
         </div>
 
-        <h2><i class="fas fa-edit"></i> Professional Dars Ishlanmasi</h2>
+        <h2><i class="fas fa-chalkboard-teacher"></i> Dars Ishlanmasi</h2>
         
         <div class="input-group">
             <select id="subject">
                 <option value="Fizika">Fizika</option>
                 <option value="Matematika">Matematika</option>
                 <option value="Kimyo">Kimyo</option>
+                <option value="Informatika">Informatika</option>
+                <option value="Biologiya">Biologiya</option>
             </select>
-            <input type="text" id="topic" placeholder="Mavzuni yozing (masalan: Issiqlik miqdori)">
             <select id="grade">
-                <option value="9">9-sinf</option>
+                <option value="5">5-sinf</option>
+                <option value="6">6-sinf</option>
+                <option value="7">7-sinf</option>
+                <option value="8">8-sinf</option>
+                <option value="9" selected>9-sinf</option>
                 <option value="10">10-sinf</option>
                 <option value="11">11-sinf</option>
             </select>
+            <input type="text" id="topic" class="full-width" placeholder="Mavzuni kiriting (masalan: Nyuton qonunlari)">
         </div>
 
-        <button class="btn-ai" id="gen-btn" onclick="generate()">
+        <button class="btn-ai" id="gen-btn-lesson" onclick="handleGenerate('lesson')">
             <i class="fas fa-wand-magic-sparkles"></i> Reja yaratish
         </button>
 
-        <div id="result-area" class="print-section"></div>
+        <div id="res-lesson" class="output-area"></div>
 
-        <div class="action-btns" id="action-btns">
-            <button class="btn-download" onclick="window.print()">
-                <i class="fas fa-file-pdf" style="color: red;"></i> PDF sifatida saqlash
+        <div class="action-btns" id="btns-lesson">
+            <button class="btn-download" onclick="printElement('res-lesson')">
+                <i class="fas fa-file-pdf" style="color: #ef4444;"></i> PDF Saqlash
             </button>
-            <button class="btn-download" onclick="downloadWord()">
-                <i class="fas fa-file-word" style="color: blue;"></i> Word yuklash
+            <button class="btn-download" onclick="downloadWord('res-lesson')">
+                <i class="fas fa-file-word" style="color: #2563eb;"></i> Word (.doc)
+            </button>
+        </div>
+    </div>
+
+    <div class="tool-card" data-aos="fade-up" data-aos-delay="100">
+        <h2><i class="fas fa-bolt"></i> Aqlli Shpargalka</h2>
+        <div class="input-group">
+            <input type="text" id="cheat-topic" class="full-width" placeholder="Qaysi mavzuda formula va qoidalar kerak?">
+        </div>
+        <button class="btn-ai" id="gen-btn-cheat" onclick="handleGenerate('cheat')">
+            <i class="fas fa-search"></i> Ma'lumotlarni chiqarish
+        </button>
+
+        <div id="res-cheat" class="output-area"></div>
+
+        <div class="action-btns" id="btns-cheat">
+            <button class="btn-download" onclick="printElement('res-cheat')">
+                <i class="fas fa-file-pdf" style="color: #ef4444;"></i> PDF
+            </button>
+            <button class="btn-download" onclick="downloadWord('res-cheat')">
+                <i class="fas fa-file-word" style="color: #2563eb;"></i> Word
             </button>
         </div>
     </div>
 </div>
 
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-    // 1. AI Generatsiya
-    async function generate() {
-        const t = document.getElementById('topic').value;
-        const s = document.getElementById('subject').value;
-        const g = document.getElementById('grade').value;
-        const btn = document.getElementById('gen-btn');
-        const res = document.getElementById('result-area');
+    AOS.init();
 
-        if(!t) return alert("Mavzuni kiriting!");
+    // 1. AI Generatsiya Funksiyasi
+    async function handleGenerate(type) {
+        const btn = document.getElementById(type === 'lesson' ? 'gen-btn-lesson' : 'gen-btn-cheat');
+        const resArea = document.getElementById(type === 'lesson' ? 'res-lesson' : 'res-cheat');
+        const btns = document.getElementById(type === 'lesson' ? 'btns-lesson' : 'btns-cheat');
+        
+        let prompt = "";
+        if(type === 'lesson') {
+            const s = document.getElementById('subject').value;
+            const g = document.getElementById('grade').value;
+            const t = document.getElementById('topic').value;
+            if(!t) return alert("Mavzuni yozing!");
+            prompt = `${s} fani ${g}-sinf "${t}" mavzusida dars ishlanmasi tayyorla. Jadvallar ishlat. LaTeX formulalar $..$ ichida bo'lsin.`;
+        } else {
+            const t = document.getElementById('cheat-topic').value;
+            if(!t) return alert("Mavzuni yozing!");
+            prompt = `"${t}" mavzusiga oid barcha muhim formulalar, qoidalar va birliklarni jadval ko'rinishida chiqarib ber. LaTeX ishlating.`;
+        }
 
         btn.disabled = true;
-        btn.innerHTML = "Tayyorlanmoqda...";
-        res.style.display = "block";
-        res.innerHTML = "Ziyomap AI ma'lumot qidirmoqda...";
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> AI o\'ylamoqda...';
+        resArea.style.display = "block";
+        resArea.innerHTML = "Ma'lumotlar yuklanmoqda...";
 
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ message: `${s} fani ${g}-sinf "${t}" mavzusida dars ishlanmasi tayyorla. Jadvallar ishlat. LaTeX formulalar $..$ ichida bo'lsin.` })
+                body: JSON.stringify({ message: prompt })
             });
             const data = await response.json();
-            res.innerHTML = marked.parse(data.reply);
+            resArea.innerHTML = marked.parse(data.reply);
             
-            if(window.MathJax) await MathJax.typesetPromise([res]);
-            document.getElementById('action-btns').style.display = "flex";
+            if(window.MathJax) await MathJax.typesetPromise([resArea]);
+            btns.style.display = "flex";
         } catch (e) {
-            res.innerHTML = "Xatolik yuz berdi.";
+            resArea.innerHTML = "Xatolik yuz berdi. Internetni tekshiring.";
         } finally {
             btn.disabled = false;
-            btn.innerHTML = "Reja yaratish";
+            btn.innerHTML = type === 'lesson' ? "Reja yaratish" : "Ma'lumotlarni chiqarish";
         }
     }
 
-    // 2. WORD YUKLASH (Eng yaxshi muqobil variant)
-    function downloadWord() {
-        const content = document.getElementById('result-area').innerHTML;
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Times New Roman',serif;} table{border-collapse:collapse; width:100%;} td,th{border:1px solid black; padding:5px;}</style></head><body>";
+    // 2. WORD YUKLASH (Indekslar va formulalar tuzatilgan variant)
+    function downloadWord(elementId) {
+        const resArea = document.getElementById(elementId);
+        const clone = resArea.cloneNode(true);
+
+        // Indekslarni tuzatish (Q1 -> Q_1)
+        clone.innerHTML = clone.innerHTML.replace(/([A-Z])([0-9]+)/g, '$1<sub>$2</sub>');
+
+        // MathJax SVG'larni matnga qaytarish (X chiqib qolmasligi uchun)
+        clone.querySelectorAll('mjx-container').forEach(c => {
+            const latex = c.getAttribute('aria-label') || "";
+            const span = document.createElement('span');
+            span.innerHTML = ` <b>${latex}</b> `;
+            c.parentNode.replaceChild(span, c);
+        });
+
+        const style = "<style>body{font-family:'Times New Roman',serif;} sub{font-size:70%;} table{border-collapse:collapse; width:100%;} td,th{border:1px solid black; padding:5px;}</style>";
+        const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'>${style}</head><body>`;
         const footer = "</body></html>";
-        const sourceHTML = header + content + footer;
         
-        const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
+        const blob = new Blob(['\ufeff', header + clone.innerHTML + footer], { type: 'application/msword' });
         const link = document.createElement('a');
-        link.href = url;
-        link.download = 'Dars_Ishlanmasi.doc';
-        document.body.appendChild(link);
+        link.href = URL.createObjectURL(blob);
+        link.download = elementId === 'res-lesson' ? 'Dars_Ishlanmasi.doc' : 'Shpargalka.doc';
         link.click();
-        document.body.removeChild(link);
     }
+
+    // 3. PDF (PRINT) FUNKSIYASI
+    function printElement(elementId) {
+        const el = document.getElementById(elementId);
+        el.classList.add('print-active');
+        window.print();
+        el.classList.remove('print-active');
+    }
+
+    // Auth tekshiruvi (agar kerak bo'lsa)
+    window.onload = () => {
+        const user = localStorage.getItem('user');
+        if(!user) {
+            // document.getElementById('auth-guard').style.display = 'flex';
+        }
+    };
 </script>
 
 </body>
