@@ -483,37 +483,39 @@ const logoutBtn = document.getElementById('logout-btn');
 });
 
       logoutBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
-              signOut(auth).then(() => { 
-                  dropdown.classList.remove('show'); 
-                  localStorage.removeItem('user'); 
-                  window.location.reload();
-              });
-          }
-      });
-
+    e.preventDefault();
+    if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
+        signOut(auth).then(() => { 
+            dropdown.classList.remove('show'); 
+            localStorage.removeItem('user'); 
+            window.location.reload();
+        });
+    }
+});
       onAuthStateChanged(auth, (user) => {
-          const userInput = document.getElementById('user-input-ai');
-          if (user) {
-              // Firebase holati va localStorage sinxronligini ta'minlaymiz
-              localStorage.setItem('user', JSON.stringify(user));
-              loginBtn.innerHTML = `<i class="fas fa-user-circle"></i> ${user.displayName}`;
-              loginBtn.style.background = "#10b981";
-              document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/60';
-              document.getElementById('user-name').innerText = user.displayName;
-              document.getElementById('user-email').innerText = user.email;
-              const points = localStorage.getItem('lab_points') || 0;
-              document.getElementById('user-points').innerText = points;
-              userInput.disabled = false;
-              userInput.placeholder = "Savol yoki rasm tavsifi...";
-          } else {
-              loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
-              loginBtn.style.background = "var(--primary-color)";
-              userInput.disabled = true;
-              userInput.placeholder = "Faqat Google orqali kirganlar yozishi mumkin";
-          }
-      });
+    const userInput = document.getElementById('user-input-ai');
+    const sendBtn = document.getElementById('send-btn-ai');
+    const chatWindow = document.getElementById('chat-window');
+
+    if (user) {
+        // Foydalanuvchi tizimda bo'lsa
+        localStorage.setItem('user', JSON.stringify(user));
+        loginBtn.innerHTML = `<img src="${user.photoURL}" style="width:25px; border-radius:50%; vertical-align:middle; margin-right:5px;"> ${user.displayName}`;
+        loginBtn.style.background = "#10b981";
+        
+        if(userInput) { userInput.disabled = false; userInput.placeholder = "Savol yozing..."; }
+        if(sendBtn) sendBtn.disabled = false;
+        if(chatWindow) chatWindow.style.opacity = "1";
+    } else {
+        // Foydalanuvchi kirmagan bo'lsa
+        loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
+        loginBtn.style.background = "var(--primary-color)";
+        
+        if(userInput) { userInput.disabled = true; userInput.placeholder = "Faqat ro'yxatdan o'tganlar uchun..."; }
+        if(sendBtn) sendBtn.disabled = true;
+        if(chatWindow) chatWindow.style.opacity = "0.5";
+    }
+});
     </script>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
