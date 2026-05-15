@@ -44,14 +44,10 @@
         .btn-action { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; font-weight: 600; transition: 0.2s; }
         .btn-action:hover { background: #f8fafc; border-color: var(--primary); }
 
-        /* Rasmga olish uchun maxsus konteyner (Faqat rasm vaqtida vaqtincha ishlaydi) */
-        .capture-clone { width: 850px !important; padding: 40px !important; position: absolute; left: -9999px; top: 0; display: block !important; background: white; }
-
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         table, th, td { border: 1px solid #000; padding: 12px; }
         th { background: #f1f5f9; }
 
-        /* Mobil qurilmalar uchun moslashuv */
         @media (max-width: 600px) {
             body { padding: 10px; }
             .tool-card { padding: 20px; }
@@ -170,33 +166,66 @@
         }
     }
 
-    // BO'SH SAHIFASIZ PDF CHOP ETISH (VIRTUAL WINDOW USULI)
+    // PDF CHOP ETISH: Mobil va Kompyuter uchun bir xil sifat
     function perfectPrint(id) {
-        const content = document.getElementById(id).innerHTML;
-        const pWin = window.open('', '', 'height=700,width=900');
-        pWin.document.write('<html><head><title>Ziyomap AI - PDF</title>');
-        pWin.document.write('<style>body{font-family:serif;padding:40px;line-height:1.6;color:#000;} table{width:100%;border-collapse:collapse;margin:20px 0;} th,td{border:1px solid #000;padding:10px;text-align:left;} th{background:#f0f0f0;}</style>');
-        pWin.document.write('</head><body>');
-        pWin.document.write(content);
-        pWin.document.write('</body></html>');
-        pWin.document.close();
+        const area = document.getElementById(id);
+        const content = area.innerHTML;
         
-        setTimeout(() => {
-            pWin.print();
-            pWin.close();
-        }, 600);
+        const pWin = window.open('', '', 'height=800,width=950');
+        
+        pWin.document.write(`
+            <html>
+                <head>
+                    <title>Ziyomap AI - Export</title>
+                    <style>
+                        body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; color: #000; background: #fff; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #000; padding: 10px; text-align: left; }
+                        th { background: #f2f2f2; }
+                        .math { font-size: 1.2em; }
+                        @media print {
+                            @page { size: A4; margin: 2cm; }
+                            body { width: 100%; }
+                        }
+                    </style>
+                    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async><\/script>
+                </head>
+                <body>
+                    ${content}
+                    <script>
+                        window.onload = function() {
+                            setTimeout(() => {
+                                window.print();
+                                window.close();
+                            }, 1000);
+                        };
+                    <\/script>
+                </body>
+            </html>
+        `);
+        pWin.document.close();
     }
 
-    // MOBIL VA KOMPYUTER UCHUN BIRXIL SIFATLI RASM (CLONE USULI)
+    // RASMGA OLISH: Formulalar tushib qolmasligi va har bir bo'lim mustaqil ishlashi uchun
     async function perfectImage(id) {
         const original = document.getElementById(id);
         const btn = event.currentTarget;
         const oldBtnText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tayyorlanmoqda...';
+        
+        btn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Sifatli render...';
 
-        // Vaqtincha nusxa yaratamiz (A4 kengligiga mos)
+        if (window.MathJax) {
+            await MathJax.typesetPromise([original]);
+        }
+
         const clone = original.cloneNode(true);
-        clone.classList.add('capture-clone');
+        clone.style.width = "850px"; 
+        clone.style.position = "absolute";
+        clone.style.left = "-9999px";
+        clone.style.top = "0";
+        clone.style.display = "block";
+        clone.style.background = "white";
+        clone.style.padding = "40px";
         document.body.appendChild(clone);
 
         const totalHeight = clone.scrollHeight;
@@ -212,11 +241,12 @@
                     scale: 2,
                     useCORS: true,
                     width: 850,
-                    backgroundColor: "#ffffff"
+                    backgroundColor: "#ffffff",
+                    logging: false
                 });
                 
                 const link = document.createElement('a');
-                link.download = `Ziyomap_Varaq_${pNum}.png`;
+                link.download = `Ziyomap_${id}_Varaq_${pNum}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 
@@ -224,7 +254,7 @@
                 pNum++;
             }
         } catch (err) {
-            alert("Rasmga olishda xatolik yuz berdi.");
+            alert("Rasmga olishda texnik xatolik: " + err.message);
         } finally {
             document.body.removeChild(clone);
             btn.innerHTML = oldBtnText;
