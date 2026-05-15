@@ -449,10 +449,12 @@
     </footer>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    // Firebase kutubxonalarini import qilish (Eng barqaror v10 versiyasi)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      const firebaseConfig = {
+    // Konfiguratsiya
+    const firebaseConfig = {
         apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
         authDomain: "ziyomap.firebaseapp.com",
         projectId: "ziyomap",
@@ -460,71 +462,111 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
         messagingSenderId: "982123868162",
         appId: "1:982123868162:web:6845723988c030fcd1f71b",
         measurementId: "G-Y3EQ1ZJW3B"
-      };
+    };
 
-     const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
+    // Firebase-ni ishga tushirish
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-const loginBtn = document.getElementById('login-btn');
-const dropdown = document.getElementById('myDropdown');
-const logoutBtn = document.getElementById('logout-btn');
-      const loginBtn = document.getElementById('login-btn');
-
-if (loginBtn) {
-    loginBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        try {
-            if (!auth.currentUser) {
-                const result = await signInWithPopup(auth, provider);
-                localStorage.setItem('user', JSON.stringify(result.user));
-                window.location.reload(); 
-            } else {
-                const dropdown = document.getElementById('myDropdown');
-                if(dropdown) dropdown.classList.toggle('show');
-            }
-        } catch (err) {
-            console.error("Kirishda xato tafsiloti:", err);
-        }
-    });
-}
-
-      if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
-            signOut(auth).then(() => { 
-                if(dropdown) dropdown.classList.remove('show'); 
-                localStorage.removeItem('user'); 
-                window.location.reload();
-            });
-        }
-    });
-}
-
-    onAuthStateChanged(auth, (user) => {
-    const userInput = document.getElementById('user-input-ai');
+    // HTML elementlarni olish
+    const loginBtn = document.getElementById('login-btn');
+    const dropdown = document.getElementById('myDropdown');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userInputAi = document.getElementById('user-input-ai');
     const chatWindow = document.getElementById('chat-window');
 
-    if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
-        if(loginBtn) {
-            loginBtn.innerHTML = `<img src="${user.photoURL}" style="width:25px; border-radius:50%; vertical-align:middle; margin-right:5px;"> ${user.displayName}`;
-            loginBtn.style.background = "#10b981";
-        }
-        if(userInput) { userInput.disabled = false; userInput.placeholder = "Savol yozing..."; }
-        if(chatWindow) { chatWindow.style.opacity = "1"; chatWindow.style.pointerEvents = "auto"; }
-    } else {
-        if(loginBtn) {
-            loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
-            loginBtn.style.background = "var(--primary-color)";
-        }
-        if(userInput) { userInput.disabled = true; userInput.placeholder = "Tizimga kiring..."; }
-        if(chatWindow) { chatWindow.style.opacity = "0.5"; chatWindow.style.pointerEvents = "none"; }
+    // 1. Kirish va Dropdown funksiyasi
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                if (!auth.currentUser) {
+                    // Tizimga kirmagan bo'lsa - Oynani ochish
+                    const result = await signInWithPopup(auth, provider);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    console.log("Muvaffaqiyatli kirildi!");
+                } else {
+                    // Tizimga kirgan bo'lsa - Menyuni ochish/yopish
+                    if (dropdown) dropdown.classList.toggle('show');
+                }
+            } catch (err) {
+                console.error("Kirishda xato:", err);
+                if (err.code === 'auth/popup-blocked') {
+                    alert("Brauzer oynani blokladi. Iltimos, pop-up oynalarga ruxsat bering.");
+                }
+            }
+        });
     }
-});
-    </script>
 
+    // 2. Chiqish funksiyasi
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm("Tizimdan chiqishni xohlaysizmi?")) {
+                signOut(auth).then(() => {
+                    localStorage.removeItem('user');
+                    if (dropdown) dropdown.classList.remove('show');
+                    window.location.reload();
+                }).catch((err) => console.error("Chiqishda xato:", err));
+            }
+        });
+    }
+
+    // 3. Foydalanuvchi holati o'zgarganda (AI-ni himoyalash va tugmani yangilash)
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // TIZIMDA BO'LSA
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            // Tugmani rasm va ism bilan yangilash
+            if (loginBtn) {
+                loginBtn.innerHTML = `
+                    <img src="${user.photoURL}" style="width:28px; height:28px; border-radius:50%; vertical-align:middle; margin-right:8px; border: 2px solid white;">
+                    <span>${user.displayName.split(' ')[0]}</span>
+                `;
+                loginBtn.style.background = "#10b981"; // Yashil rang
+            }
+
+            // Chat oynasini va inputni faollashtirish
+            if (userInputAi) {
+                userInputAi.disabled = false;
+                userInputAi.placeholder = "Savol yozing...";
+            }
+            if (chatWindow) {
+                chatWindow.style.opacity = "1";
+                chatWindow.style.pointerEvents = "auto";
+                chatWindow.style.filter = "none";
+            }
+        } else {
+            // TIZIMDA BO'LMASA
+            localStorage.removeItem('user');
+
+            if (loginBtn) {
+                loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
+                loginBtn.style.background = "var(--primary-color)";
+            }
+
+            // Chat oynasini va inputni bloklash
+            if (userInputAi) {
+                userInputAi.disabled = true;
+                userInputAi.placeholder = "Faqat ro'yxatdan o'tganlar uchun...";
+            }
+            if (chatWindow) {
+                chatWindow.style.opacity = "0.6";
+                chatWindow.style.pointerEvents = "none";
+                chatWindow.style.filter = "grayscale(1)"; // Xiralashtirish
+            }
+        }
+    });
+
+    // Sahifa tashqarisini bossa dropdownni yopish
+    window.addEventListener('click', (e) => {
+        if (dropdown && !loginBtn.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+</script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         window.addEventListener('load', () => {
