@@ -81,20 +81,23 @@ function openLab(componentName) {
 }
 
 /* ==========================================================
-   2. BLOG TIZIMI (SANITY CMS INTEGRATSIYASI)
+   2. BLOG TIZIMI (SANITY CMS INTEGRATSIYASI - YANGILANGAN)
    ========================================================== */
 
 const PROJECT_ID = "25lh4m7u"; 
 const DATASET = "production";
-const QUERY = encodeURIComponent('*[_type == "post"]{title, date, category, preview, telegramLink, "imageUrl": mainImage.asset->url}');
+// Yangilik: order(_createdAt desc) qo'shildi - yangi maqolalar birinchi chiqadi
+const QUERY = encodeURIComponent('*[_type == "post"] | order(_createdAt desc){title, category, preview, telegramLink, "imageUrl": mainImage.asset->url}');
 const URL = `https://${PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${DATASET}?query=${QUERY}`;
 
 async function fetchArticles() {
     try {
         const response = await fetch(URL);
         const data = await response.json();
-        if(data.result) {
+        if(data.result && data.result.length > 0) {
             renderArticles(data.result);
+        } else {
+            console.log("Hozircha maqolalar yo'q yoki e'lon qilinmagan.");
         }
     } catch (error) {
         console.error("Sanity-dan ma'lumot olishda xato:", error);
@@ -102,23 +105,29 @@ async function fetchArticles() {
 }
 
 function renderArticles(articles) {
+    // HTML-dagi container id-si bo'yicha qidiramiz
     const blogContainer = document.querySelector('.blog-grid') || document.getElementById('blog-container');
     if(!blogContainer) return;
     
     blogContainer.innerHTML = ''; 
 
     articles.forEach(article => {
+        // Rasm bo'lmasa, chiroyli standart rasm qo'yamiz
+        const imgDisplay = article.imageUrl ? article.imageUrl : 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1000&auto=format&fit=crop';
+        
         blogContainer.innerHTML += `
-            <div class="blog-card" data-aos="fade-up">
-                <div class="card-img">
-                    <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" alt="${article.title}" style="width: 100%; border-radius: 8px;">
+            <div class="blog-card" data-aos="fade-up" style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: white; margin-bottom: 20px;">
+                <div class="card-img" style="height: 200px; overflow: hidden;">
+                    <img src="${imgDisplay}" alt="${article.title}" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
-                <div class="card-body" style="padding: 15px 0;">
-                    <span class="category" style="color: #2563eb; font-weight: bold; font-size: 0.8rem;">${article.category || 'Maqola'}</span>
-                    <h3 style="margin: 10px 0;">${article.title}</h3>
-                    <p style="font-size: 0.9rem; color: #64748b;">${article.preview || ''}</p>
-                    <a href="${article.telegramLink}" target="_blank" class="btn-tg" style="display: inline-block; margin-top: 10px; color: #2563eb; text-decoration: none; font-weight: bold;">
-                         Telegramda o'qish →
+                <div class="card-body" style="padding: 20px;">
+                    <span class="category" style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">
+                        ${article.category || 'Fizika'}
+                    </span>
+                    <h3 style="margin: 15px 0 10px 0; color: #1e293b; font-size: 1.25rem;">${article.title}</h3>
+                    <p style="font-size: 0.95rem; color: #64748b; line-height: 1.6; margin-bottom: 15px;">${article.preview || ''}</p>
+                    <a href="${article.telegramLink || '#'}" target="_blank" class="btn-tg" style="display: flex; align-items: center; color: #2563eb; text-decoration: none; font-weight: 700; gap: 8px;">
+                        Telegramda o'qish <i class="fas fa-arrow-right" style="font-size: 0.8rem;"></i>
                     </a>
                 </div>
             </div>
