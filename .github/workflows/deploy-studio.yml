@@ -2,24 +2,27 @@ name: Deploy Sanity Studio
 
 on:
   push:
-    branches: [ main ] # Kodingiz main branchda bo'lgani uchun
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # v4 ga yangilandi
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4 # v4 ga yangilandi
         with:
-          node-version: 18
+          node-version: 22 # Barqaror yangi versiya
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install --legacy-peer-deps
+          npm install sanity @sanity/cli
 
       - name: Deploy Sanity Studio
         run: npx sanity deploy --yes
         env:
           SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
