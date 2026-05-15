@@ -462,58 +462,61 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
         measurementId: "G-Y3EQ1ZJW3B"
       };
 
-      const app = initializeApp(firebaseConfig);
-     const auth = getAuth(app);
+     const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const loginBtn = document.getElementById('login-btn');
 const dropdown = document.getElementById('myDropdown');
 const logoutBtn = document.getElementById('logout-btn');
+      if (loginBtn) {
+    loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!auth.currentUser) {
+            signInWithPopup(auth, provider).then((result) => {
+                localStorage.setItem('user', JSON.stringify(result.user));
+                window.location.reload(); 
+            }).catch((err) => { 
+                console.error("Kirishda xato:", err);
+            });
+        } else if (dropdown) {
+            dropdown.classList.toggle('show');
+        }
+    });
+}
 
-      loginBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!auth.currentUser) {
-        signInWithPopup(auth, provider).then((result) => {
-            localStorage.setItem('user', JSON.stringify(result.user));
-            window.location.reload(); 
-        }).catch((err) => { console.error("Kirishda xato:", err); });
-    } else {
-        dropdown.classList.toggle('show');
-    }
-});
+      if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
+            signOut(auth).then(() => { 
+                if(dropdown) dropdown.classList.remove('show'); 
+                localStorage.removeItem('user'); 
+                window.location.reload();
+            });
+        }
+    });
+}
 
-      logoutBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    if(confirm("Tizimdan chiqishni xohlaysizmi?")) {
-        signOut(auth).then(() => { 
-            dropdown.classList.remove('show'); 
-            localStorage.removeItem('user'); 
-            window.location.reload();
-        });
-    }
-});
-      onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, (user) => {
     const userInput = document.getElementById('user-input-ai');
-    const sendBtn = document.getElementById('send-btn-ai');
     const chatWindow = document.getElementById('chat-window');
 
     if (user) {
-        // Foydalanuvchi tizimda bo'lsa
         localStorage.setItem('user', JSON.stringify(user));
-        loginBtn.innerHTML = `<img src="${user.photoURL}" style="width:25px; border-radius:50%; vertical-align:middle; margin-right:5px;"> ${user.displayName}`;
-        loginBtn.style.background = "#10b981";
-        
+        if(loginBtn) {
+            loginBtn.innerHTML = `<img src="${user.photoURL}" style="width:25px; border-radius:50%; vertical-align:middle; margin-right:5px;"> ${user.displayName}`;
+            loginBtn.style.background = "#10b981";
+        }
         if(userInput) { userInput.disabled = false; userInput.placeholder = "Savol yozing..."; }
-        if(sendBtn) sendBtn.disabled = false;
-        if(chatWindow) chatWindow.style.opacity = "1";
+        if(chatWindow) { chatWindow.style.opacity = "1"; chatWindow.style.pointerEvents = "auto"; }
     } else {
-        // Foydalanuvchi kirmagan bo'lsa
-        loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
-        loginBtn.style.background = "var(--primary-color)";
-        
-        if(userInput) { userInput.disabled = true; userInput.placeholder = "Faqat ro'yxatdan o'tganlar uchun..."; }
-        if(sendBtn) sendBtn.disabled = true;
-        if(chatWindow) chatWindow.style.opacity = "0.5";
+        if(loginBtn) {
+            loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
+            loginBtn.style.background = "var(--primary-color)";
+        }
+        if(userInput) { userInput.disabled = true; userInput.placeholder = "Tizimga kiring..."; }
+        if(chatWindow) { chatWindow.style.opacity = "0.5"; chatWindow.style.pointerEvents = "none"; }
     }
 });
     </script>
