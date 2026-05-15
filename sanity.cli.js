@@ -1,10 +1,10 @@
-import {defineCliConfig} from 'sanity/cli'
+import { defineCliConfig } from 'sanity/cli'
 
 export default defineCliConfig({
   api: {
     projectId: '25lh4m7u',
     dataset: 'production'
   },
-  // Tashkilot ID-sini saqlash (ixtiyoriy, lekin foydali)
-  organizationId: 'onIr8G39c',
+  // Mana shu qator hamma muammoni hal qiladi:
+  studioHost: 'ziyomap-portal' 
 })
