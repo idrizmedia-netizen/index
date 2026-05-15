@@ -1,0 +1,20 @@
+{
+  "name": "ziyomap-studio",
+  "private": true,
+  "version": "1.0.0",
+  "main": "package.json",
+  "scripts": {
+    "build": "sanity build",
+    "deploy": "sanity deploy"
+  },
+  "dependencies": {
+    "sanity": "^3.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "styled-components": "^6.0.0",
+    "lucide-react": "^0.263.0"
+  },
+  "devDependencies": {
+    "@sanity/cli": "^3.0.0"
+  }
+}
