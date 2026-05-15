@@ -8,6 +8,10 @@ export default defineConfig({
   projectId: '25lh4m7u',
   dataset: 'production',
 
+  // MUHIM: Admin panel endi faqat /admin manzilida ochiladi
+  // Asosiy saytingiz esa bo'shab, o'z holiga qaytadi
+  basePath: '/admin', 
+
   plugins: [deskTool()],
 
   schema: {
@@ -21,7 +25,14 @@ export default defineConfig({
           { name: 'category', type: 'string', title: 'Kategoriya' },
           { name: 'preview', type: 'text', title: 'Qisqa ta\'rif' },
           { name: 'telegramLink', type: 'url', title: 'Telegram Havolasi' },
-          { name: 'mainImage', type: 'image', title: 'Muqova rasmi' }
+          { 
+            name: 'mainImage', 
+            type: 'image', 
+            title: 'Muqova rasmi',
+            options: {
+              hotspot: true // Rasmni qirqish (crop) imkoniyati uchun
+            }
+          }
         ]
       }
     ],
