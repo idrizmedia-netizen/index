@@ -18,11 +18,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install --legacy-peer-deps
-          npm install sanity @sanity/cli
+          cd studio && npm install --legacy-peer-deps
+          cd studio && npm install sanity @sanity/cli
 
       - name: Deploy Sanity Studio
-        run: npx sanity deploy --yes
+        run: cd studio && npx sanity deploy --yes
         env:
           SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
           FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
