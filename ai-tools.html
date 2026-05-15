@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ziyomap AI | Dars Ishlanmasi & Shpargalka</title>
+    <title>Ziyomap AI | Professional Ta'lim Platformasi</title>
     
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -21,79 +21,109 @@
     <style>
         :root { --primary: #2563eb; --secondary: #10b981; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
+        .container { max-width: 1000px; margin: auto; }
         .tool-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
         
         h2 { color: var(--primary); display: flex; align-items: center; gap: 10px; margin-top: 0; }
         .input-group { margin-bottom: 15px; }
-        label { font-weight: 600; font-size: 0.9rem; color: #64748b; }
-        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-top: 5px; box-sizing: border-box; font-size: 1rem; }
+        label { font-weight: 600; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; display: block; }
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 1rem; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); }
         
-        .btn-ai { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; }
-        .btn-ai:hover { transform: scale(1.01); opacity: 0.9; }
-        .btn-cheat { background: var(--secondary); }
+        .btn-ai { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; font-size: 1rem; }
+        .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
+        .btn-search { background: var(--secondary); }
 
         .result-area { 
-            margin-top: 25px; padding: 30px; border-radius: 15px; 
+            margin-top: 25px; padding: 40px; border-radius: 15px; 
             background: #fff; border: 1px solid #e2e8f0; display: none; 
-            line-height: 1.8; color: #000; font-size: 14pt;
+            line-height: 1.8; color: #000; font-size: 13pt; text-align: justify;
         }
 
         .action-btns { display: none; gap: 10px; margin-top: 20px; }
-        .btn-action { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; font-weight: 600; }
+        .btn-action { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; font-weight: 600; transition: 0.2s; }
+        .btn-action:hover { background: #f8fafc; border-color: var(--primary); }
         
-        /* Print sozlamalari */
         @media print {
             body * { visibility: hidden; }
             .print-area, .print-area * { visibility: visible; }
-            .print-area { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+            .print-area { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
         }
 
-        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        table, th, td { border: 1px solid #000; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        table, th, td { border: 1px solid #000; padding: 12px; }
+        th { background: #f1f5f9; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-file-invoice"></i> Dars Ishlanmasi</h2>
+        <h2><i class="fas fa-chalkboard-teacher"></i> Professional Dars Ishlanmasi</h2>
         <div class="input-group">
+            <label>Fanni tanlang:</label>
             <select id="subject">
-                <option value="Fizika">Fizika</option>
                 <option value="Matematika">Matematika</option>
+                <option value="Fizika">Fizika</option>
                 <option value="Kimyo">Kimyo</option>
-                <option value="Informatika">Informatika</option>
                 <option value="Biologiya">Biologiya</option>
-                <option value="Tarix">Tarix</option>
+                <option value="Informatika">Informatika</option>
                 <option value="O'zbek tili">O'zbek tili</option>
+                <option value="Adabiyot">Adabiyot</option>
                 <option value="Ingliz tili">Ingliz tili</option>
+                <option value="Tarix">Tarix</option>
+                <option value="Geografiya">Geografiya</option>
+                <option value="Huquq">Huquq</option>
+                <option value="Iqtisodiyot">Iqtisodiyot</option>
+                <option value="Tarbiya">Tarbiya</option>
+                <option value="Tasviriy san'at">Tasviriy san'at</option>
+                <option value="Musiqa">Musiqa</option>
+                <option value="Texnologiya">Texnologiya</option>
+                <option value="Chizmachilik">Chizmachilik</option>
+                <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
             </select>
         </div>
         <div class="input-group">
+            <label>Sinfni tanlang:</label>
             <select id="grade">
-                <option value="1">1-sinf</option><option value="2">2-sinf</option>...<option value="9" selected>9-sinf</option><option value="11">11-sinf</option>
+                <script>
+                    for(let i=1; i<=11; i++) {
+                        document.write(`<option value="${i}">${i}-sinf</option>`);
+                    }
+                </script>
             </select>
         </div>
-        <input type="text" id="topic" placeholder="Mavzu nomi...">
-        <button class="btn-ai" onclick="generate('lesson', this)">Reja yaratish</button>
+        <div class="input-group">
+            <label>Mavzu nomi:</label>
+            <input type="text" id="topic" placeholder="Mavzuni to'liq yozing...">
+        </div>
+        <button class="btn-ai" onclick="generate('lesson', this)">
+            <i class="fas fa-wand-magic-sparkles"></i> Mukammal reja yaratish
+        </button>
         
         <div id="res-lesson" class="result-area"></div>
         <div class="action-btns" id="btns-lesson">
-            <button class="btn-action" onclick="printDoc('res-lesson')"><i class="fas fa-file-pdf" style="color:red"></i> PDF</button>
-            <button class="btn-action" onclick="saveImage('res-lesson')"><i class="fas fa-image" style="color:green"></i> Rasm</button>
+            <button class="btn-action" onclick="printDoc('res-lesson')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> PDF Sifatli</button>
+            <button class="btn-action" onclick="saveAsImages('res-lesson')"><i class="fas fa-images" style="color:#10b981"></i> Listlarga bo'lib rasmga olish</button>
         </div>
     </div>
 
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-bolt" style="color: #f59e0b;"></i> Aqlli Shpargalka</h2>
-        <input type="text" id="cheat-topic" placeholder="Mavzu yoki formula nomi...">
-        <button class="btn-ai btn-cheat" onclick="generate('cheat', this)">Shpargalka yaratish</button>
+        <h2><i class="fas fa-search-plus" style="color: #f59e0b;"></i> Mukammal Ma'lumot Topish</h2>
+        <div class="input-group">
+            <label>Mavzu, qoida yoki termin nomi:</label>
+            <input type="text" id="info-topic" placeholder="Nima haqida ma'lumot kerak?">
+        </div>
+        <button class="btn-ai btn-search" onclick="generate('info', this)">
+            <i class="fas fa-microscope"></i> Chuqur tahlil qilish
+        </button>
         
-        <div id="res-cheat" class="result-area"></div>
-        <div class="action-btns" id="btns-cheat">
-            <button class="btn-action" onclick="printDoc('res-cheat')"><i class="fas fa-file-pdf" style="color:red"></i> PDF</button>
-            <button class="btn-action" onclick="saveImage('res-cheat')"><i class="fas fa-image" style="color:green"></i> Rasm</button>
+        <div id="res-info" class="result-area"></div>
+        <div class="action-btns" id="btns-info">
+            <button class="btn-action" onclick="printDoc('res-info')"><i class="fas fa-file-pdf" style="color:#ef4444"></i> PDF Sifatli</button>
+            <button class="btn-action" onclick="saveAsImages('res-info')"><i class="fas fa-images" style="color:#10b981"></i> Rasm ko'rinishida</button>
         </div>
     </div>
 </div>
@@ -104,21 +134,21 @@
 
     async function generate(type, btn) {
         const isLesson = type === 'lesson';
-        const topic = document.getElementById(isLesson ? 'topic' : 'cheat-topic').value;
-        const resArea = document.getElementById(isLesson ? 'res-lesson' : 'res-cheat');
-        const btns = document.getElementById(isLesson ? 'btns-lesson' : 'btns-cheat');
+        const topic = document.getElementById(isLesson ? 'topic' : 'info-topic').value;
+        const resArea = document.getElementById(isLesson ? 'res-lesson' : 'res-info');
+        const btns = document.getElementById(isLesson ? 'btns-lesson' : 'btns-info');
 
-        if(!topic) return alert("Mavzuni yozing!");
+        if(!topic) return alert("Iltimos, mavzuni kiriting!");
 
-        const originalText = btn.innerHTML;
+        const oldHTML = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tayyorlanmoqda...';
+        btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> AI mantiqiy tahlil qilmoqda...';
         resArea.style.display = "block";
-        resArea.innerHTML = "AI qidirmoqda...";
+        resArea.innerHTML = "<div style='text-align:center'><i class='fas fa-brain fa-pulse'></i> Ma'lumotlar kengaytirilmoqda, iltimos kuting...</div>";
 
         let prompt = isLesson 
-            ? `${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida dars ishlanmasi. Jadvallar va LaTeX ishlat.`
-            : `"${topic}" mavzusida eng kerakli formulalar va qisqa qoidalar jadvalini yarat. LaTeX $..$ ichida bo'lsin.`;
+            ? `${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida O'zbekiston darslik standartlariga mos dars ishlanmasi. Tarkibi: Mavzu maqsadi, metodlar, yangi mavzu bayoni (kengaytirilgan), amaliy mashqlar, savol-javoblar va jadvallar. LaTeX formulalarni $..$ ichida yoz.`
+            : `"${topic}" mavzusi haqida akademik darajada batafsil ma'lumot ber. Tarixi, asosiy qoidalari, amaliy ahamiyati va jadval ko'rinishida qisqa faktlar bo'lsin. LaTeX ishlatilsin.`;
 
         try {
             const response = await fetch('/api/chat', {
@@ -130,10 +160,11 @@
             resArea.innerHTML = marked.parse(data.reply);
             if(window.MathJax) await MathJax.typesetPromise([resArea]);
             btns.style.display = "flex";
-        } catch (e) { resArea.innerHTML = "Xatolik!"; }
-        finally {
+        } catch (e) { 
+            resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi! Qayta urinib ko'ring.</span>"; 
+        } finally {
             btn.disabled = false;
-            btn.innerHTML = originalText;
+            btn.innerHTML = oldHTML;
         }
     }
 
@@ -141,17 +172,38 @@
         const area = document.getElementById(id);
         area.classList.add('print-area');
         window.print();
-        area.classList.remove('print-area');
+        setTimeout(() => area.classList.remove('print-area'), 500);
     }
 
-    function saveImage(id) {
+    async function saveAsImages(id) {
         const element = document.getElementById(id);
-        html2canvas(element, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = 'Ziyomap_AI.png';
-            link.href = canvas.toDataURL();
-            link.click();
-        });
+        const btn = event.currentTarget;
+        btn.innerHTML = '<i class="fas fa-cog fa-spin"></i> Bo\'linmoqda...';
+
+        // Har bir listni taxminan 1000px balandlikda qirqamiz (A4 ga yaqin)
+        const totalHeight = element.scrollHeight;
+        const pageHeight = 1100; 
+        let currentPosition = 0;
+        let pageNum = 1;
+
+        while (currentPosition < totalHeight) {
+            await html2canvas(element, {
+                y: currentPosition,
+                height: Math.min(pageHeight, totalHeight - currentPosition),
+                scale: 2,
+                backgroundColor: "#ffffff",
+                scrollX: 0,
+                scrollY: -currentPosition
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Ziyomap_Varaq_${pageNum}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+            currentPosition += pageHeight;
+            pageNum++;
+        }
+        btn.innerHTML = '<i class="fas fa-images" style="color:#10b981"></i> Listlarga bo\'lib rasmga olish';
     }
 </script>
 </body>
