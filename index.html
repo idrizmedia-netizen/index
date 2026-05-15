@@ -449,18 +449,18 @@
     </footer>
 
    <script type="module">
-    // 1. Firebase v11 kutubxonalarini import qilish
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    // 1. Firebase v12 kutubxonalarini eng so'nggi manzillardan import qilish
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { 
         getAuth, 
         signInWithPopup, 
         GoogleAuthProvider, 
         onAuthStateChanged, 
         signOut,
-        browserPopupRedirectResolver // Yangi versiyalardagi xatolikni oldini oladi
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        browserPopupRedirectResolver 
+    } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-    // 2. Konfiguratsiya (O'z holicha qoldi)
+    // 2. Konfiguratsiya
     const firebaseConfig = {
         apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
         authDomain: "ziyomap.firebaseapp.com",
@@ -471,73 +471,78 @@
         measurementId: "G-Y3EQ1ZJW3B"
     };
 
-    // 3. Firebase-ni ishga tushirish
+    // 3. Firebase xizmatlarini ishga tushirish
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' }); // Har doim hisob tanlash oynasini chiqaradi
 
-    // 4. HTML elementlarni olish
+    // Google kirish sozlamalari: Har doim akkaunt tanlash oynasini ochadi
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    // 4. Elementlarni olish (null bo'lsa xato bermasligi uchun ehtiyotkorlik bilan)
     const loginBtn = document.getElementById('login-btn');
     const dropdown = document.getElementById('myDropdown');
     const logoutBtn = document.getElementById('logout-btn');
     const userInputAi = document.getElementById('user-input-ai');
     const chatWindow = document.getElementById('chat-window');
 
-    // 5. Kirish funksiyasi (Eng yuqori standartda)
+    // 5. Kirish funksiyasi
     if (loginBtn) {
-        loginBtn.addEventListener('click', async (e) => {
+        loginBtn.onclick = async (e) => {
             e.preventDefault();
             try {
                 if (!auth.currentUser) {
-                    // signInWithPopup uchun uchinchi argument sifatida resolver qo'shildi
+                    // browserPopupRedirectResolver v12 dagi popup muammolarini yechadi
                     const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
                     localStorage.setItem('user', JSON.stringify(result.user));
                     console.log("Muvaffaqiyatli kirildi:", result.user.displayName);
+                    // Reload qilish orqali barcha scriptlarni foydalanuvchi holatiga moslaymiz
+                    window.location.reload();
                 } else {
                     if (dropdown) dropdown.classList.toggle('show');
                 }
             } catch (err) {
-                console.error("Kirishda xato tafsiloti:", err);
+                console.error("Firebase Login Xatosi:", err);
                 if (err.code === 'auth/popup-blocked') {
-                    alert("Brauzer oynani blokladi. Iltimos, tepada chiqayotgan pop-up ruxsatini yoqing.");
+                    alert("Brauzer popup oynasini blokladi. Iltimos ruxsat bering.");
                 } else {
-                    alert("Tizimga kirishda xatolik yuz berdi.");
+                    alert("Kirishda xatolik yuz berdi: " + err.message);
                 }
             }
-        });
+        };
     }
 
     // 6. Chiqish funksiyasi
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (e) => {
+        logoutBtn.onclick = async (e) => {
             e.preventDefault();
             if (confirm("Tizimdan chiqishni xohlaysizmi?")) {
                 try {
                     await signOut(auth);
                     localStorage.removeItem('user');
-                    if (dropdown) dropdown.classList.remove('show');
                     window.location.reload();
                 } catch (err) {
-                    console.error("Chiqishda xato:", err);
+                    console.error("Logout xatosi:", err);
                 }
             }
-        });
+        };
     }
 
-    // 7. Foydalanuvchi holatini kuzatish (UI-ni yangilash)
+    // 7. Foydalanuvchi holatini real vaqtda kuzatish
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            // TIZIMGA KIRILGAN HOLAT
             localStorage.setItem('user', JSON.stringify(user));
             
             if (loginBtn) {
                 loginBtn.innerHTML = `
-                    <img src="${user.photoURL}" style="width:26px; height:26px; border-radius:50%; vertical-align:middle; margin-right:8px; border:1px solid white;">
+                    <img src="${user.photoURL}" style="width:26px; height:26px; border-radius:50%; vertical-align:middle; margin-right:8px; border: 1px solid white;">
                     <span>${user.displayName.split(' ')[0]}</span>
                 `;
                 loginBtn.style.backgroundColor = "#10b981"; 
             }
 
+            // AI qismini faollashtirish
             if (userInputAi) {
                 userInputAi.disabled = false;
                 userInputAi.placeholder = "Savol yozing...";
@@ -548,6 +553,7 @@
                 chatWindow.style.filter = "none";
             }
         } else {
+            // TIZIMDAN CHIQILGAN HOLAT
             localStorage.removeItem('user');
 
             if (loginBtn) {
@@ -555,9 +561,10 @@
                 loginBtn.style.backgroundColor = "var(--primary-color)";
             }
 
+            // AI qismini bloklash
             if (userInputAi) {
                 userInputAi.disabled = true;
-                userInputAi.placeholder = "Faqat ro'yxatdan o'tganlar uchun...";
+                userInputAi.placeholder = "Tizimga kiring...";
             }
             if (chatWindow) {
                 chatWindow.style.opacity = "0.5";
@@ -567,10 +574,12 @@
         }
     });
 
-    // 8. Tashqarini bosganda dropdown yopilishi
+    // 8. Dropdown yopilish mantiqi
     window.addEventListener('click', (e) => {
-        if (dropdown && dropdown.classList.contains('show') && !loginBtn.contains(e.target)) {
-            dropdown.classList.remove('show');
+        if (dropdown && dropdown.classList.contains('show')) {
+            if (!loginBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
         }
     });
 </script>
