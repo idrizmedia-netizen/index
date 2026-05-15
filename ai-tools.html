@@ -3,286 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ziyomap AI Asboblari | Dars Ishlanmasi & Word</title>
+    <title>Ziyomap AI | Dars Ishlanmasi</title>
     
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         window.MathJax = {
-            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
-            svg: { fontCache: 'global' },
-            options: { enableMenu: false }
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            svg: { fontCache: 'global' }
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #3b82f6;
-            --dark-color: #1e293b;
-            --light-bg: #f0f9ff;
-            --text-color: #1e293b;
-            --card-bg: rgba(255, 255, 255, 0.9);
+        :root { --primary: #2563eb; --bg: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        .tool-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* Kirish cheklangan dizayni */
+        .auth-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; border-radius: 20px; }
+        
+        .input-group { margin-bottom: 15px; }
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-top: 5px; }
+        
+        .btn-ai { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn-ai:hover { opacity: 0.9; transform: scale(1.02); }
+
+        /* Natija maydoni */
+        #result-area, #formula-result { 
+            margin-top: 20px; padding: 25px; border-left: 5px solid var(--primary); 
+            background: #fff; display: none; overflow-x: auto;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container { max-width: 1000px; margin: 40px auto; }
-
-        .tool-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            padding: 30px;
-            border-radius: 25px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.05);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .auth-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            text-align: center;
-            padding: 20px;
-        }
-
-        h2 { color: var(--primary-color); display: flex; align-items: center; gap: 10px; }
-
-        .input-group { margin-bottom: 20px; }
-
-        label { display: block; margin-bottom: 8px; font-weight: 600; }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            background: white;
-            font-size: 1rem;
-            outline: none;
-            box-sizing: border-box;
-        }
-
-        .btn-ai {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white; border: none; padding: 15px 30px;
-            border-radius: 50px; cursor: pointer; font-weight: bold;
-            transition: 0.3s; display: flex; align-items: center; gap: 10px; justify-content: center;
-        }
-
-        #result-area, #formula-result {
-            margin-top: 25px; padding: 40px; background: #fff;
-            border-radius: 15px; border-left: 5px solid var(--primary-color);
-            display: none; line-height: 1.8; color: #000; font-size: 14pt;
-        }
-
-        .action-buttons { display: flex; gap: 10px; margin-top: 15px; display: none; flex-wrap: wrap; }
-
-        .btn-secondary {
-            background: #f1f5f9; color: var(--dark-color); border: 1px solid #cbd5e1;
-            padding: 10px 20px; border-radius: 10px; cursor: pointer;
-            font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
-        }
-
-        .loading-spinner {
-            display: inline-block; width: 20px; height: 20px;
-            border: 3px solid rgba(255,255,255,.3); border-radius: 50%;
-            border-top-color: #fff; animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        table, th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-
-        .pdf-offscreen-container {
-            position: fixed; left: -9999px; top: 0; width: 190mm;
-            background: white; color: black; padding: 10px;
+        .action-btns { display: none; gap: 10px; margin-top: 15px; }
+        .btn-download { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; background: #fff; }
+        
+        /* PRINT (YUKLASH) UCHUN MAXSUS STIL */
+        @media print {
+            body * { visibility: hidden; }
+            .print-section, .print-section * { visibility: visible; }
+            .print-section { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; font-size: 12pt; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #000; padding: 8px; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <a href="index.html" style="text-decoration: none; color: var(--primary-color); font-weight: bold;">
-        <i class="fas fa-arrow-left"></i> Orqaga qaytish
-    </a>
-
-    <div class="tool-card" data-aos="fade-up">
-        <div id="auth-guard-1" class="auth-overlay">
-            <i class="fas fa-lock fa-3x" style="color: var(--primary-color); margin-bottom: 15px;"></i>
-            <h3>Kirish cheklangan</h3>
-            <button class="btn-ai" onclick="window.location.href='index.html'">Tizimga kirish</button>
+    <div class="tool-card" style="position: relative;">
+        <div id="auth-guard" class="auth-overlay" style="display: none;">
+            <i class="fas fa-lock fa-2x"></i>
+            <p>Tizimga kiring</p>
         </div>
 
-        <h2><i class="fas fa-file-invoice"></i> Universal AI Dars Ishlanmasi</h2>
+        <h2><i class="fas fa-edit"></i> Professional Dars Ishlanmasi</h2>
         
         <div class="input-group">
-            <label>Fanni tanlang:</label>
-            <select id="lesson-subject">
+            <select id="subject">
                 <option value="Fizika">Fizika</option>
                 <option value="Matematika">Matematika</option>
                 <option value="Kimyo">Kimyo</option>
-                <option value="Informatika">Informatika</option>
             </select>
-        </div>
-
-        <div class="input-group">
-            <label>Mavzu nomi:</label>
-            <input type="text" id="lesson-topic" placeholder="Mavzuni kiriting...">
-        </div>
-
-        <div class="input-group">
-            <label>Sinf:</label>
-            <select id="lesson-grade">
-                <option value="5">5-sinf</option>
-                <option value="9" selected>9-sinf</option>
+            <input type="text" id="topic" placeholder="Mavzuni yozing (masalan: Issiqlik miqdori)">
+            <select id="grade">
+                <option value="9">9-sinf</option>
+                <option value="10">10-sinf</option>
                 <option value="11">11-sinf</option>
             </select>
         </div>
 
-        <button class="btn-ai" id="gen-btn-1" onclick="generateLesson()">
-            <i class="fas fa-magic"></i> Reja yaratish
+        <button class="btn-ai" id="gen-btn" onclick="generate()">
+            <i class="fas fa-wand-magic-sparkles"></i> Reja yaratish
         </button>
 
-        <div id="result-area"></div>
+        <div id="result-area" class="print-section"></div>
 
-        <div class="action-buttons" id="action-btns">
-            <button class="btn-secondary" onclick="exportToPDF('result-area', 'Dars_Ishlanmasi')">
-                <i class="fas fa-file-pdf" style="color: #e11d48;"></i> PDF
+        <div class="action-btns" id="action-btns">
+            <button class="btn-download" onclick="window.print()">
+                <i class="fas fa-file-pdf" style="color: red;"></i> PDF sifatida saqlash
             </button>
-            <button class="btn-secondary" onclick="exportToWord('result-area', 'Dars_Ishlanmasi')">
-                <i class="fas fa-file-word" style="color: #2563eb;"></i> Word (.doc)
-            </button>
-        </div>
-    </div>
-
-    <div class="tool-card" data-aos="fade-up">
-        <div id="auth-guard-2" class="auth-overlay">
-            <i class="fas fa-lock fa-3x" style="color: var(--primary-color); margin-bottom: 15px;"></i>
-            <h3>Kirish cheklangan</h3>
-        </div>
-
-        <h2><i class="fas fa-bolt"></i> Aqlli "Shpargalka"</h2>
-        <div class="input-group">
-            <input type="text" id="formula-query" placeholder="Mavzuni kiriting...">
-        </div>
-
-        <button class="btn-ai" id="gen-btn-2" onclick="generateCheatSheet()">
-            <i class="fas fa-search"></i> Topish
-        </button>
-
-        <div id="formula-result"></div>
-
-        <div class="action-buttons" id="formula-action-btns">
-            <button class="btn-secondary" onclick="exportToPDF('formula-result', 'Shpargalka')">
-                <i class="fas fa-file-pdf"></i> PDF
-            </button>
-            <button class="btn-secondary" onclick="exportToWord('formula-result', 'Shpargalka')">
-                <i class="fas fa-file-word"></i> Word (.doc)
+            <button class="btn-download" onclick="downloadWord()">
+                <i class="fas fa-file-word" style="color: blue;"></i> Word yuklash
             </button>
         </div>
     </div>
 </div>
 
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-    AOS.init();
+    // 1. AI Generatsiya
+    async function generate() {
+        const t = document.getElementById('topic').value;
+        const s = document.getElementById('subject').value;
+        const g = document.getElementById('grade').value;
+        const btn = document.getElementById('gen-btn');
+        const res = document.getElementById('result-area');
 
-    // 1. Auth tekshiruvi
-    function checkGoogleAuth() {
-        const user = localStorage.getItem('user'); 
-        const g1 = document.getElementById('auth-guard-1');
-        const g2 = document.getElementById('auth-guard-2');
-        if (user) { g1.style.display = g2.style.display = 'none'; }
-    }
-    window.onload = checkGoogleAuth;
-
-    // 2. AI Fetching (Birlashtirilgan)
-    async function callAI(prompt, resultId, btnId, originalText) {
-        const area = document.getElementById(resultId);
-        const btn = document.getElementById(btnId);
-        const actionBtnId = resultId === 'result-area' ? 'action-btns' : 'formula-action-btns';
+        if(!t) return alert("Mavzuni kiriting!");
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="loading-spinner"></span>...';
-        area.style.display = "block";
-        area.innerHTML = "<i>AI tayyorlamoqda...</i>";
+        btn.innerHTML = "Tayyorlanmoqda...";
+        res.style.display = "block";
+        res.innerHTML = "Ziyomap AI ma'lumot qidirmoqda...";
 
         try {
-            const res = await fetch('/api/chat', {
+            const response = await fetch('/api/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: prompt })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: `${s} fani ${g}-sinf "${t}" mavzusida dars ishlanmasi tayyorla. Jadvallar ishlat. LaTeX formulalar $..$ ichida bo'lsin.` })
             });
-            const data = await res.json();
-            area.innerHTML = marked.parse(data.reply);
-            if (window.MathJax) await MathJax.typesetPromise([area]);
-            document.getElementById(actionBtnId).style.display = "flex";
-        } catch (e) { area.innerText = "Xato yuz berdi."; }
-        finally { btn.disabled = false; btn.innerHTML = originalText; }
+            const data = await response.json();
+            res.innerHTML = marked.parse(data.reply);
+            
+            if(window.MathJax) await MathJax.typesetPromise([res]);
+            document.getElementById('action-btns').style.display = "flex";
+        } catch (e) {
+            res.innerHTML = "Xatolik yuz berdi.";
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = "Reja yaratish";
+        }
     }
 
-    function generateLesson() {
-        const s = document.getElementById('lesson-subject').value;
-        const t = document.getElementById('lesson-topic').value;
-        const g = document.getElementById('lesson-grade').value;
-        if(!t) return alert("Mavzu?");
-        callAI(`${s}dan ${g}-sinfga "${t}" dars rejasi. LaTeX ishlating.`, 'result-area', 'gen-btn-1', 'Reja yaratish');
-    }
-
-    function generateCheatSheet() {
-        const q = document.getElementById('formula-query').value;
-        if(!q) return alert("Mavzu?");
-        callAI(`"${q}" mavzusida formulalar va qoidalar. LaTeX formatida.`, 'formula-result', 'gen-btn-2', 'Topish');
-    }
-
-    // 3. Word Eksport (X-muammosi hal qilingan versiya)
-    function exportToWord(elementId, fileName) {
-        const el = document.getElementById(elementId);
-        const clone = el.cloneNode(true);
+    // 2. WORD YUKLASH (Eng yaxshi muqobil variant)
+    function downloadWord() {
+        const content = document.getElementById('result-area').innerHTML;
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Times New Roman',serif;} table{border-collapse:collapse; width:100%;} td,th{border:1px solid black; padding:5px;}</style></head><body>";
+        const footer = "</body></html>";
+        const sourceHTML = header + content + footer;
         
-        // MathJax'ni Word tushunadigan matnga aylantirish
-        clone.querySelectorAll('mjx-container').forEach(c => {
-            const latex = c.getAttribute('aria-label') || c.innerText;
-            const span = document.createElement('span');
-            span.innerHTML = ` <b>${latex}</b> `; 
-            c.parentNode.replaceChild(span, c);
-        });
-
-        const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>body{font-family:'Times New Roman';} table{border:1px solid black; border-collapse:collapse;} td{border:1px solid black; padding:5px;}</style></head><body>`;
-        const html = header + clone.innerHTML + "</body></html>";
-        const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-        saveAs(blob, `${fileName}.doc`);
-    }
-
-    // 4. PDF Eksport
-    async function exportToPDF(elementId, fileName) {
-        const el = document.getElementById(elementId);
-        const opt = { margin: 10, filename: fileName+'.pdf', html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
-        html2pdf().set(opt).from(el).save();
+        const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'Dars_Ishlanmasi.doc';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 </script>
+
 </body>
 </html>
