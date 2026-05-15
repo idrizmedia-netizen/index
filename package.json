@@ -3,9 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "main": "package.json",
+  "sanity": {
+    "projectId": "25lh4m7u",
+    "dataset": "production"
+  },
   "scripts": {
     "build": "sanity build",
-    "deploy": "sanity deploy"
+    "deploy": "sanity deploy --project 25lh4m7u --dataset production"
   },
   "dependencies": {
     "sanity": "^3.0.0",
