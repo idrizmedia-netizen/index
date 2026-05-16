@@ -448,13 +448,12 @@
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
 
-  <script type="module">
+ <script type="module">
     // 1. Firebase v12 kutubxonalari
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { 
         getAuth, 
-        signInWithRedirect, 
-        getRedirectResult, 
+        signInWithCredential, 
         GoogleAuthProvider, 
         onAuthStateChanged, 
         signOut 
@@ -471,11 +470,8 @@
         measurementId: "G-Y3EQ1ZJW3B"
     };
 
-    // 3. Firebase xizmatlarini ishga tushirish
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
 
     // HTML elementlarni olish
     const loginBtn = document.getElementById('login-btn');
@@ -484,48 +480,57 @@
     const userInputAi = document.getElementById('user-input-ai');
     const chatWindow = document.getElementById('chat-window');
 
-    // 4. Redirect natijasini olish (Xavfsiz va error-catching bilan)
-    async function checkRedirect() {
-        try {
-            // browserPopupRedirectResolver argumentini O'CHIRIB TASHLLADIK!
-            // Standart holatda Firebase o'zi eng xavfsiz yo'ldan ketadi
-            const result = await getRedirectResult(auth);
-            if (result && result.user) {
-                localStorage.setItem('user', JSON.stringify(result.user));
-                console.log("Muvaffaqiyatli kirildi:", result.user.displayName);
-            }
-        } catch (err) {
-            console.warn("Redirect natijasini tekshirishda kichik ogohlantirish:", err.message);
-            // Agar kesh xatosi bo'lsa, LocalStorage-dan tekshirib olish zaxirasi
-            const savedUser = localStorage.getItem('user');
-            if (savedUser && !auth.currentUser) {
-                console.log("Keshdagi foydalanuvchi aniqlandi.");
+    // 3. OAuth oqimidan qaytgan tokenni ushlash (URL parsdan o'tkaziladi)
+    async function handleGoogleCallback() {
+        const hash = window.location.hash;
+        if (hash.includes("id_token")) {
+            const params = new URLSearchParams(hash.replace("#", "?"));
+            const idToken = params.get("id_token");
+            
+            if (idToken) {
+                try {
+                    // Firebase-ga tayyor tokenni beramiz - u ortiq domenni tekshirib o'tirmaydi!
+                    const credential = GoogleAuthProvider.credential(idToken);
+                    const result = await signInWithCredential(auth, credential);
+                    localStorage.setItem('user', JSON.stringify(result.user));
+                    
+                    // URL-ni tozalaymiz (hash qismini olib tashlaymiz)
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (error) {
+                    console.error("Token bilan kirishda xato:", error);
+                }
             }
         }
     }
-    
-    // Sahifa yuklanishi bilan ishga tushadi
-    checkRedirect();
+    handleGoogleCallback();
 
-    // 5. Kirish funksiyasi (Faqat standart Redirect)
+    // 4. Kirish funksiyasi (Google-ning to'g'ridan-to'g'ri rasmiy login havolasi)
     if (loginBtn) {
-        loginBtn.onclick = async (e) => {
+        loginBtn.onclick = (e) => {
             e.preventDefault();
-            try {
-                if (!auth.currentUser) {
-                    // Bu yerda ham uchinchi argument (resolver) olib tashlandi
-                    await signInWithRedirect(auth, provider);
-                } else {
-                    if (dropdown) dropdown.classList.toggle('show');
-                }
-            } catch (err) {
-                console.error("Login xatosi:", err);
-                alert("Kirishda xatolik yuz berdi. Iltimos qaytadan urining.");
+            if (!auth.currentUser) {
+                // Client ID sizning rasmiy Google Cloud ID'ngizdan olindi
+                const clientId = "982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com";
+                const redirectUri = window.location.origin; // Avtomatik https://ziyomap.vercel.app bo'ladi
+                
+                // Google-ning rasmiy xavfsiz OAuth manzili
+                const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                    `client_id=${clientId}` +
+                    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                    `&response_type=id_token` +
+                    `&scope=openid%20profile%20email` +
+                    `&nonce=random_nonce_string` +
+                    `&prompt=select_account`;
+
+                // Sahifani to'g'ridan-to'g'ri Google-ga yo'naltiramiz
+                window.location.href = googleOAuthUrl;
+            } else {
+                if (dropdown) dropdown.classList.toggle('show');
             }
         };
     }
 
-    // 6. Chiqish funksiyasi
+    // 5. Chiqish funksiyasi
     if (logoutBtn) {
         logoutBtn.onclick = async (e) => {
             e.preventDefault();
@@ -541,7 +546,7 @@
         };
     }
 
-    // 7. Foydalanuvchi holatini real vaqtda kuzatish
+    // 6. Foydalanuvchi holatini real vaqtda kuzatish
     onAuthStateChanged(auth, (user) => {
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
