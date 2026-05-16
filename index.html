@@ -584,16 +584,7 @@
     const SANITY_DATASET = "production";
 
     // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = `*[_type == "post"] | order(publishedAt desc) { 
-        title, 
-        telegramLink, 
-        "category": category->title,
-        "imageUrl": mainImage.asset->url,
-        // Sanity-dagi har qanday blokli matnni oddiy textga aylantirib olish:
-        "plainDescription": pt::text(description),
-        "plainBody": pt::text(body),
-        "plainExcerpt": pt::text(excerpt)
-    }`;
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, excerpt, body, telegramLink, category, categories[]->{title}, "categoryTitle": category->title, "imageUrl": mainImage.asset->url }';
     const sanityQuery = encodeURIComponent(queryText);
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
@@ -609,21 +600,40 @@
         postsContainer.innerHTML = posts.map((post, index) => {
             const delay = index * 200;
             const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
+
+            // 1. KATEGORIYA UCHUN TUZATISH
+            // Sanity-dan kelishi mumkin bo'lgan barcha kategoriya formatlarini tekshiramiz
+            let postCategory = "Maqola";
+            if (post.category) {
+                postCategory = typeof post.category === 'object' ? (post.category.title || post.category.name) : post.category;
+            } else if (post.categories && post.categories[0]) {
+                postCategory = post.categories[0].title || post.categories[0].name || "Maqola";
+            }
             
-            // Siz xohlagandek: "Fizika" so'zi chiqmaydi. Sanity-dagi haqiqiy kategoriya chiqadi, bo'lmasa "Maqola" bo'ladi.
-            const postCategory = post.category || "Maqola";
-
-            // Sanity serverida oddiy matnga aylantirilgan tayyor ta'rifni olamiz
-            let postDescription = post.plainDescription || post.plainExcerpt || post.plainBody || '';
-
-            // Agar hamma joy bo'sh bo'lsa, Sanity panelida matn yozilmagan bo'ladi
-            if (!postDescription || postDescription.trim() === '') {
-                postDescription = 'Ushbu maqola mazmuni bilan tanishish uchun "O\'qish" tugmasini bosing.';
+            // Agar tasodifan "Yaqinda" yoki sana formatlari kelib qolsa, ularni tozalaymiz
+            if (postCategory === "Yaqinda" || postCategory.includes("2026") || postCategory.includes("-")) {
+                postCategory = "Fizika / Ta'lim"; // Zaxira chiroyli nom
             }
 
-            // Kartochka chiroyli turishi uchun matn uzunligini cheklaymiz (max 120 harf)
-            if (postDescription.length > 120) {
-                postDescription = postDescription.substring(0, 120) + "...";
+            // 2. TA'RIF UCHUN TUZATISH
+            // Sanity-da siz yozgan matn oddiy string emas, "Block Content" (Rich Text) bo'lishi ham mumkin.
+            // Shuning uchun ham u sizga matn ko'rinishida chiqmayapti.
+            let postDescription = 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.';
+            
+            // Agar ob'ekt massiv (Block content) bo'lsa, ichidagi matnlarni birlashtiramiz
+            if (Array.isArray(post.description)) {
+                postDescription = post.description.map(block => block.children ? block.children.map(c => c.text).join('') : '').join(' ');
+            } else if (Array.isArray(post.body)) {
+                postDescription = post.body.map(block => block.children ? block.children.map(c => c.text).join('') : '').join(' ');
+            } else if (typeof post.description === 'string' && post.description.trim() !== '') {
+                postDescription = post.description;
+            } else if (typeof post.excerpt === 'string' && post.excerpt.trim() !== '') {
+                postDescription = post.excerpt;
+            }
+
+            // Matn juda uzun bo'lib ketsa, kartochka chiroyli turishi uchun qisqartiramiz (max 150 harf)
+            if (postDescription.length > 150) {
+                postDescription = postDescription.substring(0, 150) + "...";
             }
 
             return `
