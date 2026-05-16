@@ -583,6 +583,64 @@ if (loginBtn) {
             }
         }
     });
+
+    // =========================================================
+    // SANITY-DAN MAQOLALARNI DINAMIK YUKLASH VA TELEGRAMGA ULASH
+    // =========================================================
+    const SANITY_PROJECT_ID = "ziyomap"; 
+    const SANITY_DATASET = "production";
+
+    const sanityQuery = encodeURIComponent(`*[_type == "post"] | order(publishedAt desc) {
+        title,
+        description,
+        telegramLink,
+        "category": category->title
+    }`);
+
+    const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
+
+    function displaySanityPosts(posts) {
+        const postsContainer = document.getElementById('posts-container');
+        if (!postsContainer) return;
+
+        if (!posts || posts.length === 0) {
+            postsContainer.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Hozircha maqolalar正式 mavjud emas.</p>';
+            return;
+        }
+
+        postsContainer.innerHTML = posts.map((post, index) => {
+            const delay = index * 200;
+            return `
+                <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
+                    <span style="color: var(--primary-color); font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: block;">
+                        ${post.category || 'Umumiy'}
+                    </span>
+                    <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 1.4rem;">${post.title}</h3>
+                    <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9; margin-bottom: 25px;">
+                        ${post.description || 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.'}
+                    </p>
+                    <a href="${post.telegramLink || '#'}" target="_blank" class="btn" style="padding: 10px 25px; font-size: 14px; margin: 0; display: inline-block;">
+                        O'qish
+                    </a>
+                </div>
+            `;
+        }).join('');
+    }
+
+    async function loadSanityPosts() {
+        try {
+            const response = await fetch(sanityUrl);
+            const data = await response.json();
+            if (data && data.result) {
+                displaySanityPosts(data.result);
+            }
+        } catch (error) {
+            console.error("Maqolalarni yuklashda xatolik:", error);
+        }
+    }
+
+    loadSanityPosts();
+</script>
 </script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
