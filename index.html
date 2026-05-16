@@ -584,7 +584,7 @@
     const SANITY_DATASET = "production";
 
     // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, body, excerpt, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
     const sanityQuery = encodeURIComponent(queryText);
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
@@ -602,27 +602,42 @@
             const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
             const postCategory = post.category || "Maqola";
 
-            // MATNNI O'QISH: Agar matn blok (ob'ekt) bo'lsa, uni stringga o'girib tozalaymiz
-            let postDescription = '';
-            if (post.description) {
-                if (typeof post.description === 'string') {
-                    postDescription = post.description;
-                } else {
-                    // Blok kontent bo'lsa, qavslar va belgilarni tozalab, faqat matnni ajratamiz
-                    postDescription = JSON.stringify(post.description)
-                        .replace(/[\[\]\{\}\"\:]/g, ' ')
-                        .replace(/_type|block|children|text|span|_key/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
+            // SANITY BLOKLARIDAN MATNNI SUG'URIB OLISH ALGORITMI
+            let postDescription = "";
+
+            function parseSanityBlock(blockData) {
+                if (!blockData) return "";
+                if (typeof blockData === 'string') return blockData;
+                if (Array.isArray(blockData)) {
+                    return blockData
+                        .map(block => {
+                            if (block && block.children && Array.isArray(block.children)) {
+                                return block.children.map(child => child.text || "").join("");
+                            }
+                            return "";
+                        })
+                        .join(" ");
                 }
+                return "";
             }
 
-            if (!postDescription || postDescription.trim() === '') {
-                postDescription = 'Batafsil ma\'lumot olish uchun quyidagi tugma orqali maqolani o\'qing.';
+            // Sanity panelida qaysi maydonga yozgan bo'lsangiz ham matnni qidirib topadi
+            if (post.description) {
+                postDescription = parseSanityBlock(post.description);
+            } else if (post.body) {
+                postDescription = parseSanityBlock(post.body);
+            } else if (post.excerpt) {
+                postDescription = parseSanityBlock(post.excerpt);
             }
 
-            if (postDescription.length > 120) {
-                postDescription = postDescription.substring(0, 120) + "...";
+            // Agar matn baribir topilmasa yoki bo'sh bo'lsa
+            if (!postDescription || postDescription.trim() === "") {
+                postDescription = 'Ushbu maqola mazmuni bilan tanishish uchun "O\'qish" tugmasini bosing.';
+            }
+
+            // Kartochka sig'imi uchun matn uzunligini qisqartirish
+            if (postDescription.length > 130) {
+                postDescription = postDescription.substring(0, 130) + "...";
             }
 
             return `
