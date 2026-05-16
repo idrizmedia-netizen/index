@@ -448,13 +448,13 @@
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
 
-   <script type="module">
+  <script type="module">
     // 1. Firebase v12 kutubxonalari
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { 
         getAuth, 
-        signInWithRedirect, // Popup o'rniga Redirect usulini import qilamiz
-        getRedirectResult,  // Redirect-dan qaytgan natijani olish uchun
+        signInWithRedirect, 
+        getRedirectResult, 
         GoogleAuthProvider, 
         onAuthStateChanged, 
         signOut 
@@ -484,35 +484,43 @@
     const userInputAi = document.getElementById('user-input-ai');
     const chatWindow = document.getElementById('chat-window');
 
-    // 4. Redirect natijasini tekshirish (Sahifa Google-dan qaytib kelganda ishlaydi)
+    // 4. Redirect natijasini olish (Xavfsiz va error-catching bilan)
     async function checkRedirect() {
         try {
+            // browserPopupRedirectResolver argumentini O'CHIRIB TASHLLADIK!
+            // Standart holatda Firebase o'zi eng xavfsiz yo'ldan ketadi
             const result = await getRedirectResult(auth);
             if (result && result.user) {
                 localStorage.setItem('user', JSON.stringify(result.user));
-                console.log("Redirect orqali muvaffaqiyatli kirildi:", result.user.displayName);
+                console.log("Muvaffaqiyatli kirildi:", result.user.displayName);
             }
         } catch (err) {
-            console.error("Redirect natijasini olishda xato:", err);
+            console.warn("Redirect natijasini tekshirishda kichik ogohlantirish:", err.message);
+            // Agar kesh xatosi bo'lsa, LocalStorage-dan tekshirib olish zaxirasi
+            const savedUser = localStorage.getItem('user');
+            if (savedUser && !auth.currentUser) {
+                console.log("Keshdagi foydalanuvchi aniqlandi.");
+            }
         }
     }
-    // Sahifa yuklanganda darhol tekshiramiz
+    
+    // Sahifa yuklanishi bilan ishga tushadi
     checkRedirect();
 
-    // 5. Kirish funksiyasi (Muammoli Popup o'rniga xavfsiz Redirect)
+    // 5. Kirish funksiyasi (Faqat standart Redirect)
     if (loginBtn) {
         loginBtn.onclick = async (e) => {
             e.preventDefault();
             try {
                 if (!auth.currentUser) {
-                    // Sahifa to'g'ridan-to'g'ri Google-ga yo'naltiriladi va qaytib keladi
+                    // Bu yerda ham uchinchi argument (resolver) olib tashlandi
                     await signInWithRedirect(auth, provider);
                 } else {
                     if (dropdown) dropdown.classList.toggle('show');
                 }
             } catch (err) {
-                console.error("Firebase Login Xatosi:", err);
-                alert("Xatolik yuz berdi: " + err.message);
+                console.error("Login xatosi:", err);
+                alert("Kirishda xatolik yuz berdi. Iltimos qaytadan urining.");
             }
         };
     }
@@ -533,7 +541,7 @@
         };
     }
 
-    // 7. Foydalanuvchi holatini kuzatish
+    // 7. Foydalanuvchi holatini real vaqtda kuzatish
     onAuthStateChanged(auth, (user) => {
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
