@@ -584,7 +584,7 @@
     const SANITY_DATASET = "production";
 
     // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = '*[_type == "post"] | order(publishedAt desc) { ... }';
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, body, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
 const sanityQuery = encodeURIComponent(queryText);
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
@@ -602,8 +602,31 @@ const sanityQuery = encodeURIComponent(queryText);
             const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
             const postCategory = post.category || "Maqola";
 
-            // Ta'rif joyiga bazadan kelgan hamma kalitlarni yozib qo'yamiz
-let postDescription = "Mavjud kalitlar: " + Object.keys(post).join(", ");
+            // Sanity Block Content formatini toza matnga aylantirish algoritmi
+            let postDescription = '';
+            if (post.body && Array.isArray(post.body)) {
+                postDescription = post.body
+                    .map(block => {
+                        if (block._type === 'block' && block.children) {
+                            return block.children.map(child => child.text).join('');
+                        }
+                        return '';
+                    })
+                    .join(' ')
+                    .trim();
+            } else if (typeof post.body === 'string') {
+                postDescription = post.body;
+            }
+
+            // Agar baribir bo'sh bo'lsa, zaxira matn
+            if (!postDescription || postDescription.trim() === '') {
+                postDescription = 'Batafsil ma\'lumot olish uchun quyidagi tugma orqali maqolani o\'quvchilar bilan ulashing.';
+            }
+
+            // Kartochka chiroyli turishi uchun uzunlikni cheklash
+            if (postDescription.length > 130) {
+                postDescription = postDescription.substring(0, 130) + "...";
+            }
 
             return `
                 <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
@@ -628,7 +651,6 @@ let postDescription = "Mavjud kalitlar: " + Object.keys(post).join(", ");
             `;
         }).join('');
     }
-
     async function loadSanityPosts() {
         try {
             const response = await fetch(sanityUrl);
