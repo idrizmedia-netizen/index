@@ -584,31 +584,47 @@
     const SANITY_DATASET = "production";
 
     // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, telegramLink, "category": category->title }';
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, excerpt, body, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
     const sanityQuery = encodeURIComponent(queryText);
     
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
+    // Sanity-dan kelgan maqolalarni HTML kartochkalarga aylantirish funksiyasi
     function displaySanityPosts(posts) {
         const postsContainer = document.getElementById('posts-container');
         if (!postsContainer) return;
-
         if (!posts || posts.length === 0) {
-            postsContainer.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Hozircha maqolalar mavjud emas.</p>';
+            postsContainer.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Hozircha maqolalar mavjed emas.</p>';
             return;
         }
 
         postsContainer.innerHTML = posts.map((post, index) => {
             const delay = index * 200;
+            
+            // 1. Sanity-dan kelayotgan rasmni tekshirish va uning to'liq havolasini olish
+            // Agar rasm kiritilmagan bo'lsa, zaxira rasm qo'yamiz
+            const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
+
+            // 2. MUHIM TUZATISH: Sanity panelingizda maydon nomi nima bo'lishidan qat'iy nazar 
+            // tarifni to'g'ri o'qib olish (description, excerpt yoki body variantlarini tekshiradi)
+            const postDescription = post.description || post.excerpt || post.body || 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.';
+
             return `
                 <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
+                    <div class="card-image" style="width: 100%; height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
+                        <img src="${imageUrl}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
                     <span style="color: var(--primary-color); font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: block;">
                         ${post.category || 'Umumiy'}
                     </span>
+                    
                     <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 1.4rem;">${post.title}</h3>
+                    
                     <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9; margin-bottom: 25px;">
-                        ${post.description || 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.'}
+                        ${postDescription}
                     </p>
+                    
                     <a href="${post.telegramLink || '#'}" target="_blank" class="btn" style="padding: 10px 25px; font-size: 14px; margin: 0; display: inline-block;">
                         O'qish
                     </a>
