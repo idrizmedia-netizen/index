@@ -584,8 +584,7 @@
     const SANITY_DATASET = "production";
 
     // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, excerpt, body, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
-    const sanityQuery = encodeURIComponent(queryText);
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, excerpt, body, content, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
     
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
@@ -607,7 +606,7 @@
 
             // 2. MUHIM TUZATISH: Sanity panelingizda maydon nomi nima bo'lishidan qat'iy nazar 
             // tarifni to'g'ri o'qib olish (description, excerpt yoki body variantlarini tekshiradi)
-            const postDescription = post.description || post.excerpt || post.body || 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.';
+            const postDescription = post.description || post.excerpt || post.body || post.content || 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.';
 
             return `
                 <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
