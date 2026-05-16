@@ -602,7 +602,7 @@ const sanityQuery = encodeURIComponent(queryText);
             const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
             const postCategory = post.category || "Maqola";
 
-            // TA'RIF MATNINI ANIQLASH (Faqat bir marta e'lon qilinmoqda)
+            // TA'RIF MATNINI ANIQLASH (Sanity block content yoki string bo'lishi mumkin)
             let rawText = post.description || post.body || post.text || post.content || '';
             let postDescription = '';
 
@@ -615,10 +615,12 @@ const sanityQuery = encodeURIComponent(queryText);
                 postDescription = rawText;
             }
 
+            // Agar matn bo'sh bo'lsa, zaxira matn
             if (!postDescription || postDescription.trim() === '') {
                 postDescription = 'Batafsil ma\'lumot olish uchun quyidagi tugma orqali maqolani o\'quvchilar bilan ulashing.';
             }
 
+            // Kartochka sig'imi uchun matn uzunligini qisqartirish
             if (postDescription.length > 120) {
                 postDescription = postDescription.substring(0, 120) + "...";
             }
@@ -646,51 +648,7 @@ const sanityQuery = encodeURIComponent(queryText);
             `;
         }).join('');
     }
-                return "";
-            }
 
-            // Sanity panelida qaysi maydonga yozgan bo'lsangiz ham matnni qidirib topadi
-            if (post.description) {
-                postDescription = parseSanityBlock(post.description);
-            } else if (post.body) {
-                postDescription = parseSanityBlock(post.body);
-            } else if (post.excerpt) {
-                postDescription = parseSanityBlock(post.excerpt);
-            }
-
-            // Agar matn baribir topilmasa yoki bo'sh bo'lsa
-            if (!postDescription || postDescription.trim() === "") {
-                postDescription = 'Ushbu maqola mazmuni bilan tanishish uchun "O\'qish" tugmasini bosing.';
-            }
-
-            // Kartochka sig'imi uchun matn uzunligini qisqartirish
-            if (postDescription.length > 130) {
-                postDescription = postDescription.substring(0, 130) + "...";
-            }
-
-            return `
-                <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
-                    <div class="card-image" style="width: 100%; height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
-                        <img src="${imageUrl}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-
-                    <span style="color: var(--primary-color); font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: block;">
-                        ${postCategory}
-                    </span>
-                    
-                    <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 1.4rem;">${post.title}</h3>
-                    
-                    <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9; margin-bottom: 25px;">
-                        ${postDescription}
-                    </p>
-                    
-                    <a href="${post.telegramLink || '#'}" target="_blank" class="btn" style="padding: 10px 25px; font-size: 14px; margin: 0; display: inline-block;">
-                        O'qish
-                    </a>
-                </div>
-            `;
-        }).join('');
-    }
     async function loadSanityPosts() {
         try {
             const response = await fetch(sanityUrl);
