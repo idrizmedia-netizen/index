@@ -602,28 +602,8 @@ const sanityQuery = encodeURIComponent(queryText);
             const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
             const postCategory = post.category || "Maqola";
 
-            // TA'RIF MATNINI ANIQLASH (Sanity block content yoki string bo'lishi mumkin)
-            let rawText = post.description || post.body || post.text || post.content || '';
-            let postDescription = '';
-
-            if (Array.isArray(rawText)) {
-                postDescription = rawText
-                    .map(block => block.children ? block.children.map(c => c.text).join('') : '')
-                    .join(' ')
-                    .trim();
-            } else if (typeof rawText === 'string') {
-                postDescription = rawText;
-            }
-
-            // Agar matn bo'sh bo'lsa, zaxira matn
-            if (!postDescription || postDescription.trim() === '') {
-                postDescription = 'Batafsil ma\'lumot olish uchun quyidagi tugma orqali maqolani o\'quvchilar bilan ulashing.';
-            }
-
-            // Kartochka sig'imi uchun matn uzunligini qisqartirish
-            if (postDescription.length > 120) {
-                postDescription = postDescription.substring(0, 120) + "...";
-            }
+            // Ta'rif joyiga bazadan kelgan hamma kalitlarni yozib qo'yamiz
+let postDescription = "Mavjud kalitlar: " + Object.keys(post).join(", ");
 
             return `
                 <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
