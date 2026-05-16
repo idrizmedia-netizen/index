@@ -468,7 +468,7 @@
     const userInputAi = document.getElementById('user-input-ai');
     const chatWindow = document.getElementById('chat-window');
 
-    // 3. OAuth oqimidan qaytgan tokenni ushlash (URL parsdan o'tkaziladi)
+    // 3. OAuth oqimidan qaytgan tokenni ushlash
     async function handleGoogleCallback() {
         const hash = window.location.hash;
         if (hash.includes("id_token")) {
@@ -477,12 +477,9 @@
             
             if (idToken) {
                 try {
-                    // Firebase-ga tayyor tokenni beramiz - u ortiq domenni tekshirib o'tirmaydi!
                     const credential = GoogleAuthProvider.credential(idToken);
                     const result = await signInWithCredential(auth, credential);
                     localStorage.setItem('user', JSON.stringify(result.user));
-                    
-                    // URL-ni tozalaymiz (hash qismini olib tashlaymiz)
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } catch (error) {
                     console.error("Token bilan kirishda xato:", error);
@@ -492,30 +489,28 @@
     }
     handleGoogleCallback();
 
-   // Kirish funksiyasi (Kichik tuzatish bilan)
-if (loginBtn) {
-    loginBtn.onclick = (e) => {
-        e.preventDefault();
-        if (!auth.currentUser) {
-            const clientId = "982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com";
-            
-            // MUHIM TUZATISH: Oxiriga slash qo'shilganini aniqlashtiramiz
-            const redirectUri = window.location.origin + "/"; 
-            
-            const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-                `client_id=${clientId}` +
-                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                `&response_type=id_token` +
-                `&scope=openid%20profile%20email` +
-                `&nonce=random_nonce_string` +
-                `&prompt=select_account`;
+    // 4. Kirish funksiyasi (Google OAuth)
+    if (loginBtn) {
+        loginBtn.onclick = (e) => {
+            e.preventDefault();
+            if (!auth.currentUser) {
+                const clientId = "982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com";
+                const redirectUri = window.location.origin + "/"; 
+                
+                const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                    `client_id=${clientId}` +
+                    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                    `&response_type=id_token` +
+                    `&scope=openid%20profile%20email` +
+                    `&nonce=random_nonce_string` +
+                    `&prompt=select_account`;
 
-            window.location.href = googleOAuthUrl;
-        } else {
-            if (dropdown) dropdown.classList.toggle('show');
-        }
-    };
-}
+                window.location.href = googleOAuthUrl;
+            } else {
+                if (dropdown) dropdown.classList.toggle('show');
+            }
+        };
+    }
 
     // 5. Chiqish funksiyasi
     if (logoutBtn) {
@@ -537,7 +532,6 @@ if (loginBtn) {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
-            
             if (loginBtn) {
                 loginBtn.innerHTML = `
                     <img src="${user.photoURL}" style="width:26px; height:26px; border-radius:50%; vertical-align:middle; margin-right:8px; border: 1px solid white;">
@@ -545,7 +539,6 @@ if (loginBtn) {
                 `;
                 loginBtn.style.backgroundColor = "#10b981"; 
             }
-
             if (userInputAi) {
                 userInputAi.disabled = false;
                 userInputAi.placeholder = "Savol yozing...";
@@ -557,12 +550,10 @@ if (loginBtn) {
             }
         } else {
             localStorage.removeItem('user');
-
             if (loginBtn) {
                 loginBtn.innerHTML = `<i class="fab fa-google"></i> Kirish`;
                 loginBtn.style.backgroundColor = "var(--primary-color)";
             }
-
             if (userInputAi) {
                 userInputAi.disabled = true;
                 userInputAi.placeholder = "Tizimga kiring...";
@@ -575,7 +566,7 @@ if (loginBtn) {
         }
     });
 
-    // Dropdown yopilish mantiqi
+    // 7. Dropdown yopilish mantiqi
     window.addEventListener('click', (e) => {
         if (dropdown && dropdown.classList.contains('show')) {
             if (!loginBtn.contains(e.target) && !dropdown.contains(e.target)) {
@@ -604,7 +595,7 @@ if (loginBtn) {
         if (!postsContainer) return;
 
         if (!posts || posts.length === 0) {
-            postsContainer.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Hozircha maqolalar正式 mavjud emas.</p>';
+            postsContainer.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Hozircha maqolalar mavjud emas.</p>';
             return;
         }
 
@@ -640,7 +631,6 @@ if (loginBtn) {
     }
 
     loadSanityPosts();
-</script>
 </script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
