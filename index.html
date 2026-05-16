@@ -587,11 +587,12 @@
     const queryText = `*[_type == "post"] | order(publishedAt desc) { 
         title, 
         telegramLink, 
-        description,
-        excerpt,
-        body,
-        "category": category->title, 
-        "imageUrl": mainImage.asset->url 
+        "category": category->title,
+        "imageUrl": mainImage.asset->url,
+        // Sanity-dagi har qanday blokli matnni oddiy textga aylantirib olish:
+        "plainDescription": pt::text(description),
+        "plainBody": pt::text(body),
+        "plainExcerpt": pt::text(excerpt)
     }`;
     const sanityQuery = encodeURIComponent(queryText);
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
@@ -608,50 +609,21 @@
         postsContainer.innerHTML = posts.map((post, index) => {
             const delay = index * 200;
             const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
-            const postCategory = post.category || "Fizika / Ta'lim";
+            
+            // Siz xohlagandek: "Fizika" so'zi chiqmaydi. Sanity-dagi haqiqiy kategoriya chiqadi, bo'lmasa "Maqola" bo'ladi.
+            const postCategory = post.category || "Maqola";
 
-            // MATNNI TOZALASH VA TORTIB OLISH MANTIQI
-            let postDescription = '';
+            // Sanity serverida oddiy matnga aylantirilgan tayyor ta'rifni olamiz
+            let postDescription = post.plainDescription || post.plainExcerpt || post.plainBody || '';
 
-            // Funksiya: Sanity-ning Block Content (Array) tuzilishidan matnlarni yig'ib chiqadi
-            function extractTextFromBlock(blockArray) {
-                if (!Array.isArray(blockArray)) return '';
-                return blockArray
-                    .map(block => {
-                        if (block._type === 'block' && block.children) {
-                            return block.children.map(child => child.text).join('');
-                        }
-                        return '';
-                    })
-                    .join(' ')
-                    .trim();
-            }
-
-            // 1. Agar description oddiy matn bo'lsa
-            if (typeof post.description === 'string' && post.description.trim() !== '') {
-                postDescription = post.description;
-            } 
-            // 2. Agar description Sanity-da Block Content (Massiv) bo'lsa
-            else if (Array.isArray(post.description)) {
-                postDescription = extractTextFromBlock(post.description);
-            }
-            // 3. Agar excerpt oddiy matn bo'lsa
-            else if (typeof post.excerpt === 'string' && post.excerpt.trim() !== '') {
-                postDescription = post.excerpt;
-            }
-            // 4. Agar bular bo'lmasa, asosiy body (Katta matn) massivini tekshiramiz
-            else if (Array.isArray(post.body)) {
-                postDescription = extractTextFromBlock(post.body);
-            }
-
-            // Agar baribir hech narsa topilmasa, zaxira matn
+            // Agar hamma joy bo'sh bo'lsa, Sanity panelida matn yozilmagan bo'ladi
             if (!postDescription || postDescription.trim() === '') {
-                postDescription = 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan yoki matn formati boshqacha.';
+                postDescription = 'Ushbu maqola mazmuni bilan tanishish uchun "O\'qish" tugmasini bosing.';
             }
 
-            // Kartochka vizual buzilmasligi uchun matnni qisqartiramiz (max 130 harf)
-            if (postDescription.length > 130) {
-                postDescription = postDescription.substring(0, 130) + "...";
+            // Kartochka chiroyli turishi uchun matn uzunligini cheklaymiz (max 120 harf)
+            if (postDescription.length > 120) {
+                postDescription = postDescription.substring(0, 120) + "...";
             }
 
             return `
