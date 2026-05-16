@@ -584,7 +584,7 @@
     const SANITY_DATASET = "production";
 
     // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, body, text, content, telegramLink, "category": category->title, "imageUrl": mainImage.asset->url }';
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { ... }';
 const sanityQuery = encodeURIComponent(queryText);
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
