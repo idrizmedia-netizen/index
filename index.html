@@ -449,15 +449,15 @@
     </footer>
 
    <script type="module">
-    // 1. Firebase v12 kutubxonalarini eng so'nggi manzillardan import qilish
+    // 1. Firebase v12 kutubxonalari
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
     import { 
         getAuth, 
-        signInWithPopup, 
+        signInWithRedirect, // Popup o'rniga Redirect usulini import qilamiz
+        getRedirectResult,  // Redirect-dan qaytgan natijani olish uchun
         GoogleAuthProvider, 
         onAuthStateChanged, 
-        signOut,
-        browserPopupRedirectResolver 
+        signOut 
     } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
     // 2. Konfiguratsiya
@@ -475,39 +475,44 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-
-    // Google kirish sozlamalari: Har doim akkaunt tanlash oynasini ochadi
     provider.setCustomParameters({ prompt: 'select_account' });
 
-    // 4. Elementlarni olish (null bo'lsa xato bermasligi uchun ehtiyotkorlik bilan)
+    // HTML elementlarni olish
     const loginBtn = document.getElementById('login-btn');
     const dropdown = document.getElementById('myDropdown');
     const logoutBtn = document.getElementById('logout-btn');
     const userInputAi = document.getElementById('user-input-ai');
     const chatWindow = document.getElementById('chat-window');
 
-    // 5. Kirish funksiyasi
+    // 4. Redirect natijasini tekshirish (Sahifa Google-dan qaytib kelganda ishlaydi)
+    async function checkRedirect() {
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                localStorage.setItem('user', JSON.stringify(result.user));
+                console.log("Redirect orqali muvaffaqiyatli kirildi:", result.user.displayName);
+            }
+        } catch (err) {
+            console.error("Redirect natijasini olishda xato:", err);
+        }
+    }
+    // Sahifa yuklanganda darhol tekshiramiz
+    checkRedirect();
+
+    // 5. Kirish funksiyasi (Muammoli Popup o'rniga xavfsiz Redirect)
     if (loginBtn) {
         loginBtn.onclick = async (e) => {
             e.preventDefault();
             try {
                 if (!auth.currentUser) {
-                    // browserPopupRedirectResolver v12 dagi popup muammolarini yechadi
-                    const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
-                    localStorage.setItem('user', JSON.stringify(result.user));
-                    console.log("Muvaffaqiyatli kirildi:", result.user.displayName);
-                    // Reload qilish orqali barcha scriptlarni foydalanuvchi holatiga moslaymiz
-                    window.location.reload();
+                    // Sahifa to'g'ridan-to'g'ri Google-ga yo'naltiriladi va qaytib keladi
+                    await signInWithRedirect(auth, provider);
                 } else {
                     if (dropdown) dropdown.classList.toggle('show');
                 }
             } catch (err) {
                 console.error("Firebase Login Xatosi:", err);
-                if (err.code === 'auth/popup-blocked') {
-                    alert("Brauzer popup oynasini blokladi. Iltimos ruxsat bering.");
-                } else {
-                    alert("Kirishda xatolik yuz berdi: " + err.message);
-                }
+                alert("Xatolik yuz berdi: " + err.message);
             }
         };
     }
@@ -528,10 +533,9 @@
         };
     }
 
-    // 7. Foydalanuvchi holatini real vaqtda kuzatish
+    // 7. Foydalanuvchi holatini kuzatish
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // TIZIMGA KIRILGAN HOLAT
             localStorage.setItem('user', JSON.stringify(user));
             
             if (loginBtn) {
@@ -542,7 +546,6 @@
                 loginBtn.style.backgroundColor = "#10b981"; 
             }
 
-            // AI qismini faollashtirish
             if (userInputAi) {
                 userInputAi.disabled = false;
                 userInputAi.placeholder = "Savol yozing...";
@@ -553,7 +556,6 @@
                 chatWindow.style.filter = "none";
             }
         } else {
-            // TIZIMDAN CHIQILGAN HOLAT
             localStorage.removeItem('user');
 
             if (loginBtn) {
@@ -561,7 +563,6 @@
                 loginBtn.style.backgroundColor = "var(--primary-color)";
             }
 
-            // AI qismini bloklash
             if (userInputAi) {
                 userInputAi.disabled = true;
                 userInputAi.placeholder = "Tizimga kiring...";
@@ -574,7 +575,7 @@
         }
     });
 
-    // 8. Dropdown yopilish mantiqi
+    // Dropdown yopilish mantiqi
     window.addEventListener('click', (e) => {
         if (dropdown && dropdown.classList.contains('show')) {
             if (!loginBtn.contains(e.target) && !dropdown.contains(e.target)) {
