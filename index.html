@@ -504,31 +504,30 @@
     }
     handleGoogleCallback();
 
-    // 4. Kirish funksiyasi (Google-ning to'g'ridan-to'g'ri rasmiy login havolasi)
-    if (loginBtn) {
-        loginBtn.onclick = (e) => {
-            e.preventDefault();
-            if (!auth.currentUser) {
-                // Client ID sizning rasmiy Google Cloud ID'ngizdan olindi
-                const clientId = "982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com";
-                const redirectUri = window.location.origin; // Avtomatik https://ziyomap.vercel.app bo'ladi
-                
-                // Google-ning rasmiy xavfsiz OAuth manzili
-                const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-                    `client_id=${clientId}` +
-                    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                    `&response_type=id_token` +
-                    `&scope=openid%20profile%20email` +
-                    `&nonce=random_nonce_string` +
-                    `&prompt=select_account`;
+   // Kirish funksiyasi (Kichik tuzatish bilan)
+if (loginBtn) {
+    loginBtn.onclick = (e) => {
+        e.preventDefault();
+        if (!auth.currentUser) {
+            const clientId = "982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com";
+            
+            // MUHIM TUZATISH: Oxiriga slash qo'shilganini aniqlashtiramiz
+            const redirectUri = window.location.origin + "/"; 
+            
+            const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${clientId}` +
+                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+                `&response_type=id_token` +
+                `&scope=openid%20profile%20email` +
+                `&nonce=random_nonce_string` +
+                `&prompt=select_account`;
 
-                // Sahifani to'g'ridan-to'g'ri Google-ga yo'naltiramiz
-                window.location.href = googleOAuthUrl;
-            } else {
-                if (dropdown) dropdown.classList.toggle('show');
-            }
-        };
-    }
+            window.location.href = googleOAuthUrl;
+        } else {
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+    };
+}
 
     // 5. Chiqish funksiyasi
     if (logoutBtn) {
