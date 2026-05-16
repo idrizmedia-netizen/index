@@ -575,19 +575,18 @@
         }
     });
 
-    // =========================================================
+   // =========================================================
     // SANITY-DAN MAQOLALARNI DINAMIK YUKLASH VA TELEGRAMGA ULASH
     // =========================================================
-    const SANITY_PROJECT_ID = "ziyomap"; 
+    
+    // JUDA MUHIM TUZATISH: Bu yerga Sanity panelidagi haqiqiy Project ID kodingizni yozing!
+    const SANITY_PROJECT_ID = "25lh4m7u"; 
     const SANITY_DATASET = "production";
 
-    const sanityQuery = encodeURIComponent(`*[_type == "post"] | order(publishedAt desc) {
-        title,
-        description,
-        telegramLink,
-        "category": category->title
-    }`);
-
+    // So'rov formatini xavfsiz va toza holatga keltiramiz
+    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, telegramLink, "category": category->title }';
+    const sanityQuery = encodeURIComponent(queryText);
+    
     const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
 
     function displaySanityPosts(posts) {
