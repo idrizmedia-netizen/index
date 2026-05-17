@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Peshqadamlar Reytingi — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--yellow:#eab308;--blue:#4f7cff;--radius:16px}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
+.main-container{max-width:600px;width:100%;margin:32px auto;padding:0 20px}
+.header-title{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:20px;text-align:center}
+.leaderboard-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
+.lb-item{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:16px;transition:all 0.2s;margin-bottom:8px}
+.lb-item:last-child{margin-bottom:0}
+.lb-item:hover{background:var(--bg)}
+.lb-item.user-row{background:#eff3ff;border:1px solid #bfdbfe}
+.rank{font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:800;width:30px;text-align:center}
+.avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
+.info{flex:1}
+.name{font-size:15px;font-weight:700}
+.pts{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;color:var(--blue)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="index.html">⬅ Orqaga</a>
+  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">🏆 Peshqadamlar</h2>
+</div>
+
+<div class="main-container">
+  <h1 class="header-title">Top O'quvchilar Reytingi 🏆</h1>
+  <div class="leaderboard-card" id="leaderboardBox">
+    </div>
+</div>
+
+<script>
+// Virtual peshqadamlar ro'yxati
+const dynamicLeaders = [
+  {name: "Asadbek Olimov", score: 850, av: "A", bg: "#4f7cff"},
+  {name: "Zilola To'rayeva", score: 720, av: "Z", bg: "#22c55e"},
+  {name: "Jasur Shodiyev", score: 640, av: "J", bg: "#ec4899"},
+  {name: "Madina Axmedova", score: 510, av: "M", bg: "#a855f7"},
+  {name: "Sardorbek", score: 430, av: "S", bg: "#14b8a6"}
+];
+
+function renderLeaderboard() {
+  const userScore = parseInt(localStorage.getItem("ziyomap_total") || "0");
+  const userName = localStorage.getItem("ziyomap_user") || "Mehmon";
+  
+  // Foydalanuvchini ro'yxatga qo'shish
+  let allPlayers = [...dynamicLeaders, {name: userName + " (Siz)", score: userScore, av: userName[0].toUpperCase(), bg: "#f97316", isUser: true}];
+  
+  // Ballar bo'yicha saralash
+  allPlayers.sort((a, b) => b.score - a.score);
+  
+  const container = document.getElementById("leaderboardBox");
+  container.innerHTML = "";
+  
+  allPlayers.forEach((player, index) => {
+    const medals = ["🥇", "🥈", "🥉"];
+    const rankDisplay = medals[index] || (index + 1);
+    
+    const row = document.createElement("div");
+    row.className = `lb-item ${player.isUser ? 'user-row' : ''}`;
+    
+    row.innerHTML = `
+      <div class="rank">${rankDisplay}</div>
+      <div class="avatar" style="background:${player.bg}">${player.av}</div>
+      <div class="info">
+        <div class="name">${player.name}</div>
+      </div>
+      <div class="pts">${player.score} ball</div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+renderLeaderboard();
+</script>
+</body>
+</html>
