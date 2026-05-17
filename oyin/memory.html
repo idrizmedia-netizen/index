@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Xotira O'yini — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--pink:#ec4899;--green:#22c55e;--blue:#4f7cff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
+.game-container{max-width:480px;width:100%;margin:auto;padding:20px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.card{height:90px;background:var(--white);border:2px solid var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:all 0.2s}
+.card.flipped{background:linear-gradient(135deg,#fdf2f8,#fff);border-color:var(--pink)}
+.card.matched{background:#f0fdf4;border-color:var(--green);cursor:default;opacity:0.7}
+.win-box{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;display:none}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--pink);color:#fff;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="index.html">⬅ Orqaga</a>
+  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">🧠 Xotira O'yini</h2>
+</div>
+
+<div class="game-container">
+  <div class="grid" id="gridBox"></div>
+
+  <div class="win-box" id="winBox">
+    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Daho! 🧠</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Xotirangiz juda o'tkir ekan. Barcha juftliklarni topdingiz!</p>
+    <p style="font-size:20px;font-weight:800;color:var(--pink);margin-bottom:24px">+50 ball qo'shildi!</p>
+    <a class="btn" href="index.html">🏠 O'yinlar maydoniga qaytish</a>
+  </div>
+</div>
+
+<script>
+const icons = ["💡","💡","💻","💻","📐","📐","⚛️","⚛️","🔬","🔬","🎒","🎒","🌌","🌌","🧮","🧮"];
+let flippedCards = [], matchedCount = 0;
+
+function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+
+function createBoard() {
+  const grid = document.getElementById("gridBox");
+  const shuffled = shuffle([...icons]);
+  shuffled.forEach((icon, index) => {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.dataset.icon = icon;
+    card.dataset.id = index;
+    card.textContent = "❓";
+    card.addEventListener("click", flipCard);
+    grid.appendChild(card);
+  });
+}
+
+function flipCard() {
+  if (flippedCards.length >= 2 || this.classList.contains("flipped") || this.classList.contains("matched")) return;
+  this.classList.add("flipped");
+  this.textContent = this.dataset.icon;
+  flippedCards.push(this);
+
+  if (flippedCards.length === 2) {
+    setTimeout(checkMatch, 600);
+  }
+}
+
+function checkMatch() {
+  const [c1, c2] = flippedCards;
+  if (c1.dataset.icon === c2.dataset.icon) {
+    c1.classList.add("matched"); c2.classList.add("matched");
+    matchedCount += 2;
+    if (matchedCount === icons.length) {
+      document.getElementById("gridBox").style.display = "none";
+      document.getElementById("winBox").style.display = "block";
+      let total = parseInt(localStorage.getItem("ziyomap_total") || "0");
+      localStorage.setItem("ziyomap_total", total + 50);
+    }
+  } else {
+    c1.classList.remove("flipped"); c2.classList.remove("flipped");
+    c1.textContent = "❓"; c2.textContent = "❓";
+  }
+  flippedCards = [];
+}
+
+createBoard();
+</script>
+</body>
+</html>
