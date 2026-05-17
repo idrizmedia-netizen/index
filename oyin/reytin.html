@@ -35,44 +35,70 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <div class="main-container">
   <h1 class="header-title">Top O'quvchilar Reytingi 🏆</h1>
   <div class="leaderboard-card" id="leaderboardBox">
-    </div>
+  </div>
 </div>
 
 <script>
-// Virtual peshqadamlar ro'yxati
-const dynamicLeaders = [
-  {name: "Asadbek Olimov", score: 850, av: "A", bg: "#4f7cff"},
-  {name: "Zilola To'rayeva", score: 720, av: "Z", bg: "#22c55e"},
-  {name: "Jasur Shodiyev", score: 640, av: "J", bg: "#ec4899"},
-  {name: "Madina Axmedova", score: 510, av: "M", bg: "#a855f7"},
-  {name: "Sardorbek", score: 430, av: "S", bg: "#14b8a6"}
-];
-
 function renderLeaderboard() {
+  // 1. Joriy kirgan foydalanuvchining ismi va umumiy balini aniqlaymiz
   const userScore = parseInt(localStorage.getItem("ziyomap_total") || "0");
   const userName = localStorage.getItem("ziyomap_user") || "Mehmon";
-  
-  // Foydalanuvchini ro'yxatga qo'shish
-  let allPlayers = [...dynamicLeaders, {name: userName + " (Siz)", score: userScore, av: userName[0].toUpperCase(), bg: "#f97316", isUser: true}];
-  
-  // Ballar bo'yicha saralash
-  allPlayers.sort((a, b) => b.score - a.score);
-  
+
+  // 2. Global umumiy reyting ro'yxatini brauzer xotirasidan yuklab olamiz
+  let globalLeaders = JSON.parse(localStorage.getItem("ziyomap_global_leaderboard") || "[]");
+
+  // 3. Joriy o'quvchi xotiradagi ro'yxatda bor yoki yo'qligini tekshiramiz
+  let playerExist = globalLeaders.find(p => p.name.toLowerCase() === userName.toLowerCase());
+
+  if (playerExist) {
+    // Agar o'quvchi ro'yxatda bo'lsa va yangi o'yinlarda balini oshirgan bo'lsa, balini yangilaymiz
+    if (userScore > playerExist.score) {
+      playerExist.score = userScore;
+    }
+  } else {
+    // Agar mutlaqo yangi o'quvchi kirgan bo'lsa, unga chiroyli tasodifiy rang berib ro'yxatga qo'shamiz
+    const colors = ["#4f7cff", "#22c55e", "#ec4899", "#a855f7", "#14b8a6", "#f97316", "#eab308"];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    globalLeaders.push({
+      name: userName,
+      score: userScore,
+      av: userName[0].toUpperCase(),
+      bg: randomColor
+    });
+  }
+
+  // 4. Yangilangan ro'yxatni qaytadan xotiraga saqlab qo'yamiz
+  localStorage.setItem("ziyomap_global_leaderboard", JSON.stringify(globalLeaders));
+
+  // 5. O'quvchilarni ballari bo'yicha yuqoridan pastga qarab saralaymiz (Dinamik ko'tarilish)
+  globalLeaders.sort((a, b) => b.score - a.score);
+
   const container = document.getElementById("leaderboardBox");
   container.innerHTML = "";
-  
-  allPlayers.forEach((player, index) => {
+
+  // 6. Agar hali hech kim kirmagan bo'lsa, chiroyli xabarnoma chiqaradi
+  if (globalLeaders.length === 0 || (globalLeaders.length === 1 && globalLeaders[0].name === "Mehmon" && globalLeaders[0].score === 0)) {
+    container.innerHTML = `<p style="color:var(--muted); text-align:center; padding:20px; font-weight:600;">Hali o'yinlarda o'quvchilar ro'yxatdan o'tmagan.</p>`;
+    return;
+  }
+
+  // 7. Ro'yxatni ekranga chiqarish (Medallar va joriy o'quvchini alohida rang bilan belgilash)
+  globalLeaders.forEach((player, index) => {
     const medals = ["🥇", "🥈", "🥉"];
     const rankDisplay = medals[index] || (index + 1);
     
+    // Kirib turgan o'quvchining qatori ko'kroq rangda ajralib turadi
+    const isCurrentUser = player.name.toLowerCase() === userName.toLowerCase();
+
     const row = document.createElement("div");
-    row.className = `lb-item ${player.isUser ? 'user-row' : ''}`;
+    row.className = `lb-item ${isCurrentUser ? 'user-row' : ''}`;
     
     row.innerHTML = `
       <div class="rank">${rankDisplay}</div>
       <div class="avatar" style="background:${player.bg}">${player.av}</div>
       <div class="info">
-        <div class="name">${player.name}</div>
+        <div class="name">${player.name} ${isCurrentUser ? '(Siz)' : ''}</div>
       </div>
       <div class="pts">${player.score} ball</div>
     `;
@@ -80,6 +106,7 @@ function renderLeaderboard() {
   });
 }
 
+// Sahifa yuklanganda funksiyani ishga tushiramiz
 renderLeaderboard();
 </script>
 </body>
