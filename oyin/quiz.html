@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Quiz — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--purple:#a855f7}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent}
+.back-btn:hover{background:var(--bg)}
+.topbar-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.score-pill{background:var(--bg);border:1px solid var(--border);padding:6px 16px;border-radius:20px;font-size:14px;font-weight:700;color:var(--yellow)}
+
+.wrap{max-width:780px;margin:0 auto;padding:24px 16px}
+
+/* SETUP */
+#setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:6px}
+#setupScreen p{color:var(--muted);margin-bottom:28px}
+.setup-label{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text)}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:24px}
+.fan-card{
+  border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;
+  text-align:center;background:var(--white);transition:all 0.15s;
+}
+.fan-card:hover{border-color:var(--blue)}
+.fan-card.sel{border-color:var(--blue);background:#eff3ff}
+.fan-card.sel .fan-name{color:var(--blue)}
+.fan-icon{font-size:2rem;margin-bottom:6px}
+.fan-name{font-size:13px;font-weight:700}
+.fan-count{font-size:11px;color:var(--muted);margin-top:2px}
+
+.diff-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.diff-btn{
+  padding:10px 22px;border-radius:30px;border:2px solid var(--border);
+  background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;
+}
+.diff-btn.sel-easy{border-color:var(--green);background:#f0fdf4;color:var(--green)}
+.diff-btn.sel-medium{border-color:var(--yellow);background:#fefce8;color:var(--yellow)}
+.diff-btn.sel-hard{border-color:var(--red);background:#fef2f2;color:var(--red)}
+
+.q-count-row{display:flex;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+.qc-btn{
+  padding:8px 18px;border-radius:10px;border:1.5px solid var(--border);
+  background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all 0.15s;
+}
+.qc-btn.sel{border-color:var(--blue);background:#eff3ff;color:var(--blue)}
+
+.start-big{
+  width:100%;padding:16px;border-radius:14px;border:none;background:var(--blue);
+  color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;
+  cursor:pointer;transition:all 0.15s;
+}
+.start-big:hover{background:#3d6bff;transform:translateY(-2px)}
+
+/* QUIZ */
+#quizScreen{display:none}
+.quiz-progress{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.pbar-wrap{flex:1}
+.pbar-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+.pbar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.pbar-fill{height:100%;background:var(--blue);border-radius:4px;transition:width 0.4s}
+.timer-box{
+  width:56px;height:56px;border-radius:50%;border:3px solid var(--border);
+  display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;
+}
+.timer-svg{position:absolute;top:-3px;left:-3px;transform:rotate(-90deg)}
+.timer-svg circle{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.timer-num{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.timer-box.warn .timer-svg circle{stroke:var(--red)}
+.timer-box.warn .timer-num{color:var(--red)}
+
+.q-card{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:16px}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.q-fan-tag{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.q-diff-tag{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.q-text{font-size:1.15rem;font-weight:700;line-height:1.5}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:540px){.opts{grid-template-columns:1fr}}
+.opt{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  border-radius:14px;border:2px solid var(--border);background:var(--white);
+  cursor:pointer;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;
+  text-align:left;transition:all 0.15s;color:var(--text);
+}
+.opt:hover:not(:disabled){border-color:var(--blue);background:#eff3ff}
+.opt-lbl{width:30px;height:30px;border-radius:8px;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.opt.correct{border-color:var(--green);background:#f0fdf4}
+.opt.correct .opt-lbl{background:var(--green);color:#fff}
+.opt.wrong{border-color:var(--red);background:#fef2f2}
+.opt.wrong .opt-lbl{background:var(--red);color:#fff}
+.exp-box{background:#eff3ff;border-radius:12px;padding:14px 16px;margin-top:10px;font-size:14px;color:#3d5cf5;line-height:1.6;display:none}
+.next-btn{
+  width:100%;padding:14px;border-radius:12px;border:none;background:var(--blue);
+  color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;
+  cursor:pointer;margin-top:12px;display:none;
+}
+.next-btn:hover{background:#3d6bff}
+
+/* RESULT */
+#resultScreen{display:none}
+.result-wrap{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:24px}
+.res-emoji{font-size:5rem;margin-bottom:12px}
+.res-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--blue)}
+.res-sub{font-size:1rem;color:var(--muted);margin-top:4px;margin-bottom:20px}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.res-box{background:var(--bg);border-radius:12px;padding:16px;text-align:center}
+.res-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.res-k{font-size:12px;color:var(--muted);margin-top:3px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-out{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.btn-out:hover{background:var(--bg)}
+.btn-prim{flex:1;padding:12px;border-radius:12px;border:none;background:var(--blue);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.btn-prim:hover{background:#3d6bff}
+
+/* LB */
+.lb-section{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
+.lb-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin-bottom:6px}
+.lb-item:nth-child(1){background:#fffbeb}
+.lb-item:nth-child(2){background:#f9fafb}
+.lb-item:nth-child(3){background:#fdf4ff}
+.lb-rank{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;width:32px;text-align:center}
+.lb-av{width:36px;height:36px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;flex-shrink:0}
+.lb-nm{font-size:14px;font-weight:700;flex:1}
+.lb-sc{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--yellow)}
+
+.combo-toast{
+  position:fixed;top:80px;right:20px;background:#fbbf24;color:#000;
+  padding:10px 20px;border-radius:30px;font-family:'Outfit',sans-serif;font-weight:800;
+  font-size:1rem;z-index:999;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(0.5) translateY(-20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-btn" href="index.html">← Orqaga</a>
+  <div class="topbar-title">❓ Quiz Musobaqa</div>
+  <div class="topbar-right">
+    <div class="score-pill">⭐ <span id="hScore">0</span></div>
+    <div class="score-pill" style="color:var(--text)">👤 <span id="hUser">—</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- SETUP -->
+  <div id="setupScreen">
+    <h2>Quiz sozlamalari</h2>
+    <p>Fan, qiyinlik va savol sonini tanlang</p>
+    <div class="setup-label">📚 Fan tanlang (bir yoki ko'p)</div>
+    <div class="fan-grid" id="fanGrid"></div>
+    <div class="setup-label">⚡ Qiyinlik darajasi</div>
+    <div class="diff-row">
+      <button class="diff-btn sel-easy" data-d="easy" onclick="pickDiff(this)">🟢 Oson (20s)</button>
+      <button class="diff-btn" data-d="medium" onclick="pickDiff(this)">🟡 O'rta (15s)</button>
+      <button class="diff-btn" data-d="hard" onclick="pickDiff(this)">🔴 Qiyin (10s)</button>
+      <button class="diff-btn" data-d="all" onclick="pickDiff(this)">🌈 Aralash</button>
+    </div>
+    <div class="setup-label">🔢 Savollar soni</div>
+    <div class="q-count-row">
+      <button class="qc-btn sel" data-n="10" onclick="pickN(this)">10 ta</button>
+      <button class="qc-btn" data-n="20" onclick="pickN(this)">20 ta</button>
+      <button class="qc-btn" data-n="30" onclick="pickN(this)">30 ta</button>
+      <button class="qc-btn" data-n="50" onclick="pickN(this)">50 ta</button>
+    </div>
+    <button class="start-big" onclick="startQuiz()">▶ Boshlash</button>
+
+    <div style="margin-top:32px">
+      <div class="lb-section">
+        <div class="lb-title">🏆 Reyting jadvali</div>
+        <div id="lbBody"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quizScreen">
+    <div class="quiz-progress">
+      <div class="pbar-wrap">
+        <div class="pbar-top">
+          <span id="progTxt">1/10</span>
+          <span id="catLabel" style="color:var(--blue);font-weight:700"></span>
+        </div>
+        <div class="pbar"><div class="pbar-fill" id="pbarFill" style="width:0%"></div></div>
+      </div>
+      <div class="timer-box" id="timerBox">
+        <svg class="timer-svg" width="62" height="62" viewBox="0 0 62 62">
+          <circle cx="31" cy="31" r="27" id="timerCirc" stroke-dasharray="169.6" stroke-dashoffset="0"/>
+        </svg>
+        <span class="timer-num" id="timerN">20</span>
+      </div>
+    </div>
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="q-fan-tag" id="qFanTag"></span>
+        <span class="q-diff-tag" id="qDiffTag"></span>
+      </div>
+      <div class="q-text" id="qText"></div>
+    </div>
+    <div class="opts" id="optsWrap"></div>
+    <div class="exp-box" id="expBox"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQ()">Keyingi →</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultScreen">
+    <div class="result-wrap">
+      <div class="res-emoji" id="resEmoji">🏆</div>
+      <div class="res-pts" id="resPts">0</div>
+      <div class="res-sub" id="resSub">ball to'plandi</div>
+      <div class="res-grid">
+        <div class="res-box"><div class="res-v" id="rv1">0</div><div class="res-k">✅ To'g'ri</div></div>
+        <div class="res-box"><div class="res-v" id="rv2">0</div><div class="res-k">❌ Noto'g'ri</div></div>
+        <div class="res-box"><div class="res-v" id="rv3">0%</div><div class="res-k">📊 Natija</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-out" onclick="backSetup()">⚙ Sozlash</button>
+        <button class="btn-prim" onclick="startQuiz()">🔄 Qayta</button>
+        <button class="btn-out" onclick="location.href='index.html'">🏠 Bosh</button>
+      </div>
+    </div>
+    <div class="lb-section">
+      <div class="lb-title">🏆 Reyting jadvali</div>
+      <div id="lbBody2"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FANS = [
+  {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
+  {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
+  {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
+  {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
+  {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
+  {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
+  {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
+];
+const ALL_Q = {
+  fizika:[
+    {q:"Yorug'lik vakuumda qanday tezlikda tarqaladi?",a:1,o:["100,000 km/s","300,000 km/s","150,000 km/s","500,000 km/s"],e:"Yorug'lik vakuumda c ≈ 3×10⁸ m/s = 300,000 km/s.",d:"easy"},
+    {q:"Nyutonning ikkinchi qonuni formulasi?",a:0,o:["F = ma","E = mc²","P = mv","W = Fd"],e:"F = ma — kuch = massa × tezlanish.",d:"easy"},
+    {q:"Ohm qonuniga ko'ra tok kuchi I = ?",a:2,o:["U × R","R / U","U / R","U + R"],e:"I = U/R — Ohm qonuni.",d:"easy"},
+    {q:"Gravitatsiya tezlanishi Yorda qancha?",a:0,o:["9.8 m/s²","6.7 m/s²","12 m/s²","3.7 m/s²"],e:"g ≈ 9.8 m/s² Yer yuzasida.",d:"easy"},
+    {q:"1 kVt necha Vt?",a:3,o:["10 Vt","100 Vt","10,000 Vt","1000 Vt"],e:"1 kVt = 1000 Vt.",d:"easy"},
+    {q:"Elektr quvvati P = ?",a:2,o:["P = I/U","P = R·I","P = U·I","P = U²/I"],e:"P = U·I — quvvat formulasi.",d:"medium"},
+    {q:"1 atm bosim necha Pa?",a:1,o:["10,000 Pa","101,325 Pa","100,000 Pa","98,000 Pa"],e:"1 atm = 101,325 Pa.",d:"medium"},
+    {q:"Arximed kuchi formulasi?",a:0,o:["F = ρgV","F = mg","F = ma","F = kx"],e:"Arximed kuchi F = ρ·g·V — suyuqlik zichligi × g × sho'ng'irilgan hajm.",d:"medium"},
+    {q:"Termodinamikaning birinchi qonuni nimani ifodalaydi?",a:2,o:["Entropiya o'sadi","Issiqlik o'tishi","Energiya saqlanishi","Gaz kengayishi"],e:"I qonun — energiya saqlanish va o'zgarish qonuni.",d:"medium"},
+    {q:"Doppler effekti nima?",a:1,o:["Optik illyuziya","To'lqin chastotasining o'zgarishi","Magnit maydon","Yorug'lik sinishi"],e:"Doppler effekti — manba yoki kuzatuvchi harakatida to'lqin chastotasining o'zgarishi.",d:"hard"},
+    {q:"Kvant mexanikasida Plank doimiysi belgilanishi?",a:0,o:["h","k","R","G"],e:"Plank doimiysi h = 6.626×10⁻³⁴ J·s.",d:"hard"},
+    {q:"Atom yadrosini kim kashf etdi?",a:2,o:["Bor","Tomson","Rezerford","Kyuri"],e:"Ernest Rezerford 1911 yilda oltin folga tajribasida atom yadrosini kashf etdi.",d:"medium"},
+    {q:"Yorug'lik bir yilda qancha masofa bosadi?",a:1,o:["9.46×10¹² km","9.46×10¹² km","8×10¹² km","10×10¹² km"],e:"1 yorug'lik yili ≈ 9.46×10¹² km.",d:"hard"},
+    {q:"Kondensat holati qaysi?",a:3,o:["Qattiq","Suyuq","Gaz","Plazma"],e:"Moddaning to'rt asosiy holati: qattiq, suyuq, gaz, plazma.",d:"hard"},
+    {q:"Magnit induksiyasining SI birligi?",a:2,o:["Veber","Genri","Tesla","Farad"],e:"Magnit induksiyasi B ning birligi Tesla (T).",d:"medium"},
+  ],
+  matematika:[
+    {q:"π (pi) ning taxminiy qiymati?",a:0,o:["3.14159","3.12345","3.16000","3.10000"],e:"π ≈ 3.14159265...",d:"easy"},
+    {q:"log₂(8) = ?",a:2,o:["2","4","3","1"],e:"2³ = 8, shuning uchun log₂(8) = 3.",d:"easy"},
+    {q:"sin(90°) = ?",a:3,o:["0","√2/2","√3/2","1"],e:"sin(90°) = 1.",d:"easy"},
+    {q:"cos(0°) = ?",a:2,o:["0","1/2","1","√3/2"],e:"cos(0°) = 1.",d:"easy"},
+    {q:"5! (5 faktorial) = ?",a:1,o:["100","120","60","24"],e:"5! = 1×2×3×4×5 = 120.",d:"easy"},
+    {q:"Kvadrat tenglama diskriminanti D > 0 nima bildiradi?",a:1,o:["Ildizlar yo'q","Ikki haqiqiy ildiz","Bitta ildiz","Kompleks ildizlar"],e:"D > 0 → ikki xil haqiqiy ildiz.",d:"medium"},
+    {q:"Arifmetik progressiya n-hadi formulasi?",a:0,o:["a₁+(n−1)d","a₁×dⁿ","a₁+nd","a₁−nd"],e:"aₙ = a₁ + (n−1)d.",d:"medium"},
+    {q:"∫x dx = ?",a:2,o:["x","x²","x²/2+C","2x+C"],e:"∫x dx = x²/2 + C.",d:"hard"},
+    {q:"Matritsalar ko'paytmasi xususiyati?",a:1,o:["AB = BA","AB ≠ BA umuman","A(BC) = (AB)C","Hammasi to'g'ri"],e:"Matritsalar ko'paytmasi kommutativ emas: AB ≠ BA umuman.",d:"hard"},
+    {q:"Binomial teoremasi (a+b)² = ?",a:0,o:["a²+2ab+b²","a²+b²","a²−2ab+b²","2a+2b"],e:"(a+b)² = a² + 2ab + b².",d:"easy"},
+    {q:"Vektorlar skalyar ko'paytmasi a·b = ?",a:1,o:["|a|×|b|","|a||b|cos(θ)","a+b","|a||b|sin(θ)"],e:"a·b = |a||b|cos(θ).",d:"medium"},
+    {q:"Geometric progressiya yig'indisi (n→∞, |q|<1)?",a:2,o:["a₁/(1+q)","a₁·q","a₁/(1-q)","a₁/(q-1)"],e:"S∞ = a₁/(1-q) faqat |q|<1 da.",d:"hard"},
+    {q:"Taylorning birinchi darajali yaqinlashishi (x→0 da sin(x)≈?)",a:0,o:["x","x²/2","1","x³/6"],e:"sin(x) ≈ x kichik x uchun.",d:"hard"},
+    {q:"Uchburchak ichki burchaklar yig'indisi?",a:2,o:["90°","270°","180°","360°"],e:"Uchburchak burchaklari yig'indisi 180°.",d:"easy"},
+    {q:"Parabolaning kanuniy tenglamasi?",a:1,o:["y = ax+b","y = ax²+bx+c","y = a/x","y = aˣ"],e:"y = ax²+bx+c — parabolaning umumiy tenglamasi.",d:"medium"},
+  ],
+  informatika:[
+    {q:"Ikkilikda 1010₂ = ?",a:2,o:["8","12","10","14"],e:"1×8+0×4+1×2+0×1 = 10.",d:"easy"},
+    {q:"HTML qisqartmasi?",a:0,o:["HyperText Markup Language","High Text Making Lang","Hyper Typing Module","HyperText Making Links"],e:"HTML = HyperText Markup Language.",d:"easy"},
+    {q:"Qaysi saralash O(n log n) kafolatli?",a:3,o:["Bubble","Selection","Insertion","Merge sort"],e:"Merge sort har doim O(n log n).",d:"medium"},
+    {q:"TCP/IP modelida necha qatlam?",a:1,o:["3","4","5","7"],e:"TCP/IP = 4 qatlam.",d:"medium"},
+    {q:"OOP da encapsulation nima?",a:2,o:["Meros","Polimorfizm","Ma'lumot yashirish","Abstraktsiya"],e:"Encapsulation — ma'lumot va metodlarni yashirish.",d:"hard"},
+    {q:"SQL DISTINCT nima qiladi?",a:0,o:["Takrorlanmas qiymat","Saralash","Bo'sh o'chirish","Birlashtirish"],e:"DISTINCT — takrorlanuvchi qatorlarni olib tashlaydi.",d:"medium"},
+    {q:"git stash nima qiladi?",a:1,o:["O'chiradi","Vaqtincha saqlaydi","Branch yaratadi","Push qiladi"],e:"git stash — commit qilinmagan o'zgarishlarni vaqtincha saqlaydi.",d:"hard"},
+    {q:"Python listining asosiy xususiyati?",a:2,o:["Immutable","Faqat int","Mutable (o'zgaruvchan)","Faqat str"],e:"Python list mutable — o'zgartirilishi mumkin.",d:"easy"},
+    {q:"CSS Flexbox da justify-content nima qiladi?",a:0,o:["Gorizontal tekislash","Vertikal tekislash","Matn o'lchami","Chegara"],e:"justify-content — elementlarni asosiy o'q bo'ylab tekislaydi.",d:"medium"},
+    {q:"HTTP status kodi 404 nima?",a:1,o:["Server xatosi","Sahifa topilmadi","Muvaffaqiyatli","Yo'naltirish"],e:"404 = Not Found — sahifa topilmadi.",d:"easy"},
+    {q:"RAM qisqartmasi?",a:0,o:["Random Access Memory","Read All Memory","Rapid Access Module","Run And Monitor"],e:"RAM = Random Access Memory — operativ xotira.",d:"easy"},
+    {q:"DNS nima?",a:2,o:["Tarmoq kabeli","Operatsion tizim","Domen nomini IP ga aylantirish","Antivirus"],e:"DNS = Domain Name System — domen nomlarini IP manzillarga tarjima qiladi.",d:"medium"},
+    {q:"Python da list va tuple farqi?",a:3,o:["Tezlik","Hajm","Raqamlar","Tuple immutable"],e:"Tuple immutable — yaratilgandan so'ng o'zgarmaydi.",d:"medium"},
+    {q:"Big O notatsiyasida O(1) nima?",a:1,o:["Juda sekin","Doimiy vaqt","Chiziqli","Logaritmik"],e:"O(1) = constant time — kirish hajmidan qat'iy nazar bir xil vaqt.",d:"hard"},
+    {q:"REST API da DELETE method nima qiladi?",a:0,o:["Ma'lumot o'chiradi","Ma'lumot oladi","Ma'lumot yangilaydi","Ma'lumot qo'shadi"],e:"HTTP DELETE — resursni o'chirish uchun ishlatiladi.",d:"medium"},
+  ],
+  biologiya:[
+    {q:"ATP ishlab chiqaradigan organell?",a:2,o:["Yadro","Ribosoma","Mitoxondriya","Plastida"],e:"Mitoxondriya — hujayra nafas olish organi, ATP sintezi.",d:"easy"},
+    {q:"DNK ning to'liq nomi?",a:0,o:["Dezoksiribonuklein kislota","Dinukleotid kislota","Diploid nukleotid","Difuziyali nukleotid"],e:"DNK = Dezoksiribonuklein kislota.",d:"easy"},
+    {q:"Fotosintez qaysi organellda?",a:1,o:["Mitoxondriya","Xloroplast","Yadro","Vakuol"],e:"Xloroplast — fotosintez joyi.",d:"easy"},
+    {q:"Inson gemomi taxminan nechta gen?",a:2,o:["1,000","100,000","20,000–25,000","500,000"],e:"~20,000–25,000 gen.",d:"hard"},
+    {q:"Immunitet asosiy hujayralari?",a:0,o:["Leykositlar","Eritrositlar","Trombositlar","Neyrositlar"],e:"Leykositlar — oq qon hujayralari, immunitet asosi.",d:"medium"},
+    {q:"Mendel birinchi qonuni nima?",a:2,o:["Ajralish qonuni","Kombinatsiya qonuni","Bir xillik qonuni","Ko'plik qonuni"],e:"Mendel I qonuni — geterozi yoki bir xillik qonuni.",d:"medium"},
+    {q:"Hujayra bo'linishining ikkita asosiy turi?",a:1,o:["Mitoz va fuziya","Mitoz va meyoz","Meyoz va fertilizatsiya","Apoptoz va meyoz"],e:"Mitoz (somatik) va meyoz (jinsiy) bo'linish.",d:"medium"},
+    {q:"Qon guruhlari nechi xil?",a:2,o:["2","3","4","6"],e:"ABO sistemasida 4 qon guruhi: O, A, B, AB.",d:"easy"},
+    {q:"Biologiyada ekosistema nima?",a:0,o:["Tirik organizmlar va muhit birligi","Faqat o'simliklar","Hayvonlar majmuasi","Iqlim"],e:"Ekosistema — biotik va abiotik omillar birligi.",d:"medium"},
+    {q:"Evolyutsiya nazariyasi muallifi?",a:3,o:["Mendel","Pastyor","Watson","Darvin"],e:"Charlz Darvin tabiy tanlanish yo'li bilan evolyutsiya nazariyasini yaratdi.",d:"easy"},
+  ],
+  kimyo:[
+    {q:"Suvning kimyoviy formulasi?",a:1,o:["HO","H₂O","H₂O₂","OH₂"],e:"H₂O — ikki vodorod, bir kislorod.",d:"easy"},
+    {q:"Birinchi element davriy jadvalda?",a:0,o:["Vodorod (H)","Geliy (He)","Litiy (Li)","Berilliy (Be)"],e:"H — atom raqami 1.",d:"easy"},
+    {q:"pH = 7 qanday eritma?",a:2,o:["Kislotali","Ishqoriy","Neytral","O'ta kislotali"],e:"pH 7 = neytral.",d:"easy"},
+    {q:"NaCl bog' turi?",a:0,o:["Ion bog'","Kovalent","Metall","Vodorod"],e:"NaCl — Na⁺ va Cl⁻ o'rtasidagi ion bog'.",d:"medium"},
+    {q:"Organik kimyoda asosiy element?",a:1,o:["Kislorod","Uglerod","Azot","Vodorod"],e:"Uglerod (C) — organik kimyo asosi.",d:"medium"},
+    {q:"Mоl — bu nima?",a:2,o:["Massa birligi","Hajm birligi","6.022×10²³ ta zarrcha","Temperatura birligi"],e:"1 mol = 6.022×10²³ ta zarracha (Avogadro soni).",d:"medium"},
+    {q:"Oksidlanish-qaytarilish reaksiyasida oksidlovchi?",a:1,o:["Elektron beradi","Elektron oladi","Proton beradi","Proton oladi"],e:"Oksidlovchi elektron qabul qiladi, o'zi qaytariladi.",d:"hard"},
+    {q:"Ideal gaz qonunida PV = ?",a:0,o:["nRT","mRT","n/RT","R/nT"],e:"PV = nRT — ideal gaz holat tenglamasi.",d:"medium"},
+    {q:"Mis (Cu) ning atom raqami?",a:2,o:["26","28","29","30"],e:"Cu — mis, atom raqami 29.",d:"hard"},
+    {q:"Benzol formulasi?",a:1,o:["C₆H₁₂","C₆H₆","C₅H₅","C₆H₁₂O₆"],e:"Benzol C₆H₆ — aromatik uglevodorod.",d:"medium"},
+  ],
+  tarix:[
+    {q:"Amir Temur qaysi yili tug'ilgan?",a:0,o:["1336","1356","1370","1300"],e:"Amir Temur 1336 yil 8 aprel.",d:"easy"},
+    {q:"I Jahon urushi yillari?",a:0,o:["1914-1918","1939-1945","1912-1916","1917-1921"],e:"1914-1918 yillar.",d:"easy"},
+    {q:"O'zbekiston mustaqillik yili?",a:1,o:["1990","1991","1992","1993"],e:"1991 yil 1 sentabr.",d:"easy"},
+    {q:"Ipak yo'li qaysi shaharlari orqali o'tgan?",a:2,o:["Moskva, Peksin","Paris, Rim","Samarqand, Buxoro","London, Berlin"],e:"Samarqand va Buxoro Ipak yo'lining muhim markazlari edi.",d:"medium"},
+    {q:"Buyuk Britaniya parlameni qachon tashkil topgan?",a:1,o:["1066","1215","1265","1400"],e:"Ingliz parlamenti 1265 yilda tashkil topdi.",d:"hard"},
+    {q:"Renessans (Uyg'onish davri) qayerda boshlangan?",a:0,o:["Italiya","Fransiya","Germaniya","Ispaniya"],e:"Renessans XIV-XVII asrlarda Italiyada boshlangan.",d:"medium"},
+    {q:"Nashriyot matbaasini kim ixtiro qildi?",a:2,o:["Kopernikus","Galiley","Gutenberg","Da Vinchi"],e:"Iogann Gutenberg ~1440 yilda bosmaxonani ixtiro qildi.",d:"medium"},
+    {q:"Al-Xorazmiy kim?",a:1,o:["Fizik","Matematik va astronom","Shifokor","Shoir"],e:"Muhammad ibn Muso al-Xorazmiy — IX asr matematik, algebrani asoschisi.",d:"easy"},
+  ],
+  ingliz:[
+    {q:"'Apple' o'zbekcha?",a:0,o:["Olma","Nok","Uzum","Shaftoli"],e:"Apple = olma.",d:"easy"},
+    {q:"'Beautiful' past tense?",a:2,o:["Beautifuled","Beautifulled","N/A (adjective)","Beautifull"],e:"Beautiful — sifat, past tense yo'q.",d:"medium"},
+    {q:"I ___ a student. (to be)",a:1,o:["is","am","are","be"],e:"I am — birinchi shaxs uchun 'am'.",d:"easy"},
+    {q:"'Fast' ning antonimlari?",a:0,o:["Slow","Quick","Rapid","Swift"],e:"Fast = tez; antonimi Slow = sekin.",d:"easy"},
+    {q:"Present Perfect tense formulasi?",a:2,o:["did + V","will + V","have/has + V3","am/is/are + Ving"],e:"Present Perfect = have/has + Past Participle (V3).",d:"medium"},
+    {q:"'She ___ to school every day.' (go)",a:1,o:["go","goes","going","gone"],e:"3-shaxs birlik uchun goes.",d:"easy"},
+    {q:"Passive voice: 'The book ___ written by him.'",a:0,o:["was","is","were","be"],e:"Past simple passive: was + V3.",d:"medium"},
+    {q:"'Vocabulary' so'zining ma'nosi?",a:2,o:["Grammatika","Talaffuz","Lug'at boyligi","Yozuv"],e:"Vocabulary = lug'at, so'z boyligi.",d:"easy"},
+    {q:"Conditional II: If I were rich, I ___ a car.",a:1,o:["will buy","would buy","bought","buy"],e:"If+Past → would+V1 — 2-tip shart.",d:"hard"},
+    {q:"'Synonym' nima?",a:0,o:["Bir xil ma'nodosh so'z","Qarama-qarshi","Sinonim juft","Tarjima"],e:"Synonym = sinonim = bir xil yoki yaqin ma'noli so'z.",d:"medium"},
+  ],
+  geografiya:[
+    {q:"Dunyodagi eng baland tog'?",a:2,o:["K2","Elbrus","Everest","Kangchenjunga"],e:"Everest (Chomolungma) — 8,848 m.",d:"easy"},
+    {q:"O'zbekiston poytaxti?",a:0,o:["Toshkent","Samarqand","Buxoro","Namangan"],e:"Toshkent — O'zbekiston poytaxti.",d:"easy"},
+    {q:"Dunyodagi eng katta okean?",a:1,o:["Atlantika","Tinch okean","Hind okeani","Shimoliy Muz"],e:"Tinch okean (Pasifik) — eng katta okean.",d:"easy"},
+    {q:"Amazon daryosi qaysi qit'ada?",a:2,o:["Afrika","Osiyo","Janubiy Amerika","Avstraliya"],e:"Amazon — Janubiy Amerika, eng to'la daryo.",d:"easy"},
+    {q:"Sahara cho'li qaysi qit'ada?",a:0,o:["Afrika","Osiyo","Avstraliya","Amerika"],e:"Sahara — Afrika qit'asida, dunyodagi eng katta issiq cho'l.",d:"easy"},
+    {q:"O'rta Osiyo davlatlari soni?",a:2,o:["3","4","5","6"],e:"O'rta Osiyo: O'zbekiston, Qozog'iston, Tojikiston, Turkmaniston, Qirg'iziston — 5 ta.",d:"medium"},
+    {q:"Dunyodagi eng chuqur ko'l?",a:1,o:["Kaspiy","Baykal","Orol","Superior"],e:"Baykal ko'li — dunyodagi eng chuqur ko'l, 1642 m.",d:"medium"},
+    {q:"Nil daryosi qaysi okeanga quyiladi?",a:0,o:["O'rta er dengizi","Qizil dengiz","Hind okeani","Atlantika"],e:"Nil O'rta er dengiziga quyiladi.",d:"medium"},
+  ],
+};
+
+let S = {
+  username: localStorage.getItem("ziyomap_user") || "",
+  selectedFans: ["fizika","matematika","informatika","biologiya","kimyo","tarix","ingliz","geografiya"],
+  diff: "easy",
+  numQ: 10,
+  qs: [], cur: 0, score: 0, correct: 0, wrong: 0, answered: false,
+  timerInt: null, timeLeft: 20, combo: 0,
+};
+
+function init() {
+  if (!S.username) {
+    const n = prompt("Ismingizni kiriting (reyting uchun):") || "O'yinchi";
+    S.username = n;
+    localStorage.setItem("ziyomap_user", n);
+  }
+  document.getElementById("hUser").textContent = S.username;
+  document.getElementById("hScore").textContent = localStorage.getItem("ziyomap_total") || "0";
+  buildFanGrid();
+  renderLB("lbBody");
+}
+
+function buildFanGrid() {
+  const g = document.getElementById("fanGrid");
+  g.innerHTML = "";
+  FANS.forEach(f => {
+    const el = document.createElement("div");
+    el.className = "fan-card sel";
+    el.dataset.id = f.id;
+    el.innerHTML = `<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${(ALL_Q[f.id]||[]).length} savol</div>`;
+    el.onclick = () => toggleFan(f.id, el);
+    g.appendChild(el);
+  });
+}
+
+function toggleFan(id, el) {
+  const i = S.selectedFans.indexOf(id);
+  if (i > -1) { if (S.selectedFans.length === 1) return; S.selectedFans.splice(i, 1); el.classList.remove("sel"); }
+  else { S.selectedFans.push(id); el.classList.add("sel"); }
+}
+
+function pickDiff(btn) {
+  document.querySelectorAll(".diff-btn").forEach(b => b.className = "diff-btn");
+  S.diff = btn.dataset.d;
+  if (S.diff === "easy") btn.classList.add("sel-easy");
+  else if (S.diff === "medium") btn.classList.add("sel-medium");
+  else if (S.diff === "hard") btn.classList.add("sel-hard");
+  else btn.classList.add("sel-easy");
+}
+
+function pickN(btn) {
+  document.querySelectorAll(".qc-btn").forEach(b => b.classList.remove("sel"));
+  btn.classList.add("sel");
+  S.numQ = parseInt(btn.dataset.n);
+}
+
+function startQuiz() {
+  let pool = [];
+  S.selectedFans.forEach(f => {
+    let qs = ALL_Q[f] || [];
+    if (S.diff !== "all") qs = qs.filter(q => q.d === S.diff);
+    if (!qs.length) qs = ALL_Q[f] || [];
+    qs.forEach(q => pool.push({...q, fan: f}));
+  });
+  pool = pool.sort(() => Math.random() - 0.5).slice(0, S.numQ);
+  if (!pool.length) { alert("Savollar topilmadi!"); return; }
+  S.qs = pool; S.cur = 0; S.score = 0; S.correct = 0; S.wrong = 0; S.combo = 0;
+  document.getElementById("setupScreen").style.display = "none";
+  document.getElementById("resultScreen").style.display = "none";
+  document.getElementById("quizScreen").style.display = "block";
+  renderQ();
+}
+
+function renderQ() {
+  const q = S.qs[S.cur];
+  S.answered = false;
+  const total = S.qs.length;
+  document.getElementById("progTxt").textContent = `${S.cur+1}/${total}`;
+  document.getElementById("pbarFill").style.width = `${(S.cur/total)*100}%`;
+  const fan = FANS.find(f => f.id === q.fan) || {name:q.fan, color:"#4f7cff", bg:"#eff3ff"};
+  const qft = document.getElementById("qFanTag");
+  qft.textContent = fan.name; qft.style.background = fan.bg; qft.style.color = fan.color;
+  const diffs = {easy:["🟢 Oson","#f0fdf4","#22c55e"], medium:["🟡 O'rta","#fefce8","#eab308"], hard:["🔴 Qiyin","#fef2f2","#ef4444"]};
+  const [dl, dbg, dc] = diffs[q.d] || diffs.easy;
+  const qdt = document.getElementById("qDiffTag");
+  qdt.textContent = dl; qdt.style.background = dbg; qdt.style.color = dc;
+  document.getElementById("catLabel").textContent = `${fan.name}`;
+  document.getElementById("qText").textContent = q.q;
+  const wrap = document.getElementById("optsWrap");
+  wrap.innerHTML = "";
+  ["A","B","C","D"].forEach((lbl, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = `<span class="opt-lbl">${lbl}</span>${q.o[i]}`;
+    btn.onclick = () => pick(i);
+    wrap.appendChild(btn);
+  });
+  document.getElementById("expBox").style.display = "none";
+  document.getElementById("nextBtn").style.display = "none";
+  const maxTime = {easy:20, medium:15, hard:10, all:15}[S.diff] || 15;
+  startTimer(maxTime);
+}
+
+function startTimer(max) {
+  clearInterval(S.timerInt);
+  S.timeLeft = max;
+  updateTimer(max, max);
+  S.timerInt = setInterval(() => {
+    S.timeLeft--;
+    updateTimer(S.timeLeft, max);
+    if (S.timeLeft <= 0) { clearInterval(S.timerInt); timeUp(); }
+  }, 1000);
+}
+
+function updateTimer(t, max) {
+  document.getElementById("timerN").textContent = t;
+  const full = 169.6;
+  document.getElementById("timerCirc").style.strokeDashoffset = full - (t/max)*full;
+  document.getElementById("timerBox").classList.toggle("warn", t <= 5);
+}
+
+function timeUp() {
+  if (S.answered) return;
+  S.answered = true; S.wrong++; S.combo = 0;
+  const q = S.qs[S.cur];
+  document.querySelectorAll(".opt").forEach((b,i) => { b.disabled = true; if(i===q.a) b.classList.add("correct"); });
+  showExp(q);
+}
+
+function pick(idx) {
+  if (S.answered) return;
+  S.answered = true;
+  clearInterval(S.timerInt);
+  const q = S.qs[S.cur];
+  const btns = document.querySelectorAll(".opt");
+  btns.forEach(b => b.disabled = true);
+  if (idx === q.a) {
+    btns[idx].classList.add("correct");
+    S.correct++; S.combo++;
+    const pts = ({easy:10,medium:20,hard:35,all:15}[S.diff]||15) * (S.combo >= 3 ? 2 : 1);
+    S.score += pts;
+    document.getElementById("hScore").textContent = S.score;
+    if (S.combo >= 3) showCombo();
+  } else {
+    btns[idx].classList.add("wrong");
+    btns[q.a].classList.add("correct");
+    S.wrong++; S.combo = 0;
+  }
+  showExp(q);
+}
+
+function showExp(q) {
+  const b = document.getElementById("expBox");
+  b.textContent = "💡 " + q.e;
+  b.style.display = "block";
+  document.getElementById("nextBtn").style.display = "block";
+}
+
+function showCombo() {
+  const el = document.createElement("div");
+  el.className = "combo-toast";
+  el.textContent = `🔥 ${S.combo}x COMBO! Bonus!`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
+}
+
+function nextQ() {
+  S.cur++;
+  if (S.cur >= S.qs.length) { showResult(); return; }
+  renderQ();
+}
+
+function showResult() {
+  clearInterval(S.timerInt);
+  const pct = Math.round((S.correct/S.qs.length)*100);
+  let emoji = "😢";
+  if (pct >= 90) emoji = "🏆";
+  else if (pct >= 70) emoji = "🎉";
+  else if (pct >= 50) emoji = "👍";
+  document.getElementById("resEmoji").textContent = emoji;
+  document.getElementById("resPts").textContent = S.score;
+  document.getElementById("rv1").textContent = S.correct;
+  document.getElementById("rv2").textContent = S.wrong;
+  document.getElementById("rv3").textContent = pct + "%";
+  document.getElementById("quizScreen").style.display = "none";
+  document.getElementById("resultScreen").style.display = "block";
+  saveScore();
+  renderLB("lbBody2");
+}
+
+function saveScore() {
+  const total = parseInt(localStorage.getItem("ziyomap_total")||"0") + S.score;
+  localStorage.setItem("ziyomap_total", total);
+  const lb = JSON.parse(localStorage.getItem("ziyomap_quiz_lb")||"[]");
+  lb.push({name:S.username, score:S.score, date:Date.now(), diff:S.diff});
+  lb.sort((a,b)=>b.score-a.score);
+  localStorage.setItem("ziyomap_quiz_lb", JSON.stringify(lb.slice(0,30)));
+}
+
+function renderLB(elId) {
+  const lb = JSON.parse(localStorage.getItem("ziyomap_quiz_lb")||"[]");
+  const el = document.getElementById(elId);
+  if (!lb.length) { el.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px">Hali hech kim o\'ynamagan!</p>'; return; }
+  const ranks = ["🥇","🥈","🥉"];
+  const colors = ["#4f7cff","#22c55e","#ec4899","#eab308","#a855f7"];
+  el.innerHTML = lb.slice(0,10).map((e,i) => `
+    <div class="lb-item">
+      <div class="lb-rank">${ranks[i]||i+1}</div>
+      <div class="lb-av" style="background:${colors[i%colors.length]}22;color:${colors[i%colors.length]}">${e.name[0].toUpperCase()}</div>
+      <div class="lb-nm">${e.name}<br><small style="color:#6b7280;font-size:11px">${new Date(e.date).toLocaleDateString("uz-UZ")}</small></div>
+      <div class="lb-sc">${e.score}</div>
+    </div>`).join("");
+}
+
+function backSetup() {
+  document.getElementById("resultScreen").style.display = "none";
+  document.getElementById("setupScreen").style.display = "block";
+  renderLB("lbBody");
+}
+
+init();
+</script>
+</body>
+</html>

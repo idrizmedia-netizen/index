@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Flashcard — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--green:#22c55e;--blue:#4f7cff;--red:#ef4444;--yellow:#eab308}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent}
+.back-btn:hover{background:var(--bg)}
+.topbar-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.topbar-right{margin-left:auto;display:flex;gap:10px}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px}
+
+/* SETUP */
+.setup-title{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all 0.15s}
+.fan-card:hover{border-color:var(--blue)}
+.fan-card.sel{border-color:var(--green);background:#f0fdf4}
+.fan-icon{font-size:1.8rem;margin-bottom:6px}
+.fan-name{font-size:13px;font-weight:700}
+.fan-count{font-size:11px;color:var(--muted);margin-top:2px}
+.start-btn{width:100%;padding:14px;border-radius:14px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all 0.15s}
+.start-btn:hover{background:#16a34a;transform:translateY(-2px)}
+
+/* CARD FLIP */
+#cardScreen{display:none}
+.card-wrap{perspective:1000px;margin:32px auto;max-width:560px}
+.flip-card{
+  width:100%;height:280px;cursor:pointer;
+  transform-style:preserve-3d;transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.flip-card.flipped{transform:rotateY(180deg)}
+.card-face{
+  position:absolute;inset:0;border-radius:24px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px;text-align:center;backface-visibility:hidden;border:2px solid var(--border);
+}
+.front{background:var(--white)}
+.back{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);transform:rotateY(180deg);border-color:var(--green)}
+.card-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;opacity:0.5}
+.card-text{font-size:1.3rem;font-weight:700;line-height:1.5}
+.card-hint{font-size:13px;color:var(--muted);margin-top:14px}
+
+.card-actions{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.act-btn{
+  flex:1;max-width:140px;padding:12px;border-radius:12px;border:none;
+  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all 0.15s;
+}
+.act-know{background:#f0fdf4;color:var(--green)}
+.act-know:hover{background:var(--green);color:#fff}
+.act-again{background:#fef2f2;color:var(--red)}
+.act-again:hover{background:var(--red);color:#fff}
+.act-skip{background:var(--bg);color:var(--muted)}
+.act-skip:hover{background:var(--border)}
+
+.progress-info{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+.pbar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:20px}
+.pbar-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.4s}
+.fan-indicator{text-align:center;font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:16px}
+
+/* RESULT */
+#doneScreen{display:none;text-align:center}
+.done-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;margin-bottom:24px}
+.done-emoji{font-size:4rem;margin-bottom:12px}
+.done-title{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.done-sub{color:var(--muted);margin-bottom:24px}
+.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.ds{background:var(--bg);border-radius:12px;padding:16px}
+.ds-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.ds-k{font-size:12px;color:var(--muted);margin-top:3px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-out{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.btn-prim{flex:1;padding:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.btn-prim:hover{background:#16a34a}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back-btn" href="index.html">← Orqaga</a>
+  <div class="topbar-title">🃏 Flashcard</div>
+  <div class="topbar-right">
+    <div class="pill">✅ <span id="knowCount">0</span></div>
+    <div class="pill">❌ <span id="againCount">0</span></div>
+  </div>
+</div>
+<div class="wrap">
+  <!-- SETUP -->
+  <div id="setupScreen">
+    <div class="setup-title">🃏 Flashcard o'rganish</div>
+    <p style="color:var(--muted);margin-bottom:24px">Kartochkalarni aylantiring va bilimingizni sinang</p>
+    <div style="font-size:14px;font-weight:700;margin-bottom:10px">Fan tanlang:</div>
+    <div class="fan-grid" id="fanGrid"></div>
+    <button class="start-btn" onclick="startCards()">▶ Boshlash</button>
+  </div>
+
+  <!-- CARD -->
+  <div id="cardScreen">
+    <div style="text-align:center;margin-bottom:4px">
+      <span class="fan-indicator" id="fanInd"></span>
+    </div>
+    <div class="progress-info">
+      <span id="cardNum">1 / 20</span>
+      <span id="cardDiff"></span>
+    </div>
+    <div class="pbar"><div class="pbar-fill" id="cPbar" style="width:0%"></div></div>
+
+    <div class="card-wrap">
+      <div class="flip-card" id="flipCard" onclick="flipCard()">
+        <div class="card-face front">
+          <div class="card-label">❓ Savol</div>
+          <div class="card-text" id="cardQ"></div>
+          <div class="card-hint">Bosing yoki teging — javobni ko'ring</div>
+        </div>
+        <div class="card-face back">
+          <div class="card-label">✅ Javob</div>
+          <div class="card-text" id="cardA"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="act-btn act-again" onclick="markCard('again')">❌ Bilmadim</button>
+      <button class="act-btn act-skip" onclick="markCard('skip')">⏭ O'tkazish</button>
+      <button class="act-btn act-know" onclick="markCard('know')">✅ Bildim!</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div id="doneScreen">
+    <div class="done-card">
+      <div class="done-emoji" id="doneEmoji">🎉</div>
+      <div class="done-title">Tugatdingiz!</div>
+      <div class="done-sub" id="doneSub"></div>
+      <div class="done-stats">
+        <div class="ds"><div class="ds-v" id="ds1">0</div><div class="ds-k">✅ Bilganlar</div></div>
+        <div class="ds"><div class="ds-v" id="ds2">0</div><div class="ds-k">❌ Bilmaganlar</div></div>
+        <div class="ds"><div class="ds-v" id="ds3">0%</div><div class="ds-k">📊 Natija</div></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-out" onclick="restart()">🔄 Qayta</button>
+        <button class="btn-prim" onclick="goSetup()">⚙ Sozlash</button>
+        <button class="btn-out" onclick="location.href='index.html'">🏠 Bosh</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FANS = [
+  {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
+  {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
+  {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
+  {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
+  {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
+  {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
+  {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
+];
+const CARDS = {
+  fizika:[
+    {q:"Yorug'lik tezligi (vakuumda)?",a:"c ≈ 3×10⁸ m/s = 300,000 km/s"},
+    {q:"Nyuton II qonuni formulasi?",a:"F = m·a (kuch = massa × tezlanish)"},
+    {q:"Ohm qonuni?",a:"I = U/R (tok = kuchlanma ÷ qarshilik)"},
+    {q:"Gravitatsiya tezlanishi Yorda?",a:"g ≈ 9.8 m/s²"},
+    {q:"Elektr quvvati formulasi?",a:"P = U·I = I²R = U²/R"},
+    {q:"1 atm = ? Pa",a:"1 atm = 101,325 Pa"},
+    {q:"Energiya saqlanish qonuni nimani aytadi?",a:"Yopiq tizimda to'liq mexanik energiya saqlanadi"},
+    {q:"Arximed kuchi formulasi?",a:"F = ρ·g·V (zichlik × g × hajm)"},
+    {q:"Issiqlik miqdori formulasi?",a:"Q = m·c·ΔT"},
+    {q:"Magnit induksiyasi birligi?",a:"Tesla (T) — SI tizimida"},
+    {q:"Foton energiyasi formulasi?",a:"E = h·f (Plank doimiysi × chastota)"},
+    {q:"Rentgen nurlari — bu nima?",a:"Qisqa to'lqinli elektromagnit nurlanish (0.01–10 nm)"},
+    {q:"Yadro fizikasida α-zarrasi nima?",a:"Geliy yadrosi — 2 proton + 2 neytron"},
+  ],
+  matematika:[
+    {q:"π ning qiymati (5 xonali)?",a:"π ≈ 3.14159"},
+    {q:"Uchburchak yuzasi formulasi?",a:"S = (a × h) / 2"},
+    {q:"Doira yuzasi?",a:"S = π·r²"},
+    {q:"Kvadrat tenglama ax²+bx+c=0 yechi?",a:"x = (−b ± √D) / 2a, D = b²−4ac"},
+    {q:"log_a(b·c) = ?",a:"log_a(b) + log_a(c)"},
+    {q:"sin²θ + cos²θ = ?",a:"= 1 (asosiy trigonometrik tengsizlik)"},
+    {q:"Binomial: (a+b)³ = ?",a:"a³ + 3a²b + 3ab² + b³"},
+    {q:"Faktoriali n! = ?",a:"n! = 1 × 2 × 3 × … × n"},
+    {q:"Arifmetik progressiya yig'indisi formulasi?",a:"Sn = n(a₁+aₙ)/2"},
+    {q:"Derivativ d/dx(xⁿ) = ?",a:"n·x^(n−1)"},
+    {q:"e (Eyler soni) qiymati?",a:"e ≈ 2.71828..."},
+    {q:"Kombinatsiya C(n,k) formulasi?",a:"C(n,k) = n! / (k! × (n−k)!)"},
+  ],
+  informatika:[
+    {q:"Binary 1010₂ = ? (o'nlik)",a:"10 (1×8 + 0×4 + 1×2 + 0×1 = 10)"},
+    {q:"HTTP 404 nima?",a:"Not Found — sahifa yoki resurs topilmadi"},
+    {q:"O(n log n) qaysi algoritmlar?",a:"Merge sort, Quick sort (o'rtacha), Heap sort"},
+    {q:"CSS Flexbox da align-items nima?",a:"Elementlarni ko'ndalang o'q bo'ylab tekislash"},
+    {q:"DNS nima?",a:"Domain Name System — domainni IP ga tarjima qiladi"},
+    {q:"RAM nima?",a:"Random Access Memory — operativ xotira"},
+    {q:"OOP 4 tamoyili?",a:"Encapsulation, Inheritance, Polymorphism, Abstraction"},
+    {q:"git commit nima qiladi?",a:"O'zgarishlarni lokal repozitoriyga saqlaydi"},
+    {q:"SQL WHERE xususiyati?",a:"Natijalarni shartga ko'ra filtrlaydi"},
+    {q:"API nima?",a:"Application Programming Interface — dasturlar orasidagi interfeys"},
+    {q:"Boolean qiymatlar?",a:"True (1) va False (0) — faqat ikkita qiymat"},
+    {q:"Rekursiya nima?",a:"Funksiya o'zini o'zi chaqirganda, base case kerak"},
+  ],
+  biologiya:[
+    {q:"Mitoxondriya vazifasi?",a:"ATP sintezi — hujayra energiyasi ishlab chiqarish"},
+    {q:"DNK nima?",a:"Dezoksiribonuklein kislota — irsiy ma'lumot tashuvchisi"},
+    {q:"Fotosintez jarayoni?",a:"6CO₂ + 6H₂O + yorug'lik → C₆H₁₂O₆ + 6O₂"},
+    {q:"Hujayra membranasi nimadan tashkil?",a:"Ikki qavat fosfolipid + oqsillar"},
+    {q:"Mitoz va meyoz farqi?",a:"Mitoz: 2 diploid hujayra; Meyoz: 4 gaploid hujayra"},
+    {q:"Immunitet turlari?",a:"Tug'ma (innate) va orttirilgan (adaptive) immunitet"},
+    {q:"Darvin nazariyasining asosi?",a:"Tabiy tanlanish (natural selection) yo'li bilan evolyutsiya"},
+    {q:"Ferment (enzim) nima?",a:"Reaksiyani tezlashtiradigan biologik katalizator (oqsil)"},
+    {q:"Qon guruhlari (ABO)?",a:"O (I), A (II), B (III), AB (IV) — 4 ta guruh"},
+    {q:"Yadro vazifasi?",a:"DNK saqlash va hujayra faoliyatini boshqarish"},
+  ],
+  kimyo:[
+    {q:"H₂O — bu nima?",a:"Suv — ikkita vodorod va bitta kislorod"},
+    {q:"pH shkalasi?",a:"0–14: <7 kislotali, 7 neytral, >7 ishqoriy"},
+    {q:"Avogadro soni?",a:"Nₐ ≈ 6.022 × 10²³ zarrcha/mol"},
+    {q:"Kovalent bog' nima?",a:"Umumiy elektron juftligi orqali hosil bo'lgan bog'"},
+    {q:"Oksidlanish nima?",a:"Elektron berish (manba oksidlanadi)"},
+    {q:"Ideal gaz tenglamasi?",a:"PV = nRT"},
+    {q:"Benzol formulasi?",a:"C₆H₆ — aromatik uglevodorod"},
+    {q:"Kataliz nima?",a:"Katalizator yordamida reaksiya tezligini oshirish"},
+    {q:"Elektroliz nima?",a:"Elektr toki ta'sirida kimyoviy reaksiya"},
+    {q:"Davriy jadvalda guruhlar nechta?",a:"18 ta guruh"},
+  ],
+  tarix:[
+    {q:"Amir Temur tug'ilgan yil va joy?",a:"1336 yil, Shahrisabz (hozirgi O'zbekiston)"},
+    {q:"I Jahon urushi yillari?",a:"1914–1918 yillar"},
+    {q:"O'zbekiston mustaqilligi?",a:"1991 yil 1 sentabr"},
+    {q:"Renessans qayerda boshlangan?",a:"XIV asr Italiyasida boshlangan"},
+    {q:"Al-Xorazmiy kim?",a:"IX asr matematik, algebra asoschisi, algoritm atamasi undan"},
+    {q:"Gutenberg nima ixtiro qildi?",a:"Bosmaxona (~1440 yil)"},
+    {q:"Fransuz inqilobi yili?",a:"1789 yil"},
+    {q:"Ipak yo'li nima?",a:"Sharq va G'arbni bog'lagan qadimiy savdo yo'li"},
+    {q:"Ibn Sino kim?",a:"O'rta asrlar shifokor va faylasufi, 'Tib qonunlari' muallifi"},
+  ],
+  ingliz:[
+    {q:"'Beautiful' o'zbekcha?",a:"Chiroyli, go'zal"},
+    {q:"Present Perfect formulasi?",a:"have/has + V3 (past participle)"},
+    {q:"'Vocabulary' nima?",a:"Lug'at boyligi, so'zlar to'plami"},
+    {q:"Passive voice (past)?",a:"was/were + V3"},
+    {q:"Modal verbs misollari?",a:"can, could, may, might, must, should, would, will"},
+    {q:"'Nevertheless' ma'nosi?",a:"Shunga qaramay, biroq (however, yet)"},
+    {q:"Conditional II gap?",a:"If + Past Simple → would + V1"},
+    {q:"'Synonym' nima?",a:"Bir xil yoki yaqin ma'noli so'z"},
+    {q:"'Phenomenon' ko'pligi?",a:"phenomena (lotin ko'plik)"},
+    {q:"'she goes' nega 'go' emas?",a:"3-shaxs birlik Present Simple da -s qo'shiladi"},
+  ],
+  geografiya:[
+    {q:"Dunyodagi eng baland tog'?",a:"Everest (Chomolungma) — 8,848 m, Himoloy"},
+    {q:"O'zbekiston poytaxti?",a:"Toshkent"},
+    {q:"Eng katta okean?",a:"Tinch okean (Pasifik) — 165 mln km²"},
+    {q:"Amazon daryosi qayerda?",a:"Janubiy Amerika, eng ko'p suvli daryo"},
+    {q:"Sahara cho'li?",a:"Shimoliy Afrika, 9.2 mln km² — eng katta issiq cho'l"},
+    {q:"O'rta Osiyo davlatlari?",a:"O'zbekiston, Qozog'iston, Tojikiston, Turkmaniston, Qirg'iziston"},
+    {q:"Baykal ko'li?",a:"Sibir, Rossiya — dunyodagi eng chuqur ko'l (1642 m)"},
+    {q:"Nil daryosi qayerda?",a:"Shimoliy Afrika, O'rta er dengiziga quyiladi"},
+    {q:"Orol dengizi?",a:"O'zbekiston va Qozog'iston o'rtasida, qurib borayotgan ko'l"},
+  ],
+};
+
+let S = { sel:["fizika"], cards:[], cur:0, know:0, again:0, skip:0, flipped:false };
+
+function buildFanGrid(){
+  const g=document.getElementById("fanGrid");
+  g.innerHTML="";
+  FANS.forEach(f=>{
+    const el=document.createElement("div");
+    el.className="fan-card"+(S.sel.includes(f.id)?" sel":"");
+    el.dataset.id=f.id;
+    const cnt=(CARDS[f.id]||[]).length;
+    el.innerHTML=`<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${cnt} karta</div>`;
+    el.onclick=()=>toggleFan(f.id,el);
+    g.appendChild(el);
+  });
+}
+
+function toggleFan(id,el){
+  const i=S.sel.indexOf(id);
+  if(i>-1){if(S.sel.length===1)return;S.sel.splice(i,1);el.classList.remove("sel");}
+  else{S.sel.push(id);el.classList.add("sel");}
+}
+
+function startCards(){
+  let pool=[];
+  S.sel.forEach(f=>{
+    (CARDS[f]||[]).forEach(c=>pool.push({...c,fan:f}));
+  });
+  pool=pool.sort(()=>Math.random()-0.5);
+  if(!pool.length){alert("Karta topilmadi!");return;}
+  S.cards=pool;S.cur=0;S.know=0;S.again=0;S.skip=0;
+  document.getElementById("setupScreen").style.display="none";
+  document.getElementById("doneScreen").style.display="none";
+  document.getElementById("cardScreen").style.display="block";
+  showCard();
+}
+
+function showCard(){
+  if(S.cur>=S.cards.length){showDone();return;}
+  const c=S.cards[S.cur];
+  S.flipped=false;
+  document.getElementById("flipCard").classList.remove("flipped");
+  document.getElementById("cardQ").textContent=c.q;
+  document.getElementById("cardA").textContent=c.a;
+  document.getElementById("cardNum").textContent=`${S.cur+1} / ${S.cards.length}`;
+  document.getElementById("cPbar").style.width=`${(S.cur/S.cards.length)*100}%`;
+  const fan=FANS.find(f=>f.id===c.fan)||{name:c.fan,color:"#4f7cff",bg:"#eff3ff"};
+  const ind=document.getElementById("fanInd");
+  ind.textContent=fan.name;ind.style.background=fan.bg;ind.style.color=fan.color;
+  document.getElementById("knowCount").textContent=S.know;
+  document.getElementById("againCount").textContent=S.again;
+}
+
+function flipCard(){
+  S.flipped=!S.flipped;
+  document.getElementById("flipCard").classList.toggle("flipped",S.flipped);
+}
+
+function markCard(type){
+  if(type==="know")S.know++;
+  else if(type==="again"){S.again++;S.cards.push(S.cards[S.cur]);}
+  else S.skip++;
+  S.cur++;
+  showCard();
+}
+
+function showDone(){
+  document.getElementById("cardScreen").style.display="none";
+  document.getElementById("doneScreen").style.display="block";
+  const total=S.know+S.again+S.skip;
+  const pct=total>0?Math.round((S.know/total)*100):0;
+  document.getElementById("doneEmoji").textContent=pct>=80?"🏆":pct>=50?"🎉":"💪";
+  document.getElementById("doneSub").textContent=`${pct}% kartani bilasiz!`;
+  document.getElementById("ds1").textContent=S.know;
+  document.getElementById("ds2").textContent=S.again;
+  document.getElementById("ds3").textContent=pct+"%";
+}
+
+function restart(){
+  document.getElementById("doneScreen").style.display="none";
+  document.getElementById("cardScreen").style.display="block";
+  startCards();
+}
+
+function goSetup(){
+  document.getElementById("doneScreen").style.display="none";
+  document.getElementById("setupScreen").style.display="block";
+  buildFanGrid();
+}
+
+buildFanGrid();
+</script>
+</body>
+</html>
