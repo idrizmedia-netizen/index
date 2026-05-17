@@ -9,20 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # v4 ga yangilandi
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4 # v4 ga yangilandi
+        uses: actions/setup-node@v4
         with:
-          node-version: 22 # Barqaror yangi versiya
+          node-version: 22
 
       - name: Install dependencies
+        # defaults: run: working-directory o'rniga toza va xavfsiz zanjir usuli
         run: |
-          cd studio && npm install --legacy-peer-deps
-          cd studio && npm install sanity @sanity/cli
+          cd studio
+          npm install --legacy-peer-deps
 
       - name: Deploy Sanity Studio
-        run: cd studio && npx sanity deploy --yes
+        run: |
+          cd studio
+          npx sanity deploy --yes
         env:
           SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
