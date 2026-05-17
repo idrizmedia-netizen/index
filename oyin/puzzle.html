@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>So'z Topish — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--blue:#4f7cff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
+.game-container{max-width:500px;width:100%;margin:auto;padding:24px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
+.scrambled-word{font-family:'Outfit',sans-serif;font-size:2.2rem;font-weight:800;color:var(--purple);letter-spacing:6px;text-transform:uppercase;margin:20px 0;background:#faf5ff;padding:16px;border-radius:16px}
+.hint{font-size:14px;color:var(--muted);margin-bottom:24px;font-style:italic}
+input{width:100%;padding:14px;border-radius:12px;border:2px solid var(--border);font-size:16px;font-weight:700;text-align:center;margin-bottom:16px;outline:none;text-transform:uppercase}
+input:focus{border-color:var(--purple)}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
+.btn-alt{background:var(--blue);margin-top:12px;display:inline-block;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="index.html">⬅ Orqaga</a>
+  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">🧩 So'z Topish</h2>
+</div>
+
+<div class="game-container">
+  <div class="card" id="gameBox">
+    <div style="font-size:14px;color:var(--muted)">Bosqich: <span id="roundNum">1/5</span></div>
+    <div class="scrambled-word" id="scrambled">????</div>
+    <div class="hint" id="hintText">Yordamchi ma'no</div>
+    <input type="text" id="wordInput" placeholder="To'g'ri so'zni kiriting...">
+    <button class="btn" onclick="checkWord()">Tugallash</button>
+  </div>
+
+  <div class="card" id="resultBox" style="display:none">
+    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Ajoyib! 🏆</h2>
+    <p style="font-size:18px;margin-bottom:8px">Siz barcha so'zlarni muvaffaqiyatli topdingiz.</p>
+    <p style="font-size:20px;font-weight:800;color:var(--purple);margin-bottom:24px">+100 ball jamg'arildi!</p>
+    <a class="btn" href="index.html">🏠 Bosh sahifaga qaytish</a>
+  </div>
+</div>
+
+<script>
+const wordsList = [
+  {correct: "NEWTON", scrambled: "WTNENO", hint: "Kuch birligi va buyuk fizik olim"},
+  {correct: "ALGORITM", scrambled: "GOMTLRIA", hint: "Informatikada ketma-ketlik mantiqi"},
+  {correct: "MATEMATIKA", scrambled: "TAKETAMAMI", hint: "Fanlar ichra shoh fan"},
+  {correct: "TEZLIK", scrambled: "KLIZET", hint: "Fizikada V harfi bilan belgilanadigan kattalik"},
+  {correct: "MONITOR", scrambled: "RTNOMIO", hint: "Kompyuter ekrani"}
+];
+
+let curIdx = 0, earnedPoints = 0;
+
+function loadWord() {
+  if(curIdx >= wordsList.length) {
+    document.getElementById("gameBox").style.display = "none";
+    document.getElementById("resultBox").style.display = "block";
+    let total = parseInt(localStorage.getItem("ziyomap_total") || "0");
+    localStorage.setItem("ziyomap_total", total + 100);
+    return;
+  }
+  document.getElementById("roundNum").textContent = `${curIdx + 1}/${wordsList.length}`;
+  document.getElementById("scrambled").textContent = wordsList[curIdx].scrambled;
+  document.getElementById("hintText").textContent = "Yordam: " + wordsList[curIdx].hint;
+  document.getElementById("wordInput").value = "";
+}
+
+function checkWord() {
+  let userVal = document.getElementById("wordInput").value.trim().toUpperCase();
+  if(userVal === wordsList[curIdx].correct) {
+    curIdx++;
+    loadWord();
+  } else {
+    alert("Noto'g'ri so'z, qaytadan o'ylab ko'ring!");
+  }
+}
+
+loadWord();
+</script>
+</body>
+</html>
