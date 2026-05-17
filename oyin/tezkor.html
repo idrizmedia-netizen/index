@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tezkor Javob — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--orange:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4f7cff}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
+.game-container{max-width:500px;width:100%;margin:auto;padding:24px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
+.timer-bar{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;color:var(--orange);margin-bottom:12px}
+.score-text{font-size:16px;color:var(--muted);margin-bottom:24px}
+.question{font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:800;margin-bottom:32px}
+.input-group{display:flex;gap:12px;margin-bottom:16px}
+input{flex:1;padding:16px;border-radius:12px;border:2px solid var(--border);font-size:18px;font-weight:700;text-align:center;outline:none;font-family:'Nunito',sans-serif}
+input:focus{border-color:var(--orange)}
+.btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+.btn-alt{background:var(--blue);margin-top:12px;display:inline-block;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="index.html">⬅ Orqaga</a>
+  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">⚡ Tezkor Javob</h2>
+</div>
+
+<div class="game-container">
+  <div class="card" id="startScreen">
+    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Tayyormisiz? ⚡</h2>
+    <p style="color:var(--muted);margin-bottom:24px">60 soniya ichida imkon qadar ko'p matematik misolni to'g'ri yeching. Har bir to'g'ri javob +10 ball!</p>
+    <button class="btn" onclick="startGame()">▶ O'yinni boshlash</button>
+  </div>
+
+  <div class="card" id="gameScreen" style="display:none">
+    <div class="timer-bar" id="timer">60</div>
+    <div class="score-text">To'g'ri javoblar: <strong id="scoreCount" style="color:var(--green)">0</strong></div>
+    <div class="question" id="problem">2 + 2 = ?</div>
+    <div class="input-group">
+      <input type="number" id="ansInput" placeholder="Javobni yozing..." autocomplete="off">
+    </div>
+    <button class="btn" onclick="checkAnswer()">Tekshirish (Enter)</button>
+  </div>
+
+  <div class="card" id="endScreen" style="display:none">
+    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Vaqt tugadi! 🏁</h2>
+    <p style="font-size:18px;margin-bottom:8px">Siz jami <strong id="finalAns" style="color:var(--green)">0</strong> ta to'g'ri javob berdingiz.</p>
+    <p style="font-size:20px;font-weight:800;margin-bottom:24px">Jamg'arilgan ball: <span style="color:var(--orange)" id="earnedPts">+0 ball</span></p>
+    <button class="btn" onclick="location.reload()">🔄 Qayta urinish</button>
+    <a class="btn btn-alt" href="index.html">🏠 Bosh sahifaga qaytish</a>
+  </div>
+</div>
+
+<script>
+let time = 60, score = 0, num1, num2, op, answer, timerInterval;
+const input = document.getElementById("ansInput");
+
+input.addEventListener("keypress", function(e) { if(e.key === "Enter") checkAnswer(); });
+
+function startGame() {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("gameScreen").style.display = "block";
+  input.focus();
+  nextProblem();
+  timerInterval = setInterval(() => {
+    time--;
+    document.getElementById("timer").textContent = time;
+    if(time <= 0) endGame();
+  }, 1000);
+}
+
+function nextProblem() {
+  const ops = ['+', '-', '*'];
+  op = ops[Math.floor(Math.random() * ops.length)];
+  if(op === '*') { num1 = Math.floor(Math.random() * 9) + 2; num2 = Math.floor(Math.random() * 9) + 2; }
+  else { num1 = Math.floor(Math.random() * 80) + 10; num2 = Math.floor(Math.random() * 80) + 10; }
+  if(op === '-' && num1 < num2) { let t = num1; num1 = num2; num2 = t; }
+  answer = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : num1 * num2;
+  document.getElementById("problem").textContent = `${num1} ${op} ${num2} = ?`;
+  input.value = "";
+}
+
+function checkAnswer() {
+  if(parseInt(input.value) === answer) { score++; document.getElementById("scoreCount").textContent = score; }
+  nextProblem();
+  input.focus();
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  document.getElementById("gameScreen").style.display = "none";
+  document.getElementById("endScreen").style.display = "block";
+  document.getElementById("finalAns").textContent = score;
+  let pts = score * 10;
+  document.getElementById("earnedPts").textContent = `+${pts} ball`;
+  let currentTotal = parseInt(localStorage.getItem("ziyomap_total") || "0");
+  localStorage.setItem("ziyomap_total", currentTotal + pts);
+}
+</script>
+</body>
+</html>
