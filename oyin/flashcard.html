@@ -151,9 +151,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<script src="../js/savollar.js"></script>
+<script src="./js/savollar.js"></script>
 
 <script>
+// Fanlar IDlari bazadagi nomlar bilan 100% bir xil qilindi
 const FANS = [
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -171,7 +172,7 @@ function buildFanGrid(){
   const g=document.getElementById("fanGrid");
   g.innerHTML="";
   
-  // ZiyomapBaza borligini tekshirish (Xavfsizlik uchun)
+  // ZiyomapBaza borligini tekshirish
   if (typeof ZiyomapBaza === "undefined") {
     g.innerHTML = "<p style='color:var(--red); font-weight:bold; grid-column: 1/-1; text-align:center;'>Xatolik: savollar.js fayli topilmadi yoki yuklanmadi!</p>";
     return;
@@ -182,7 +183,7 @@ function buildFanGrid(){
     el.className="fan-card"+(S.sel.includes(f.id)?" sel":"");
     el.dataset.id=f.id;
     
-    // Obyekt ichida flashcard bo'limi borligini tekshirish
+    // ZiyomapBaza.flashcard ichidan to'g'ridan-to'g'ri massiv uzunligini olamiz
     const hasFlashcard = ZiyomapBaza.flashcard && ZiyomapBaza.flashcard[f.id];
     const cnt = hasFlashcard ? ZiyomapBaza.flashcard[f.id].length : 0;
     
@@ -222,9 +223,9 @@ function showCard(){
   S.flipped=false;
   document.getElementById("flipCard").classList.remove("flipped");
   
-  // Savollar bazasidagi har qanday formatga moslashuv (q/question va a/answer)
-  document.getElementById("cardQ").textContent=c.question || c.q || "Savol matni topilmadi"; 
-  document.getElementById("cardA").textContent=c.answer || c.a || "Javob matni topilmadi";
+  // 🌟 TO'G'RILANDI: Sizning bazangizdagi 'question' va 'answer' kalitlariga qat'iy yo'naltirildi
+  document.getElementById("cardQ").textContent = c.question || "Savol matni topilmadi"; 
+  document.getElementById("cardA").textContent = c.answer || "Javob matni topilmadi";
   
   document.getElementById("cardNum").textContent=`${S.cur+1} / ${S.cards.length}`;
   document.getElementById("cPbar").style.width=`${(S.cur/S.cards.length)*100}%`;
@@ -277,5 +278,3 @@ function goSetup(){
 // Sahifa yuklanganda gridni chizish
 buildFanGrid();
 </script>
-</body>
-</html>
