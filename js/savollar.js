@@ -951,4 +951,7 @@ const ZiyomapBaza = {
       { question: "Atmosferadagi ultrabinafsha nurlarni to'suvchi gaz qatlami?", answer: "ozon" },
       { question: "O'zbekistonning maydoni bo'yicha eng katta viloyati (hududi)?", answer: "Navoiy" }
     ]
+
   }
+
+  };
