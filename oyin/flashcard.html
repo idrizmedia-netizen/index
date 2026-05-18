@@ -161,7 +161,7 @@ const FANS = [
   {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
   {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
   {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
-  {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"ingliztili",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"}, 
   {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
 ];
 
@@ -170,12 +170,22 @@ let S = { sel:["fizika"], cards:[], cur:0, know:0, again:0, skip:0, flipped:fals
 function buildFanGrid(){
   const g=document.getElementById("fanGrid");
   g.innerHTML="";
+  
+  // ZiyomapBaza borligini tekshirish (Xavfsizlik uchun)
+  if (typeof ZiyomapBaza === "undefined") {
+    g.innerHTML = "<p style='color:var(--red); font-weight:bold; grid-column: 1/-1; text-align:center;'>Xatolik: savollar.js fayli topilmadi yoki yuklanmadi!</p>";
+    return;
+  }
+
   FANS.forEach(f=>{
     const el=document.createElement("div");
     el.className="fan-card"+(S.sel.includes(f.id)?" sel":"");
     el.dataset.id=f.id;
-    // Savollar sonini yangi ZiyomapBaza.flashcard ichidan dinamik hisoblaymiz
-    const cnt=(ZiyomapBaza.flashcard[f.id] || []).length;
+    
+    // Obyekt ichida flashcard bo'limi borligini tekshirish
+    const hasFlashcard = ZiyomapBaza.flashcard && ZiyomapBaza.flashcard[f.id];
+    const cnt = hasFlashcard ? ZiyomapBaza.flashcard[f.id].length : 0;
+    
     el.innerHTML=`<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${cnt} karta</div>`;
     el.onclick=()=>toggleFan(f.id,el);
     g.appendChild(el);
@@ -191,11 +201,14 @@ function toggleFan(id,el){
 function startCards(){
   let pool=[];
   S.sel.forEach(f=>{
-    // Statik massiv o'rniga ZiyomapBaza.flashcard dan ma'lumotlarni tortamiz
-    (ZiyomapBaza.flashcard[f]||[]).forEach(c=>pool.push({...c,fan:f}));
+    if(ZiyomapBaza.flashcard && ZiyomapBaza.flashcard[f]){
+      ZiyomapBaza.flashcard[f].forEach(c=>pool.push({...c,fan:f}));
+    }
   });
+  
   pool=pool.sort(()=>Math.random()-0.5);
   if(!pool.length){alert("Tanlangan fan(lar) bo'yicha hech qanday karta topilmadi!");return;}
+  
   S.cards=pool;S.cur=0;S.know=0;S.again=0;S.skip=0;
   document.getElementById("setupScreen").style.display="none";
   document.getElementById("doneScreen").style.display="none";
@@ -208,13 +221,18 @@ function showCard(){
   const c=S.cards[S.cur];
   S.flipped=false;
   document.getElementById("flipCard").classList.remove("flipped");
-  document.getElementById("cardQ").textContent=c.q || c.question; // Har ikki holatga ham (q yoki question) moslik
-  document.getElementById("cardA").textContent=c.a || c.answer;   // Har ikki holatga ham (a yoki answer) moslik
+  
+  // Savollar bazasidagi har qanday formatga moslashuv (q/question va a/answer)
+  document.getElementById("cardQ").textContent=c.question || c.q || "Savol matni topilmadi"; 
+  document.getElementById("cardA").textContent=c.answer || c.a || "Javob matni topilmadi";
+  
   document.getElementById("cardNum").textContent=`${S.cur+1} / ${S.cards.length}`;
   document.getElementById("cPbar").style.width=`${(S.cur/S.cards.length)*100}%`;
+  
   const fan=FANS.find(f=>f.id===c.fan)||{name:c.fan,color:"#4f7cff",bg:"#eff3ff"};
   const ind=document.getElementById("fanInd");
   ind.textContent=fan.name;ind.style.background=fan.bg;ind.style.color=fan.color;
+  
   document.getElementById("knowCount").textContent=S.know;
   document.getElementById("againCount").textContent=S.again;
 }
@@ -256,6 +274,7 @@ function goSetup(){
   buildFanGrid();
 }
 
+// Sahifa yuklanganda gridni chizish
 buildFanGrid();
 </script>
 </body>
