@@ -15,12 +15,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
 .timer-bar{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;color:var(--orange);margin-bottom:12px}
 .score-text{font-size:16px;color:var(--muted);margin-bottom:24px}
-.question{font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:800;margin-bottom:32px}
+.question{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;margin-bottom:32px;line-height:1.4;word-wrap:break-word}
 .input-group{display:flex;gap:12px;margin-bottom:16px}
 input{flex:1;padding:16px;border-radius:12px;border:2px solid var(--border);font-size:18px;font-weight:700;text-align:center;outline:none;font-family:'Nunito',sans-serif}
 input:focus{border-color:var(--orange)}
 .btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
 .btn-alt{background:var(--blue);margin-top:12px;display:inline-block;text-decoration:none}
+
+/* Fan tanlash uslubi */
+.select-fan{width:100%;padding:12px;border-radius:12px;border:2px solid var(--border);font-size:15px;font-weight:700;margin-bottom:20px;outline:none;font-family:'Nunito',sans-serif;background:var(--white);cursor:pointer}
 </style>
 </head>
 <body>
@@ -33,7 +36,21 @@ input:focus{border-color:var(--orange)}
 <div class="game-container">
   <div class="card" id="startScreen">
     <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Tayyormisiz? ⚡</h2>
-    <p style="color:var(--muted);margin-bottom:24px">60 soniya ichida imkon qadar ko'p matematik misolni to'g'ri yeching. Har bir to'g'ri javob +10 ball!</p>
+    <p style="color:var(--muted);margin-bottom:20px">60 soniya ichida imkon qadar ko'p savolga to'g'ri javob yozing. Har bir to'g'ri javob +10 ball!</p>
+    
+    <div style="text-align:left;font-size:14px;font-weight:700;margin-bottom:6px">Yo'nalishni tanlang:</div>
+    <select class="select-fan" id="fanSelect">
+      <option value="matematika_auto">📐 Matematika (Avtomatik misollar)</option>
+      <option value="fizika">⚛️ Fizika (Baza bo'yicha)</option>
+      <option value="matematika">📐 Matematika (Baza bo'yicha)</option>
+      <option value="informatika">💻 Informatika (Baza bo'yicha)</option>
+      <option value="biologiya">🧬 Biologiya (Baza bo'yicha)</option>
+      <option value="kimyo">🧪 Kimyo (Baza bo'yicha)</option>
+      <option value="tarix">📜 Tarix (Baza bo'yicha)</option>
+      <option value="ingliztili">🇬🇧 Ingliz tili (Baza bo'yicha)</option>
+      <option value="geografiya">🌍 Geografiya (Baza bo'yicha)</option>
+    </select>
+
     <button class="btn" onclick="startGame()">▶ O'yinni boshlash</button>
   </div>
 
@@ -42,7 +59,7 @@ input:focus{border-color:var(--orange)}
     <div class="score-text">To'g'ri javoblar: <strong id="scoreCount" style="color:var(--green)">0</strong></div>
     <div class="question" id="problem">2 + 2 = ?</div>
     <div class="input-group">
-      <input type="number" id="ansInput" placeholder="Javobni yozing..." autocomplete="off">
+      <input type="text" id="ansInput" placeholder="Javobni yozing..." autocomplete="off">
     </div>
     <button class="btn" onclick="checkAnswer()">Tekshirish (Enter)</button>
   </div>
@@ -56,13 +73,45 @@ input:focus{border-color:var(--orange)}
   </div>
 </div>
 
+<script src="../js/savollar.js"></script>
+
 <script>
-let time = 60, score = 0, num1, num2, op, answer, timerInterval;
+let time = 60, score = 0, num1, num2, op, currentAnswer, timerInterval;
+let currentPool = [];
+let currentQIndex = 0;
+let isAutoMath = true;
 const input = document.getElementById("ansInput");
 
 input.addEventListener("keypress", function(e) { if(e.key === "Enter") checkAnswer(); });
 
 function startGame() {
+  const selectedMode = document.getElementById("fanSelect").value;
+  
+  if (selectedMode === "matematika_auto") {
+    isAutoMath = true;
+    input.type = "number"; // Faqat raqam kiritilishi uchun
+  } else {
+    isAutoMath = false;
+    input.type = "text"; // Matnli javoblar uchun
+    
+    // ZiyomapBaza ob'ektidan tanlangan fanning tezkor savollarini yuklab olamiz
+    if (typeof ZiyomapBaza !== 'undefined' && ZiyomapBaza.tezkor && ZiyomapBaza.tezkor[selectedMode]) {
+      currentPool = [...ZiyomapBaza.tezkor[selectedMode]];
+    } else {
+      currentPool = [];
+    }
+    
+    // Savollarni aralashtirib tashlaymiz
+    currentPool = currentPool.sort(() => Math.random() - 0.5);
+    currentQIndex = 0;
+    
+    if (currentPool.length === 0) {
+      alert("Ushbu fan bo'yicha savollar.js faylida hali tezkor savollar mavjud emas! Avtomatik matematika rejimi ishga tushadi.");
+      isAutoMath = true;
+      input.type = "number";
+    }
+  }
+
   document.getElementById("startScreen").style.display = "none";
   document.getElementById("gameScreen").style.display = "block";
   input.focus();
@@ -75,18 +124,41 @@ function startGame() {
 }
 
 function nextProblem() {
-  const ops = ['+', '-', '*'];
-  op = ops[Math.floor(Math.random() * ops.length)];
-  if(op === '*') { num1 = Math.floor(Math.random() * 9) + 2; num2 = Math.floor(Math.random() * 9) + 2; }
-  else { num1 = Math.floor(Math.random() * 80) + 10; num2 = Math.floor(Math.random() * 80) + 10; }
-  if(op === '-' && num1 < num2) { let t = num1; num1 = num2; num2 = t; }
-  answer = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : num1 * num2;
-  document.getElementById("problem").textContent = `${num1} ${op} ${num2} = ?`;
+  if (isAutoMath) {
+    // Siz yaratgan o'ziga xos avtomatik matematik misollar generatsiyasi (to'liq saqlandi)
+    const ops = ['+', '-', '*'];
+    op = ops[Math.floor(Math.random() * ops.length)];
+    if(op === '*') { num1 = Math.floor(Math.random() * 9) + 2; num2 = Math.floor(Math.random() * 9) + 2; }
+    else { num1 = Math.floor(Math.random() * 80) + 10; num2 = Math.floor(Math.random() * 80) + 10; }
+    if(op === '-' && num1 < num2) { let t = num1; num1 = num2; num2 = t; }
+    currentAnswer = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : num1 * num2;
+    document.getElementById("problem").textContent = `${num1} ${op} ${num2} = ?`;
+  } else {
+    // Savollar.js dagi ma'lumotlar tugab qolsa, ularni qaytadan aralashtirib aylantiraveradi
+    if (currentQIndex >= currentPool.length) {
+      currentPool = currentPool.sort(() => Math.random() - 0.5);
+      currentQIndex = 0;
+    }
+    
+    const currentQ = currentPool[currentQIndex];
+    // Savollar.js dagi ham question/answer, ham q/a formatlarini xatosiz qo'llab-quvvatlaydi
+    document.getElementById("problem").textContent = currentQ.question || currentQ.q;
+    currentAnswer = currentQ.answer || currentQ.a;
+    currentQIndex++;
+  }
   input.value = "";
 }
 
 function checkAnswer() {
-  if(parseInt(input.value) === answer) { score++; document.getElementById("scoreCount").textContent = score; }
+  let userAnswer = input.value.trim();
+  let correctAnswer = String(currentAnswer).trim();
+
+  // Agar javob raqam bo'lmasa, katta-kichik harflar va bo'shliqlardagi farqni xato deb hisoblamasligi uchun tekshiruv optimizatsiyasi
+  if(userAnswer.toLowerCase() === correctAnswer.toLowerCase()) { 
+    score++; 
+    document.getElementById("scoreCount").textContent = score; 
+  }
+  
   nextProblem();
   input.focus();
 }
