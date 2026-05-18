@@ -93,7 +93,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 <div class="wrap">
-  <!-- SETUP -->
   <div id="setupScreen">
     <div class="setup-title">🃏 Flashcard o'rganish</div>
     <p style="color:var(--muted);margin-bottom:24px">Kartochkalarni aylantiring va bilimingizni sinang</p>
@@ -102,7 +101,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <button class="start-btn" onclick="startCards()">▶ Boshlash</button>
   </div>
 
-  <!-- CARD -->
   <div id="cardScreen">
     <div style="text-align:center;margin-bottom:4px">
       <span class="fan-indicator" id="fanInd"></span>
@@ -134,7 +132,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
   </div>
 
-  <!-- DONE -->
   <div id="doneScreen">
     <div class="done-card">
       <div class="done-emoji" id="doneEmoji">🎉</div>
@@ -154,6 +151,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
+<script src="../js/savollar.js"></script>
+
 <script>
 const FANS = [
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
@@ -165,109 +164,6 @@ const FANS = [
   {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
   {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
 ];
-const CARDS = {
-  fizika:[
-    {q:"Yorug'lik tezligi (vakuumda)?",a:"c ≈ 3×10⁸ m/s = 300,000 km/s"},
-    {q:"Nyuton II qonuni formulasi?",a:"F = m·a (kuch = massa × tezlanish)"},
-    {q:"Ohm qonuni?",a:"I = U/R (tok = kuchlanma ÷ qarshilik)"},
-    {q:"Gravitatsiya tezlanishi Yorda?",a:"g ≈ 9.8 m/s²"},
-    {q:"Elektr quvvati formulasi?",a:"P = U·I = I²R = U²/R"},
-    {q:"1 atm = ? Pa",a:"1 atm = 101,325 Pa"},
-    {q:"Energiya saqlanish qonuni nimani aytadi?",a:"Yopiq tizimda to'liq mexanik energiya saqlanadi"},
-    {q:"Arximed kuchi formulasi?",a:"F = ρ·g·V (zichlik × g × hajm)"},
-    {q:"Issiqlik miqdori formulasi?",a:"Q = m·c·ΔT"},
-    {q:"Magnit induksiyasi birligi?",a:"Tesla (T) — SI tizimida"},
-    {q:"Foton energiyasi formulasi?",a:"E = h·f (Plank doimiysi × chastota)"},
-    {q:"Rentgen nurlari — bu nima?",a:"Qisqa to'lqinli elektromagnit nurlanish (0.01–10 nm)"},
-    {q:"Yadro fizikasida α-zarrasi nima?",a:"Geliy yadrosi — 2 proton + 2 neytron"},
-  ],
-  matematika:[
-    {q:"π ning qiymati (5 xonali)?",a:"π ≈ 3.14159"},
-    {q:"Uchburchak yuzasi formulasi?",a:"S = (a × h) / 2"},
-    {q:"Doira yuzasi?",a:"S = π·r²"},
-    {q:"Kvadrat tenglama ax²+bx+c=0 yechi?",a:"x = (−b ± √D) / 2a, D = b²−4ac"},
-    {q:"log_a(b·c) = ?",a:"log_a(b) + log_a(c)"},
-    {q:"sin²θ + cos²θ = ?",a:"= 1 (asosiy trigonometrik tengsizlik)"},
-    {q:"Binomial: (a+b)³ = ?",a:"a³ + 3a²b + 3ab² + b³"},
-    {q:"Faktoriali n! = ?",a:"n! = 1 × 2 × 3 × … × n"},
-    {q:"Arifmetik progressiya yig'indisi formulasi?",a:"Sn = n(a₁+aₙ)/2"},
-    {q:"Derivativ d/dx(xⁿ) = ?",a:"n·x^(n−1)"},
-    {q:"e (Eyler soni) qiymati?",a:"e ≈ 2.71828..."},
-    {q:"Kombinatsiya C(n,k) formulasi?",a:"C(n,k) = n! / (k! × (n−k)!)"},
-  ],
-  informatika:[
-    {q:"Binary 1010₂ = ? (o'nlik)",a:"10 (1×8 + 0×4 + 1×2 + 0×1 = 10)"},
-    {q:"HTTP 404 nima?",a:"Not Found — sahifa yoki resurs topilmadi"},
-    {q:"O(n log n) qaysi algoritmlar?",a:"Merge sort, Quick sort (o'rtacha), Heap sort"},
-    {q:"CSS Flexbox da align-items nima?",a:"Elementlarni ko'ndalang o'q bo'ylab tekislash"},
-    {q:"DNS nima?",a:"Domain Name System — domainni IP ga tarjima qiladi"},
-    {q:"RAM nima?",a:"Random Access Memory — operativ xotira"},
-    {q:"OOP 4 tamoyili?",a:"Encapsulation, Inheritance, Polymorphism, Abstraction"},
-    {q:"git commit nima qiladi?",a:"O'zgarishlarni lokal repozitoriyga saqlaydi"},
-    {q:"SQL WHERE xususiyati?",a:"Natijalarni shartga ko'ra filtrlaydi"},
-    {q:"API nima?",a:"Application Programming Interface — dasturlar orasidagi interfeys"},
-    {q:"Boolean qiymatlar?",a:"True (1) va False (0) — faqat ikkita qiymat"},
-    {q:"Rekursiya nima?",a:"Funksiya o'zini o'zi chaqirganda, base case kerak"},
-  ],
-  biologiya:[
-    {q:"Mitoxondriya vazifasi?",a:"ATP sintezi — hujayra energiyasi ishlab chiqarish"},
-    {q:"DNK nima?",a:"Dezoksiribonuklein kislota — irsiy ma'lumot tashuvchisi"},
-    {q:"Fotosintez jarayoni?",a:"6CO₂ + 6H₂O + yorug'lik → C₆H₁₂O₆ + 6O₂"},
-    {q:"Hujayra membranasi nimadan tashkil?",a:"Ikki qavat fosfolipid + oqsillar"},
-    {q:"Mitoz va meyoz farqi?",a:"Mitoz: 2 diploid hujayra; Meyoz: 4 gaploid hujayra"},
-    {q:"Immunitet turlari?",a:"Tug'ma (innate) va orttirilgan (adaptive) immunitet"},
-    {q:"Darvin nazariyasining asosi?",a:"Tabiy tanlanish (natural selection) yo'li bilan evolyutsiya"},
-    {q:"Ferment (enzim) nima?",a:"Reaksiyani tezlashtiradigan biologik katalizator (oqsil)"},
-    {q:"Qon guruhlari (ABO)?",a:"O (I), A (II), B (III), AB (IV) — 4 ta guruh"},
-    {q:"Yadro vazifasi?",a:"DNK saqlash va hujayra faoliyatini boshqarish"},
-  ],
-  kimyo:[
-    {q:"H₂O — bu nima?",a:"Suv — ikkita vodorod va bitta kislorod"},
-    {q:"pH shkalasi?",a:"0–14: <7 kislotali, 7 neytral, >7 ishqoriy"},
-    {q:"Avogadro soni?",a:"Nₐ ≈ 6.022 × 10²³ zarrcha/mol"},
-    {q:"Kovalent bog' nima?",a:"Umumiy elektron juftligi orqali hosil bo'lgan bog'"},
-    {q:"Oksidlanish nima?",a:"Elektron berish (manba oksidlanadi)"},
-    {q:"Ideal gaz tenglamasi?",a:"PV = nRT"},
-    {q:"Benzol formulasi?",a:"C₆H₆ — aromatik uglevodorod"},
-    {q:"Kataliz nima?",a:"Katalizator yordamida reaksiya tezligini oshirish"},
-    {q:"Elektroliz nima?",a:"Elektr toki ta'sirida kimyoviy reaksiya"},
-    {q:"Davriy jadvalda guruhlar nechta?",a:"18 ta guruh"},
-  ],
-  tarix:[
-    {q:"Amir Temur tug'ilgan yil va joy?",a:"1336 yil, Shahrisabz (hozirgi O'zbekiston)"},
-    {q:"I Jahon urushi yillari?",a:"1914–1918 yillar"},
-    {q:"O'zbekiston mustaqilligi?",a:"1991 yil 1 sentabr"},
-    {q:"Renessans qayerda boshlangan?",a:"XIV asr Italiyasida boshlangan"},
-    {q:"Al-Xorazmiy kim?",a:"IX asr matematik, algebra asoschisi, algoritm atamasi undan"},
-    {q:"Gutenberg nima ixtiro qildi?",a:"Bosmaxona (~1440 yil)"},
-    {q:"Fransuz inqilobi yili?",a:"1789 yil"},
-    {q:"Ipak yo'li nima?",a:"Sharq va G'arbni bog'lagan qadimiy savdo yo'li"},
-    {q:"Ibn Sino kim?",a:"O'rta asrlar shifokor va faylasufi, 'Tib qonunlari' muallifi"},
-  ],
-  ingliz:[
-    {q:"'Beautiful' o'zbekcha?",a:"Chiroyli, go'zal"},
-    {q:"Present Perfect formulasi?",a:"have/has + V3 (past participle)"},
-    {q:"'Vocabulary' nima?",a:"Lug'at boyligi, so'zlar to'plami"},
-    {q:"Passive voice (past)?",a:"was/were + V3"},
-    {q:"Modal verbs misollari?",a:"can, could, may, might, must, should, would, will"},
-    {q:"'Nevertheless' ma'nosi?",a:"Shunga qaramay, biroq (however, yet)"},
-    {q:"Conditional II gap?",a:"If + Past Simple → would + V1"},
-    {q:"'Synonym' nima?",a:"Bir xil yoki yaqin ma'noli so'z"},
-    {q:"'Phenomenon' ko'pligi?",a:"phenomena (lotin ko'plik)"},
-    {q:"'she goes' nega 'go' emas?",a:"3-shaxs birlik Present Simple da -s qo'shiladi"},
-  ],
-  geografiya:[
-    {q:"Dunyodagi eng baland tog'?",a:"Everest (Chomolungma) — 8,848 m, Himoloy"},
-    {q:"O'zbekiston poytaxti?",a:"Toshkent"},
-    {q:"Eng katta okean?",a:"Tinch okean (Pasifik) — 165 mln km²"},
-    {q:"Amazon daryosi qayerda?",a:"Janubiy Amerika, eng ko'p suvli daryo"},
-    {q:"Sahara cho'li?",a:"Shimoliy Afrika, 9.2 mln km² — eng katta issiq cho'l"},
-    {q:"O'rta Osiyo davlatlari?",a:"O'zbekiston, Qozog'iston, Tojikiston, Turkmaniston, Qirg'iziston"},
-    {q:"Baykal ko'li?",a:"Sibir, Rossiya — dunyodagi eng chuqur ko'l (1642 m)"},
-    {q:"Nil daryosi qayerda?",a:"Shimoliy Afrika, O'rta er dengiziga quyiladi"},
-    {q:"Orol dengizi?",a:"O'zbekiston va Qozog'iston o'rtasida, qurib borayotgan ko'l"},
-  ],
-};
 
 let S = { sel:["fizika"], cards:[], cur:0, know:0, again:0, skip:0, flipped:false };
 
@@ -278,7 +174,8 @@ function buildFanGrid(){
     const el=document.createElement("div");
     el.className="fan-card"+(S.sel.includes(f.id)?" sel":"");
     el.dataset.id=f.id;
-    const cnt=(CARDS[f.id]||[]).length;
+    // Savollar sonini yangi ZiyomapBaza.flashcard ichidan dinamik hisoblaymiz
+    const cnt=(ZiyomapBaza.flashcard[f.id] || []).length;
     el.innerHTML=`<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${cnt} karta</div>`;
     el.onclick=()=>toggleFan(f.id,el);
     g.appendChild(el);
@@ -294,10 +191,11 @@ function toggleFan(id,el){
 function startCards(){
   let pool=[];
   S.sel.forEach(f=>{
-    (CARDS[f]||[]).forEach(c=>pool.push({...c,fan:f}));
+    // Statik massiv o'rniga ZiyomapBaza.flashcard dan ma'lumotlarni tortamiz
+    (ZiyomapBaza.flashcard[f]||[]).forEach(c=>pool.push({...c,fan:f}));
   });
   pool=pool.sort(()=>Math.random()-0.5);
-  if(!pool.length){alert("Karta topilmadi!");return;}
+  if(!pool.length){alert("Tanlangan fan(lar) bo'yicha hech qanday karta topilmadi!");return;}
   S.cards=pool;S.cur=0;S.know=0;S.again=0;S.skip=0;
   document.getElementById("setupScreen").style.display="none";
   document.getElementById("doneScreen").style.display="none";
@@ -310,8 +208,8 @@ function showCard(){
   const c=S.cards[S.cur];
   S.flipped=false;
   document.getElementById("flipCard").classList.remove("flipped");
-  document.getElementById("cardQ").textContent=c.q;
-  document.getElementById("cardA").textContent=c.a;
+  document.getElementById("cardQ").textContent=c.q || c.question; // Har ikki holatga ham (q yoki question) moslik
+  document.getElementById("cardA").textContent=c.a || c.answer;   // Har ikki holatga ham (a yoki answer) moslik
   document.getElementById("cardNum").textContent=`${S.cur+1} / ${S.cards.length}`;
   document.getElementById("cPbar").style.width=`${(S.cur/S.cards.length)*100}%`;
   const fan=FANS.find(f=>f.id===c.fan)||{name:c.fan,color:"#4f7cff",bg:"#eff3ff"};
