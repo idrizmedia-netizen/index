@@ -151,7 +151,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <div class="wrap">
-  <!-- SETUP -->
   <div id="setupScreen">
     <h2>Quiz sozlamalari</h2>
     <p>Fan, qiyinlik va savol sonini tanlang</p>
@@ -181,7 +180,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
   </div>
 
-  <!-- QUIZ -->
   <div id="quizScreen">
     <div class="quiz-progress">
       <div class="pbar-wrap">
@@ -210,7 +208,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <button class="next-btn" id="nextBtn" onclick="nextQ()">Keyingi →</button>
   </div>
 
-  <!-- RESULT -->
   <div id="resultScreen">
     <div class="result-wrap">
       <div class="res-emoji" id="resEmoji">🏆</div>
@@ -234,6 +231,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
+<script src="../js/savollar.js"></script>
+
 <script>
 const FANS = [
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
@@ -245,115 +244,6 @@ const FANS = [
   {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
   {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
 ];
-const ALL_Q = {
-  fizika:[
-    {q:"Yorug'lik vakuumda qanday tezlikda tarqaladi?",a:1,o:["100,000 km/s","300,000 km/s","150,000 km/s","500,000 km/s"],e:"Yorug'lik vakuumda c ≈ 3×10⁸ m/s = 300,000 km/s.",d:"easy"},
-    {q:"Nyutonning ikkinchi qonuni formulasi?",a:0,o:["F = ma","E = mc²","P = mv","W = Fd"],e:"F = ma — kuch = massa × tezlanish.",d:"easy"},
-    {q:"Ohm qonuniga ko'ra tok kuchi I = ?",a:2,o:["U × R","R / U","U / R","U + R"],e:"I = U/R — Ohm qonuni.",d:"easy"},
-    {q:"Gravitatsiya tezlanishi Yorda qancha?",a:0,o:["9.8 m/s²","6.7 m/s²","12 m/s²","3.7 m/s²"],e:"g ≈ 9.8 m/s² Yer yuzasida.",d:"easy"},
-    {q:"1 kVt necha Vt?",a:3,o:["10 Vt","100 Vt","10,000 Vt","1000 Vt"],e:"1 kVt = 1000 Vt.",d:"easy"},
-    {q:"Elektr quvvati P = ?",a:2,o:["P = I/U","P = R·I","P = U·I","P = U²/I"],e:"P = U·I — quvvat formulasi.",d:"medium"},
-    {q:"1 atm bosim necha Pa?",a:1,o:["10,000 Pa","101,325 Pa","100,000 Pa","98,000 Pa"],e:"1 atm = 101,325 Pa.",d:"medium"},
-    {q:"Arximed kuchi formulasi?",a:0,o:["F = ρgV","F = mg","F = ma","F = kx"],e:"Arximed kuchi F = ρ·g·V — suyuqlik zichligi × g × sho'ng'irilgan hajm.",d:"medium"},
-    {q:"Termodinamikaning birinchi qonuni nimani ifodalaydi?",a:2,o:["Entropiya o'sadi","Issiqlik o'tishi","Energiya saqlanishi","Gaz kengayishi"],e:"I qonun — energiya saqlanish va o'zgarish qonuni.",d:"medium"},
-    {q:"Doppler effekti nima?",a:1,o:["Optik illyuziya","To'lqin chastotasining o'zgarishi","Magnit maydon","Yorug'lik sinishi"],e:"Doppler effekti — manba yoki kuzatuvchi harakatida to'lqin chastotasining o'zgarishi.",d:"hard"},
-    {q:"Kvant mexanikasida Plank doimiysi belgilanishi?",a:0,o:["h","k","R","G"],e:"Plank doimiysi h = 6.626×10⁻³⁴ J·s.",d:"hard"},
-    {q:"Atom yadrosini kim kashf etdi?",a:2,o:["Bor","Tomson","Rezerford","Kyuri"],e:"Ernest Rezerford 1911 yilda oltin folga tajribasida atom yadrosini kashf etdi.",d:"medium"},
-    {q:"Yorug'lik bir yilda qancha masofa bosadi?",a:1,o:["9.46×10¹² km","9.46×10¹² km","8×10¹² km","10×10¹² km"],e:"1 yorug'lik yili ≈ 9.46×10¹² km.",d:"hard"},
-    {q:"Kondensat holati qaysi?",a:3,o:["Qattiq","Suyuq","Gaz","Plazma"],e:"Moddaning to'rt asosiy holati: qattiq, suyuq, gaz, plazma.",d:"hard"},
-    {q:"Magnit induksiyasining SI birligi?",a:2,o:["Veber","Genri","Tesla","Farad"],e:"Magnit induksiyasi B ning birligi Tesla (T).",d:"medium"},
-  ],
-  matematika:[
-    {q:"π (pi) ning taxminiy qiymati?",a:0,o:["3.14159","3.12345","3.16000","3.10000"],e:"π ≈ 3.14159265...",d:"easy"},
-    {q:"log₂(8) = ?",a:2,o:["2","4","3","1"],e:"2³ = 8, shuning uchun log₂(8) = 3.",d:"easy"},
-    {q:"sin(90°) = ?",a:3,o:["0","√2/2","√3/2","1"],e:"sin(90°) = 1.",d:"easy"},
-    {q:"cos(0°) = ?",a:2,o:["0","1/2","1","√3/2"],e:"cos(0°) = 1.",d:"easy"},
-    {q:"5! (5 faktorial) = ?",a:1,o:["100","120","60","24"],e:"5! = 1×2×3×4×5 = 120.",d:"easy"},
-    {q:"Kvadrat tenglama diskriminanti D > 0 nima bildiradi?",a:1,o:["Ildizlar yo'q","Ikki haqiqiy ildiz","Bitta ildiz","Kompleks ildizlar"],e:"D > 0 → ikki xil haqiqiy ildiz.",d:"medium"},
-    {q:"Arifmetik progressiya n-hadi formulasi?",a:0,o:["a₁+(n−1)d","a₁×dⁿ","a₁+nd","a₁−nd"],e:"aₙ = a₁ + (n−1)d.",d:"medium"},
-    {q:"∫x dx = ?",a:2,o:["x","x²","x²/2+C","2x+C"],e:"∫x dx = x²/2 + C.",d:"hard"},
-    {q:"Matritsalar ko'paytmasi xususiyati?",a:1,o:["AB = BA","AB ≠ BA umuman","A(BC) = (AB)C","Hammasi to'g'ri"],e:"Matritsalar ko'paytmasi kommutativ emas: AB ≠ BA umuman.",d:"hard"},
-    {q:"Binomial teoremasi (a+b)² = ?",a:0,o:["a²+2ab+b²","a²+b²","a²−2ab+b²","2a+2b"],e:"(a+b)² = a² + 2ab + b².",d:"easy"},
-    {q:"Vektorlar skalyar ko'paytmasi a·b = ?",a:1,o:["|a|×|b|","|a||b|cos(θ)","a+b","|a||b|sin(θ)"],e:"a·b = |a||b|cos(θ).",d:"medium"},
-    {q:"Geometric progressiya yig'indisi (n→∞, |q|<1)?",a:2,o:["a₁/(1+q)","a₁·q","a₁/(1-q)","a₁/(q-1)"],e:"S∞ = a₁/(1-q) faqat |q|<1 da.",d:"hard"},
-    {q:"Taylorning birinchi darajali yaqinlashishi (x→0 da sin(x)≈?)",a:0,o:["x","x²/2","1","x³/6"],e:"sin(x) ≈ x kichik x uchun.",d:"hard"},
-    {q:"Uchburchak ichki burchaklar yig'indisi?",a:2,o:["90°","270°","180°","360°"],e:"Uchburchak burchaklari yig'indisi 180°.",d:"easy"},
-    {q:"Parabolaning kanuniy tenglamasi?",a:1,o:["y = ax+b","y = ax²+bx+c","y = a/x","y = aˣ"],e:"y = ax²+bx+c — parabolaning umumiy tenglamasi.",d:"medium"},
-  ],
-  informatika:[
-    {q:"Ikkilikda 1010₂ = ?",a:2,o:["8","12","10","14"],e:"1×8+0×4+1×2+0×1 = 10.",d:"easy"},
-    {q:"HTML qisqartmasi?",a:0,o:["HyperText Markup Language","High Text Making Lang","Hyper Typing Module","HyperText Making Links"],e:"HTML = HyperText Markup Language.",d:"easy"},
-    {q:"Qaysi saralash O(n log n) kafolatli?",a:3,o:["Bubble","Selection","Insertion","Merge sort"],e:"Merge sort har doim O(n log n).",d:"medium"},
-    {q:"TCP/IP modelida necha qatlam?",a:1,o:["3","4","5","7"],e:"TCP/IP = 4 qatlam.",d:"medium"},
-    {q:"OOP da encapsulation nima?",a:2,o:["Meros","Polimorfizm","Ma'lumot yashirish","Abstraktsiya"],e:"Encapsulation — ma'lumot va metodlarni yashirish.",d:"hard"},
-    {q:"SQL DISTINCT nima qiladi?",a:0,o:["Takrorlanmas qiymat","Saralash","Bo'sh o'chirish","Birlashtirish"],e:"DISTINCT — takrorlanuvchi qatorlarni olib tashlaydi.",d:"medium"},
-    {q:"git stash nima qiladi?",a:1,o:["O'chiradi","Vaqtincha saqlaydi","Branch yaratadi","Push qiladi"],e:"git stash — commit qilinmagan o'zgarishlarni vaqtincha saqlaydi.",d:"hard"},
-    {q:"Python listining asosiy xususiyati?",a:2,o:["Immutable","Faqat int","Mutable (o'zgaruvchan)","Faqat str"],e:"Python list mutable — o'zgartirilishi mumkin.",d:"easy"},
-    {q:"CSS Flexbox da justify-content nima qiladi?",a:0,o:["Gorizontal tekislash","Vertikal tekislash","Matn o'lchami","Chegara"],e:"justify-content — elementlarni asosiy o'q bo'ylab tekislaydi.",d:"medium"},
-    {q:"HTTP status kodi 404 nima?",a:1,o:["Server xatosi","Sahifa topilmadi","Muvaffaqiyatli","Yo'naltirish"],e:"404 = Not Found — sahifa topilmadi.",d:"easy"},
-    {q:"RAM qisqartmasi?",a:0,o:["Random Access Memory","Read All Memory","Rapid Access Module","Run And Monitor"],e:"RAM = Random Access Memory — operativ xotira.",d:"easy"},
-    {q:"DNS nima?",a:2,o:["Tarmoq kabeli","Operatsion tizim","Domen nomini IP ga aylantirish","Antivirus"],e:"DNS = Domain Name System — domen nomlarini IP manzillarga tarjima qiladi.",d:"medium"},
-    {q:"Python da list va tuple farqi?",a:3,o:["Tezlik","Hajm","Raqamlar","Tuple immutable"],e:"Tuple immutable — yaratilgandan so'ng o'zgarmaydi.",d:"medium"},
-    {q:"Big O notatsiyasida O(1) nima?",a:1,o:["Juda sekin","Doimiy vaqt","Chiziqli","Logaritmik"],e:"O(1) = constant time — kirish hajmidan qat'iy nazar bir xil vaqt.",d:"hard"},
-    {q:"REST API da DELETE method nima qiladi?",a:0,o:["Ma'lumot o'chiradi","Ma'lumot oladi","Ma'lumot yangilaydi","Ma'lumot qo'shadi"],e:"HTTP DELETE — resursni o'chirish uchun ishlatiladi.",d:"medium"},
-  ],
-  biologiya:[
-    {q:"ATP ishlab chiqaradigan organell?",a:2,o:["Yadro","Ribosoma","Mitoxondriya","Plastida"],e:"Mitoxondriya — hujayra nafas olish organi, ATP sintezi.",d:"easy"},
-    {q:"DNK ning to'liq nomi?",a:0,o:["Dezoksiribonuklein kislota","Dinukleotid kislota","Diploid nukleotid","Difuziyali nukleotid"],e:"DNK = Dezoksiribonuklein kislota.",d:"easy"},
-    {q:"Fotosintez qaysi organellda?",a:1,o:["Mitoxondriya","Xloroplast","Yadro","Vakuol"],e:"Xloroplast — fotosintez joyi.",d:"easy"},
-    {q:"Inson gemomi taxminan nechta gen?",a:2,o:["1,000","100,000","20,000–25,000","500,000"],e:"~20,000–25,000 gen.",d:"hard"},
-    {q:"Immunitet asosiy hujayralari?",a:0,o:["Leykositlar","Eritrositlar","Trombositlar","Neyrositlar"],e:"Leykositlar — oq qon hujayralari, immunitet asosi.",d:"medium"},
-    {q:"Mendel birinchi qonuni nima?",a:2,o:["Ajralish qonuni","Kombinatsiya qonuni","Bir xillik qonuni","Ko'plik qonuni"],e:"Mendel I qonuni — geterozi yoki bir xillik qonuni.",d:"medium"},
-    {q:"Hujayra bo'linishining ikkita asosiy turi?",a:1,o:["Mitoz va fuziya","Mitoz va meyoz","Meyoz va fertilizatsiya","Apoptoz va meyoz"],e:"Mitoz (somatik) va meyoz (jinsiy) bo'linish.",d:"medium"},
-    {q:"Qon guruhlari nechi xil?",a:2,o:["2","3","4","6"],e:"ABO sistemasida 4 qon guruhi: O, A, B, AB.",d:"easy"},
-    {q:"Biologiyada ekosistema nima?",a:0,o:["Tirik organizmlar va muhit birligi","Faqat o'simliklar","Hayvonlar majmuasi","Iqlim"],e:"Ekosistema — biotik va abiotik omillar birligi.",d:"medium"},
-    {q:"Evolyutsiya nazariyasi muallifi?",a:3,o:["Mendel","Pastyor","Watson","Darvin"],e:"Charlz Darvin tabiy tanlanish yo'li bilan evolyutsiya nazariyasini yaratdi.",d:"easy"},
-  ],
-  kimyo:[
-    {q:"Suvning kimyoviy formulasi?",a:1,o:["HO","H₂O","H₂O₂","OH₂"],e:"H₂O — ikki vodorod, bir kislorod.",d:"easy"},
-    {q:"Birinchi element davriy jadvalda?",a:0,o:["Vodorod (H)","Geliy (He)","Litiy (Li)","Berilliy (Be)"],e:"H — atom raqami 1.",d:"easy"},
-    {q:"pH = 7 qanday eritma?",a:2,o:["Kislotali","Ishqoriy","Neytral","O'ta kislotali"],e:"pH 7 = neytral.",d:"easy"},
-    {q:"NaCl bog' turi?",a:0,o:["Ion bog'","Kovalent","Metall","Vodorod"],e:"NaCl — Na⁺ va Cl⁻ o'rtasidagi ion bog'.",d:"medium"},
-    {q:"Organik kimyoda asosiy element?",a:1,o:["Kislorod","Uglerod","Azot","Vodorod"],e:"Uglerod (C) — organik kimyo asosi.",d:"medium"},
-    {q:"Mоl — bu nima?",a:2,o:["Massa birligi","Hajm birligi","6.022×10²³ ta zarrcha","Temperatura birligi"],e:"1 mol = 6.022×10²³ ta zarracha (Avogadro soni).",d:"medium"},
-    {q:"Oksidlanish-qaytarilish reaksiyasida oksidlovchi?",a:1,o:["Elektron beradi","Elektron oladi","Proton beradi","Proton oladi"],e:"Oksidlovchi elektron qabul qiladi, o'zi qaytariladi.",d:"hard"},
-    {q:"Ideal gaz qonunida PV = ?",a:0,o:["nRT","mRT","n/RT","R/nT"],e:"PV = nRT — ideal gaz holat tenglamasi.",d:"medium"},
-    {q:"Mis (Cu) ning atom raqami?",a:2,o:["26","28","29","30"],e:"Cu — mis, atom raqami 29.",d:"hard"},
-    {q:"Benzol formulasi?",a:1,o:["C₆H₁₂","C₆H₆","C₅H₅","C₆H₁₂O₆"],e:"Benzol C₆H₆ — aromatik uglevodorod.",d:"medium"},
-  ],
-  tarix:[
-    {q:"Amir Temur qaysi yili tug'ilgan?",a:0,o:["1336","1356","1370","1300"],e:"Amir Temur 1336 yil 8 aprel.",d:"easy"},
-    {q:"I Jahon urushi yillari?",a:0,o:["1914-1918","1939-1945","1912-1916","1917-1921"],e:"1914-1918 yillar.",d:"easy"},
-    {q:"O'zbekiston mustaqillik yili?",a:1,o:["1990","1991","1992","1993"],e:"1991 yil 1 sentabr.",d:"easy"},
-    {q:"Ipak yo'li qaysi shaharlari orqali o'tgan?",a:2,o:["Moskva, Peksin","Paris, Rim","Samarqand, Buxoro","London, Berlin"],e:"Samarqand va Buxoro Ipak yo'lining muhim markazlari edi.",d:"medium"},
-    {q:"Buyuk Britaniya parlameni qachon tashkil topgan?",a:1,o:["1066","1215","1265","1400"],e:"Ingliz parlamenti 1265 yilda tashkil topdi.",d:"hard"},
-    {q:"Renessans (Uyg'onish davri) qayerda boshlangan?",a:0,o:["Italiya","Fransiya","Germaniya","Ispaniya"],e:"Renessans XIV-XVII asrlarda Italiyada boshlangan.",d:"medium"},
-    {q:"Nashriyot matbaasini kim ixtiro qildi?",a:2,o:["Kopernikus","Galiley","Gutenberg","Da Vinchi"],e:"Iogann Gutenberg ~1440 yilda bosmaxonani ixtiro qildi.",d:"medium"},
-    {q:"Al-Xorazmiy kim?",a:1,o:["Fizik","Matematik va astronom","Shifokor","Shoir"],e:"Muhammad ibn Muso al-Xorazmiy — IX asr matematik, algebrani asoschisi.",d:"easy"},
-  ],
-  ingliz:[
-    {q:"'Apple' o'zbekcha?",a:0,o:["Olma","Nok","Uzum","Shaftoli"],e:"Apple = olma.",d:"easy"},
-    {q:"'Beautiful' past tense?",a:2,o:["Beautifuled","Beautifulled","N/A (adjective)","Beautifull"],e:"Beautiful — sifat, past tense yo'q.",d:"medium"},
-    {q:"I ___ a student. (to be)",a:1,o:["is","am","are","be"],e:"I am — birinchi shaxs uchun 'am'.",d:"easy"},
-    {q:"'Fast' ning antonimlari?",a:0,o:["Slow","Quick","Rapid","Swift"],e:"Fast = tez; antonimi Slow = sekin.",d:"easy"},
-    {q:"Present Perfect tense formulasi?",a:2,o:["did + V","will + V","have/has + V3","am/is/are + Ving"],e:"Present Perfect = have/has + Past Participle (V3).",d:"medium"},
-    {q:"'She ___ to school every day.' (go)",a:1,o:["go","goes","going","gone"],e:"3-shaxs birlik uchun goes.",d:"easy"},
-    {q:"Passive voice: 'The book ___ written by him.'",a:0,o:["was","is","were","be"],e:"Past simple passive: was + V3.",d:"medium"},
-    {q:"'Vocabulary' so'zining ma'nosi?",a:2,o:["Grammatika","Talaffuz","Lug'at boyligi","Yozuv"],e:"Vocabulary = lug'at, so'z boyligi.",d:"easy"},
-    {q:"Conditional II: If I were rich, I ___ a car.",a:1,o:["will buy","would buy","bought","buy"],e:"If+Past → would+V1 — 2-tip shart.",d:"hard"},
-    {q:"'Synonym' nima?",a:0,o:["Bir xil ma'nodosh so'z","Qarama-qarshi","Sinonim juft","Tarjima"],e:"Synonym = sinonim = bir xil yoki yaqin ma'noli so'z.",d:"medium"},
-  ],
-  geografiya:[
-    {q:"Dunyodagi eng baland tog'?",a:2,o:["K2","Elbrus","Everest","Kangchenjunga"],e:"Everest (Chomolungma) — 8,848 m.",d:"easy"},
-    {q:"O'zbekiston poytaxti?",a:0,o:["Toshkent","Samarqand","Buxoro","Namangan"],e:"Toshkent — O'zbekiston poytaxti.",d:"easy"},
-    {q:"Dunyodagi eng katta okean?",a:1,o:["Atlantika","Tinch okean","Hind okeani","Shimoliy Muz"],e:"Tinch okean (Pasifik) — eng katta okean.",d:"easy"},
-    {q:"Amazon daryosi qaysi qit'ada?",a:2,o:["Afrika","Osiyo","Janubiy Amerika","Avstraliya"],e:"Amazon — Janubiy Amerika, eng to'la daryo.",d:"easy"},
-    {q:"Sahara cho'li qaysi qit'ada?",a:0,o:["Afrika","Osiyo","Avstraliya","Amerika"],e:"Sahara — Afrika qit'asida, dunyodagi eng katta issiq cho'l.",d:"easy"},
-    {q:"O'rta Osiyo davlatlari soni?",a:2,o:["3","4","5","6"],e:"O'rta Osiyo: O'zbekiston, Qozog'iston, Tojikiston, Turkmaniston, Qirg'iziston — 5 ta.",d:"medium"},
-    {q:"Dunyodagi eng chuqur ko'l?",a:1,o:["Kaspiy","Baykal","Orol","Superior"],e:"Baykal ko'li — dunyodagi eng chuqur ko'l, 1642 m.",d:"medium"},
-    {q:"Nil daryosi qaysi okeanga quyiladi?",a:0,o:["O'rta er dengizi","Qizil dengiz","Hind okeani","Atlantika"],e:"Nil O'rta er dengiziga quyiladi.",d:"medium"},
-  ],
-};
 
 let S = {
   username: localStorage.getItem("ziyomap_user") || "",
@@ -383,7 +273,9 @@ function buildFanGrid() {
     const el = document.createElement("div");
     el.className = "fan-card sel";
     el.dataset.id = f.id;
-    el.innerHTML = `<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${(ALL_Q[f.id]||[]).length} savol</div>`;
+    // Savollar sonini tashqi ALL_Q obyektidan dinamik hisoblaymiz
+    const qCount = (typeof ALL_Q !== 'undefined' && ALL_Q[f.id]) ? ALL_Q[f.id].length : 0;
+    el.innerHTML = `<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${qCount} savol</div>`;
     el.onclick = () => toggleFan(f.id, el);
     g.appendChild(el);
   });
@@ -412,6 +304,9 @@ function pickN(btn) {
 
 function startQuiz() {
   let pool = [];
+  // Tashqi bazada ma'lumot borligini tekshirish xavfsizligi
+  if (typeof ALL_Q === 'undefined') { alert("Savollar bazasi topilmadi!"); return; }
+  
   S.selectedFans.forEach(f => {
     let qs = ALL_Q[f] || [];
     if (S.diff !== "all") qs = qs.filter(q => q.d === S.diff);
