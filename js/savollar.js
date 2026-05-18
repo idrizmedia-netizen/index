@@ -136,8 +136,8 @@ const ZiyomapBaza = {
         { question: "Genetika fanining otasi deb kim tan olingan?", options: ["Charlz Darvin", "Gregor Mendel", "Lui Paster", "Robert Guk"], answer: "Gregor Mendel" },
         { question: "Hujayraning 'energiya stansiyasi' deb ataluvchi organoid qaysi?", options: ["Ribosoma", "Mitoxondriya", "Lizosoma", "Golji majmuasi"], answer: "Mitoxondriya" },
         { question: "Inson tanasida nechta xromosoma bor?", options: ["23 ta", "46 ta", "48 ta", "32 ta"], answer: "46 ta" },
-        { options: ["A", "B", "C", "D"], question: "Qaysi vitamin etishmasligi natijasida odamda skorburt (singa) kasalligi kelib chiqadi?", answer: "C" },
-        { question: "O'simliklarda suv va unda erigan mineral moddalarni ildizdan yuqoriga o'tkazuvchi to'qima qaysi?", options: ["Floema", "Ksilema", "Kollorxirma", "Epidermis"], answer: "Ksilema" },
+        { question: "Qaysi vitamin yetishmasligi natijasida odamda skorburt (singa) kasalligi kelib chiqadi?", options: ["A vitamini", "B vitamini", "C vitamini", "D vitamini"], answer: "C vitamini" },
+        { question: "O'simliklarda suv va unda erigan mineral moddalarni ildizdan yuqoriga o'tkazuvchi to'qima qaysi?", options: ["Floema", "Ksilema", "Kollenxima", "Epidermis"], answer: "Ksilema" },
         { question: "Hujayrada oqsil sintezini qaysi organoid amalga oshiradi?", options: ["Ribosoma", "Vakuola", "Xloroplast", "Yadro"], answer: "Ribosoma" },
         { question: "Qon guruhlari nechta turga bo'linadi?", options: ["2 ta", "3 ta", "4 ta", "5 ta"], answer: "4 ta" },
         { question: "Insulin gormoni qaysi a'zo tomonidan ishlab chiqariladi?", options: ["Jigar", "Me'da osti bezi", "Buyrak usti bezi", "Qalqonsimon bez"], answer: "Me'da osti bezi" },
@@ -154,7 +154,7 @@ const ZiyomapBaza = {
         { question: "Tiriklikning evolutsion nazariyasini mukammal ishlab chiqqan va tabiiy tanlanishni asoslagan olim kim?", options: ["Jan Batist Lamark", "Charlz Darvin", "Gregor Mendel", "Karl Linney"], answer: "Charlz Darvin" },
         { question: "Gidra yoki achitqi zamburug'ining jinsiz ko'payish shakli qanday ataladi?", options: ["Kurtaklanish", "Fragmentatsiya", "Partenogenez", "Shizogoniya"], answer: "Kurtaklanish" },
         { question: "Nerv tizimining funksional birligi nima?", options: ["Neyron", "Neyrogliya", "Akson", "Sinaps"], answer: "Neyron" },
-        { question: "Simbioz munosabatga eng yorqin misol bo'lgan, suv o'tlari va zamburug'lar birikmasidan hosil bo'lgan organizm qaysi?", options: ["Yo'sin", "Termit", "Lishaynik (Soya)", "Plun"], answer: "Lishaynik (Soya)" }
+        { question: "Simbioz munosabatga eng yorqin misol bo'lgan, suv o'tlari va zamburug'lar birikmasidan hosil bo'lgan organizm qaysi?", options: ["Yo'sin", "Termit", "Lishaynik", "Plaun"], answer: "Lishaynik" }
       ]
     },
     kimyo: {
@@ -951,7 +951,6 @@ const ZiyomapBaza = {
       { question: "Atmosferadagi ultrabinafsha nurlarni to'suvchi gaz qatlami?", answer: "ozon" },
       { question: "O'zbekistonning maydoni bo'yicha eng katta viloyati (hududi)?", answer: "Navoiy" }
     ]
-
   }
 
   };
