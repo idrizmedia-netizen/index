@@ -234,6 +234,31 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <script src="../js/savollar.js"></script>
 
 <script>
+// ZiyomapBaza.quiz ni ALL_Q formatiga o'tkazish
+// Baza formati: {question, options, answer} -> Quiz formati: {q, o, a[], d, e}
+let ALL_Q = {};
+document.addEventListener("DOMContentLoaded", function() {
+  if (typeof ZiyomapBaza !== 'undefined' && ZiyomapBaza.quiz) {
+    Object.keys(ZiyomapBaza.quiz).forEach(fan => {
+      ALL_Q[fan] = [];
+      const darajalar = { oson: "easy", orta: "medium", qiyin: "hard" };
+      Object.keys(darajalar).forEach(uz => {
+        const en = darajalar[uz];
+        (ZiyomapBaza.quiz[fan][uz] || []).forEach(q => {
+          const ansIdx = q.options.indexOf(q.answer);
+          ALL_Q[fan].push({
+            q: q.question,
+            o: q.options,
+            a: ansIdx >= 0 ? ansIdx : 0,
+            d: en,
+            e: q.answer
+          });
+        });
+      });
+    });
+  }
+  init();
+});
 const FANS = [
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -241,13 +266,13 @@ const FANS = [
   {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
   {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
   {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
-  {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"ingliztili",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
   {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
 ];
 
 let S = {
   username: localStorage.getItem("ziyomap_user") || "",
-  selectedFans: ["fizika","matematika","informatika","biologiya","kimyo","tarix","ingliz","geografiya"],
+  selectedFans: ["fizika","matematika","informatika","biologiya","kimyo","tarix","ingliztili","geografiya"],
   diff: "easy",
   numQ: 10,
   qs: [], cur: 0, score: 0, correct: 0, wrong: 0, answered: false,
@@ -468,8 +493,6 @@ function backSetup() {
   document.getElementById("setupScreen").style.display = "block";
   renderLB("lbBody");
 }
-
-init();
 </script>
 </body>
 </html>
