@@ -304,24 +304,37 @@ function pickN(btn) {
 
 function startQuiz() {
   let pool = [];
-  // Tashqi bazada ma'lumot borligini tekshirish xavfsizligi
-  if (typeof ALL_Q === 'undefined') { alert("Savollar bazasi topilmadi!"); return; }
+  
+  // 1. Obyekt nomi to'g'rilandi: ALL_Q o'rniga ZiyomapBaza deb tekshiramiz
+  if (typeof ZiyomapBaza === 'undefined') { alert("Savollar bazasi topilmadi!"); return; }
   
   S.selectedFans.forEach(f => {
-    let qs = ALL_Q[f] || [];
-    if (S.diff !== "all") qs = qs.filter(q => q.d === S.diff);
-    if (!qs.length) qs = ALL_Q[f] || [];
+    // 2. To'g'ri yo'naltirish: fanning quiz savollarini ZiyomapBaza.quiz ichidan qidiramiz
+    let qs = (ZiyomapBaza.quiz && ZiyomapBaza.quiz[f]) ? ZiyomapBaza.quiz[f] : [];
+    
+    // Agar obyektdagi fan o'z ichida oson/orta/qiyin darajalarga bo'lingan bo'lsa
+    if (!Array.isArray(qs) && S.diff !== "all") {
+      qs = qs[S.diff] || [];
+    } else if (!Array.isArray(qs) && S.diff === "all") {
+      // Agar "Hammasi" tanlansa, oson, orta, qiyin darajalarni bitta massivga yig'amiz
+      qs = [...(qs.oson || []), ...(qs.orta || []), ...(qs.qiyin || [])];
+    } else if (Array.isArray(qs) && S.diff !== "all") {
+      // Agar bazada to'g'ridan-to'g'ri massiv bo'lsa va d kaliti bo'yicha filterlansa
+      qs = qs.filter(q => q.d === S.diff);
+    }
+    
     qs.forEach(q => pool.push({...q, fan: f}));
   });
+  
   pool = pool.sort(() => Math.random() - 0.5).slice(0, S.numQ);
   if (!pool.length) { alert("Savollar topilmadi!"); return; }
+  
   S.qs = pool; S.cur = 0; S.score = 0; S.correct = 0; S.wrong = 0; S.combo = 0;
   document.getElementById("setupScreen").style.display = "none";
   document.getElementById("resultScreen").style.display = "none";
   document.getElementById("quizScreen").style.display = "block";
   renderQ();
 }
-
 function renderQ() {
   const q = S.qs[S.cur];
   S.answered = false;
