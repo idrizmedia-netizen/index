@@ -234,255 +234,287 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <script src="../js/savollar.js"></script>
 
 <script>
-const FANS = [
-  {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
-  {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
-  {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
-  {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
-  {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
-  {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
-  {id:"ingliz",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
-  {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
+const FANOLLAR = [
+  { id: "fizika", name: "Fizika", icon: "⚛️" },
+  { id: "matematika", name: "Matematika", icon: "📐" },
+  { id: "informatika", name: "Informatika", icon: "💻" },
+  { id: "biologiya", name: "Biologiya", icon: "🧬" },
+  { id: "kimyo", name: "Kimyo", icon: "🧪" },
+  { id: "tarix", name: "Tarix", icon: "📜" },
+  { id: "ingliztili", name: "Ingliz tili", icon: "🇬🇧" },
+  { id: "geografiya", name: "Geografiya", icon: "🌍" }
 ];
 
 let S = {
-  username: localStorage.getItem("ziyomap_user") || "",
-  selectedFans: ["fizika","matematika","informatika","biologiya","kimyo","tarix","ingliz","geografiya"],
-  diff: "easy",
+  username: "Foydalanuvchi",
+  selectedFans: ["fizika"],
+  diff: "oson",
   numQ: 10,
-  qs: [], cur: 0, score: 0, correct: 0, wrong: 0, answered: false,
-  timerInt: null, timeLeft: 20, combo: 0,
+  qs: [],
+  cur: 0,
+  score: 0,
+  correct: 0,
+  wrong: 0,
+  combo: 0,
+  timer: null,
+  timeLeft: 20
 };
 
-function init() {
-  if (!S.username) {
-    const n = prompt("Ismingizni kiriting (reyting uchun):") || "O'yinchi";
-    S.username = n;
-    localStorage.setItem("ziyomap_user", n);
+// Fanlar ro'yxatini yuklash
+function initSetup() {
+  const grid = document.getElementById("fanGrid");
+  grid.innerHTML = "";
+  
+  // Xavfsizlik: ZiyomapBaza borligini tekshirish
+  if (typeof ZiyomapBaza === 'undefined') {
+    grid.innerHTML = `<p style="color:var(--red); font-weight:bold; text-align:center; grid-column:1/-1;">Xatolik: savollar.js topilmadi yoki yuklanmadi!</p>`;
+    return;
   }
-  document.getElementById("hUser").textContent = S.username;
-  document.getElementById("hScore").textContent = localStorage.getItem("ziyomap_total") || "0";
-  buildFanGrid();
-  renderLB("lbBody");
-}
 
-function buildFanGrid() {
-  const g = document.getElementById("fanGrid");
-  g.innerHTML = "";
-  FANS.forEach(f => {
-    const el = document.createElement("div");
-    el.className = "fan-card sel";
-    el.dataset.id = f.id;
-    // Savollar sonini tashqi ALL_Q obyektidan dinamik hisoblaymiz
-    const qCount = (typeof ALL_Q !== 'undefined' && ALL_Q[f.id]) ? ALL_Q[f.id].length : 0;
-    el.innerHTML = `<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${qCount} savol</div>`;
-    el.onclick = () => toggleFan(f.id, el);
-    g.appendChild(el);
+  FANOLLAR.forEach(f => {
+    const card = document.createElement("div");
+    card.className = "fan-card" + (S.selectedFans.includes(f.id) ? " active" : "");
+    card.dataset.id = f.id;
+
+    // Savollar sonini hisoblash (ZiyomapBaza.quiz ichidan olinadi)
+    let totalQs = 0;
+    const b = ZiyomapBaza.quiz?.[f.id];
+    if (b) {
+      if (Array.isArray(b)) totalQs = b.length;
+      else totalQs = (b.oson?.length || 0) + (b.orta?.length || 0) + (b.qiyin?.length || 0);
+    }
+
+    card.innerHTML = `
+      <div class="fan-icon">${f.icon}</div>
+      <div class="fan-name">${f.name}</div>
+      <div class="fan-count">${totalQs} ta test</div>
+    `;
+    card.onclick = () => toggleFan(f.id, card);
+    grid.appendChild(card);
   });
 }
 
-function toggleFan(id, el) {
-  const i = S.selectedFans.indexOf(id);
-  if (i > -1) { if (S.selectedFans.length === 1) return; S.selectedFans.splice(i, 1); el.classList.remove("sel"); }
-  else { S.selectedFans.push(id); el.classList.add("sel"); }
+function toggleFan(id, card) {
+  const idx = S.selectedFans.indexOf(id);
+  if (idx > -1) {
+    if (S.selectedFans.length === 1) return;
+    S.selectedFans.splice(idx, 1);
+    card.classList.remove("active");
+  } else {
+    S.selectedFans.push(id);
+    card.classList.add("active");
+  }
 }
 
-function pickDiff(btn) {
-  document.querySelectorAll(".diff-btn").forEach(b => b.className = "diff-btn");
-  S.diff = btn.dataset.d;
-  if (S.diff === "easy") btn.classList.add("sel-easy");
-  else if (S.diff === "medium") btn.classList.add("sel-medium");
-  else if (S.diff === "hard") btn.classList.add("sel-hard");
-  else btn.classList.add("sel-easy");
+function setDiff(d) {
+  S.diff = d;
+  document.querySelectorAll(".diff-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.diff === d);
+  });
 }
 
-function pickN(btn) {
-  document.querySelectorAll(".qc-btn").forEach(b => b.classList.remove("sel"));
-  btn.classList.add("sel");
-  S.numQ = parseInt(btn.dataset.n);
+function setNum(n) {
+  S.numQ = n;
+  document.querySelectorAll(".num-btn").forEach(b => {
+    b.classList.toggle("active", parseInt(b.dataset.num) === n);
+  });
 }
 
+// O'yinni boshlash funksiyasi (To'liq to'g'rilandi)
 function startQuiz() {
   let pool = [];
-  
-  // 1. Obyekt nomi to'g'rilandi: ALL_Q o'rniga ZiyomapBaza deb tekshiramiz
   if (typeof ZiyomapBaza === 'undefined') { alert("Savollar bazasi topilmadi!"); return; }
   
+  const nameInput = document.getElementById("usernameInput");
+  S.username = nameInput.value.trim() || "Foydalanuvchi";
+
   S.selectedFans.forEach(f => {
-    // 2. To'g'ri yo'naltirish: fanning quiz savollarini ZiyomapBaza.quiz ichidan qidiramiz
     let qs = (ZiyomapBaza.quiz && ZiyomapBaza.quiz[f]) ? ZiyomapBaza.quiz[f] : [];
     
-    // Agar obyektdagi fan o'z ichida oson/orta/qiyin darajalarga bo'lingan bo'lsa
-    if (!Array.isArray(qs) && S.diff !== "all") {
-      qs = qs[S.diff] || [];
-    } else if (!Array.isArray(qs) && S.diff === "all") {
-      // Agar "Hammasi" tanlansa, oson, orta, qiyin darajalarni bitta massivga yig'amiz
-      qs = [...(qs.oson || []), ...(qs.orta || []), ...(qs.qiyin || [])];
+    if (!Array.isArray(qs)) {
+      if (S.diff !== "all") {
+        qs = qs[S.diff] || [];
+      } else {
+        qs = [...(qs.oson || []), ...(qs.orta || []), ...(qs.qiyin || [])];
+      }
     } else if (Array.isArray(qs) && S.diff !== "all") {
-      // Agar bazada to'g'ridan-to'g'ri massiv bo'lsa va d kaliti bo'yicha filterlansa
       qs = qs.filter(q => q.d === S.diff);
     }
     
     qs.forEach(q => pool.push({...q, fan: f}));
   });
-  
+
   pool = pool.sort(() => Math.random() - 0.5).slice(0, S.numQ);
-  if (!pool.length) { alert("Savollar topilmadi!"); return; }
-  
+  if (!pool.length) { alert("Tanlangan yo'nalishda savollar topilmadi!"); return; }
+
   S.qs = pool; S.cur = 0; S.score = 0; S.correct = 0; S.wrong = 0; S.combo = 0;
   document.getElementById("setupScreen").style.display = "none";
   document.getElementById("resultScreen").style.display = "none";
   document.getElementById("quizScreen").style.display = "block";
   renderQ();
 }
-function renderQ() {
-  const q = S.qs[S.cur];
-  S.answered = false;
-  const total = S.qs.length;
-  document.getElementById("progTxt").textContent = `${S.cur+1}/${total}`;
-  document.getElementById("pbarFill").style.width = `${(S.cur/total)*100}%`;
-  const fan = FANS.find(f => f.id === q.fan) || {name:q.fan, color:"#4f7cff", bg:"#eff3ff"};
-  const qft = document.getElementById("qFanTag");
-  qft.textContent = fan.name; qft.style.background = fan.bg; qft.style.color = fan.color;
-  const diffs = {easy:["🟢 Oson","#f0fdf4","#22c55e"], medium:["🟡 O'rta","#fefce8","#eab308"], hard:["🔴 Qiyin","#fef2f2","#ef4444"]};
-  const [dl, dbg, dc] = diffs[q.d] || diffs.easy;
-  const qdt = document.getElementById("qDiffTag");
-  qdt.textContent = dl; qdt.style.background = dbg; qdt.style.color = dc;
-  document.getElementById("catLabel").textContent = `${fan.name}`;
-  document.getElementById("qText").textContent = q.q;
-  const wrap = document.getElementById("optsWrap");
-  wrap.innerHTML = "";
-  ["A","B","C","D"].forEach((lbl, i) => {
-    const btn = document.createElement("button");
-    btn.className = "opt";
-    btn.innerHTML = `<span class="opt-lbl">${lbl}</span>${q.o[i]}`;
-    btn.onclick = () => pick(i);
-    wrap.appendChild(btn);
-  });
-  document.getElementById("expBox").style.display = "none";
-  document.getElementById("nextBtn").style.display = "none";
-  const maxTime = {easy:20, medium:15, hard:10, all:15}[S.diff] || 15;
-  startTimer(maxTime);
-}
 
-function startTimer(max) {
-  clearInterval(S.timerInt);
-  S.timeLeft = max;
-  updateTimer(max, max);
-  S.timerInt = setInterval(() => {
+// Savolni ekranga chiqarish
+function renderQ() {
+  if (S.timer) clearInterval(S.timer);
+  if (S.cur >= S.qs.length) { endQuiz(); return; }
+
+  const q = S.qs[S.cur];
+  const fanInfo = FANOLLAR.find(f => f.id === q.fan) || { name: "O'yin", icon: "🎮" };
+
+  document.getElementById("qFan").textContent = `${fanInfo.icon} ${fanInfo.name}`;
+  document.getElementById("qProgressText").textContent = `Savol: ${S.cur + 1}/${S.qs.length}`;
+  document.getElementById("qProgressBar").style.width = `${((S.cur + 1) / S.qs.length) * 100}%`;
+  document.getElementById("scoreValue").textContent = S.score;
+  document.getElementById("qText").textContent = q.question || q.q;
+
+  const optGrid = document.getElementById("optionsGrid");
+  optGrid.innerHTML = "";
+
+  // Variantlarni aralashtirib chiqarish
+  const opts = [...(q.options || [])].sort(() => Math.random() - 0.5);
+  opts.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.innerHTML = `<span class="opt-letter"></span> <span class="opt-text">${opt}</span>`;
+    btn.onclick = () => checkAns(opt, btn);
+    optGrid.appendChild(btn);
+  });
+
+  S.timeLeft = 20;
+  document.getElementById("timeText").textContent = S.timeLeft;
+  document.getElementById("timeCircle").style.strokeDashoffset = "0";
+
+  S.timer = setInterval(() => {
     S.timeLeft--;
-    updateTimer(S.timeLeft, max);
-    if (S.timeLeft <= 0) { clearInterval(S.timerInt); timeUp(); }
+    document.getElementById("timeText").textContent = S.timeLeft;
+    let offset = 113 - (113 * S.timeLeft) / 20;
+    document.getElementById("timeCircle").style.strokeDashoffset = offset;
+
+    if (S.timeLeft <= 0) {
+      clearInterval(S.timer);
+      autoWrong();
+    }
   }, 1000);
 }
 
-function updateTimer(t, max) {
-  document.getElementById("timerN").textContent = t;
-  const full = 169.6;
-  document.getElementById("timerCirc").style.strokeDashoffset = full - (t/max)*full;
-  document.getElementById("timerBox").classList.toggle("warn", t <= 5);
-}
-
-function timeUp() {
-  if (S.answered) return;
-  S.answered = true; S.wrong++; S.combo = 0;
+function checkAns(selected, btn) {
+  clearInterval(S.timer);
   const q = S.qs[S.cur];
-  document.querySelectorAll(".opt").forEach((b,i) => { b.disabled = true; if(i===q.a) b.classList.add("correct"); });
-  showExp(q);
-}
+  const correct = q.answer || q.a;
+  
+  // Hamma tugmalarni bosib bo'lmaydigan qilish
+  document.querySelectorAll(".option-btn").forEach(b => b.style.pointerEvents = "none");
 
-function pick(idx) {
-  if (S.answered) return;
-  S.answered = true;
-  clearInterval(S.timerInt);
-  const q = S.qs[S.cur];
-  const btns = document.querySelectorAll(".opt");
-  btns.forEach(b => b.disabled = true);
-  if (idx === q.a) {
-    btns[idx].classList.add("correct");
-    S.correct++; S.combo++;
-    const pts = ({easy:10,medium:20,hard:35,all:15}[S.diff]||15) * (S.combo >= 3 ? 2 : 1);
-    S.score += pts;
-    document.getElementById("hScore").textContent = S.score;
-    if (S.combo >= 3) showCombo();
+  if (selected === correct) {
+    S.correct++;
+    S.combo++;
+    let points = 10 + (S.combo > 1 ? Math.min(S.combo * 2, 20) : 0);
+    S.score += points;
+    btn.classList.add("correct");
+    showFeed(true, `To'g'ri! +${points} ball`);
   } else {
-    btns[idx].classList.add("wrong");
-    btns[q.a].classList.add("correct");
-    S.wrong++; S.combo = 0;
+    S.wrong++;
+    S.combo = 0;
+    btn.classList.add("wrong");
+    // To'g'ri javobni yashil qilib ko'rsatish
+    document.querySelectorAll(".option-btn").forEach(b => {
+      if (b.querySelector(".opt-text").textContent === correct) b.classList.add("correct");
+    });
+    showFeed(false, "Noto'g'ri javob!");
   }
-  showExp(q);
+
+  setTimeout(() => {
+    S.cur++;
+    renderQ();
+  }, 1500);
 }
 
-function showExp(q) {
-  const b = document.getElementById("expBox");
-  b.textContent = "💡 " + q.e;
-  b.style.display = "block";
-  document.getElementById("nextBtn").style.display = "block";
+function autoWrong() {
+  S.wrong++;
+  S.combo = 0;
+  const q = S.qs[S.cur];
+  const correct = q.answer || q.a;
+
+  document.querySelectorAll(".option-btn").forEach(b => {
+    b.style.pointerEvents = "none";
+    if (b.querySelector(".opt-text").textContent === correct) b.classList.add("correct");
+  });
+
+  showFeed(false, "Vaqt tugadi!");
+  setTimeout(() => {
+    S.cur++;
+    renderQ();
+  }, 1500);
 }
 
-function showCombo() {
-  const el = document.createElement("div");
-  el.className = "combo-toast";
-  el.textContent = `🔥 ${S.combo}x COMBO! Bonus!`;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2000);
+function showFeed(isCorrect, text) {
+  const f = document.getElementById("feedback");
+  f.textContent = text;
+  f.className = "feedback show " + (isCorrect ? "correct" : "wrong");
+  setTimeout(() => { f.className = "feedback"; }, 1300);
 }
 
-function nextQ() {
-  S.cur++;
-  if (S.cur >= S.qs.length) { showResult(); return; }
-  renderQ();
-}
-
-function showResult() {
-  clearInterval(S.timerInt);
-  const pct = Math.round((S.correct/S.qs.length)*100);
-  let emoji = "😢";
-  if (pct >= 90) emoji = "🏆";
-  else if (pct >= 70) emoji = "🎉";
-  else if (pct >= 50) emoji = "👍";
-  document.getElementById("resEmoji").textContent = emoji;
-  document.getElementById("resPts").textContent = S.score;
-  document.getElementById("rv1").textContent = S.correct;
-  document.getElementById("rv2").textContent = S.wrong;
-  document.getElementById("rv3").textContent = pct + "%";
+function endQuiz() {
   document.getElementById("quizScreen").style.display = "none";
   document.getElementById("resultScreen").style.display = "block";
+
+  document.getElementById("resName").textContent = S.username;
+  document.getElementById("resScore").textContent = S.score;
+  document.getElementById("resCorrect").textContent = S.correct;
+  document.getElementById("resWrong").textContent = S.wrong;
+
+  const pct = S.qs.length > 0 ? Math.round((S.correct / S.qs.length) * 100) : 0;
+  document.getElementById("resPercent").textContent = `${pct}%`;
+  
+  document.getElementById("resEmoji").textContent = pct >= 80 ? "🏆" : pct >= 50 ? "🎉" : "💪";
+  document.getElementById("resTitle").textContent = pct >= 80 ? "Ajoyib Natija!" : pct >= 50 ? "Yaxshi Natija!" : "Hali Harakat Qilish Kerak!";
+  
   saveScore();
-  renderLB("lbBody2");
+  renderLB("leaderboardList");
 }
 
 function saveScore() {
-  const total = parseInt(localStorage.getItem("ziyomap_total")||"0") + S.score;
+  const total = parseInt(localStorage.getItem("ziyomap_total") || "0") + S.score;
   localStorage.setItem("ziyomap_total", total);
-  const lb = JSON.parse(localStorage.getItem("ziyomap_quiz_lb")||"[]");
-  lb.push({name:S.username, score:S.score, date:Date.now(), diff:S.diff});
-  lb.sort((a,b)=>b.score-a.score);
-  localStorage.setItem("ziyomap_quiz_lb", JSON.stringify(lb.slice(0,30)));
+  const lb = JSON.parse(localStorage.getItem("ziyomap_quiz_lb") || "[]");
+  lb.push({ name: S.username, score: S.score, date: Date.now(), diff: S.diff });
+  lb.sort((a, b) => b.score - a.score);
+  localStorage.setItem("ziyomap_quiz_lb", JSON.stringify(lb.slice(0, 30)));
 }
 
 function renderLB(elId) {
-  const lb = JSON.parse(localStorage.getItem("ziyomap_quiz_lb")||"[]");
+  const lb = JSON.parse(localStorage.getItem("ziyomap_quiz_lb") || "[]");
   const el = document.getElementById(elId);
   if (!lb.length) { el.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px">Hali hech kim o\'ynamagan!</p>'; return; }
-  const ranks = ["🥇","🥈","🥉"];
-  const colors = ["#4f7cff","#22c55e","#ec4899","#eab308","#a855f7"];
-  el.innerHTML = lb.slice(0,10).map((e,i) => `
+  const ranks = ["🥇", "🥈", "🥉"];
+  el.innerHTML = lb.slice(0, 10).map((e, i) => `
     <div class="lb-item">
-      <div class="lb-rank">${ranks[i]||i+1}</div>
-      <div class="lb-av" style="background:${colors[i%colors.length]}22;color:${colors[i%colors.length]}">${e.name[0].toUpperCase()}</div>
-      <div class="lb-nm">${e.name}<br><small style="color:#6b7280;font-size:11px">${new Date(e.date).toLocaleDateString("uz-UZ")}</small></div>
-      <div class="lb-sc">${e.score}</div>
-    </div>`).join("");
+      <div class="lb-rank">${ranks[i] || i + 1}</div>
+      <div class="lb-avatar" style="background:#4f7cff">${e.name[0].toUpperCase()}</div>
+      <div class="lb-info">
+        <div class="lb-name">${e.name}</div>
+        <div class="lb-diff">${e.diff.toUpperCase()}</div>
+      </div>
+      <div class="lb-score">${e.score} ball</div>
+    </div>
+  `).join("");
 }
 
-function backSetup() {
+function restartQuiz() {
+  document.getElementById("resultScreen").style.display = "none";
+  startQuiz();
+}
+
+function goSetup() {
   document.getElementById("resultScreen").style.display = "none";
   document.getElementById("setupScreen").style.display = "block";
-  renderLB("lbBody");
+  initSetup();
 }
 
-init();
+// O'yin yuklanganda ishga tushirish
+window.onload = () => {
+  initSetup();
+  renderLB("menuLeaderboardList");
+};
 </script>
-</body>
-</html>
