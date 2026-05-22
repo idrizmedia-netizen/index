@@ -334,7 +334,9 @@
             <a href="oyin/index.html" class="game-menu-btn" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; text-decoration: none;">
                 <i class="fas fa-gamepad"></i> O'yinlar
             </a>
-            
+            <button onclick="openBoard()" class="text-gray-300 hover:text-blue-400 font-medium transition text-sm md:text-base cursor-pointer style="background: transparent; border: none; margin-left: 10px;">
+    ✏️ Onlayn Doska
+</button>
             <div class="profile-dropdown">
                 <i class="fas fa-moon" id="theme-toggle" style="cursor:pointer; font-size: 1.2rem;"></i>
                 <a href="#" id="login-btn">...</a>
@@ -470,7 +472,32 @@
         </div>
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
+<div id="floating-board" class="fixed bottom-6 right-6 w-96 h-64 bg-[#0f172a] border border-gray-750 rounded-2xl shadow-2xl z-50 transition-all duration-300 overflow-hidden flex flex-col hidden">
+    
+    <div class="flex items-center justify-between bg-[#1e293b] px-3 py-2 border-b border-gray-800 select-none">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-gray-300">✏️ ZiyoDoska</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="toggleMinimize()" id="resize-btn" class="text-gray-400 hover:text-white text-xs p-1 cursor-pointer" title="Kengaytirish">🔲</button>
+            <button onclick="closeBoard()" class="text-gray-400 hover:text-red-400 text-xs p-1 cursor-pointer" title="Yopish">❌</button>
+        </div>
+    </div>
 
+    <div class="flex items-center justify-between p-2 bg-[#0f172a] border-b border-gray-800/60 gap-2">
+        <div class="flex gap-1">
+            <button onclick="setBoardColor('#ffffff')" class="w-4 h-4 rounded-full bg-white border border-gray-400 cursor-pointer" style="width:16px; height:16px;"></button>
+            <button onclick="setBoardColor('#3b82f6')" class="w-4 h-4 rounded-full bg-blue-500 cursor-pointer" style="width:16px; height:16px; border:none;"></button>
+            <button onclick="setBoardColor('#ef4444')" class="w-4 h-4 rounded-full bg-red-500 cursor-pointer" style="width:16px; height:16px; border:none;"></button>
+            <button onclick="setBoardColor('#10b981')" class="w-4 h-4 rounded-full bg-emerald-500 cursor-pointer" style="width:16px; height:16px; border:none;"></button>
+        </div>
+        <button onclick="clearBoard()" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 cursor-pointer">Tozalash</button>
+    </div>
+
+    <div class="flex-grow bg-[#0f172a] relative">
+        <canvas id="floatCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+    </div>
+</div>
  <script type="module">
     // 1. Firebase v12 kutubxonalari
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
@@ -710,6 +737,90 @@
 </script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+        // --- ZIYODOSKA LOGIKASI ---
+        const board = document.getElementById('floating-board');
+        const fCanvas = document.getElementById('floatCanvas');
+        let fCtx;
+        if(fCanvas) fCtx = fCanvas.getContext('2d');
+        let fDrawing = false;
+        let fColor = '#ffffff';
+        let isMaximized = false;
+
+        window.openBoard = function() {
+            if(board) {
+                board.classList.remove('hidden');
+                initCanvas();
+            }
+        }
+
+        window.closeBoard = function() {
+            if(board) board.classList.add('hidden');
+        }
+
+        window.toggleMinimize = function() {
+            const resizeBtn = document.getElementById('resize-btn');
+            const temp = document.createElement('canvas');
+            temp.width = fCanvas.width;
+            temp.height = fCanvas.height;
+            temp.getContext('2d').drawImage(fCanvas, 0, 0);
+
+            if (!isMaximized) {
+                board.style.width = "90vw";
+                board.style.height = "80vh";
+                board.style.bottom = "20px";
+                board.style.right = "20px";
+                if(resizeBtn) resizeBtn.innerText = "🔳";
+                isMaximized = true;
+            } else {
+                board.style.width = "24rem"; // w-96
+                board.style.height = "16rem"; // h-64
+                board.style.bottom = "1.5rem";
+                board.style.right = "1.5rem";
+                if(resizeBtn) resizeBtn.innerText = "🔲";
+                isMaximized = false;
+            }
+
+            setTimeout(() => {
+                fCanvas.width = fCanvas.parentElement.clientWidth;
+                fCanvas.height = fCanvas.parentElement.clientHeight;
+                fCtx.lineCap = 'round';
+                fCtx.lineJoin = 'round';
+                fCtx.lineWidth = isMaximized ? 4 : 2;
+                fCtx.strokeStyle = fColor;
+                fCtx.drawImage(temp, 0, 0, fCanvas.width, fCanvas.height);
+            }, 320);
+        }
+
+        function initCanvas() {
+            if(!fCanvas) return;
+            fCanvas.width = fCanvas.parentElement.clientWidth;
+            fCanvas.height = fCanvas.parentElement.clientHeight;
+            fCtx.lineCap = 'round';
+            fCtx.lineJoin = 'round';
+            fCtx.lineWidth = 2;
+            fCtx.strokeStyle = fColor;
+        }
+
+        function getCoords(e) {
+            const rect = fCanvas.getBoundingClientRect();
+            if (e.touches && e.touches.length > 0) {
+                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+            }
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+
+        if(fCanvas) {
+            fCanvas.addEventListener('mousedown', (e) => { fDrawing = true; const p = getCoords(e); fCtx.beginPath(); fCtx.moveTo(p.x, p.y); });
+            fCanvas.addEventListener('mousemove', (e) => { if (!fDrawing) return; e.preventDefault(); const p = getCoords(e); fCtx.lineTo(p.x, p.y); fCtx.stroke(); });
+            fCanvas.addEventListener('mouseup', () => fDrawing = false);
+            fCanvas.addEventListener('touchstart', (e) => { fDrawing = true; const p = getCoords(e); fCtx.beginPath(); fCtx.moveTo(p.x, p.y); });
+            fCanvas.addEventListener('touchmove', (e) => { if (!fDrawing) return; e.preventDefault(); const p = getCoords(e); fCtx.lineTo(p.x, p.y); fCtx.stroke(); });
+            fCanvas.addEventListener('touchend', () => fDrawing = false);
+        }
+
+        window.setBoardColor = function(c) { fColor = c; fCtx.strokeStyle = c; }
+        window.clearBoard = function() { fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height); }
+        // --- ZIYODOSKA LOGIKASI TUGADI ---
         window.addEventListener('load', () => {
             const preloader = document.getElementById('preloader');
             setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
