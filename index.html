@@ -398,7 +398,21 @@
         </div>
     </section>
 
+</section>
 
+    <div id="laboratoriya-page" class="page-section" style="display: none; padding-top: 120px; max-width: 1200px; margin: auto; padding-left: 20px; padding-right: 20px;">
+        <section id="lab" class="section" data-aos="fade-up" style="padding: 20px 0;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2><i class="fas fa-flask" style="color: #38bdf8;"></i> Virtual Laboratoriya</h2>
+                <p class="subtitle" style="opacity: 0.8; margin-top: 10px;">Fizika fanidan interaktiv virtual laboratoriya ishlari va simulyatsiyalar</p>
+            </div>
+            
+            <div id="lab-interface" class="card" style="min-height: 400px; background: var(--card-bg); border-radius: 20px; padding: 30px;">
+                <p style="text-align: center; opacity: 0.6;">Laboratoriya ishini boshlash uchun menyudan yuklang yoki skriptlarni tekshiring...</p>
+            </div>
+        </section>
+    </div>
+   
 
    <section class="section" id="blog">
     <h2 class="section-title" style="text-align: center; font-size: 2.2rem;" data-aos="fade-up">Ilmiy Maqolalar va Yangiliklar</h2>
@@ -1020,7 +1034,30 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
             return id;
         }
-
+            function showPage(pageId) {
+    // 1. Saytdagi barcha asosiy bloklarni yashirish
+    if(document.getElementById('home')) document.getElementById('home').style.style.display = 'none';
+    if(document.getElementById('projects')) document.getElementById('projects').style.display = 'none';
+    if(document.getElementById('blog')) document.getElementById('blog').style.display = 'none';
+    if(document.getElementById('contact')) document.getElementById('contact').style.display = 'none';
+    
+    // 2. Laboratoriya sahifasini ham yashirib turish
+    if(document.getElementById('laboratoriya-page')) document.getElementById('laboratoriya-page').style.display = 'none';
+    
+    // 3. Agar foydalanuvchi "home" (Asosiy) sahifani tanlasa, hamma eski bo'limlarni qaytarish
+    if(pageId === 'home') {
+        if(document.getElementById('home')) document.getElementById('home').style.display = 'flex';
+        if(document.getElementById('projects')) document.getElementById('projects').style.display = 'block';
+        if(document.getElementById('blog')) document.getElementById('blog').style.display = 'block';
+        if(document.getElementById('contact')) document.getElementById('contact').style.display = 'block';
+    } else {
+        // Agar laboratoriya sahifasi tanlansa, faqat uni o'zini ko'rsatish
+        const target = document.getElementById(pageId);
+        if(target) target.style.display = 'block';
+    }
+    // Sahifani silliq qilib tepaga skroll qilish
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
         function updateAiMessage(id, text) {
             const el = document.getElementById(id);
             if(el) el.innerText = text;
