@@ -18,10 +18,11 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
     <style>
-        :root { --primary: #2563eb; --secondary: #10b981; --warning: #f59e0b; --bg: #f8fafc; }
+        :root { --primary: #2563eb; --secondary: #10b981; --bg: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
         
+        /* Qaytish tugmasi uchun yangi stil */
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -51,8 +52,12 @@
         
         .btn-ai { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; font-size: 1rem; }
         .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
-        .btn-search { background: var(--warning); }
-        .btn-quiz { background: var(--secondary); }
+        .btn-search { background: var(--secondary); }
+        
+        /* Test generator sarlavha dizayni */
+        .title-flex { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
+        .btn-info-icon { background: #e2e8f0; color: #475569; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-info-icon:hover { background: #cbd5e1; color: #1e293b; }
 
         .result-area { 
             margin-top: 25px; padding: 40px; border-radius: 15px; 
@@ -63,8 +68,6 @@
         .action-btns { display: none; gap: 10px; margin-top: 20px; }
         .btn-pdf { flex: 1; padding: 15px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: #ef4444; color: white; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
         .btn-pdf:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239,68,68,0.3); }
-        .btn-word { background: #217346; }
-        .btn-word:hover { background: #164a2e; box-shadow: 0 5px 15px rgba(33,115,70,0.3); }
 
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         table, th, td { border: 1px solid #000; padding: 12px; }
@@ -99,6 +102,14 @@
                 <option value="Ingliz tili">Ingliz tili</option>
                 <option value="Tarix">Tarix</option>
                 <option value="Geografiya">Geografiya</option>
+                <option value="Huquq">Huquq</option>
+                <option value="Iqtisodiyot">Iqtisodiyot</option>
+                <option value="Tarbiya">Tarbiya</option>
+                <option value="Tasviriy san'at">Tasviriy san'at</option>
+                <option value="Musiqa">Musiqa</option>
+                <option value="Texnologiya">Texnologiya</option>
+                <option value="Chizmachilik">Chizmachilik</option>
+                <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
             </select>
         </div>
         <div class="input-group">
@@ -122,13 +133,13 @@
         <div id="res-lesson" class="result-area"></div>
         <div class="action-btns" id="btns-lesson">
             <button class="btn-pdf" onclick="perfectPrint('res-lesson')">
-                <i class="fas fa-file-pdf"></i> Sifatli PDF / Chop etish
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
             </button>
         </div>
     </div>
 
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-search-plus" style="color: var(--warning);"></i> Mukammal Ma'lumot Topish</h2>
+        <h2><i class="fas fa-search-plus" style="color: #f59e0b;"></i> Mukammal Ma'lumot Topish</h2>
         <div class="input-group">
             <label>Mavzu, qoida yoki termin nomi:</label>
             <input type="text" id="info-topic" placeholder="Nima haqida ma'lumot kerak?">
@@ -140,13 +151,19 @@
         <div id="res-info" class="result-area"></div>
         <div class="action-btns" id="btns-info">
             <button class="btn-pdf" onclick="perfectPrint('res-info')">
-                <i class="fas fa-file-pdf"></i> Sifatli PDF / Chop etish
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
             </button>
         </div>
     </div>
 
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-tasks" style="color: var(--secondary);"></i> Professional AI Test Generator</h2>
+        <div class="title-flex">
+            <h2 style="color: #8b5cf6; margin: 0;"><i class="fas fa-cubes"></i> Professional AI Test Generator</h2>
+            <button class="btn-info-icon" onclick="showQuizInfo()" title="Mavzu kiritish bo'yicha yo'riqnoma">
+                <i class="fas fa-info"></i>
+            </button>
+        </div>
+        
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="quiz-subject">
@@ -156,43 +173,47 @@
                 <option value="Biologiya">Biologiya</option>
                 <option value="Informatika">Informatika</option>
                 <option value="O'zbek tili">O'zbek tili</option>
+                <option value="Ona tili">Ona tili</option>
+                <option value="Adabiyot">Adabiyot</option>
+                <option value="Ingliz tili">Ingliz tili</option>
                 <option value="Tarix">Tarix</option>
+                <option value="Geografiya">Geografiya</option>
+                <option value="Huquq">Huquq</option>
+                <option value="Iqtisodiyot">Iqtisodiyot</option>
+                <option value="Tarbiya">Tarbiya</option>
+                <option value="Tasviriy san'at">Tasviriy san'at</option>
+                <option value="Musiqa">Musiqa</option>
+                <option value="Texnologiya">Texnologiya</option>
+                <option value="Chizmachilik">Chizmachilik</option>
+                <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
             </select>
         </div>
-        <div class="flex-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div class="input-group" style="flex: 1;">
-                <label>Savollar soni:</label>
-                <select id="quiz-count">
-                    <option value="5">5 ta savol</option>
-                    <option value="10">10 ta savol</option>
-                    <option value="15">15 ta savol</option>
-                    <option value="20">20 ta savol</option>
-                </select>
-            </div>
-            <div class="input-group" style="flex: 1;">
-                <label>Murakkablik darajasi:</label>
-                <select id="quiz-level">
-                    <option value="oson">Oson (Baza)</option>
-                    <option value="o'rta">O'rta (Standard)</option>
-                    <option value="murakkab">Murakkab (Olimpiada / Attestatsiya)</option>
-                </select>
-            </div>
-        </div>
+
         <div class="input-group">
-            <label>Test olinadigan mavzu nomi:</label>
-            <input type="text" id="quiz-topic" placeholder="Masalan: To'g'ri chiziqli tekis harakat yoki Kvadrat tenglamalar...">
+            <label>Savollar sonini tanlang:</label>
+            <select id="quiz-count">
+                <option value="5">5 ta savol</option>
+                <option value="10">10 ta savol</option>
+                <option value="15">15 ta savol</option>
+                <option value="20">20 ta savol</option>
+                <option value="25">25 ta savol</option>
+                <option value="30">30 ta savol</option>
+            </select>
         </div>
-        <button class="btn-ai btn-quiz" onclick="generate('quiz', this)">
-            <i class="fas fa-graduation-cap"></i> Variantli Testlarni Shakllantirish
+
+        <div class="input-group">
+            <label>Mavzu yoki mavzular nomi:</label>
+            <input type="text" id="quiz-topic" placeholder="Mavzuni yozing (Bir nechta bo'lsa, vergul yoki ikki nuqta bilan ajrating)...">
+        </div>
+
+        <button class="btn-ai" style="background: #8b5cf6;" onclick="generate('quiz', this)">
+            <i class="fas fa-layer-group"></i> Variantli Testlarni Yaratish
         </button>
         
         <div id="res-quiz" class="result-area"></div>
         <div class="action-btns" id="btns-quiz">
             <button class="btn-pdf" onclick="perfectPrint('res-quiz')">
-                <i class="fas fa-print"></i> Printerdan Chop Etish (PDF)
-            </button>
-            <button class="btn-pdf btn-word" onclick="downloadWord('res-quiz')">
-                <i class="fas fa-file-word"></i> MS Word (Xatosiz) Yuklash
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
             </button>
         </div>
     </div>
@@ -202,43 +223,64 @@
 <script>
     AOS.init();
 
-    async function generate(type, btn) {
-        let topic, resArea, btns, prompt;
-        const oldHTML = btn.innerHTML;
+    // Yo'riqnoma tugmasi bosilganda chiquvchi ma'lumot oynasi
+    function showQuizInfo() {
+        alert("ℹ️ TEST GENERATOR QO'LLANMASI:\n\n" +
+              "1. Bitta mavzu bo'yicha test tuzish uchun oddiygina mavzu nomini yozing.\n" +
+              "2. Agar bir nechta mavzuni qamrab olgan aralash test tuzmoqchi bo'lsangiz, ularni vergul (,) yoki ikki nuqta (:) bilan ajratib yozishingiz mumkin.\n\n" +
+              "Masalan:\n" +
+              "— To'g'ri chiziqli harakat, Tekis tezlanuvchan harakat\n" +
+              "— Kvadrat tenglamalar: Viet teoremasi, Diskriminant usuli");
+    }
 
-        if (type === 'lesson') {
+    async function generate(type, btn) {
+        const isLesson = type === 'lesson';
+        const isInfo = type === 'info';
+        const isQuiz = type === 'quiz';
+        
+        let topic = "";
+        let resArea, btns, prompt;
+
+        if (isLesson) {
             topic = document.getElementById('topic').value;
             resArea = document.getElementById('res-lesson');
             btns = document.getElementById('btns-lesson');
-            if(!topic) return alert("Iltimos, dars ishlanmasi mavzusini kiriting!");
-            
-            prompt = `${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida O'zbekiston darslik standartlariga mos dars ishlanmasi. Tarkibi: Mavzu maqsadi, metodlar, yangi mavzu bayoni (kengaytirilgan), amaliy mashqlar, savol-javoblar va jadvallar. LaTeX formulalarni $..$ ichida yoz.`;
-        } 
-        else if (type === 'info') {
+        } else if (isInfo) {
             topic = document.getElementById('info-topic').value;
             resArea = document.getElementById('res-info');
             btns = document.getElementById('btns-info');
-            if(!info-topic) return alert("Iltimos, chuqur tahlil uchun termin kiriting!");
-
-            prompt = `"${topic}" mavzusi haqida akademik darajada batafsil ma'lumot ber. Tarixi, asosiy qoidalari, amaliy ahamiyati va jadval ko'rinishida qisqa faktlar bo'lsin. LaTeX ishlatilsin.`;
-        } 
-        else if (type === 'quiz') {
+        } else if (isQuiz) {
             topic = document.getElementById('quiz-topic').value;
             resArea = document.getElementById('res-quiz');
             btns = document.getElementById('btns-quiz');
-            const sub = document.getElementById('quiz-subject').value;
-            const count = document.getElementById('quiz-count').value;
-            const lvl = document.getElementById('quiz-level').value;
-            
-            if(!topic) return alert("Iltimos, test mavzusini kiriting!");
-
-            prompt = `Siz professional ta'lim ekspertisiz. ${sub} fanidan "${topic}" mavzusi bo'yicha jami ${count} ta har biriga A, B, C, D variantlari bor ${lvl} darajadagi test savollarini tuzing. Savollar oxirida to'g'ri javoblar kalitini ko'rsating. Agar fan aniq fan bo'lsa, barcha matematik formulalar, amallar, ildizlar va darajalar qat'iy ravishda $..$ (LaTeX standartida) ichida yozilsin (Masalan: $v = \\frac{s}{t}$ yoki $x^2 + 2x = 0$). Matn Markdown formatida chiroyli tartiblangan bo'lsin.`;
         }
 
+        if(!topic) return alert("Iltimos, mavzuni kiriting!");
+
+        const oldHTML = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> Ziyomap AI hisoblamoqda...';
+        btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> AI mantiqiy tahlil qilmoqda...';
         resArea.style.display = "block";
-        resArea.innerHTML = "<div style='text-align:center'><i class='fas fa-brain fa-pulse'></i> Formulalar va savollar struktura qilinmoqda, kuting...</div>";
+        resArea.innerHTML = "<div style='text-align:center'><i class='fas fa-brain fa-pulse'></i> Ma'lumotlar kengaytirilmoqda, iltimos kuting...</div>";
+
+        if (isLesson) {
+            prompt = `${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida O'zbekiston darslik standartlariga mos dars ishlanmasi. Tarkibi: Mavzu maqsadi, metodlar, yangi mavzu bayoni (kengaytirilgan), amaliy mashqlar, savol-javoblar va jadvallar. LaTeX formulalarni $..$ ichida yoz.`;
+        } else if (isInfo) {
+            prompt = `"${topic}" mavzusi haqida akademik darajada batafsil ma'lumot ber. Tarixi, asosiy qoidalari, amaliy ahamiyati va jadval ko'rinishida qisqa faktlar bo'lsin. LaTeX ishlatilsin.`;
+        } else if (isQuiz) {
+            const quizSubject = document.getElementById('quiz-subject').value;
+            const quizCount = document.getElementById('quiz-count').value;
+            
+            // Vergul yoki ikki nuqta orqali ko'p mavzulilikni tahlil qilish mantig'i
+            let parsedTopics = topic;
+            if (topic.includes(',') || topic.includes(':')) {
+                parsedTopics = `quyidagi kiritilgan bir nechta mustaqil mavzularni o'z ichiga olgan aralash holdagi: "${topic}"`;
+            } else {
+                parsedTopics = `"${topic}"`;
+            }
+
+            prompt = `Siz ta'lim tizimi ekspertisiz. ${quizSubject} fani bo'yicha ${parsedTopics} mavzulari yuzasidan jami ${quizCount} ta mustaqil, variantli (A, B, C, D) test savollarini shakllantiring. Savollar tizimli va tushunarli bo'lsin. Barcha testlar tugagach, eng quyida to'g'ri javoblar kalitini (shpargalka/matritsa) jadval ko'rinishida taqdim eting. Agar fan aniq fan bo'lsa (Matematika, Fizika, Kimyo kabi), barcha matematik formulalar, tenglamalar, ildizlar va kasrlarni qat'iy ravishda $..$ (LaTeX) standartida yozing.`;
+        }
 
         try {
             const response = await fetch('/api/chat', {
@@ -251,57 +293,19 @@
             if(window.MathJax) await MathJax.typesetPromise([resArea]);
             btns.style.display = "flex";
         } catch (e) { 
-            resArea.innerHTML = "<span style='color:red'>Ulanishda xatolik yuz berdi! Qayta urining.</span>"; 
+            resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi! Qayta urinib ko'ring.</span>"; 
         } finally {
             btn.disabled = false;
             btn.innerHTML = oldHTML;
         }
     }
 
-    // WORD DASTURIGA FORMULALARNI XATOSIZ EKSPORT QILISH LOGIKASI
-    function downloadWord(id) {
-        const content = document.getElementById(id).innerHTML;
-        const subName = document.getElementById('quiz-subject').value;
-        const topName = document.getElementById('quiz-topic').value;
-        
-        // Word formulalarni o'qishi uchun HTML fayl shaklida yuboramiz
-        const converted = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <title>Ziyomap Test Eksport</title>
-            <style>
-                body { font-family: 'Times New Roman', serif; line-height: 1.5; padding: 20px; }
-                p, div { font-size: 12pt; }
-                h1, h2, h3 { text-align: center; color: #111; }
-                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                th, td { border: 1px solid #000; padding: 8px; font-size: 11pt; }
-                .footer-text { text-align: center; font-size: 10pt; margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; }
-            </style>
-        </head>
-        <body>
-            <div style="text-align:center; margin-bottom:20px;">
-                <h2>${subName.toUpperCase()} FANIDAN MAVZUIY TESTLAR</h2>
-                <p><b>Mavzu:</b> ${topName}</p>
-            </div>
-            <hr/>
-            ${content}
-            <div class="footer-text">Ziyomap AI - O'qituvchilar uchun professional yordamchi platforma</div>
-        </body>
-        </html>`;
-
-        const blob = new Blob(['\ufeff' + converted], { type: 'application/msword' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Ziyomap_Test_${subName}_${topName.replace(/ /g, "_")}.doc`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
     async function perfectPrint(id) {
         const area = document.getElementById(id);
-        if (window.MathJax) await MathJax.typesetPromise([area]);
+        
+        if (window.MathJax) {
+            await MathJax.typesetPromise([area]);
+        }
 
         const content = area.innerHTML;
         const pWin = window.open('', '', 'height=900,width=1100');
@@ -309,14 +313,27 @@
         pWin.document.write(`
             <html>
                 <head>
-                    <title>Ziyomap AI - Print System</title>
+                    <title>Ziyomap AI - Export</title>
                     <style>
-                        body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; color: #000; background: #fff; }
+                        body { 
+                            font-family: 'Times New Roman', serif; 
+                            padding: 40px; 
+                            line-height: 1.6; 
+                            color: #000; 
+                            background: #fff; 
+                        }
                         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
                         th, td { border: 1px solid #000; padding: 10px; text-align: left; }
                         th { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-                        mjx-container { display: inline-block !important; vertical-align: middle; margin: 5px 0; line-height: 0; }
+                        
+                        mjx-container { 
+                            display: inline-block !important; 
+                            vertical-align: middle;
+                            margin: 5px 0;
+                            line-height: 0;
+                        }
                         svg { max-width: 100%; }
+
                         @media print {
                             @page { size: A4; margin: 1.5cm; }
                             body { padding: 0; }
@@ -328,10 +345,17 @@
                         <h1 style="margin:0">ZIYOMAP AI</h1>
                         <p style="margin:5px 0">Professional Ta'lim va Metodik Platforma</p>
                     </div>
-                    <div id="print-content">${content}</div>
+                    
+                    <div id="print-content">
+                        ${content}
+                    </div>
+
                     <script>
                         window.onload = function() {
-                            setTimeout(() => { window.print(); }, 800); 
+                            setTimeout(() => {
+                                window.print();
+                                // window.close(); 
+                            }, 800); 
                         };
                     <\/script>
                 </body>
