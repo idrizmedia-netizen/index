@@ -472,30 +472,30 @@
         </div>
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
-<div id="floating-board" class="fixed bottom-6 right-6 w-96 h-64 bg-[#0f172a] border border-gray-750 rounded-2xl shadow-2xl z-50 transition-all duration-300 overflow-hidden flex flex-col hidden">
+<div id="floating-board" class="fixed bottom-6 right-6 w-96 h-64 bg-[#0f172a] border border-gray-700 rounded-2xl shadow-2xl z-50 transition-all duration-300 overflow-hidden flex flex-col" style="display: none;">
     
-    <div class="flex items-center justify-between bg-[#1e293b] px-3 py-2 border-b border-gray-800 select-none">
+    <div class="flex items-center justify-between bg-[#1e293b] px-3 py-2 border-b border-gray-800 select-none" style="display: flex; justify-content: space-between; align-items: center;">
         <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-gray-300">✏️ ZiyoDoska</span>
         </div>
-        <div class="flex items-center gap-2">
-            <button onclick="toggleMinimize()" id="resize-btn" class="text-gray-400 hover:text-white text-xs p-1 cursor-pointer" title="Kengaytirish">🔲</button>
-            <button onclick="closeBoard()" class="text-gray-400 hover:text-red-400 text-xs p-1 cursor-pointer" title="Yopish">❌</button>
+        <div class="flex items-center gap-2" style="display: flex; gap: 8px;">
+            <button onclick="toggleMinimize()" id="resize-btn" class="text-gray-400 hover:text-white text-xs p-1 cursor-pointer" style="background:transparent; border:none;">🔲</button>
+            <button onclick="closeBoard()" class="text-gray-400 hover:text-red-400 text-xs p-1 cursor-pointer" style="background:transparent; border:none;">❌</button>
         </div>
     </div>
 
-    <div class="flex items-center justify-between p-2 bg-[#0f172a] border-b border-gray-800/60 gap-2">
-        <div class="flex gap-1">
-            <button onclick="setBoardColor('#ffffff')" class="w-4 h-4 rounded-full bg-white border border-gray-400 cursor-pointer" style="width:16px; height:16px;"></button>
-            <button onclick="setBoardColor('#3b82f6')" class="w-4 h-4 rounded-full bg-blue-500 cursor-pointer" style="width:16px; height:16px; border:none;"></button>
-            <button onclick="setBoardColor('#ef4444')" class="w-4 h-4 rounded-full bg-red-500 cursor-pointer" style="width:16px; height:16px; border:none;"></button>
-            <button onclick="setBoardColor('#10b981')" class="w-4 h-4 rounded-full bg-emerald-500 cursor-pointer" style="width:16px; height:16px; border:none;"></button>
+    <div class="flex items-center justify-between p-2 bg-[#0f172a] border-b border-gray-800/60 gap-2" style="display: flex; justify-content: space-between; align-items: center; padding: 8px;">
+        <div class="flex gap-1" style="display: flex; gap: 6px;">
+            <button onclick="setBoardColor('#ffffff')" class="w-4 h-4 rounded-full bg-white border border-gray-400 cursor-pointer" style="width:16px; height:16px; border-radius:50%;"></button>
+            <button onclick="setBoardColor('#3b82f6')" class="w-4 h-4 rounded-full bg-blue-500 cursor-pointer" style="width:16px; height:16px; border-radius:50%; border:none;"></button>
+            <button onclick="setBoardColor('#ef4444')" class="w-4 h-4 rounded-full bg-red-500 cursor-pointer" style="width:16px; height:16px; border-radius:50%; border:none;"></button>
+            <button onclick="setBoardColor('#10b981')" class="w-4 h-4 rounded-full bg-emerald-500 cursor-pointer" style="width:16px; height:16px; border-radius:50%; border:none;"></button>
         </div>
-        <button onclick="clearBoard()" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 cursor-pointer">Tozalash</button>
+        <button onclick="clearBoard()" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 cursor-pointer" style="padding: 2px 8px; font-size: 11px;">Tozalash</button>
     </div>
 
-    <div class="flex-grow bg-[#0f172a] relative">
-        <canvas id="floatCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+    <div class="flex-grow bg-[#0f172a] relative" style="flex-grow: 1; position: relative; min-height: 150px;">
+        <canvas id="floatCanvas" class="w-full h-full block cursor-crosshair" style="width: 100%; height: 100%; display: block;"></canvas>
     </div>
 </div>
  <script type="module">
@@ -746,15 +746,17 @@
         let fColor = '#ffffff';
         let isMaximized = false;
 
-        window.openBoard = function() {
+       window.openBoard = function() {
             if(board) {
-                board.classList.remove('hidden');
+                board.style.display = 'flex'; // To'g'ridan-to'g'ri ko'rsatish
                 initCanvas();
             }
         }
 
         window.closeBoard = function() {
-            if(board) board.classList.add('hidden');
+            if(board) {
+                board.style.display = 'none'; // Yashirish
+            }
         }
 
         window.toggleMinimize = function() {
