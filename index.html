@@ -472,27 +472,31 @@
         </div>
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
-<div id="floating-board" style="display: none; position: fixed; bottom: 24px; right: 24px; width: 380px; height: 260px; background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 9999; overflow: hidden; flex-direction: column; transition: all 0.3s ease;">
+<div id="board-circle-btn" onclick="openBoard()" style="position: fixed; bottom: 100px; right: 24px; width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); z-index: 9998; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid rgba(255, 255, 255, 0.1);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Doskani ochish">
+    <i class="fas fa-pencil-alt" style="color: white; font-size: 22px;"></i>
+</div>
+
+<div id="floating-board" style="display: none; position: fixed; bottom: 24px; right: 24px; max-width: 90vw; width: 380px; height: 280px; background-color: #0f172a; border: 1px solid #334155; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); z-index: 9999; overflow: hidden; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1e293b; padding: 8px 12px; border-b: 1px solid #334155; user-select: none;">
-        <span style="font-size: 13px; font-weight: bold; color: #cbd5e1; font-family: sans-serif;">✏️ ZiyoDoska</span>
-        <div style="display: flex; gap: 10px; align-items: center;">
+    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1e293b; padding: 10px 14px; border-bottom: 1px solid #334155; user-select: none;">
+        <span style="font-size: 13px; font-weight: bold; color: #f1f5f9; font-family: sans-serif; display: flex; align-items: center; gap: 6px;">✏️ ZiyoDoska</span>
+        <div style="display: flex; gap: 12px; align-items: center;">
             <button onclick="toggleMinimize()" id="resize-btn" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'" title="Kengaytirish">🔲</button>
             <button onclick="closeBoard()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Yopish">❌</button>
         </div>
     </div>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background-color: #0f172a; border-bottom: 1px solid rgba(51, 65, 85, 0.5);">
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <button onclick="setBoardColor('#ffffff')" style="width: 16px; height: 16px; border-radius: 50%; bg-color: #fff; border: 1px solid #64748b; cursor: pointer; background: #fff;"></button>
-            <button onclick="setBoardColor('#3b82f6')" style="width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; border: none; cursor: pointer;"></button>
-            <button onclick="setBoardColor('#ef4444')" style="width: 16px; height: 16px; border-radius: 50%; background: #ef4444; border: none; cursor: pointer;"></button>
-            <button onclick="setBoardColor('#10b981')" style="width: 16px; height: 16px; border-radius: 50%; background: #10b981; border: none; cursor: pointer;"></button>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background-color: #0f172a; border-bottom: 1px solid rgba(51, 65, 85, 0.5);">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="setBoardColor('#ffffff')" style="width: 18px; height: 18px; border-radius: 50%; background: #ffffff; border: 1px solid #64748b; cursor: pointer;"></button>
+            <button onclick="setBoardColor('#38bdf8')" style="width: 18px; height: 18px; border-radius: 50%; background: #38bdf8; border: none; cursor: pointer;"></button>
+            <button onclick="setBoardColor('#ef4444')" style="width: 18px; height: 18px; border-radius: 50%; background: #ef4444; border: none; cursor: pointer;"></button>
+            <button onclick="setBoardColor('#10b981')" style="width: 18px; height: 18px; border-radius: 50%; background: #10b981; border: none; cursor: pointer;"></button>
         </div>
-        <button onclick="clearBoard()" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff'">Tozalash</button>
+        <button onclick="clearBoard()" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 500; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff'">Tozalash</button>
     </div>
 
-    <div style="flex-grow: 1; position: relative; background-color: #0f172a; width: 100%; height: calc(100% - 75px);">
+    <div style="flex-grow: 1; position: relative; background-color: #0f172a; width: 100%; height: calc(100% - 85px);">
         <canvas id="floatCanvas" style="width: 100%; height: 100%; display: block; cursor: crosshair;"></canvas>
     </div>
 </div>
@@ -735,8 +739,11 @@
 </script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // --- ZIYODOSKA LOGIKASI ---
+        // ==========================================
+        // YANGILANGAN ZIYODOSKA LOGIKASI
+        // ==========================================
         const board = document.getElementById('floating-board');
+        const boardBtn = document.getElementById('board-circle-btn');
         const fCanvas = document.getElementById('floatCanvas');
         let fCtx;
         if(fCanvas) fCtx = fCanvas.getContext('2d');
@@ -744,47 +751,49 @@
         let fColor = '#ffffff';
         let isMaximized = false;
 
-       window.openBoard = function() {
-            if(board) {
-                board.style.display = 'flex'; // To'g'ridan-to'g'ri ko'rsatish
+        window.openBoard = function() {
+            if(board && boardBtn) {
+                board.style.display = 'flex';
+                boardBtn.style.display = 'none'; // Doska ochilganda mitti tugma yashirinadi
                 initCanvas();
             }
         }
 
         window.closeBoard = function() {
-            if(board) {
-                board.style.display = 'none'; // Yashirish
+            if(board && boardBtn) {
+                board.style.display = 'none';
+                boardBtn.style.display = 'flex'; // Doska yopilganda mitti tugma qaytib chiqadi
             }
         }
 
-       window.toggleMinimize = function() {
+        window.toggleMinimize = function() {
             const resizeBtn = document.getElementById('resize-btn');
             
-            // Chizilgan rasmni vaqtincha saqlash
+            // Chizilgan rasmni xotirada saqlash
             const temp = document.createElement('canvas');
             temp.width = fCanvas.width;
             temp.height = fCanvas.height;
             temp.getContext('2d').drawImage(fCanvas, 0, 0);
 
             if (!isMaximized) {
-                // To'liq ekranga kengaytirish (chiroyli chekka joy tashlab)
+                // To'liq ekranga kengaytirish (chiroyli chekka joy qoldirib)
                 board.style.width = "calc(100% - 48px)";
-                board.style.height = "calc(100% - 100px)";
+                board.style.height = "calc(100% - 120px)";
                 board.style.bottom = "24px";
                 board.style.right = "24px";
                 if(resizeBtn) resizeBtn.innerText = "🔳";
                 isMaximized = true;
             } else {
-                // Kichik oyna rejimiga qaytarish (Asl chiroyli o'lchami)
+                // Kichik oyna (vidjet) holatiga qaytarish
                 board.style.width = "380px";
-                board.style.height = "260px";
+                board.style.height = "280px";
                 board.style.bottom = "24px";
                 board.style.right = "24px";
                 if(resizeBtn) resizeBtn.innerText = "🔲";
                 isMaximized = false;
             }
 
-            // Canvas o'lchamlarini qayta sozlash
+            // Canvas o'lchamlarini animatsiyadan so'ng tiklash
             setTimeout(() => {
                 fCanvas.width = fCanvas.parentElement.clientWidth;
                 fCanvas.height = fCanvas.parentElement.clientHeight;
@@ -818,6 +827,7 @@
             fCanvas.addEventListener('mousedown', (e) => { fDrawing = true; const p = getCoords(e); fCtx.beginPath(); fCtx.moveTo(p.x, p.y); });
             fCanvas.addEventListener('mousemove', (e) => { if (!fDrawing) return; e.preventDefault(); const p = getCoords(e); fCtx.lineTo(p.x, p.y); fCtx.stroke(); });
             fCanvas.addEventListener('mouseup', () => fDrawing = false);
+            
             fCanvas.addEventListener('touchstart', (e) => { fDrawing = true; const p = getCoords(e); fCtx.beginPath(); fCtx.moveTo(p.x, p.y); });
             fCanvas.addEventListener('touchmove', (e) => { if (!fDrawing) return; e.preventDefault(); const p = getCoords(e); fCtx.lineTo(p.x, p.y); fCtx.stroke(); });
             fCanvas.addEventListener('touchend', () => fDrawing = false);
@@ -825,7 +835,6 @@
 
         window.setBoardColor = function(c) { fColor = c; fCtx.strokeStyle = c; }
         window.clearBoard = function() { fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height); }
-        // --- ZIYODOSKA LOGIKASI TUGADI ---
         window.addEventListener('load', () => {
             const preloader = document.getElementById('preloader');
             setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
