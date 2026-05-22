@@ -472,30 +472,28 @@
         </div>
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
-<div id="floating-board" class="fixed bottom-6 right-6 w-96 h-64 bg-[#0f172a] border border-gray-700 rounded-2xl shadow-2xl z-50 transition-all duration-300 overflow-hidden flex flex-col" style="display: none;">
+<div id="floating-board" style="display: none; position: fixed; bottom: 24px; right: 24px; width: 380px; height: 260px; background-color: #0f172a; border: 1px solid #334155; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); z-index: 9999; overflow: hidden; flex-direction: column; transition: all 0.3s ease;">
     
-    <div class="flex items-center justify-between bg-[#1e293b] px-3 py-2 border-b border-gray-800 select-none" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-gray-300">✏️ ZiyoDoska</span>
-        </div>
-        <div class="flex items-center gap-2" style="display: flex; gap: 8px;">
-            <button onclick="toggleMinimize()" id="resize-btn" class="text-gray-400 hover:text-white text-xs p-1 cursor-pointer" style="background:transparent; border:none;">🔲</button>
-            <button onclick="closeBoard()" class="text-gray-400 hover:text-red-400 text-xs p-1 cursor-pointer" style="background:transparent; border:none;">❌</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1e293b; padding: 8px 12px; border-b: 1px solid #334155; user-select: none;">
+        <span style="font-size: 13px; font-weight: bold; color: #cbd5e1; font-family: sans-serif;">✏️ ZiyoDoska</span>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="toggleMinimize()" id="resize-btn" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'" title="Kengaytirish">🔲</button>
+            <button onclick="closeBoard()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Yopish">❌</button>
         </div>
     </div>
 
-    <div class="flex items-center justify-between p-2 bg-[#0f172a] border-b border-gray-800/60 gap-2" style="display: flex; justify-content: space-between; align-items: center; padding: 8px;">
-        <div class="flex gap-1" style="display: flex; gap: 6px;">
-            <button onclick="setBoardColor('#ffffff')" class="w-4 h-4 rounded-full bg-white border border-gray-400 cursor-pointer" style="width:16px; height:16px; border-radius:50%;"></button>
-            <button onclick="setBoardColor('#3b82f6')" class="w-4 h-4 rounded-full bg-blue-500 cursor-pointer" style="width:16px; height:16px; border-radius:50%; border:none;"></button>
-            <button onclick="setBoardColor('#ef4444')" class="w-4 h-4 rounded-full bg-red-500 cursor-pointer" style="width:16px; height:16px; border-radius:50%; border:none;"></button>
-            <button onclick="setBoardColor('#10b981')" class="w-4 h-4 rounded-full bg-emerald-500 cursor-pointer" style="width:16px; height:16px; border-radius:50%; border:none;"></button>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background-color: #0f172a; border-bottom: 1px solid rgba(51, 65, 85, 0.5);">
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <button onclick="setBoardColor('#ffffff')" style="width: 16px; height: 16px; border-radius: 50%; bg-color: #fff; border: 1px solid #64748b; cursor: pointer; background: #fff;"></button>
+            <button onclick="setBoardColor('#3b82f6')" style="width: 16px; height: 16px; border-radius: 50%; background: #3b82f6; border: none; cursor: pointer;"></button>
+            <button onclick="setBoardColor('#ef4444')" style="width: 16px; height: 16px; border-radius: 50%; background: #ef4444; border: none; cursor: pointer;"></button>
+            <button onclick="setBoardColor('#10b981')" style="width: 16px; height: 16px; border-radius: 50%; background: #10b981; border: none; cursor: pointer;"></button>
         </div>
-        <button onclick="clearBoard()" class="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded border border-red-500/20 cursor-pointer" style="padding: 2px 8px; font-size: 11px;">Tozalash</button>
+        <button onclick="clearBoard()" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); padding: 2px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff'">Tozalash</button>
     </div>
 
-    <div class="flex-grow bg-[#0f172a] relative" style="flex-grow: 1; position: relative; min-height: 150px;">
-        <canvas id="floatCanvas" class="w-full h-full block cursor-crosshair" style="width: 100%; height: 100%; display: block;"></canvas>
+    <div style="flex-grow: 1; position: relative; background-color: #0f172a; width: 100%; height: calc(100% - 75px);">
+        <canvas id="floatCanvas" style="width: 100%; height: 100%; display: block; cursor: crosshair;"></canvas>
     </div>
 </div>
  <script type="module">
@@ -759,29 +757,34 @@
             }
         }
 
-        window.toggleMinimize = function() {
+       window.toggleMinimize = function() {
             const resizeBtn = document.getElementById('resize-btn');
+            
+            // Chizilgan rasmni vaqtincha saqlash
             const temp = document.createElement('canvas');
             temp.width = fCanvas.width;
             temp.height = fCanvas.height;
             temp.getContext('2d').drawImage(fCanvas, 0, 0);
 
             if (!isMaximized) {
-                board.style.width = "90vw";
-                board.style.height = "80vh";
-                board.style.bottom = "20px";
-                board.style.right = "20px";
+                // To'liq ekranga kengaytirish (chiroyli chekka joy tashlab)
+                board.style.width = "calc(100% - 48px)";
+                board.style.height = "calc(100% - 100px)";
+                board.style.bottom = "24px";
+                board.style.right = "24px";
                 if(resizeBtn) resizeBtn.innerText = "🔳";
                 isMaximized = true;
             } else {
-                board.style.width = "24rem"; // w-96
-                board.style.height = "16rem"; // h-64
-                board.style.bottom = "1.5rem";
-                board.style.right = "1.5rem";
+                // Kichik oyna rejimiga qaytarish (Asl chiroyli o'lchami)
+                board.style.width = "380px";
+                board.style.height = "260px";
+                board.style.bottom = "24px";
+                board.style.right = "24px";
                 if(resizeBtn) resizeBtn.innerText = "🔲";
                 isMaximized = false;
             }
 
+            // Canvas o'lchamlarini qayta sozlash
             setTimeout(() => {
                 fCanvas.width = fCanvas.parentElement.clientWidth;
                 fCanvas.height = fCanvas.parentElement.clientHeight;
