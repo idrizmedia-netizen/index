@@ -9,7 +9,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--orange:#f97316;--purple:#a855f7;--pink:#ec4899;--teal:#14b8a6}
 
-/* TUNGI REJIM RANGALARI (Mavjud dizaynga mutlaqo zarar yetkazmaydi) */
+/* TUNGI REJIM RANGALARI */
 [data-theme="dark"] {
   --bg: #0f111a;
   --white: #161925;
@@ -29,7 +29,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .nav-a{display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:11px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all .15s;text-decoration:none;margin-bottom:2px}
 .nav-a:hover{background:var(--bg);color:var(--text)}
 .nav-a.active{background:#eff3ff;color:var(--blue)}
-/* Tungi rejimda active menyu to'qroq ko'rinishi uchun */
 [data-theme="dark"] .nav-a.active { background: #1e293b; color: #60a5fa; }
 
 .nav-icon{font-size:17px;width:20px;text-align:center}
@@ -84,7 +83,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 @media(max-width:860px){
   .sidebar{display:none}
-  .main{margin-left:0;padding:16px;padding-bottom:90px} /* Pastki menyu yopib qo'ymasligi uchun padding to'g'rilandi */
+  .main{margin-left:0;padding:16px;padding-bottom:100px} /* Pastki joy ko'paytirildi */
   .stats-row{grid-template-columns:repeat(2,1fr)}
 }
 
@@ -94,11 +93,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   color: #f43f5e;
 }
 [data-theme="dark"] .sidebar .portfolio-link-sidebar { background: #881337; color: #fda4af; }
-
 .sidebar .portfolio-link-sidebar:hover { background: #ffe4e6; color: #e11d48; }
 [data-theme="dark"] .sidebar .portfolio-link-sidebar:hover { background: #4c0519; }
 
-/* 🆕 TUZATILGAN MOBIL BOTTOM MENU (TELEFONLAR UCHUN MAXSUS APP-STYLE) */
+
+/* 📱 YONGA SURILADIGAN (SCROLLABLE) MOBIL MENYU */
 .mobile-nav {
   display: none;
   position: fixed;
@@ -107,70 +106,70 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   right: 0;
   background: var(--white);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.1);
   z-index: 999;
-  padding: 8px 4px;
-  justify-content: space-around;
-  align-items: center;
-  transition: background 0.3s, border-color 0.3s;
+  padding: 8px 10px;
+  
+  /* Suriladigan (Scroll) qilish uchun eng muhim qism */
+  display: none;
+  overflow-x: auto;
+  white-space: nowrap;
+  justify-content: flex-start; /* Elementlar chapdan boshlab chiziq bo'lib tiziladi */
+  gap: 8px;
+  
+  /* Silliq surilish va scrollbarni yashirish */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbarni vizual yashirish (ko'rinmas, lekin suriladigan qilish) */
+.mobile-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .mobile-nav-item {
-  display: flex;
+  display: inline-flex; /* Blok emas, yonma-yon turishi uchun inline-flex */
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   text-decoration: none;
   color: var(--muted);
   font-size: 11px;
   font-weight: 700;
-  flex: 1;
-  text-align: center;
-  padding: 6px 0;
+  padding: 6px 16px; /* Tugmalarga yon tomondan kenglik berildi */
+  min-width: 75px; /* Tugmalarning minimal kengligi siqilib ketishni oldini oladi */
   border-radius: 12px;
   transition: all 0.2s ease;
+  flex-shrink: 0; /* Elementlar aslo kichrayib siqilmaydi! */
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Mobil menyuda ikonkalarni chiroyli va markazda saqlash */
 .mobile-nav-item .m-icon {
   font-size: 20px;
   line-height: 1;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s;
 }
 
-/* Bosilganda va aktiv holatda vizual effekt */
-.mobile-nav-item:active .m-icon {
-  transform: scale(0.85);
-}
-
+/* Aktiv holat stili */
 .mobile-nav-item.active {
   color: var(--blue);
+  background: #eff3ff; /* Aktiv tugma orqasi och ko'k bo'lib ajralib turadi */
 }
-
-/* Tungi rejim uchun moslashuvchan aktiv rang */
 [data-theme="dark"] .mobile-nav-item.active {
   color: #60a5fa;
+  background: #1e293b;
 }
 
-/* Mobil menyudagi Asosiy sayt havolasi uchun maxsus chiroyli uslub */
-.mobile-nav-item.portfolio-mobile {
-  color: #f43f5e;
-}
-[data-theme="dark"] .mobile-nav-item.portfolio-mobile {
-  color: #fda4af;
-}
+/* Mobil menyudagi Portfolio bog'lanmasi rangi */
+.mobile-nav-item.portfolio-mobile { color: #f43f5e; }
+[data-theme="dark"] .mobile-nav-item.portfolio-mobile { color: #fda4af; }
 
 @media(max-width:860px){ 
   .mobile-nav { 
-    display: flex; 
+    display: flex; /* Faqat telefonda faollashadi */
   } 
 }
+
 
 /* TUNGI REJIM VA KUNDALIK TOPSHIRIQ STYLLARI */
 .theme-toggle-btn {
@@ -193,7 +192,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 }
 .theme-toggle-btn:hover { background: var(--bg); color: var(--text); }
 
-/* Kundalik topshiriq boxi */
 .quest-box {
   background: linear-gradient(135deg, #4f7cff 0%, #a855f7 100%);
   border-radius: 16px;
@@ -264,6 +262,22 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <a class="mobile-nav-item" href="flashcard.html">
     <span class="m-icon">🃏</span>
     <span>Karta</span>
+  </a>
+  <a class="mobile-nav-item" href="tezkor.html">
+    <span class="m-icon">⚡</span>
+    <span>Tezkor</span>
+  </a>
+  <a class="mobile-nav-item" href="puzzle.html">
+    <span class="m-icon">🔤</span>
+    <span>Puzzle</span>
+  </a>
+  <a class="mobile-nav-item" href="memory.html">
+    <span class="m-icon">🧠</span>
+    <span>Xotira</span>
+  </a>
+  <a class="mobile-nav-item" href="statistika.html">
+    <span class="m-icon">📊</span>
+    <span>Statistika</span>
   </a>
   <a class="mobile-nav-item" href="#" onclick="toggleTheme(); return false;">
     <span class="m-icon" id="themeIconMobile">🌙</span>
@@ -439,16 +453,14 @@ const portfolioURL = "https://ziyomap.vercel.app";
 document.getElementById("portfolioLinkSide").href = portfolioURL;
 document.getElementById("portfolioLinkMobile").href = portfolioURL;
 
-// 🆕 1. TUNGI REJIM LOGIKASI (O'yinlar uchun ham ishonchli saqlash tizimi)
+// 🆕 1. TUNGI REJIM LOGIKASI
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   const isDark = theme === "dark";
   
-  // Sidebardagi matn va ikona
   if(document.getElementById("themeIconSide")) document.getElementById("themeIconSide").textContent = isDark ? "☀️" : "🌙";
   if(document.getElementById("themeTxtSide")) document.getElementById("themeTxtSide").textContent = isDark ? "Kunduzgi rejim" : "Tungi rejim";
   
-  // Mobildagi matn va ikona
   if(document.getElementById("themeIconMobile")) document.getElementById("themeIconMobile").textContent = isDark ? "☀️" : "🌙";
   if(document.getElementById("themeTxtMobile")) document.getElementById("themeTxtMobile").textContent = isDark ? "Yorug'" : "Tungi";
   
@@ -461,7 +473,6 @@ function toggleTheme() {
   applyTheme(newTheme);
 }
 
-// Sahifa yuklanganda saqlangan rejimi tekshirish
 const savedTheme = localStorage.getItem("zy_theme") || "light";
 applyTheme(savedTheme);
 
