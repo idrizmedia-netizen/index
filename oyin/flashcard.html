@@ -5,211 +5,163 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Flashcard — Ziyomap Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--green:#22c55e;--blue:#4f7cff;--red:#ef4444;--yellow:#eab308}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--green:#22c55e;--blue:#4f7cff;--red:#ef4444}
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent}
-.back-btn:hover{background:var(--bg)}
-.topbar-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
-.topbar-right{margin-left:auto;display:flex;gap:10px}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+.back:hover{background:var(--bg)}
+.tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.right{margin-left:auto;display:flex;gap:10px}
 .pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
-
-.wrap{max-width:680px;margin:0 auto;padding:24px 16px}
-
-/* SETUP */
-.setup-title{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px}
+.lbl{font-size:14px;font-weight:700;margin-bottom:10px}
 .fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
-.fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all 0.15s}
-.fan-card:hover{border-color:var(--blue)}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
+.fan-card:hover{border-color:var(--green)}
 .fan-card.sel{border-color:var(--green);background:#f0fdf4}
-.fan-icon{font-size:1.8rem;margin-bottom:6px}
-.fan-name{font-size:13px;font-weight:700}
-.fan-count{font-size:11px;color:var(--muted);margin-top:2px}
-.start-btn{width:100%;padding:14px;border-radius:14px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all 0.15s}
-.start-btn:hover{background:#16a34a;transform:translateY(-2px)}
+.fi{font-size:1.8rem;margin-bottom:6px}
+.fn{font-size:13px;font-weight:700}
+.fc{font-size:11px;color:var(--muted);margin-top:2px}
+.start-btn{width:100%;padding:14px;border-radius:14px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer}
+.start-btn:hover{background:#16a34a}
 
-/* CARD FLIP */
 #cardScreen{display:none}
-.card-wrap{perspective:1000px;margin:32px auto;max-width:560px}
-.flip-card{
-  width:100%;height:280px;cursor:pointer;
-  transform-style:preserve-3d;transition:transform 0.55s cubic-bezier(0.4,0,0.2,1);
-  position:relative;
-}
+.card-top{text-align:center;margin-bottom:12px}
+.fan-tag{display:inline-block;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:4px}
+.prog-info{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+.pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:20px}
+.pbf{height:100%;background:var(--green);border-radius:4px;transition:width .4s}
+
+.card-scene{perspective:1000px;margin:0 auto 20px;max-width:520px;height:260px}
+.flip-card{width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative}
 .flip-card.flipped{transform:rotateY(180deg)}
-.card-face{
-  position:absolute;inset:0;border-radius:24px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:32px;text-align:center;backface-visibility:hidden;border:2px solid var(--border);
-}
+.face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;border:2px solid var(--border)}
 .front{background:var(--white)}
 .back{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);transform:rotateY(180deg);border-color:var(--green)}
-.card-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px;opacity:0.5}
-.card-text{font-size:1.3rem;font-weight:700;line-height:1.5}
-.card-hint{font-size:13px;color:var(--muted);margin-top:14px}
+.face-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.45;margin-bottom:10px}
+.face-txt{font-size:1.25rem;font-weight:700;line-height:1.5}
+.face-hint{font-size:13px;color:var(--muted);margin-top:12px}
 
-.card-actions{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
-.act-btn{
-  flex:1;max-width:140px;padding:12px;border-radius:12px;border:none;
-  font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all 0.15s;
-}
-.act-know{background:#f0fdf4;color:var(--green)}
-.act-know:hover{background:var(--green);color:#fff}
+.actions{display:flex;gap:10px;justify-content:center;margin-bottom:16px}
+.act{flex:1;max-width:140px;padding:12px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s}
 .act-again{background:#fef2f2;color:var(--red)}
 .act-again:hover{background:var(--red);color:#fff}
 .act-skip{background:var(--bg);color:var(--muted)}
 .act-skip:hover{background:var(--border)}
+.act-know{background:#f0fdf4;color:var(--green)}
+.act-know:hover{background:var(--green);color:#fff}
 
-.progress-info{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
-.pbar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:20px}
-.pbar-fill{height:100%;background:var(--green);border-radius:4px;transition:width 0.4s}
-.fan-indicator{text-align:center;font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:16px}
-
-/* RESULT */
 #doneScreen{display:none;text-align:center}
-.done-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;margin-bottom:24px}
-.done-emoji{font-size:4rem;margin-bottom:12px}
-.done-title{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:8px}
-.done-sub{color:var(--muted);margin-bottom:24px}
-.done-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.done-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;margin-bottom:20px}
+.de{font-size:4rem;margin-bottom:12px}
+.dt{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 24px}
 .ds{background:var(--bg);border-radius:12px;padding:16px}
-.ds-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
-.ds-k{font-size:12px;color:var(--muted);margin-top:3px}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap}
-.btn-out{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
-.btn-prim{flex:1;padding:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
-.btn-prim:hover{background:#16a34a}
+.dv{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.dk{font-size:12px;color:var(--muted);margin-top:3px}
+.btn-row{display:flex;gap:10px}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <a class="back-btn" href="index.html">← Orqaga</a>
-  <div class="topbar-title">🃏 Flashcard</div>
-  <div class="topbar-right">
-    <div class="pill">✅ <span id="knowCount">0</span></div>
-    <div class="pill">❌ <span id="againCount">0</span></div>
+  <a class="back" href="index.html">← Orqaga</a>
+  <div class="tt">🃏 Flashcard</div>
+  <div class="right">
+    <div class="pill">✅ <span id="knowC">0</span></div>
+    <div class="pill">❌ <span id="againC">0</span></div>
   </div>
 </div>
 <div class="wrap">
   <div id="setupScreen">
-    <div class="setup-title">🃏 Flashcard o'rganish</div>
-    <p style="color:var(--muted);margin-bottom:24px">Kartochkalarni aylantiring va bilimingizni sinang</p>
-    <div style="font-size:14px;font-weight:700;margin-bottom:10px">Fan tanlang:</div>
+    <h2 style="font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:6px">🃏 Flashcard</h2>
+    <p style="color:var(--muted);margin-bottom:24px">Kartalarni aylantiring va bilimingizni sinang</p>
+    <div class="lbl">Fan tanlang:</div>
     <div class="fan-grid" id="fanGrid"></div>
     <button class="start-btn" onclick="startCards()">▶ Boshlash</button>
   </div>
 
   <div id="cardScreen">
-    <div style="text-align:center;margin-bottom:4px">
-      <span class="fan-indicator" id="fanInd"></span>
+    <div class="card-top">
+      <span class="fan-tag" id="fanTag"></span>
     </div>
-    <div class="progress-info">
+    <div class="prog-info">
       <span id="cardNum">1 / 20</span>
-      <span id="cardDiff"></span>
+      <span style="color:var(--green);font-weight:700" id="pct">0%</span>
     </div>
-    <div class="pbar"><div class="pbar-fill" id="cPbar" style="width:0%"></div></div>
-
-    <div class="card-wrap">
+    <div class="pb"><div class="pbf" id="pbf" style="width:0%"></div></div>
+    <div class="card-scene">
       <div class="flip-card" id="flipCard" onclick="flipCard()">
-        <div class="card-face front">
-          <div class="card-label">❓ Savol</div>
-          <div class="card-text" id="cardQ"></div>
-          <div class="card-hint">Bosing yoki teging — javobni ko'ring</div>
+        <div class="face front">
+          <div class="face-lbl">❓ Savol</div>
+          <div class="face-txt" id="cardQ"></div>
+          <div class="face-hint">Bosing — javobni ko'ring</div>
         </div>
-        <div class="card-face back">
-          <div class="card-label">✅ Javob</div>
-          <div class="card-text" id="cardA"></div>
+        <div class="face back">
+          <div class="face-lbl">✅ Javob</div>
+          <div class="face-txt" id="cardA"></div>
         </div>
       </div>
     </div>
-
-    <div class="card-actions">
-      <button class="act-btn act-again" onclick="markCard('again')">❌ Bilmadim</button>
-      <button class="act-btn act-skip" onclick="markCard('skip')">⏭ O'tkazish</button>
-      <button class="act-btn act-know" onclick="markCard('know')">✅ Bildim!</button>
+    <div class="actions">
+      <button class="act act-again" onclick="mark('again')">❌ Bilmadim</button>
+      <button class="act act-skip" onclick="mark('skip')">⏭ O'tkazish</button>
+      <button class="act act-know" onclick="mark('know')">✅ Bildim!</button>
     </div>
   </div>
 
   <div id="doneScreen">
     <div class="done-card">
-      <div class="done-emoji" id="doneEmoji">🎉</div>
-      <div class="done-title">Tugatdingiz!</div>
-      <div class="done-sub" id="doneSub"></div>
-      <div class="done-stats">
-        <div class="ds"><div class="ds-v" id="ds1">0</div><div class="ds-k">✅ Bilganlar</div></div>
-        <div class="ds"><div class="ds-v" id="ds2">0</div><div class="ds-k">❌ Bilmaganlar</div></div>
-        <div class="ds"><div class="ds-v" id="ds3">0%</div><div class="ds-k">📊 Natija</div></div>
+      <div class="de" id="doneEmoji">🎉</div>
+      <div class="dt">Tugatdingiz!</div>
+      <p style="color:var(--muted)" id="doneSub"></p>
+      <div class="ds-grid">
+        <div class="ds"><div class="dv" id="dv1">0</div><div class="dk">✅ Bilganlar</div></div>
+        <div class="ds"><div class="dv" id="dv2">0</div><div class="dk">❌ Bilmaganlar</div></div>
+        <div class="ds"><div class="dv" id="dv3">0%</div><div class="dk">📊 Natija</div></div>
       </div>
       <div class="btn-row">
-        <button class="btn-out" onclick="restart()">🔄 Qayta</button>
-        <button class="btn-prim" onclick="goSetup()">⚙ Sozlash</button>
-        <button class="btn-out" onclick="location.href='index.html'">🏠 Bosh</button>
+        <button class="bo" onclick="goSetup()">⚙ Sozlash</button>
+        <button class="bp" onclick="startCards()">🔄 Qayta</button>
+        <button class="bo" onclick="location.href='index.html'">🏠 Bosh</button>
       </div>
     </div>
   </div>
 </div>
-
-<script src="./js/savollar.js"></script>
-
 <script>
-// Fanlar IDlari bazadagi nomlar bilan 100% bir xil qilindi
-const FANS = [
+const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
   {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
   {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
   {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
   {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
-  {id:"ingliztili",name:"Ingliz tili",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"}, 
+  {id:"ingliz",name:"Ingliz",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
   {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
 ];
+let S={sel:["fizika"],cards:[],cur:0,know:0,again:0,skip:0,flipped:false};
 
-let S = { sel:["fizika"], cards:[], cur:0, know:0, again:0, skip:0, flipped:false };
-
-function buildFanGrid(){
-  const g=document.getElementById("fanGrid");
-  g.innerHTML="";
-  
-  // ZiyomapBaza borligini tekshirish
-  if (typeof ZiyomapBaza === "undefined") {
-    g.innerHTML = "<p style='color:var(--red); font-weight:bold; grid-column: 1/-1; text-align:center;'>Xatolik: savollar.js fayli topilmadi yoki yuklanmadi!</p>";
-    return;
-  }
-
-  FANS.forEach(f=>{
+function buildFans(){
+  const g=document.getElementById("fanGrid");g.innerHTML="";
+  FM.forEach(f=>{
+    const cnt=(FLASHCARD_CARDS[f.id]||[]).length;
     const el=document.createElement("div");
     el.className="fan-card"+(S.sel.includes(f.id)?" sel":"");
-    el.dataset.id=f.id;
-    
-    // ZiyomapBaza.flashcard ichidan to'g'ridan-to'g'ri massiv uzunligini olamiz
-    const hasFlashcard = ZiyomapBaza.flashcard && ZiyomapBaza.flashcard[f.id];
-    const cnt = hasFlashcard ? ZiyomapBaza.flashcard[f.id].length : 0;
-    
-    el.innerHTML=`<div class="fan-icon">${f.icon}</div><div class="fan-name">${f.name}</div><div class="fan-count">${cnt} karta</div>`;
-    el.onclick=()=>toggleFan(f.id,el);
+    el.innerHTML=`<div class="fi">${f.icon}</div><div class="fn">${f.name}</div><div class="fc">${cnt} karta</div>`;
+    el.onclick=()=>{const i=S.sel.indexOf(f.id);if(i>-1){if(S.sel.length===1)return;S.sel.splice(i,1);el.classList.remove("sel");}else{S.sel.push(f.id);el.classList.add("sel");}};
     g.appendChild(el);
   });
 }
 
-function toggleFan(id,el){
-  const i=S.sel.indexOf(id);
-  if(i>-1){if(S.sel.length===1)return;S.sel.splice(i,1);el.classList.remove("sel");}
-  else{S.sel.push(id);el.classList.add("sel");}
-}
-
 function startCards(){
   let pool=[];
-  S.sel.forEach(f=>{
-    if(ZiyomapBaza.flashcard && ZiyomapBaza.flashcard[f]){
-      ZiyomapBaza.flashcard[f].forEach(c=>pool.push({...c,fan:f}));
-    }
-  });
-  
-  pool=pool.sort(()=>Math.random()-0.5);
-  if(!pool.length){alert("Tanlangan fan(lar) bo'yicha hech qanday karta topilmadi!");return;}
-  
+  S.sel.forEach(f=>(FLASHCARD_CARDS[f]||[]).forEach(c=>pool.push({...c,fan:f})));
+  pool=pool.sort(()=>Math.random()-.5);
+  if(!pool.length){alert("Karta topilmadi!");return;}
   S.cards=pool;S.cur=0;S.know=0;S.again=0;S.skip=0;
   document.getElementById("setupScreen").style.display="none";
   document.getElementById("doneScreen").style.display="none";
@@ -219,62 +171,44 @@ function startCards(){
 
 function showCard(){
   if(S.cur>=S.cards.length){showDone();return;}
-  const c=S.cards[S.cur];
-  S.flipped=false;
+  const c=S.cards[S.cur];S.flipped=false;
   document.getElementById("flipCard").classList.remove("flipped");
-  
-  // 🌟 TO'G'RILANDI: Sizning bazangizdagi 'question' va 'answer' kalitlariga qat'iy yo'naltirildi
-  document.getElementById("cardQ").textContent = c.question || "Savol matni topilmadi"; 
-  document.getElementById("cardA").textContent = c.answer || "Javob matni topilmadi";
-  
-  document.getElementById("cardNum").textContent=`${S.cur+1} / ${S.cards.length}`;
-  document.getElementById("cPbar").style.width=`${(S.cur/S.cards.length)*100}%`;
-  
-  const fan=FANS.find(f=>f.id===c.fan)||{name:c.fan,color:"#4f7cff",bg:"#eff3ff"};
-  const ind=document.getElementById("fanInd");
-  ind.textContent=fan.name;ind.style.background=fan.bg;ind.style.color=fan.color;
-  
-  document.getElementById("knowCount").textContent=S.know;
-  document.getElementById("againCount").textContent=S.again;
+  document.getElementById("cardQ").textContent=c.q;
+  document.getElementById("cardA").textContent=c.a;
+  const tot=S.cards.length;
+  document.getElementById("cardNum").textContent=`${S.cur+1} / ${tot}`;
+  const prog=Math.round((S.cur/tot)*100);
+  document.getElementById("pbf").style.width=prog+"%";
+  document.getElementById("pct").textContent=prog+"%";
+  const f=FM.find(x=>x.id===c.fan)||{name:c.fan,color:"#4f7cff",bg:"#eff3ff"};
+  const t=document.getElementById("fanTag");t.textContent=f.name;t.style.background=f.bg;t.style.color=f.color;
+  document.getElementById("knowC").textContent=S.know;
+  document.getElementById("againC").textContent=S.again;
 }
 
-function flipCard(){
-  S.flipped=!S.flipped;
-  document.getElementById("flipCard").classList.toggle("flipped",S.flipped);
-}
+function flipCard(){S.flipped=!S.flipped;document.getElementById("flipCard").classList.toggle("flipped",S.flipped);}
 
-function markCard(type){
+function mark(type){
   if(type==="know")S.know++;
   else if(type==="again"){S.again++;S.cards.push(S.cards[S.cur]);}
   else S.skip++;
-  S.cur++;
-  showCard();
+  S.cur++;showCard();
 }
 
 function showDone(){
   document.getElementById("cardScreen").style.display="none";
   document.getElementById("doneScreen").style.display="block";
-  const total=S.know+S.again+S.skip;
-  const pct=total>0?Math.round((S.know/total)*100):0;
+  const tot=S.know+S.again+S.skip;
+  const pct=tot?Math.round((S.know/tot)*100):0;
   document.getElementById("doneEmoji").textContent=pct>=80?"🏆":pct>=50?"🎉":"💪";
   document.getElementById("doneSub").textContent=`${pct}% kartani bilasiz!`;
-  document.getElementById("ds1").textContent=S.know;
-  document.getElementById("ds2").textContent=S.again;
-  document.getElementById("ds3").textContent=pct+"%";
+  document.getElementById("dv1").textContent=S.know;
+  document.getElementById("dv2").textContent=S.again;
+  document.getElementById("dv3").textContent=pct+"%";
 }
 
-function restart(){
-  document.getElementById("doneScreen").style.display="none";
-  document.getElementById("cardScreen").style.display="block";
-  startCards();
-}
-
-function goSetup(){
-  document.getElementById("doneScreen").style.display="none";
-  document.getElementById("setupScreen").style.display="block";
-  buildFanGrid();
-}
-
-// Sahifa yuklanganda gridni chizish
-buildFanGrid();
+function goSetup(){document.getElementById("doneScreen").style.display="none";document.getElementById("setupScreen").style.display="block";}
+buildFans();
 </script>
+</body>
+</html>
