@@ -4,90 +4,333 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Xotira O'yini — Ziyomap Games</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--pink:#ec4899;--green:#22c55e;--blue:#4f7cff}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--pink:#ec4899;--green:#22c55e;--blue:#4f7cff;--yellow:#eab308;--red:#ef4444}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
-.game-container{max-width:480px;width:100%;margin:auto;padding:20px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.card{height:90px;background:var(--white);border:2px solid var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:all 0.2s}
-.card.flipped{background:linear-gradient(135deg,#fdf2f8,#fff);border-color:var(--pink)}
-.card.matched{background:#f0fdf4;border-color:var(--green);cursor:default;opacity:0.7}
-.win-box{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;display:none}
-.btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--pink);color:#fff;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+.back:hover{background:var(--bg)}
+.tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.right{margin-left:auto;display:flex;gap:10px}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px}
+
+/* SETUP */
+#setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.info-box{background:#fdf2f8;border:1px solid #fbcfe8;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#9d174d;line-height:1.6}
+.lbl{font-size:14px;font-weight:700;margin-bottom:10px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
+.fan-card:hover{border-color:var(--pink)}
+.fan-card.sel{border-color:var(--pink);background:#fdf2f8}
+.fi{font-size:1.8rem;margin-bottom:6px}
+.fn{font-size:13px;font-weight:700}
+.fc{font-size:11px;color:var(--muted);margin-top:2px}
+.diff-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.dbtn{padding:10px 22px;border-radius:30px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.dbtn.sel{border-color:var(--pink);background:#fdf2f8;color:var(--pink)}
+.start-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--pink);color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all .15s}
+.start-btn:hover{background:#db2777;transform:translateY(-2px)}
+
+/* GAME */
+#gameScreen{display:none}
+.g-top{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.stat-pill{background:var(--white);border:1px solid var(--border);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.timer-pill{background:var(--pink);color:#fff;padding:8px 16px;border-radius:20px;font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem}
+.timer-pill.warn{background:var(--red)}
+.fan-indicator{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+
+.card-grid{display:grid;gap:10px;margin-bottom:16px}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+.grid-6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:500px){.grid-4{grid-template-columns:repeat(3,1fr)}.grid-6{grid-template-columns:repeat(4,1fr)}}
+
+.mem-card{
+  aspect-ratio:1;border-radius:14px;cursor:pointer;
+  transform-style:preserve-3d;transition:transform .4s ease;position:relative;
+}
+.mem-card.flipped{transform:rotateY(180deg)}
+.mem-card.matched{transform:rotateY(180deg);pointer-events:none}
+.card-face{
+  position:absolute;inset:0;border-radius:14px;
+  backface-visibility:hidden;display:flex;align-items:center;justify-content:center;
+  padding:8px;text-align:center;font-size:11px;font-weight:700;line-height:1.3;
+}
+.card-back{background:var(--pink);border:2px solid #db2777;color:#fff;font-size:1.4rem}
+.card-front{background:var(--white);border:2px solid var(--border);transform:rotateY(180deg);color:var(--text)}
+.mem-card.matched .card-front{border-color:var(--green);background:#f0fdf4;color:var(--green)}
+
+.match-flash{animation:flashGreen .4s ease}
+@keyframes flashGreen{0%,100%{opacity:1}50%{opacity:.5}}
+.wrong-shake{animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:rotateY(180deg) translateX(0)}25%{transform:rotateY(180deg) translateX(-4px)}75%{transform:rotateY(180deg) translateX(4px)}}
+
+/* RESULT */
+#resultScreen{display:none}
+.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px}
+.r-emoji{font-size:5rem;margin-bottom:12px}
+.r-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--pink)}
+.r-sub{color:var(--muted);margin-bottom:20px}
+.r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.rs{background:var(--bg);border-radius:12px;padding:16px}
+.rs-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.rs-k{font-size:12px;color:var(--muted);margin-top:3px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--pink);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
+.lb-item:nth-child(1){background:#fdf2f8}
+.lb-rank{width:30px;font-family:'Outfit',sans-serif;font-weight:800;text-align:center}
+.lb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
+.lb-nm{flex:1;font-size:14px;font-weight:700}
+.lb-sc{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--yellow)}
 </style>
 </head>
 <body>
-
 <div class="topbar">
-  <a class="back-btn" href="index.html">⬅ Orqaga</a>
-  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">🧠 Xotira O'yini</h2>
+  <a class="back" href="index.html">← Orqaga</a>
+  <div class="tt">🧠 Xotira O'yini</div>
+  <div class="right">
+    <div class="pill">🏆 Rekord: <span id="hRecord">—</span></div>
+  </div>
+</div>
+<div class="wrap">
+
+<!-- SETUP -->
+<div id="setupScreen">
+  <h2>🧠 Xotira O'yini</h2>
+  <div class="info-box">
+    🃏 Juft kartochkalarni toping!<br>
+    Atama va ta'rif kartalarini moslang.<br>
+    Kamroq urinish = ko'proq ball!
+  </div>
+  <div class="lbl">📚 Fan tanlang (bitta):</div>
+  <div class="fan-grid" id="fanGrid"></div>
+  <div class="lbl">🎯 Juftlar soni:</div>
+  <div class="diff-row">
+    <button class="dbtn sel" data-n="6" onclick="pickN(this)">6 juft (oson)</button>
+    <button class="dbtn" data-n="8" onclick="pickN(this)">8 juft (o'rta)</button>
+    <button class="dbtn" data-n="12" onclick="pickN(this)">12 juft (qiyin)</button>
+  </div>
+  <button class="start-btn" onclick="startGame()">🧠 Boshlash!</button>
 </div>
 
-<div class="game-container">
-  <div class="grid" id="gridBox"></div>
-
-  <div class="win-box" id="winBox">
-    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Daho! 🧠</h2>
-    <p style="color:var(--muted);margin-bottom:24px">Xotirangiz juda o'tkir ekan. Barcha juftliklarni topdingiz!</p>
-    <p style="font-size:20px;font-weight:800;color:var(--pink);margin-bottom:24px">+50 ball qo'shildi!</p>
-    <a class="btn" href="index.html">🏠 O'yinlar maydoniga qaytish</a>
+<!-- GAME -->
+<div id="gameScreen">
+  <div class="g-top">
+    <span class="fan-indicator" id="fanInd"></span>
+    <div class="stat-pill">🔄 <span id="movesEl">0</span> harakat</div>
+    <div class="stat-pill">✅ <span id="matchedEl">0</span>/<span id="totalEl">0</span></div>
+    <div class="pill">⭐ <span id="scoreEl">0</span></div>
+    <div class="timer-pill" id="timerPill">⏱ 0s</div>
   </div>
+  <div class="card-grid" id="cardGrid"></div>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen">
+  <div class="res-card">
+    <div class="r-emoji" id="rEmoji">🏆</div>
+    <div class="r-pts" id="rPts">0</div>
+    <div class="r-sub" id="rSub">ball to'plandi</div>
+    <div class="r-stats">
+      <div class="rs"><div class="rs-v" id="rv1">0</div><div class="rs-k">🔄 Harakatlar</div></div>
+      <div class="rs"><div class="rs-v" id="rv2">0s</div><div class="rs-k">⏱ Vaqt</div></div>
+      <div class="rs"><div class="rs-v" id="rv3">0</div><div class="rs-k">⭐ Ball</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="bo" onclick="goSetup()">⚙ Sozlash</button>
+      <button class="bp" onclick="startGame()">🔄 Qayta</button>
+      <button class="bo" onclick="location.href='index.html'">🏠 Bosh</button>
+    </div>
+  </div>
+  <div class="lb-box"><div class="lb-title">🏆 Xotira Reytingi</div><div id="lbEl"></div></div>
+</div>
 </div>
 
 <script>
-const icons = ["💡","💡","💻","💻","📐","📐","⚛️","⚛️","🔬","🔬","🎒","🎒","🌌","🌌","🧮","🧮"];
-let flippedCards = [], matchedCount = 0;
+const FM=[
+  {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
+  {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
+  {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
+  {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
+  {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
+  {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
+  {id:"ingliz",name:"Ingliz",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
+];
 
-function shuffle(arr) { return arr.sort(() => 0.5 - Math.random()); }
+let G={
+  user:localStorage.getItem("zy_user")||"O'yinchi",
+  selFan:"fizika", numPairs:6,
+  cards:[], flipped:[], matched:0, moves:0, canFlip:true,
+  tInt:null, elapsed:0, score:0,
+};
 
-function createBoard() {
-  const grid = document.getElementById("gridBox");
-  const shuffled = shuffle([...icons]);
-  shuffled.forEach((icon, index) => {
-    const card = document.createElement("div");
-    card.classList.add("card");
-    card.dataset.icon = icon;
-    card.dataset.id = index;
-    card.textContent = "❓";
-    card.addEventListener("click", flipCard);
-    grid.appendChild(card);
+// show best record
+const rec=localStorage.getItem("zy_mem_rec");
+if(rec) document.getElementById("hRecord").textContent=JSON.parse(rec).score+" ball";
+
+function buildFans(){
+  const g=document.getElementById("fanGrid");g.innerHTML="";
+  FM.forEach(f=>{
+    const cnt=(MEMORY_PAIRS[f.id]||[]).length;
+    const el=document.createElement("div");
+    // only one fan at a time
+    el.className="fan-card"+(G.selFan===f.id?" sel":"");
+    el.innerHTML=`<div class="fi">${f.icon}</div><div class="fn">${f.name}</div><div class="fc">${cnt} juft</div>`;
+    el.onclick=()=>{
+      document.querySelectorAll(".fan-card").forEach(c=>c.classList.remove("sel"));
+      el.classList.add("sel"); G.selFan=f.id;
+    };
+    g.appendChild(el);
   });
 }
 
-function flipCard() {
-  if (flippedCards.length >= 2 || this.classList.contains("flipped") || this.classList.contains("matched")) return;
-  this.classList.add("flipped");
-  this.textContent = this.dataset.icon;
-  flippedCards.push(this);
+function pickN(btn){
+  document.querySelectorAll(".dbtn").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel"); G.numPairs=parseInt(btn.dataset.n);
+}
 
-  if (flippedCards.length === 2) {
-    setTimeout(checkMatch, 600);
+function startGame(){
+  const pairs=(MEMORY_PAIRS[G.selFan]||[]);
+  if(!pairs.length){alert("Bu fan uchun juftlar topilmadi!");return;}
+  const chosen=pairs.sort(()=>Math.random()-.5).slice(0,G.numPairs);
+  // create cards: term + definition
+  let cards=[];
+  chosen.forEach((p,i)=>{
+    cards.push({id:i,type:"term",text:p.term,pairId:i});
+    cards.push({id:i+G.numPairs,type:"def",text:p.definition,pairId:i});
+  });
+  cards=cards.sort(()=>Math.random()-.5);
+  G.cards=cards;G.flipped=[];G.matched=0;G.moves=0;G.score=0;G.elapsed=0;G.canFlip=true;
+  document.getElementById("movesEl").textContent=0;
+  document.getElementById("matchedEl").textContent=0;
+  document.getElementById("totalEl").textContent=G.numPairs;
+  document.getElementById("scoreEl").textContent=0;
+
+  const f=FM.find(x=>x.id===G.selFan)||FM[0];
+  const ind=document.getElementById("fanInd");
+  ind.textContent=f.icon+" "+f.name;ind.style.background=f.bg;ind.style.color=f.color;
+
+  show("gameScreen");
+  renderGrid();
+  startTimer();
+}
+
+function renderGrid(){
+  const grid=document.getElementById("cardGrid");
+  const cols=G.numPairs<=6?4:6;
+  grid.className="card-grid "+(cols===4?"grid-4":"grid-6");
+  grid.innerHTML="";
+  G.cards.forEach((card,idx)=>{
+    const el=document.createElement("div");
+    el.className="mem-card";
+    el.dataset.idx=idx;
+    el.innerHTML=`
+      <div class="card-face card-back">🧠</div>
+      <div class="card-face card-front">${card.text}</div>`;
+    el.onclick=()=>flipCard(idx,el);
+    grid.appendChild(el);
+  });
+}
+
+function flipCard(idx,el){
+  if(!G.canFlip)return;
+  if(el.classList.contains("flipped")||el.classList.contains("matched"))return;
+  el.classList.add("flipped");
+  G.flipped.push({idx,el});
+  if(G.flipped.length===2){
+    G.canFlip=false;G.moves++;
+    document.getElementById("movesEl").textContent=G.moves;
+    checkMatch();
   }
 }
 
-function checkMatch() {
-  const [c1, c2] = flippedCards;
-  if (c1.dataset.icon === c2.dataset.icon) {
-    c1.classList.add("matched"); c2.classList.add("matched");
-    matchedCount += 2;
-    if (matchedCount === icons.length) {
-      document.getElementById("gridBox").style.display = "none";
-      document.getElementById("winBox").style.display = "block";
-      let total = parseInt(localStorage.getItem("ziyomap_total") || "0");
-      localStorage.setItem("ziyomap_total", total + 50);
-    }
-  } else {
-    c1.classList.remove("flipped"); c2.classList.remove("flipped");
-    c1.textContent = "❓"; c2.textContent = "❓";
+function checkMatch(){
+  const [a,b]=G.flipped;
+  const ca=G.cards[a.idx]; const cb=G.cards[b.idx];
+  if(ca.pairId===cb.pairId&&ca.type!==cb.type){
+    // match!
+    setTimeout(()=>{
+      a.el.classList.add("matched");b.el.classList.add("matched");
+      a.el.classList.add("match-flash");b.el.classList.add("match-flash");
+      G.matched++;
+      document.getElementById("matchedEl").textContent=G.matched;
+      const pts=Math.max(5,20-G.moves);
+      G.score+=pts;
+      document.getElementById("scoreEl").textContent=G.score;
+      G.flipped=[];G.canFlip=true;
+      if(G.matched===G.numPairs)endGame();
+    },400);
+  }else{
+    // no match
+    setTimeout(()=>{
+      a.el.classList.add("wrong-shake");b.el.classList.add("wrong-shake");
+      setTimeout(()=>{
+        a.el.classList.remove("flipped","wrong-shake");
+        b.el.classList.remove("flipped","wrong-shake");
+        G.flipped=[];G.canFlip=true;
+      },400);
+    },600);
   }
-  flippedCards = [];
 }
 
-createBoard();
+function startTimer(){
+  clearInterval(G.tInt);G.elapsed=0;
+  G.tInt=setInterval(()=>{
+    G.elapsed++;
+    const p=document.getElementById("timerPill");
+    p.textContent=`⏱ ${G.elapsed}s`;
+    p.classList.toggle("warn",G.elapsed>120);
+  },1000);
+}
+
+function endGame(){
+  clearInterval(G.tInt);
+  // time bonus
+  const timeBonus=Math.max(0,60-Math.floor(G.elapsed/2));
+  G.score+=timeBonus;
+  const pct=Math.round((G.numPairs/(G.moves||1))*100);
+  document.getElementById("rEmoji").textContent=G.moves<=G.numPairs+2?"🏆":G.moves<=G.numPairs*2?"🎉":"👍";
+  document.getElementById("rPts").textContent=G.score;
+  document.getElementById("rSub").textContent=`ball to'plandi (+${timeBonus} vaqt bonusi)`;
+  document.getElementById("rv1").textContent=G.moves;
+  document.getElementById("rv2").textContent=G.elapsed+"s";
+  document.getElementById("rv3").textContent=G.score;
+  saveLB();show("resultScreen");renderLB();
+}
+
+function saveLB(){
+  const lb=JSON.parse(localStorage.getItem("zy_mem_lb")||"[]");
+  lb.push({name:G.user,score:G.score,moves:G.moves,time:G.elapsed,fan:G.selFan,date:Date.now()});
+  lb.sort((a,b)=>b.score-a.score);
+  localStorage.setItem("zy_mem_lb",JSON.stringify(lb.slice(0,20)));
+  const best=lb[0];
+  localStorage.setItem("zy_mem_rec",JSON.stringify(best));
+  document.getElementById("hRecord").textContent=best.score+" ball";
+}
+function renderLB(){
+  const lb=JSON.parse(localStorage.getItem("zy_mem_lb")||"[]");
+  const el=document.getElementById("lbEl");
+  if(!lb.length){el.innerHTML='<p style="color:#6b7280;text-align:center;padding:16px">Hali hech kim o\'ynamagan!</p>';return;}
+  const colors=["#ec4899","#22c55e","#4f7cff","#eab308","#a855f7"];
+  el.innerHTML=lb.slice(0,10).map((e,i)=>`
+    <div class="lb-item">
+      <div class="lb-rank">${["🥇","🥈","🥉"][i]||i+1}</div>
+      <div class="lb-av" style="background:${colors[i%5]}">${e.name[0].toUpperCase()}</div>
+      <div class="lb-nm">${e.name} <small style="color:#6b7280">${e.moves} harakat · ${e.time}s</small></div>
+      <div class="lb-sc">${e.score}</div>
+    </div>`).join("");
+}
+function show(id){["setupScreen","gameScreen","resultScreen"].forEach(s=>document.getElementById(s).style.display="none");document.getElementById(id).style.display="block";}
+function goSetup(){clearInterval(G.tInt);show("setupScreen");}
+buildFans();
 </script>
 </body>
 </html>
