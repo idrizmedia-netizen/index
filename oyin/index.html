@@ -70,8 +70,73 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 @media(max-width:860px){
   .sidebar{display:none}
-  .main{margin-left:0;padding:16px}
+  .main{margin-left:0;padding:16px;padding-bottom:80px} /* Pastki menyu uchun joy qoldirildi */
   .stats-row{grid-template-columns:repeat(2,1fr)}
+}
+
+/* YANGA QO'SHILGAN STYLLAR (ESKILARIGA MUBLOHA YETKAZMAYDI) */
+.portfolio-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--text);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(26,29,46,0.15);
+}
+.portfolio-back-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+.sidebar .portfolio-link-sidebar {
+  background: #fff1f2;
+  color: #f43f5e;
+}
+.sidebar .portfolio-link-sidebar:hover {
+  background: #ffe4e6;
+  color: #e11d48;
+}
+/* Mobil Bottom Menu */
+.mobile-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  z-index: 999;
+  padding: 8px 10px;
+  justify-content: space-around;
+  align-items: center;
+}
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  flex: 1;
+  text-align: center;
+}
+.mobile-nav-item .m-icon {
+  font-size: 18px;
+}
+.mobile-nav-item.active {
+  color: var(--blue);
+}
+@media(max-width:860px){
+  .mobile-nav { display: flex; }
 }
 </style>
 </head>
@@ -83,6 +148,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="logo-icon">🎓</div>
     <div class="logo-txt">Ziyomap <span>Games</span></div>
   </div>
+  <!-- Portfolioga qaytish tugmasi sidebar ichida -->
+  <a class="nav-a portfolio-link-sidebar" id="portfolioLinkSide" href="https://ziyomap.vercel.app"><span class="nav-icon">🌐</span>Asosiy Sayt</a>
+  <div class="nav-divider"></div>
   <a class="nav-a active" href="index.html"><span class="nav-icon">🏠</span>Bosh sahifa</a>
   <a class="nav-a" href="quiz.html"><span class="nav-icon">❓</span>Quiz</a>
   <a class="nav-a" href="flashcard.html"><span class="nav-icon">🃏</span>Flashcard</a>
@@ -102,8 +170,40 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </nav>
 
+<!-- MOBIL FOYDALANUVCHILAR UCHUN BOTTOM MENU (TELEFONDA SIDEBAR VAZIFASINI BAJARADI) -->
+<nav class="mobile-nav">
+  <a class="mobile-nav-item active" href="index.html">
+    <span class="m-icon">🏠</span>
+    <span>Bosh sahifa</span>
+  </a>
+  <a class="mobile-nav-item" href="quiz.html">
+    <span class="m-icon">❓</span>
+    <span>Quiz</span>
+  </a>
+  <a class="mobile-nav-item" href="flashcard.html">
+    <span class="m-icon">🃏</span>
+    <span>Karta</span>
+  </a>
+  <a class="mobile-nav-item" href="tezkor.html">
+    <span class="m-icon">⚡</span>
+    <span>Tezkor</span>
+  </a>
+  <a class="mobile-nav-item" href="statistika.html">
+    <span class="m-icon">📊</span>
+    <span>Statistika</span>
+  </a>
+  <!-- Portfolioga qaytish uchun mobil tugma -->
+  <a class="mobile-nav-item" id="portfolioLinkMobile" href="https://ziyomap.vercel.app" style="color: #f43f5e;">
+    <span class="m-icon">🌐</span>
+    <span>Asosiy</span>
+  </a>
+</nav>
+
 <!-- MAIN -->
 <main class="main">
+  <!-- Asosiy Portfolio sahifasiga qaytish tugmasi (Asosiy kontent tepasida) -->
+  <a href="https://ziyomap.vercel.app" id="portfolioLinkMain" class="portfolio-back-btn">⬅ Asosiy Portfolioga Qaytish</a>
+
   <div class="page-head">
     <div class="breadcrumb">Ziyomap / <span>O'yin platformasi</span></div>
     <h1>O'yin turlari 🎮</h1>
@@ -261,6 +361,12 @@ document.getElementById("sideAv").textContent=name[0].toUpperCase();
 const pts=parseInt(localStorage.getItem("zy_total")||0);
 document.getElementById("sidePts").textContent=pts+" ball";
 document.getElementById("myScore").textContent=pts;
+
+// AGAR ASOSIY PORTFOLIO LINKINGIZ BOSHQA MANZILDA BO'LSA, SHU YERDAN BITTA O'ZGARTIRIB QO'YISHINGIZ MUMKIN:
+const portfolioURL = "https://ziyomap.vercel.app"; 
+document.getElementById("portfolioLinkSide").href = portfolioURL;
+document.getElementById("portfolioLinkMobile").href = portfolioURL;
+document.getElementById("portfolioLinkMain").href = portfolioURL;
 </script>
 </body>
 </html>
