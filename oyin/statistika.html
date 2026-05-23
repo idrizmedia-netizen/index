@@ -3,100 +3,443 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Mening Statistikam — Ziyomap Games</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<title>Statistika — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--purple:#a855f7;--pink:#ec4899;--orange:#f97316}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
-.main-container{max-width:600px;width:100%;margin:32px auto;padding:0 20px}
-.header-title{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:24px;text-align:center}
-.stat-main-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:0 4px 6px rgba(0,0,0,0.02);margin-bottom:20px;text-align:center}
-.total-label{font-size:15px;color:var(--muted);margin-bottom:4px}
-.total-val{font-family:'Outfit',sans-serif;font-size:3rem;font-weight:800;color:var(--blue);margin-bottom:16px}
-.progress-grid{display:flex;flex-direction:column;gap:16px;background:var(--white);border:1px solid var(--border);border-radius:24px;padding:24px}
-.progress-item{display:flex;flex-direction:column;gap:6px}
-.progress-info{display:flex;justify-content:space-between;font-size:14px;font-weight:700}
-.bar-bg{height:10px;background:#f1f5f9;border-radius:10px;overflow:hidden}
-.bar-fill{height:100%;border-radius:10px;width:0%;transition:width 0.8s ease-out}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--orange:#f97316;--purple:#a855f7;--pink:#ec4899;--yellow:#eab308;--red:#ef4444;--teal:#14b8a6}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{width:240px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:20px}
+.logo-icon{width:38px;height:38px;border-radius:11px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-txt{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800}
+.logo-txt span{color:var(--blue)}
+.nav-a{display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:11px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all .15s;text-decoration:none;margin-bottom:2px}
+.nav-a:hover{background:var(--bg);color:var(--text)}
+.nav-a.active{background:#eff3ff;color:var(--blue)}
+.nav-icon{font-size:17px;width:20px;text-align:center}
+.nav-divider{height:1px;background:var(--border);margin:12px 0}
+.sidebar-bottom{margin-top:auto}
+.user-box{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg);border-radius:12px}
+.av{width:34px;height:34px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.uname{font-size:13px;font-weight:700}
+.upts{font-size:12px;color:var(--muted)}
+
+/* MAIN */
+.main{margin-left:240px;padding:28px;flex:1;min-height:100vh}
+.page-head{margin-bottom:28px}
+.breadcrumb{font-size:12px;color:var(--muted);margin-bottom:6px}
+.breadcrumb span{color:var(--blue)}
+.page-head h1{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:4px}
+.page-head p{color:var(--muted);font-size:.95rem}
+
+/* PROFILE CARD */
+.profile-card{background:linear-gradient(135deg,#4f7cff 0%,#7c3aed 100%);border-radius:20px;padding:28px;margin-bottom:24px;color:#fff;display:flex;align-items:center;gap:20px}
+.profile-av{width:72px;height:72px;border-radius:18px;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;flex-shrink:0;border:3px solid rgba(255,255,255,.4)}
+.profile-info h2{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.profile-info p{opacity:.8;font-size:14px}
+.profile-badges{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3)}
+.profile-right{margin-left:auto;text-align:right}
+.total-ball{font-family:'Outfit',sans-serif;font-size:2.5rem;font-weight:800}
+.total-lbl{opacity:.8;font-size:13px}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;align-items:center;gap:12px}
+.s-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.s-val{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.s-key{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* GAME STATS */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px}
+.panel-title{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+
+/* GAME ROW */
+.game-stat-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin-bottom:8px;background:var(--bg);transition:all .15s;text-decoration:none;color:var(--text)}
+.game-stat-row:hover{background:#f0f0f8}
+.g-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.g-name{font-size:14px;font-weight:700;flex:1}
+.g-score{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.g-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.g-bar-wrap{flex:2;max-width:120px}
+.g-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.g-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* LEADERBOARD COMBINED */
+.lb-panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px}
+.lb-tabs{display:flex;gap:6px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px}
+.lb-tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
+.lb-tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.lb-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;margin-bottom:6px;transition:all .15s}
+.lb-item:nth-child(1){background:#fffbeb}
+.lb-item:nth-child(2){background:#f9fafb}
+.lb-item:nth-child(3){background:#fdf4ff}
+.lb-item:hover{transform:translateX(3px)}
+.lb-rank{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;width:32px;text-align:center}
+.lb-av-sm{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
+.lb-info{flex:1}
+.lb-nm{font-size:14px;font-weight:700}
+.lb-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.lb-sc{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--yellow)}
+.lb-game-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:6px}
+.my-row{border:2px solid var(--blue)!important;background:#eff3ff!important}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.ach-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:all .15s}
+.ach-card.unlocked{border-color:var(--yellow);background:#fffbeb}
+.ach-card.locked{opacity:.5}
+.ach-icon{font-size:2.2rem;margin-bottom:8px}
+.ach-name{font-size:13px;font-weight:800;margin-bottom:4px}
+.ach-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.ach-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-top:6px}
+
+/* CHARTS */
+.chart-area{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px}
+.mini-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.mini-bar-lbl{font-size:12px;font-weight:700;width:80px;text-align:right;flex-shrink:0}
+.mini-bar-track{flex:1;height:22px;background:var(--bg);border-radius:6px;overflow:hidden}
+.mini-bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:800;color:#fff;transition:width .8s ease;min-width:32px}
+.mini-bar-val{font-size:12px;font-weight:700;width:50px;text-align:right;flex-shrink:0}
+
+/* RESET */
+.reset-btn{padding:10px 20px;border-radius:10px;border:1.5px solid var(--red);color:var(--red);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.reset-btn:hover{background:var(--red);color:#fff}
+
+@media(max-width:900px){
+  .sidebar{display:none}.main{margin-left:0;padding:16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a class="back-btn" href="index.html">⬅ Orqaga</a>
-  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">📊 Statistika</h2>
-</div>
-
-<div class="main-container">
-  <h1 class="header-title">Mening Yutuqlarim 📊</h1>
-  
-  <div class="stat-main-card">
-    <div class="total-label">Umumiy Jamg'arilgan Ball</div>
-    <div class="total-val" id="totalPoints">0</div>
-    <p style="color:var(--muted);font-size:14px" id="levelText">Sizning unvoningiz: Bilimdon</p>
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    <div class="logo-txt">Ziyomap <span>Games</span></div>
   </div>
-
-  <div class="progress-grid">
-    <h3 style="font-family:'Outfit',sans-serif;font-size:1.1rem;margin-bottom:8px">🎮 O'yinlar kesimida progress:</h3>
-    
-    <div class="progress-item">
-      <div class="progress-info"><span>❓ Quiz Musobaqa</span><span id="p1">0%</span></div>
-      <div class="bar-bg"><div class="bar-fill" id="b1" style="background:var(--blue)"></div></div>
-    </div>
-    
-    <div class="progress-item">
-      <div class="progress-info"><span>🃏 Flashcard Tizimi</span><span id="p2">0%</span></div>
-      <div class="bar-bg"><div class="bar-fill" id="b2" style="background:var(--green)"></div></div>
-    </div>
-
-    <div class="progress-item">
-      <div class="progress-info"><span>⚡ Tezkor Javob</span><span id="p3">0%</span></div>
-      <div class="bar-bg"><div class="bar-fill" id="b3" style="background:var(--orange)"></div></div>
-    </div>
-
-    <div class="progress-item">
-      <div class="progress-info"><span>🧩 So'z Topish</span><span id="p4">0%</span></div>
-      <div class="bar-bg"><div class="bar-fill" id="b4" style="background:var(--purple)"></div></div>
-    </div>
-
-    <div class="progress-item">
-      <div class="progress-info"><span>🧠 Xotira O'yini</span><span id="p5">0%</span></div>
-      <div class="bar-bg"><div class="bar-fill" id="b5" style="background:var(--pink)"></div></div>
+  <a class="nav-a" href="index.html"><span class="nav-icon">🏠</span>Bosh sahifa</a>
+  <a class="nav-a" href="quiz.html"><span class="nav-icon">❓</span>Quiz</a>
+  <a class="nav-a" href="flashcard.html"><span class="nav-icon">🃏</span>Flashcard</a>
+  <a class="nav-a" href="tezkor.html"><span class="nav-icon">⚡</span>Tezkor Javob</a>
+  <a class="nav-a" href="puzzle.html"><span class="nav-icon">🔤</span>So'z Topish</a>
+  <a class="nav-a" href="memory.html"><span class="nav-icon">🧠</span>Xotira O'yini</a>
+  <div class="nav-divider"></div>
+  <a class="nav-a active" href="statistika.html"><span class="nav-icon">📊</span>Statistika</a>
+  <div class="sidebar-bottom">
+    <div class="user-box">
+      <div class="av" id="sideAv">?</div>
+      <div>
+        <div class="uname" id="sideName">Mehmon</div>
+        <div class="upts" id="sidePts">0 ball</div>
+      </div>
     </div>
   </div>
-</div>
+</nav>
+
+<main class="main">
+  <div class="page-head">
+    <div class="breadcrumb">Ziyomap / <span>Statistika</span></div>
+    <h1>📊 Statistika</h1>
+    <p>O'yinlaringiz tarixi va yutuqlaringiz</p>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="profile-card" id="profileCard">
+    <div class="profile-av" id="profileAv">?</div>
+    <div class="profile-info">
+      <h2 id="profileName">O'yinchi</h2>
+      <p id="profileSub">Ziyomap Games o'yinchisi</p>
+      <div class="profile-badges" id="profileBadges"></div>
+    </div>
+    <div class="profile-right">
+      <div class="total-ball" id="totalBall">0</div>
+      <div class="total-lbl">umumiy ball</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="s-icon" style="background:#eff3ff">🎮</div>
+      <div><div class="s-val" id="st1">0</div><div class="s-key">O'yinlar soni</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon" style="background:#f0fdf4">✅</div>
+      <div><div class="s-val" id="st2">0%</div><div class="s-key">O'rtacha natija</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon" style="background:#fff7ed">🔥</div>
+      <div><div class="s-val" id="st3">0</div><div class="s-key">Eng yuqori streak</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="s-icon" style="background:#faf5ff">🏆</div>
+      <div><div class="s-val" id="st4">0</div><div class="s-key">Yutuqlar</div></div>
+    </div>
+  </div>
+
+  <!-- TWO COL: game stats + fan chart -->
+  <div class="two-col">
+
+    <!-- O'YIN BO'YICHA -->
+    <div class="panel">
+      <div class="panel-title">🎮 O'yin bo'yicha rekordlar</div>
+      <div id="gameStatsEl"></div>
+    </div>
+
+    <!-- FAN BO'YICHA -->
+    <div class="panel">
+      <div class="panel-title">📚 Fan bo'yicha balllar</div>
+      <div id="fanChartEl"></div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="lb-panel">
+    <div class="panel-title">🏆 Umumiy reyting jadvali</div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" onclick="showLB(this,'quiz')">❓ Quiz</button>
+      <button class="lb-tab" onclick="showLB(this,'tezkor')">⚡ Tezkor</button>
+      <button class="lb-tab" onclick="showLB(this,'puzzle')">🔤 So'z</button>
+      <button class="lb-tab" onclick="showLB(this,'memory')">🧠 Xotira</button>
+    </div>
+    <div id="lbContent"></div>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div class="panel" style="margin-bottom:24px">
+    <div class="panel-title">🏅 Yutuqlar (Achievements)</div>
+    <div class="ach-grid" id="achGrid"></div>
+  </div>
+
+  <!-- RESET -->
+  <div style="text-align:right;margin-bottom:32px">
+    <button class="reset-btn" onclick="resetAll()">🗑 Barcha statistikani o'chirish</button>
+  </div>
+
+</main>
 
 <script>
-function loadStats() {
-  const total = parseInt(localStorage.getItem("ziyomap_total") || "0");
-  document.getElementById("totalPoints").textContent = total;
-  
-  // Unvon aniqlash
-  let lvl = "Boshlovchi 🌟";
-  if(total >= 800) lvl = "Daho olim 👑";
-  else if(total >= 500) lvl = "Akademik 🎓";
-  else if(total >= 200) lvl = "Bilimdon 💪";
-  document.getElementById("levelText").textContent = "Sizning unvoningiz: " + lvl;
+// ── helpers ──────────────────────────────────────────
+function lsGet(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
+function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v));}
 
-  // Har bir o'yin ulushini hisoblash (maksimal 200 ballga nisbatan)
-  let q1 = Math.min(Math.round((total / 400) * 100), 100);
-  let q2 = total > 0 ? 100 : 0; // Flashcard o'rganilgan bo'lsa
-  let q3 = Math.min(Math.round((total / 300) * 100), 100);
-  let q4 = Math.min(Math.round((total / 250) * 100), 100);
-  let q5 = Math.min(Math.round((total / 200) * 100), 100);
+const GAME_META=[
+  {id:"quiz",   name:"Quiz",       icon:"❓", color:"#4f7cff", bg:"#eff3ff", lsKey:"zy_quiz_lb"},
+  {id:"tezkor", name:"Tezkor",     icon:"⚡", color:"#f97316", bg:"#fff7ed", lsKey:"zy_tezkor_lb"},
+  {id:"puzzle", name:"So'z Topish",icon:"🔤", color:"#a855f7", bg:"#faf5ff", lsKey:"zy_puzzle_lb"},
+  {id:"memory", name:"Xotira",     icon:"🧠", color:"#ec4899", bg:"#fdf2f8", lsKey:"zy_mem_lb"},
+  {id:"flash",  name:"Flashcard",  icon:"🃏", color:"#22c55e", bg:"#f0fdf4", lsKey:null},
+];
 
-  setTimeout(() => {
-    document.getElementById("b1").style.width = q1 + "%"; document.getElementById("p1").textContent = q1 + "%";
-    document.getElementById("b2").style.width = q2 + "%"; document.getElementById("p2").textContent = q2 + "%";
-    document.getElementById("b3").style.width = q3 + "%"; document.getElementById("p3").textContent = q3 + "%";
-    document.getElementById("b4").style.width = q4 + "%"; document.getElementById("p4").textContent = q4 + "%";
-    document.getElementById("b5").style.width = q5 + "%"; document.getElementById("p5").textContent = q5 + "%";
-  }, 100);
+const ACHIEVEMENTS=[
+  {id:"first",   icon:"🌟", name:"Birinchi o'yin",   desc:"Birinchi marta o'ynadi",          cond:s=>s.totalGames>=1},
+  {id:"ten",     icon:"🎮", name:"10 ta o'yin",       desc:"10 ta o'yin o'ynadi",              cond:s=>s.totalGames>=10},
+  {id:"score100",icon:"💯", name:"100 ball",          desc:"100 ball to'pladi",                cond:s=>s.totalScore>=100},
+  {id:"score500",icon:"🏆", name:"500 ball",          desc:"500 ball to'pladi",                cond:s=>s.totalScore>=500},
+  {id:"score1k", icon:"👑", name:"1000 ball",         desc:"1000 ball to'pladi",               cond:s=>s.totalScore>=1000},
+  {id:"allgames",icon:"🎯", name:"Har bir o'yin",     desc:"Barcha 4 o'yinda o'ynadi",         cond:s=>s.gamesPlayed.size>=4},
+  {id:"streak5", icon:"🔥", name:"5x Combo",          desc:"Tezkor o'yinida 5 ketma-ket",      cond:s=>s.maxStreak>=5},
+  {id:"perfect", icon:"✨", name:"Mukammal natija",   desc:"Quiz da 100% natija",              cond:s=>s.maxPct>=100},
+  {id:"memory12",icon:"🧠", name:"Xotira ustasi",     desc:"12 juftni topdingiz",              cond:s=>s.memPairs>=12},
+  {id:"speedster",icon:"⚡",name:"Tezkor rekord",     desc:"60 baldan oshdi (Tezkor)",         cond:s=>s.tezkorRec>=60},
+  {id:"scholar", icon:"📚", name:"Olim",              desc:"5 xil fanda o'ynadi",              cond:s=>s.uniqueFans>=5},
+  {id:"daily",   icon:"📅", name:"Muntazam",          desc:"Bugun o'ynadi",                    cond:s=>s.playedToday},
+];
+
+// ── collect stats ─────────────────────────────────────
+function collectStats(){
+  const user=localStorage.getItem("zy_user")||"O'yinchi";
+  const totalScore=parseInt(localStorage.getItem("zy_total")||0);
+  const tezkorRec=parseInt(localStorage.getItem("zy_tezkor_rec")||0);
+
+  const quizLb=lsGet("zy_quiz_lb",[]);
+  const tezkorLb=lsGet("zy_tezkor_lb",[]);
+  const puzzleLb=lsGet("zy_puzzle_lb",[]);
+  const memLb=lsGet("zy_mem_lb",[]);
+
+  // my entries
+  const myQuiz   = quizLb.filter(e=>e.name===user);
+  const myTezkor = tezkorLb.filter(e=>e.name===user);
+  const myPuzzle = puzzleLb.filter(e=>e.name===user);
+  const myMem    = memLb.filter(e=>e.name===user);
+
+  const totalGames = myQuiz.length+myTezkor.length+myPuzzle.length+myMem.length;
+  const gamesPlayed = new Set();
+  if(myQuiz.length)gamesPlayed.add("quiz");
+  if(myTezkor.length)gamesPlayed.add("tezkor");
+  if(myPuzzle.length)gamesPlayed.add("puzzle");
+  if(myMem.length)gamesPlayed.add("memory");
+
+  const maxStreak=tezkorRec>=60?8:tezkorRec>=30?5:0;
+  const maxPct = myQuiz.length? Math.max(...myQuiz.map(e=>e.pct||0)) : 0;
+  const memPairs = myMem.length? Math.max(...myMem.map(e=>e.pairs||0),0) : 0;
+
+  // today
+  const today=new Date().toDateString();
+  const allEntries=[...myQuiz,...myTezkor,...myPuzzle,...myMem];
+  const playedToday=allEntries.some(e=>new Date(e.date).toDateString()===today);
+
+  // unique fans from quiz
+  const fanSet=new Set(myQuiz.flatMap(e=>e.fans||[]));
+  const uniqueFans=fanSet.size||0;
+
+  // avg pct from quiz
+  const avgPct=myQuiz.length? Math.round(myQuiz.reduce((s,e)=>s+(e.pct||0),0)/myQuiz.length) : 0;
+
+  // records
+  const quizRec  = myQuiz.length?  Math.max(...myQuiz.map(e=>e.score)):0;
+  const tezRec   = myTezkor.length? Math.max(...myTezkor.map(e=>e.score)):0;
+  const puzRec   = myPuzzle.length? Math.max(...myPuzzle.map(e=>e.score)):0;
+  const memRec   = myMem.length?   Math.max(...myMem.map(e=>e.score)):0;
+
+  return {
+    user, totalScore, totalGames, gamesPlayed, avgPct,
+    maxStreak, maxPct, memPairs, tezkorRec, uniqueFans, playedToday,
+    quizRec, tezRec, puzRec, memRec,
+    myQuiz, myTezkor, myPuzzle, myMem,
+    quizLb, tezkorLb, puzzleLb, memLb,
+  };
 }
-loadStats();
+
+// ── render ────────────────────────────────────────────
+function render(){
+  const S=collectStats();
+
+  // sidebar
+  document.getElementById("sideAv").textContent=S.user[0].toUpperCase();
+  document.getElementById("sideName").textContent=S.user;
+  document.getElementById("sidePts").textContent=S.totalScore+" ball";
+
+  // profile
+  document.getElementById("profileAv").textContent=S.user[0].toUpperCase();
+  document.getElementById("profileName").textContent=S.user;
+  document.getElementById("profileSub").textContent=`${S.totalGames} ta o'yin o'ynaldi`;
+  document.getElementById("totalBall").textContent=S.totalScore;
+
+  // badges
+  const badges=[];
+  if(S.totalScore>=1000)badges.push("👑 Grand Master");
+  else if(S.totalScore>=500)badges.push("🏆 Champion");
+  else if(S.totalScore>=100)badges.push("⭐ O'yinchi");
+  else badges.push("🌱 Yangi boshlovchi");
+  if(S.gamesPlayed.size>=4)badges.push("🎯 Har tomonlama");
+  if(S.totalGames>=10)badges.push("🎮 Faol");
+  document.getElementById("profileBadges").innerHTML=badges.map(b=>`<span class="badge">${b}</span>`).join("");
+
+  // top stats
+  document.getElementById("st1").textContent=S.totalGames;
+  document.getElementById("st2").textContent=S.avgPct+"%";
+  document.getElementById("st3").textContent=S.maxStreak||"—";
+  const achCount=ACHIEVEMENTS.filter(a=>a.cond(S)).length;
+  document.getElementById("st4").textContent=achCount+"/"+ACHIEVEMENTS.length;
+
+  // game stats
+  const gameStats=[
+    {meta:GAME_META[0], rec:S.quizRec,  cnt:S.myQuiz.length,   label:"eng yaxshi natija"},
+    {meta:GAME_META[1], rec:S.tezRec,   cnt:S.myTezkor.length, label:"eng ko'p ball"},
+    {meta:GAME_META[2], rec:S.puzRec,   cnt:S.myPuzzle.length, label:"eng yaxshi natija"},
+    {meta:GAME_META[3], rec:S.memRec,   cnt:S.myMem.length,    label:"eng ko'p ball"},
+  ];
+  const maxRec=Math.max(...gameStats.map(g=>g.rec),1);
+  document.getElementById("gameStatsEl").innerHTML=gameStats.map(g=>`
+    <div class="game-stat-row">
+      <div class="g-icon" style="background:${g.meta.bg}">${g.meta.icon}</div>
+      <div style="flex:1">
+        <div class="g-name">${g.meta.name}</div>
+        <div class="g-sub">${g.cnt} o'yin · ${g.label}</div>
+        <div class="g-bar"><div class="g-bar-fill" style="width:${Math.round((g.rec/maxRec)*100)}%;background:${g.meta.color}"></div></div>
+      </div>
+      <div class="g-score" style="color:${g.meta.color}">${g.rec}</div>
+    </div>`).join("");
+
+  // fan chart (from quiz entries)
+  const fanScores={};
+  S.myQuiz.forEach(e=>{if(e.fans)e.fans.forEach(f=>{fanScores[f]=(fanScores[f]||0)+e.score;});});
+  const FANS_META_MAP={
+    fizika:{name:"Fizika",color:"#4f7cff"},matematika:{name:"Matematika",color:"#22c55e"},
+    informatika:{name:"Informatika",color:"#14b8a6"},biologiya:{name:"Biologiya",color:"#ec4899"},
+    kimyo:{name:"Kimyo",color:"#eab308"},tarix:{name:"Tarix",color:"#a855f7"},
+    ingliz:{name:"Ingliz",color:"#f97316"},geografiya:{name:"Geografiya",color:"#06b6d4"},
+  };
+  const fanEntries=Object.entries(fanScores).sort((a,b)=>b[1]-a[1]);
+  const maxFan=fanEntries.length?fanEntries[0][1]:1;
+  if(!fanEntries.length){
+    document.getElementById("fanChartEl").innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Hali Quiz o\'ynamagansiz</p>';
+  }else{
+    document.getElementById("fanChartEl").innerHTML=fanEntries.map(([f,sc])=>{
+      const m=FANS_META_MAP[f]||{name:f,color:"#4f7cff"};
+      const pct=Math.round((sc/maxFan)*100);
+      return `<div class="mini-bar-row">
+        <div class="mini-bar-lbl">${m.name}</div>
+        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${pct}%;background:${m.color}">${sc}</div></div>
+        <div class="mini-bar-val">${sc} ball</div>
+      </div>`;
+    }).join("");
+  }
+
+  // leaderboard default
+  showLBData("quiz",S);
+
+  // achievements
+  document.getElementById("achGrid").innerHTML=ACHIEVEMENTS.map(a=>{
+    const unlocked=a.cond(S);
+    return `<div class="ach-card ${unlocked?"unlocked":"locked"}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+      <span class="ach-badge" style="background:${unlocked?"#fef9c3":"#f3f4f6"};color:${unlocked?"#854d0e":"#6b7280"}">${unlocked?"✅ Olindi":"🔒 Yopiq"}</span>
+    </div>`;
+  }).join("");
+}
+
+let currentLBGame="quiz";
+function showLB(btn,game){
+  document.querySelectorAll(".lb-tab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  currentLBGame=game;
+  const S=collectStats();
+  showLBData(game,S);
+}
+
+function showLBData(game,S){
+  const keyMap={quiz:"quizLb",tezkor:"tezkorLb",puzzle:"puzzleLb",memory:"memLb"};
+  const lb=S[keyMap[game]]||[];
+  const el=document.getElementById("lbContent");
+  if(!lb.length){
+    el.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Bu o\'yinda hali hech kim o\'ynamagan!</p>';
+    return;
+  }
+  const colors=["#4f7cff","#22c55e","#ec4899","#eab308","#a855f7","#f97316","#14b8a6","#ef4444"];
+  el.innerHTML=lb.slice(0,10).map((e,i)=>{
+    const isMe=e.name===S.user;
+    const dateStr=new Date(e.date).toLocaleDateString("uz-UZ");
+    return `<div class="lb-item${isMe?" my-row":""}">
+      <div class="lb-rank">${["🥇","🥈","🥉"][i]||i+1}</div>
+      <div class="lb-av-sm" style="background:${colors[i%colors.length]}">${e.name[0].toUpperCase()}</div>
+      <div class="lb-info">
+        <div class="lb-nm">${e.name}${isMe?' <span style="color:#4f7cff;font-size:11px">(Men)</span>':""}</div>
+        <div class="lb-detail">${dateStr}</div>
+      </div>
+      <div class="lb-sc">${e.score}</div>
+    </div>`;
+  }).join("");
+}
+
+function resetAll(){
+  if(!confirm("Hamma statistikani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi!"))return;
+  ["zy_total","zy_quiz_lb","zy_tezkor_lb","zy_puzzle_lb","zy_mem_lb","zy_tezkor_rec","zy_mem_rec"].forEach(k=>localStorage.removeItem(k));
+  alert("Statistika tozalandi!");
+  render();
+}
+
+render();
 </script>
 </body>
 </html>
