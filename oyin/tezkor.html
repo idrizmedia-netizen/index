@@ -9,23 +9,35 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--orange:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4f7cff;--yellow:#eab308}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+
+/* 🌙 TUNGI REJIM VARIANTLARI */
+[data-theme="dark"] {
+  --bg: #0f111a;
+  --white: #161925;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --border: #26293b;
+}
+
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition: background 0.3s, color 0.3s;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;transition: background 0.3s, border-color 0.3s;}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);transition: all 0.2s;}
 .back:hover{background:var(--bg)}
 .tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
 .right{margin-left:auto;display:flex;gap:10px}
-.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;transition: background 0.3s, border-color 0.3s;}
 .wrap{max-width:640px;margin:0 auto;padding:24px 16px}
 
 /* SETUP */
 #setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px}
-.info-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#9a3412;line-height:1.6}
+.info-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#9a3412;line-height:1.6;transition: background 0.3s, border-color 0.3s;}
+[data-theme="dark"] .info-box { background: #2e251a; border-color: #453214; color: #fbd5b5; }
 .lbl{font-size:14px;font-weight:700;margin-bottom:10px}
 .fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
 .fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
 .fan-card:hover{border-color:var(--orange)}
 .fan-card.sel{border-color:var(--orange);background:#fff7ed}
+[data-theme="dark"] .fan-card.sel { background: #2e251a; }
 .fi{font-size:1.8rem;margin-bottom:6px}
 .fn{font-size:13px;font-weight:700}
 .fc{font-size:11px;color:var(--muted);margin-top:2px}
@@ -38,6 +50,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .big-timer{
   width:80px;height:80px;border-radius:50%;border:4px solid var(--border);
   display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;
+  transition: border-color 0.3s;
 }
 .big-timer svg{position:absolute;top:-4px;left:-4px;transform:rotate(-90deg)}
 .big-timer svg circle{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
@@ -46,13 +59,16 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .tnum{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
 .score-big{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;color:var(--orange)}
 .score-lbl{font-size:12px;color:var(--muted)}
-.streak-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 16px;text-align:center}
+.streak-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 16px;text-align:center;transition: background 0.3s, border-color 0.3s;}
+[data-theme="dark"] .streak-box { background: #2e251a; border-color: #453214; }
 .streak-num{font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800;color:var(--orange)}
 .streak-lbl{font-size:11px;color:var(--muted)}
 
-.q-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;margin-bottom:16px;transition:border-color .2s}
+.q-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;margin-bottom:16px;transition:border-color .2s, background 0.2s}
 .q-card.correct-flash{border-color:var(--green);background:#f0fdf4}
+[data-theme="dark"] .q-card.correct-flash { background: #14241b; }
 .q-card.wrong-flash{border-color:var(--red);background:#fef2f2}
+[data-theme="dark"] .q-card.wrong-flash { background: #2a1919; }
 .q-fan{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px}
 .q-txt{font-size:1.3rem;font-weight:800;line-height:1.4;margin-bottom:6px}
 .q-hint{font-size:13px;color:var(--muted)}
@@ -61,40 +77,47 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .ans-input{
   flex:1;padding:14px 18px;border-radius:14px;border:2px solid var(--border);
   font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:700;outline:none;
-  background:var(--white);transition:border-color .2s;
+  background:var(--white);color:var(--text);transition:border-color .2s, background 0.2s;
 }
 .ans-input:focus{border-color:var(--orange)}
 .ans-input.ok{border-color:var(--green);background:#f0fdf4}
+[data-theme="dark"] .ans-input.ok { background: #14241b; }
 .ans-input.no{border-color:var(--red);background:#fef2f2}
+[data-theme="dark"] .ans-input.no { background: #2a1919; }
 .sub-btn{
   padding:14px 24px;border-radius:14px;border:none;background:var(--orange);
   color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;
 }
 .sub-btn:hover{background:#ea6f0a}
-.skip-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.skip-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition: background 0.2s, border-color 0.2s;}
 .skip-btn:hover{background:var(--bg)}
 
 .feedback{text-align:center;font-size:1.1rem;font-weight:800;padding:10px;border-radius:12px;margin-bottom:10px;display:none}
 .feedback.ok{background:#f0fdf4;color:var(--green)}
+[data-theme="dark"] .feedback.ok { background: #14241b; color: #4ade80; }
 .feedback.no{background:#fef2f2;color:var(--red)}
+[data-theme="dark"] .feedback.no { background: #2a1919; color: #f87171; }
 
 /* RESULT */
 #resultScreen{display:none}
-.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px}
+.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px;transition: background 0.3s, border-color 0.3s;}
 .r-emoji{font-size:5rem;margin-bottom:12px}
 .r-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--orange)}
 .r-sub{color:var(--muted);margin-bottom:20px}
 .r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.rs{background:var(--bg);border-radius:12px;padding:16px}
+.rs{background:var(--bg);border-radius:12px;padding:16px;transition: background 0.3s;}
 .rs-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
 .rs-k{font-size:12px;color:var(--muted);margin-top:3px}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
-.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition: background 0.2s, border-color 0.2s;}
+.bo:hover{background:var(--bg)}
 .bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
-.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.bp:hover{background:#ea6f0a}
+.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px;transition: background 0.3s, border-color 0.3s;}
 .lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
 .lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
 .lb-item:nth-child(1){background:#fff7ed}
+[data-theme="dark"] .lb-item:nth-child(1) { background: #2e251a; }
 .lb-rank{width:30px;font-family:'Outfit',sans-serif;font-weight:800;text-align:center}
 .lb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
 .lb-nm{flex:1;font-size:14px;font-weight:700}
@@ -111,7 +134,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 <div class="wrap">
 
-<!-- SETUP -->
 <div id="setupScreen">
   <h2>⚡ Tezkor Javob</h2>
   <div class="info-box">
@@ -124,12 +146,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <button class="start-btn" onclick="startGame()">⚡ Boshlash!</button>
 </div>
 
-<!-- GAME -->
 <div id="gameScreen">
   <div class="game-top">
     <div class="big-timer" id="bigTimer">
       <svg width="88" height="88" viewBox="0 0 88 88">
-        <circle cx="44" cy="44" r="38" id="tArc" stroke-dasharray="238.76" stroke-dashoffset="0"/>
+      <circle cx="44" cy="44" r="38" id="tArc" stroke-dasharray="238.76" stroke-dashoffset="0"/>
       </svg>
       <span class="tnum" id="tNum">60</span>
     </div>
@@ -158,7 +179,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <button class="skip-btn" onclick="skipQ()">⏭ O'tkazib yuborish</button>
 </div>
 
-<!-- RESULT -->
 <div id="resultScreen">
   <div class="res-card">
     <div class="r-emoji" id="rEmoji">🏆</div>
@@ -180,6 +200,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
+// ── 🔄 GLOBAL TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH ──────────────────
+(function() {
+  const savedTheme = localStorage.getItem("zy_theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+})();
+
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -202,15 +228,31 @@ document.getElementById("hRecord").textContent=localStorage.getItem("zy_tezkor_r
 
 function buildFans(){
   const g=document.getElementById("fanGrid");g.innerHTML="";
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   FM.forEach(f=>{
     const cnt=(TEZKOR_QUESTIONS[f.id]||[]).length;
     const el=document.createElement("div");
     el.className="fan-card"+(G.sel.includes(f.id)?" sel":"");
     el.innerHTML=`<div class="fi">${f.icon}</div><div class="fn">${f.name}</div><div class="fc">${cnt} savol</div>`;
+    
+    if(isDark && G.sel.includes(f.id)) {
+      el.style.backgroundColor = "#2e251a";
+    }
+
     el.onclick=()=>{
       const i=G.sel.indexOf(f.id);
-      if(i>-1){if(G.sel.length===1)return;G.sel.splice(i,1);el.classList.remove("sel");}
-      else{G.sel.push(f.id);el.classList.add("sel");}
+      const currentlyDark = document.documentElement.getAttribute("data-theme") === "dark";
+      if(i>-1){
+        if(G.sel.length===1)return;
+        G.sel.splice(i,1);
+        el.classList.remove("sel");
+        if(currentlyDark) el.style.backgroundColor = "var(--white)";
+      }
+      else{
+        G.sel.push(f.id);
+        el.classList.add("sel");
+        if(currentlyDark) el.style.backgroundColor = "#2e251a";
+      }
     };
     g.appendChild(el);
   });
@@ -221,7 +263,6 @@ function startGame(){
   G.sel.forEach(f=>(TEZKOR_QUESTIONS[f]||[]).forEach(q=>pool.push({...q,fan:f})));
   pool=pool.sort(()=>Math.random()-.5);
   if(!pool.length){alert("Savollar topilmadi!");return;}
-  // repeat pool to fill 60s
   while(pool.length<60) pool=[...pool,...pool];
   G.pool=pool.sort(()=>Math.random()-.5);
   G.cur=0;G.score=0;G.correct=0;G.wrong=0;G.streak=0;G.maxStreak=0;
@@ -235,8 +276,11 @@ function startGame(){
 function renderQ(){
   if(G.cur>=G.pool.length)G.cur=0;
   const q=G.pool[G.cur];
-  const f=FM.find(x=>x.id===q.fan)||{name:q.fan,color:"#f97316",bg:"#fff7ed"};
-  const ft=document.getElementById("qFan");ft.textContent=f.name;ft.style.background=f.bg;ft.style.color=f.color;
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const f=FM.find(x=>x.id===q.fan)||{id:q.fan,name:q.fan,color:"#f97316",bg:"#fff7ed"};
+  const ft=document.getElementById("qFan");ft.textContent=f.name;
+  ft.style.background = isDark ? "#1e293b" : f.bg;
+  ft.style.color=f.color;
   document.getElementById("qTxt").textContent=q.q;
   document.getElementById("ansInput").value="";
   document.getElementById("ansInput").className="ans-input";
@@ -248,12 +292,12 @@ function renderQ(){
 function handleKey(e){if(e.key==="Enter")submitAns();}
 
 function submitAns(){
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   const inp=document.getElementById("ansInput");
   const val=inp.value.trim().toLowerCase();
   if(!val)return;
   const q=G.pool[G.cur];
   const correct=q.a.toLowerCase().trim();
-  // flexible check: contains or starts with
   const ok=val===correct||correct.includes(val)||val.includes(correct)||(val.length>2&&correct.startsWith(val));
   const fb=document.getElementById("feedback");
   if(ok){
@@ -299,7 +343,6 @@ function updTimer(t,max,full){
 function endGame(){
   const rec=parseInt(localStorage.getItem("zy_tezkor_rec")||0);
   if(G.score>rec){localStorage.setItem("zy_tezkor_rec",G.score);document.getElementById("hRecord").textContent=G.score;}
-  const pct=G.correct+G.wrong>0?Math.round((G.correct/(G.correct+G.wrong))*100):0;
   document.getElementById("rEmoji").textContent=G.score>=100?"🏆":G.score>=60?"🎉":G.score>=30?"👍":"💪";
   document.getElementById("rPts").textContent=G.score;
   document.getElementById("rv1").textContent=G.correct;
