@@ -84,7 +84,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 @media(max-width:860px){
   .sidebar{display:none}
-  .main{margin-left:0;padding:16px;padding-bottom:100px}
+  .main{margin-left:0;padding:16px;padding-bottom:90px} /* Pastki menyu yopib qo'ymasligi uchun padding to'g'rilandi */
   .stats-row{grid-template-columns:repeat(2,1fr)}
 }
 
@@ -98,7 +98,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .sidebar .portfolio-link-sidebar:hover { background: #ffe4e6; color: #e11d48; }
 [data-theme="dark"] .sidebar .portfolio-link-sidebar:hover { background: #4c0519; }
 
-/* Mobil Bottom Menu */
+/* 🆕 TUZATILGAN MOBIL BOTTOM MENU (TELEFONLAR UCHUN MAXSUS APP-STYLE) */
 .mobile-nav {
   display: none;
   position: fixed;
@@ -107,28 +107,70 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   right: 0;
   background: var(--white);
   border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.08);
   z-index: 999;
-  padding: 8px 10px;
+  padding: 8px 4px;
   justify-content: space-around;
   align-items: center;
   transition: background 0.3s, border-color 0.3s;
 }
+
 .mobile-nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3px;
   text-decoration: none;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   flex: 1;
   text-align: center;
+  padding: 6px 0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.mobile-nav-item .m-icon { font-size: 18px; }
-.mobile-nav-item.active { color: var(--blue); }
-@media(max-width:860px){ .mobile-nav { display: flex; } }
+
+/* Mobil menyuda ikonkalarni chiroyli va markazda saqlash */
+.mobile-nav-item .m-icon {
+  font-size: 20px;
+  line-height: 1;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+/* Bosilganda va aktiv holatda vizual effekt */
+.mobile-nav-item:active .m-icon {
+  transform: scale(0.85);
+}
+
+.mobile-nav-item.active {
+  color: var(--blue);
+}
+
+/* Tungi rejim uchun moslashuvchan aktiv rang */
+[data-theme="dark"] .mobile-nav-item.active {
+  color: #60a5fa;
+}
+
+/* Mobil menyudagi Asosiy sayt havolasi uchun maxsus chiroyli uslub */
+.mobile-nav-item.portfolio-mobile {
+  color: #f43f5e;
+}
+[data-theme="dark"] .mobile-nav-item.portfolio-mobile {
+  color: #fda4af;
+}
+
+@media(max-width:860px){ 
+  .mobile-nav { 
+    display: flex; 
+  } 
+}
 
 /* TUNGI REJIM VA KUNDALIK TOPSHIRIQ STYLLARI */
 .theme-toggle-btn {
@@ -227,7 +269,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <span class="m-icon" id="themeIconMobile">🌙</span>
     <span id="themeTxtMobile">Rejim</span>
   </a>
-  <a class="mobile-nav-item" id="portfolioLinkMobile" href="https://ziyomap.vercel.app" style="color: #f43f5e;">
+  <a class="mobile-nav-item portfolio-mobile" id="portfolioLinkMobile" href="https://ziyomap.vercel.app">
     <span class="m-icon">🌐</span>
     <span>Asosiy</span>
   </a>
