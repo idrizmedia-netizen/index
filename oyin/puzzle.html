@@ -9,29 +9,45 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--red:#ef4444;--blue:#4f7cff;--yellow:#eab308}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+
+/* 🌙 TUNGI REJIM VARIANTLARI */
+[data-theme="dark"] {
+  --bg: #0f111a;
+  --white: #161925;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --border: #26293b;
+}
+
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition: background 0.3s, color 0.3s;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;transition: background 0.3s, border-color 0.3s;}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);transition: all 0.2s;}
 .back:hover{background:var(--bg)}
 .tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
 .right{margin-left:auto;display:flex;gap:10px}
-.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;transition: background 0.3s, border-color 0.3s;}
 .wrap{max-width:640px;margin:0 auto;padding:24px 16px}
 
 /* SETUP */
 #setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px}
-.info-box{background:#faf5ff;border:1px solid #e9d5ff;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#7e22ce;line-height:1.6}
+.info-box{background:#faf5ff;border:1px solid #e9d5ff;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#7e22ce;line-height:1.6;transition: all 0.3s;}
+[data-theme="dark"] .info-box { background: #1e152a; border-color: #3b225c; color: #c084fc; }
+
 .lbl{font-size:14px;font-weight:700;margin-bottom:10px}
 .fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
 .fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
 .fan-card:hover{border-color:var(--purple)}
 .fan-card.sel{border-color:var(--purple);background:#faf5ff}
+[data-theme="dark"] .fan-card.sel { background: #1e152a; border-color: var(--purple); }
+
 .fi{font-size:1.8rem;margin-bottom:6px}
 .fn{font-size:13px;font-weight:700}
 .fc{font-size:11px;color:var(--muted);margin-top:2px}
 .diff-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
-.dbtn{padding:10px 22px;border-radius:30px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.dbtn{padding:10px 22px;border-radius:30px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);transition:all .15s}
 .dbtn.sel{border-color:var(--purple);background:#faf5ff;color:var(--purple)}
+[data-theme="dark"] .dbtn.sel { background: #1e152a; color: #c084fc; }
+
 .start-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--purple);color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all .15s}
 .start-btn:hover{background:#9333ea;transform:translateY(-2px)}
 
@@ -40,14 +56,14 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .g-top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
 .pb-wrap{flex:1}
 .pb-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
-.pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden;transition: background 0.3s;}
 .pbf{height:100%;background:var(--purple);border-radius:4px;transition:width .4s}
 .timer-pill{background:var(--purple);color:#fff;padding:8px 16px;border-radius:20px;font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0}
 .timer-pill.warn{background:var(--red)}
 
-.q-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px}
+.q-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px;transition: background 0.3s, border-color 0.3s;}
 .fan-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px}
-.hint-txt{font-size:1rem;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.hint-txt{font-size:1rem;color:var(--text);line-height:1.5;margin-bottom:20px}
 .hint-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
 
 /* SCRAMBLED LETTERS */
@@ -58,9 +74,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   width:42px;height:42px;border-radius:10px;border:2px solid var(--border);
   background:var(--white);display:flex;align-items:center;justify-content:center;
   font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;
-  transition:all .15s;user-select:none;
+  color:var(--text);transition:all .15s;user-select:none;
 }
 .letter-tile:hover{border-color:var(--purple);background:#faf5ff;color:var(--purple)}
+[data-theme="dark"] .letter-tile:hover { background: #1e152a; color: #c084fc; }
 .letter-tile.used{opacity:.3;cursor:default;pointer-events:none}
 
 /* ANSWER TILES */
@@ -71,42 +88,53 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   width:42px;height:42px;border-radius:10px;border:2px dashed var(--border);
   display:flex;align-items:center;justify-content:center;
   font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;
-  transition:all .15s;
+  color:var(--text);transition:all .15s;
 }
 .ans-tile.filled{border:2px solid var(--purple);background:#faf5ff;color:var(--purple)}
+[data-theme="dark"] .ans-tile.filled { background: #1e152a; color: #c084fc; border-color: var(--purple); }
 .ans-tile.filled:hover{background:#f3e8ff;border-color:#9333ea}
+[data-theme="dark"] .ans-tile.filled:hover { background: #2a1b3d; }
 .ans-tile.correct-tile{border-color:var(--green);background:#f0fdf4;color:var(--green)}
+[data-theme="dark"] .ans-tile.correct-tile { background: #14532d; color: #86efac; }
 .ans-tile.wrong-tile{border-color:var(--red);background:#fef2f2;color:var(--red)}
+[data-theme="dark"] .ans-tile.wrong-tile { background: #4c1d1d; color: #fca5a5; }
 
 .action-row{display:flex;gap:10px;margin-bottom:10px}
 .check-btn{flex:2;padding:14px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer}
 .check-btn:hover{background:#9333ea}
-.clear-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
-.hint-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid var(--purple);color:var(--purple);background:#faf5ff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
-.skip-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.clear-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);transition: background 0.2s;}
+.clear-btn:hover{background:var(--bg)}
+.hint-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid var(--purple);color:var(--purple);background:#faf5ff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition: all 0.2s;}
+[data-theme="dark"] .hint-btn { background: #1e152a; color: #c084fc; }
+.hint-btn:hover{opacity: 0.9;}
+.skip-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition: background 0.2s;}
 .skip-btn:hover{background:var(--bg)}
 
 .feedback{text-align:center;font-size:1rem;font-weight:800;padding:10px;border-radius:12px;margin-bottom:10px;display:none}
 .feedback.ok{background:#f0fdf4;color:var(--green)}
+[data-theme="dark"] .feedback.ok { background: #14532d; color: #86efac; }
 .feedback.no{background:#fef2f2;color:var(--red)}
+[data-theme="dark"] .feedback.no { background: #4c1d1d; color: #fca5a5; }
 
 /* RESULT */
 #resultScreen{display:none}
-.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px}
+.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px;transition: background 0.3s, border-color 0.3s;}
 .r-emoji{font-size:5rem;margin-bottom:12px}
 .r-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--purple)}
 .r-sub{color:var(--muted);margin-bottom:20px}
 .r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.rs{background:var(--bg);border-radius:12px;padding:16px}
+.rs{background:var(--bg);border-radius:12px;padding:16px;transition: background 0.3s;}
 .rs-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
 .rs-k{font-size:12px;color:var(--muted);margin-top:3px}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
-.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);transition: all 0.2s;}
+.bo:hover{background:var(--bg)}
 .bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
-.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px;transition: background 0.3s, border-color 0.3s;}
 .lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
-.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px;transition: background 0.3s;}
 .lb-item:nth-child(1){background:#faf5ff}
+[data-theme="dark"] .lb-item:nth-child(1) { background: #1e152a; }
 .lb-rank{width:30px;font-family:'Outfit',sans-serif;font-weight:800;text-align:center}
 .lb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
 .lb-nm{flex:1;font-size:14px;font-weight:700}
@@ -118,12 +146,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <a class="back" href="index.html">← Orqaga</a>
   <div class="tt">🔤 So'z Topish</div>
   <div class="right">
-    <div class="pill">⭐ <span id="hScore">0</span></div>
+    <div class="pill">🏆 Rekord: <span id="hScore">0</span></div>
   </div>
 </div>
 <div class="wrap">
 
-<!-- SETUP -->
 <div id="setupScreen">
   <h2>🔤 So'z Topish</h2>
   <div class="info-box">
@@ -142,7 +169,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <button class="start-btn" onclick="startGame()">🔤 Boshlash!</button>
 </div>
 
-<!-- GAME -->
 <div id="gameScreen">
   <div class="g-top">
     <div class="pb-wrap">
@@ -183,7 +209,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <button class="skip-btn" onclick="skipWord()">⏭ O'tkazib yuborish (–5 ball)</button>
 </div>
 
-<!-- RESULT -->
 <div id="resultScreen">
   <div class="res-card">
     <div class="r-emoji" id="rEmoji">🏆</div>
@@ -205,6 +230,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
+// 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH
+(function() {
+  const savedTheme = localStorage.getItem("zy_theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+})();
+
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -223,6 +254,13 @@ let G={
   scrambled:[], answer:[], usedIdx:[],
   tInt:null, tLeft:30, hintUsed:false,
 };
+
+// Rekord yuklash kodi tuzatildi (topbar bilan moslashtirildi)
+const savedScore = localStorage.getItem("zy_puzzle_lb");
+if(savedScore) {
+  const lb = JSON.parse(savedScore);
+  if(lb.length > 0) document.getElementById("hScore").textContent = lb[0].score + " ball";
+}
 
 function buildFans(){
   const g=document.getElementById("fanGrid");g.innerHTML="";
@@ -275,7 +313,18 @@ function renderWord(){
   document.getElementById("pbf").style.width=`${(G.cur/total)*100}%`;
 
   const f=FM.find(x=>x.id===w.fan)||{name:w.fan,color:"#a855f7",bg:"#faf5ff"};
-  const ft=document.getElementById("fanTag");ft.textContent=f.name;ft.style.background=f.bg;ft.style.color=f.color;
+  const ft=document.getElementById("fanTag");ft.textContent=f.name;
+  
+  // Tungi rejim uchun teglarning rangini boshqarish
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  if(isDark) {
+    ft.style.background = "#26293b";
+    ft.style.color = "#c084fc";
+  } else {
+    ft.style.background=f.bg;
+    ft.style.color=f.color;
+  }
+  
   document.getElementById("fanLbl").textContent=f.name;
   document.getElementById("hintTxt").textContent=w.hint;
   document.getElementById("wordLen").textContent=w.word.length;
@@ -301,7 +350,7 @@ function renderAnswer(){
   const word=G.pool[G.cur].word;
   for(let i=0;i<word.length;i++){
     const tile=document.createElement("div");
-    tile.className="ans-tile"+(G.answer[i]!==undefined?"filled":"");
+    tile.className="ans-tile"+(G.answer[i]!==undefined?" filled":"");
     tile.textContent=G.answer[i]||"";
     tile.dataset.pos=i;
     if(G.answer[i]!==undefined) tile.onclick=()=>removeLetter(i);
@@ -311,9 +360,6 @@ function renderAnswer(){
 
 function pickLetter(idx,ch,tile){
   if(G.usedIdx.includes(idx))return;
-  const pos=G.answer.findIndex(x=>x===undefined||x===null);
-  const freePos=G.answer.length<G.pool[G.cur].word.length?G.answer.length:null;
-  const targetPos=freePos!==null?freePos:G.pool[G.cur].word.length;
   if(G.answer.length>=G.pool[G.cur].word.length)return;
   G.answer.push({ch,srcIdx:idx});
   G.usedIdx.push(idx);
@@ -326,7 +372,7 @@ function renderAnswerFull(){
   for(let i=0;i<word.length;i++){
     const tile=document.createElement("div");
     const item=G.answer[i];
-    tile.className="ans-tile"+(item?"filled":"");
+    tile.className="ans-tile"+(item?" filled":"");
     tile.textContent=item?item.ch:"";
     if(item){const pos=i;tile.onclick=()=>removeAt(pos);}
     el.appendChild(tile);
@@ -376,7 +422,7 @@ function checkAnswer(){
   const ok=ans===word;
   // show tile colors
   const tiles=document.querySelectorAll(".ans-tile");
-  tiles.forEach(t=>{t.classList.remove("filled");t.classList.add(ok?"correct-tile":"wrong-tile");});
+  tiles.forEach(t=>{t.className="ans-tile"; t.classList.add(ok?"correct-tile":"wrong-tile");});
   if(ok){
     G.correct++;
     const timeBonus=Math.floor(G.tLeft/5);
@@ -441,6 +487,7 @@ function saveLB(){
   lb.push({name:G.user,score:G.score,date:Date.now()});
   lb.sort((a,b)=>b.score-a.score);
   localStorage.setItem("zy_puzzle_lb",JSON.stringify(lb.slice(0,20)));
+  document.getElementById("hScore").textContent = lb[0].score + " ball";
 }
 function renderLB(){
   const lb=JSON.parse(localStorage.getItem("zy_puzzle_lb")||"[]");
