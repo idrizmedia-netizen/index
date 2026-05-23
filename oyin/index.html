@@ -84,31 +84,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 @media(max-width:860px){
   .sidebar{display:none}
-  .main{margin-left:0;padding:16px;padding-bottom:100px} /* Joy biroz kengaytirildi */
+  .main{margin-left:0;padding:16px;padding-bottom:100px}
   .stats-row{grid-template-columns:repeat(2,1fr)}
 }
 
-/* AVVALGI TURN QO'SHILGAN STYLLAR */
-.portfolio-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: var(--text);
-  color: var(--white);
-  text-decoration: none;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(26,29,46,0.15);
-  border: 1px solid var(--border);
-}
-.portfolio-back-btn:hover {
-  transform: translateY(-2px);
-  opacity: 0.9;
-}
+/* SIDEBAR PORTFOLIO LINK */
 .sidebar .portfolio-link-sidebar {
   background: #fff1f2;
   color: #f43f5e;
@@ -150,7 +130,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .mobile-nav-item.active { color: var(--blue); }
 @media(max-width:860px){ .mobile-nav { display: flex; } }
 
-/* 🆕 TUNGI REJIM VA KUNDALIK TOPSHIRIQ STYLLARI (Ziyon yetkazmaydi) */
+/* TUNGI REJIM VA KUNDALIK TOPSHIRIQ STYLLARI */
 .theme-toggle-btn {
   display: flex;
   align-items: center;
@@ -171,7 +151,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 }
 .theme-toggle-btn:hover { background: var(--bg); color: var(--text); }
 
-/* Kundalik topshiriq bosi */
+/* Kundalik topshiriq boxi */
 .quest-box {
   background: linear-gradient(135deg, #4f7cff 0%, #a855f7 100%);
   border-radius: 16px;
@@ -201,7 +181,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="logo">
     <div class="logo-icon">🎓</div>
@@ -217,8 +196,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <a class="nav-a" href="memory.html"><span class="nav-icon">🧠</span>Xotira O'yini</a>
   <div class="nav-divider"></div>
   <a class="nav-a" href="statistika.html"><span class="nav-icon">📊</span>Statistika</a>
-  
-  <!-- 🆕 Tungi rejim tugmasi Sidebarda -->
+   
   <button class="theme-toggle-btn" onclick="toggleTheme()"><span class="nav-icon" id="themeIconSide">🌙</span><span id="themeTxtSide">Tungi rejim</span></button>
 
   <div class="sidebar-bottom">
@@ -232,7 +210,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </nav>
 
-<!-- MOBIL NAV -->
 <nav class="mobile-nav">
   <a class="mobile-nav-item active" href="index.html">
     <span class="m-icon">🏠</span>
@@ -246,7 +223,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <span class="m-icon">🃏</span>
     <span>Karta</span>
   </a>
-  <!-- 🆕 Mobil rejimda Tungi rejimni tezkor almashtirish ikonka shaklida -->
   <a class="mobile-nav-item" href="#" onclick="toggleTheme(); return false;">
     <span class="m-icon" id="themeIconMobile">🌙</span>
     <span id="themeTxtMobile">Rejim</span>
@@ -257,11 +233,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </a>
 </nav>
 
-<!-- MAIN -->
 <main class="main">
-  <a href="https://ziyomap.vercel.app" id="portfolioLinkMain" class="portfolio-back-btn">⬅ Asosiy Portfolioga Qaytish</a>
 
-  <!-- 🆕 KUNDALIK TOPSHIRIQ BOXI -->
   <div class="quest-box" id="questBox">
     <div class="quest-content">
       <h3>🔥 Kunlik Missiya <span id="questStatusIcon">🚀</span></h3>
@@ -301,7 +274,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 
   <div class="games-grid">
-    <!-- QUIZ -->
     <a class="game-card featured-card" href="quiz.html">
       <div class="gc-top">
         <div class="gc-badge" style="background:#eff3ff;color:#4f7cff">⭐ Mashhur</div>
@@ -318,7 +290,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </a>
 
-    <!-- FLASHCARD -->
     <a class="game-card" href="flashcard.html">
       <div class="gc-top">
         <div class="gc-badge" style="background:#f0fdf4;color:#22c55e">📖 O'rganish</div>
@@ -335,7 +306,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </a>
 
-    <!-- TEZKOR -->
     <a class="game-card" href="tezkor.html">
       <div class="gc-top">
         <div class="gc-badge" style="background:#fff7ed;color:#f97316">⚡ Tez</div>
@@ -352,7 +322,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </a>
 
-    <!-- PUZZLE -->
     <a class="game-card" href="puzzle.html">
       <div class="gc-top">
         <div class="gc-badge" style="background:#faf5ff;color:#a855f7">🧩 Kreativ</div>
@@ -369,7 +338,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       </div>
     </a>
 
-    <!-- MEMORY -->
     <a class="game-card" href="memory.html">
       <div class="gc-top">
         <div class="gc-badge" style="background:#fdf2f8;color:#ec4899">🧠 Xotira</div>
@@ -387,7 +355,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </a>
   </div>
 
-  <!-- HOW TO -->
   <div class="section-head"><div class="sec-title">📖 Qanday ishlaydi?</div></div>
   <div class="how-grid">
     <div class="how-card">
@@ -414,7 +381,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </main>
 
 <script>
-// ESKI MAVJUD KOD (Daxlsiz saqlangan)
 const name=localStorage.getItem("zy_user")||"";
 if(!name){
   const n=prompt("Ismingizni kiriting:")||"O'yinchi";
@@ -430,21 +396,19 @@ document.getElementById("myScore").textContent=pts;
 const portfolioURL = "https://ziyomap.vercel.app"; 
 document.getElementById("portfolioLinkSide").href = portfolioURL;
 document.getElementById("portfolioLinkMobile").href = portfolioURL;
-document.getElementById("portfolioLinkMain").href = portfolioURL;
 
-
-// 🆕 1. TUNGI REJIM LOGIKASI
+// 🆕 1. TUNGI REJIM LOGIKASI (O'yinlar uchun ham ishonchli saqlash tizimi)
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
   const isDark = theme === "dark";
   
   // Sidebardagi matn va ikona
-  document.getElementById("themeIconSide").textContent = isDark ? "☀️" : "🌙";
-  document.getElementById("themeTxtSide").textContent = isDark ? "Kunduzgi rejim" : "Tungi rejim";
+  if(document.getElementById("themeIconSide")) document.getElementById("themeIconSide").textContent = isDark ? "☀️" : "🌙";
+  if(document.getElementById("themeTxtSide")) document.getElementById("themeTxtSide").textContent = isDark ? "Kunduzgi rejim" : "Tungi rejim";
   
   // Mobildagi matn va ikona
-  document.getElementById("themeIconMobile").textContent = isDark ? "☀️" : "🌙";
-  document.getElementById("themeTxtMobile").textContent = isDark ? "Yorug'" : "Tungi";
+  if(document.getElementById("themeIconMobile")) document.getElementById("themeIconMobile").textContent = isDark ? "☀️" : "🌙";
+  if(document.getElementById("themeTxtMobile")) document.getElementById("themeTxtMobile").textContent = isDark ? "Yorug'" : "Tungi";
   
   localStorage.setItem("zy_theme", theme);
 }
@@ -460,7 +424,7 @@ const savedTheme = localStorage.getItem("zy_theme") || "light";
 applyTheme(savedTheme);
 
 
-// 🆕 2. KUNDALIK TOPSHIRIQ LOGIKASI (To'liq avtomatlashgan)
+// 🆕 2. KUNDALIK TOPSHIRIQ LOGIKASI
 const fanningNomlari = ["Fizika", "Matematika", "Kimyo", "Biologiya", "Tarix", "Ona tili", "Ingliz tili", "Geografiya"];
 const oyinlarningNomlari = [
   { name: "Quiz Musobaqa", file: "quiz.html" },
@@ -471,10 +435,9 @@ const oyinlarningNomlari = [
 ];
 
 function initDailyQuest() {
-  const bugun = new Date().toDateString(); // Masalan: "Sat May 23 2026"
+  const bugun = new Date().toDateString(); 
   let quest = JSON.parse(localStorage.getItem("zy_daily_quest"));
 
-  // Agar yangi kun bo'lsa yoki topshiriq hali yaratilmagan bo'lsa yangisini generatsiya qilish
   if (!quest || quest.date !== bugun) {
     const tasodifiyFan = fanningNomlari[Math.floor(Math.random() * fanningNomlari.length)];
     const tasodifiyOyin = oyinlarningNomlari[Math.floor(Math.random() * oyinlarningNomlari.length)];
@@ -484,7 +447,7 @@ function initDailyQuest() {
       fan: tasodifiyFan,
       oyinName: tasodifiyOyin.name,
       oyinFile: tasodifiyOyin.file,
-      status: "boshlanmagan" // boshlanmagan, jarayonda, bajarildi
+      status: "boshlanmagan" 
     };
     localStorage.setItem("zy_daily_quest", JSON.stringify(quest));
   }
@@ -497,22 +460,24 @@ function renderQuestUI(quest) {
   const btnEl = document.getElementById("questBtn");
   const statusIcon = document.getElementById("questStatusIcon");
 
+  if(!textEl || !btnEl) return;
+
   if (quest.status === "boshlanmagan") {
     textEl.textContent = `Bugungi topshiriq: ${quest.fan} fanidan "${quest.oyinName}" o'yinini o'ynang!`;
     btnEl.textContent = "Boshlash ▶";
     btnEl.className = "quest-btn";
-    statusIcon.textContent = "🚀";
+    if(statusIcon) statusIcon.textContent = "🚀";
   } else if (quest.status === "jarayonda") {
     textEl.textContent = `Siz hozir "${quest.oyinName}" o'yinidasiz. Mukofotni olish uchun quyidagi tugmani bosing.`;
     btnEl.textContent = "Mukofotni olish 🎁";
     btnEl.className = "quest-btn";
-    statusIcon.textContent = "⏳";
+    if(statusIcon) statusIcon.textContent = "⏳";
   } else if (quest.status === "bajarildi") {
     textEl.textContent = `Tabriklaymiz! Bugungi topshiriqni muvaffaqiyatli bajardingiz va +50 ball oldingiz.`;
     btnEl.textContent = "Bajarildi ✓";
     btnEl.className = "quest-btn completed";
     btnEl.disabled = true;
-    statusIcon.textContent = "✅";
+    if(statusIcon) statusIcon.textContent = "✅";
   }
 }
 
@@ -521,26 +486,22 @@ function actionQuest() {
   if (!quest) return;
 
   if (quest.status === "boshlanmagan") {
-    // Holatni o'zgartirib, o'yinga yo'naltirish
     quest.status = "jarayonda";
     localStorage.setItem("zy_daily_quest", JSON.stringify(quest));
     window.location.href = quest.oyinFile;
   } else if (quest.status === "jarayonda") {
-    // Ball qo'shish va yakunlash
     quest.status = "bajarildi";
     localStorage.setItem("zy_daily_quest", JSON.stringify(quest));
     
     pts += 50;
     localStorage.setItem("zy_total", pts);
     
-    // UI yangilash
     document.getElementById("sidePts").textContent = pts + " ball";
     document.getElementById("myScore").textContent = pts;
     renderQuestUI(quest);
   }
 }
 
-// Kunlik topshiriqni ishga tushirish
 initDailyQuest();
 </script>
 </body>
