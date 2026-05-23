@@ -8,10 +8,20 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--orange:#f97316;--purple:#a855f7;--pink:#ec4899;--yellow:#eab308;--red:#ef4444;--teal:#14b8a6}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+/* 🌙 TUNGI REJIM VARIANTLARI */
+[data-theme="dark"] {
+  --bg: #0f111a;
+  --white: #161925;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --border: #26293b;
+}
+
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;transition: background 0.3s, color 0.3s;}
 
 /* SIDEBAR */
-.sidebar{width:240px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100}
+.sidebar{width:240px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;transition: background 0.3s, border-color 0.3s;}
 .logo{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:20px}
 .logo-icon{width:38px;height:38px;border-radius:11px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px}
 .logo-txt{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800}
@@ -19,10 +29,11 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .nav-a{display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:11px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all .15s;text-decoration:none;margin-bottom:2px}
 .nav-a:hover{background:var(--bg);color:var(--text)}
 .nav-a.active{background:#eff3ff;color:var(--blue)}
+[data-theme="dark"] .nav-a.active { background: #1a233d; color: #60a5fa; }
 .nav-icon{font-size:17px;width:20px;text-align:center}
 .nav-divider{height:1px;background:var(--border);margin:12px 0}
 .sidebar-bottom{margin-top:auto}
-.user-box{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg);border-radius:12px}
+.user-box{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg);border-radius:12px;transition: background 0.3s;}
 .av{width:34px;height:34px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
 .uname{font-size:13px;font-weight:700}
 .upts{font-size:12px;color:var(--muted)}
@@ -48,36 +59,42 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* STATS GRID */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.stat-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;align-items:center;gap:12px}
-.s-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;align-items:center;gap:12px;transition: background 0.3s, border-color 0.3s;}
+.s-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;transition: background 0.3s;}
+[data-theme="dark"] .stat-card .s-icon { background: #1e293b !important; }
 .s-val{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
 .s-key{font-size:12px;color:var(--muted);margin-top:2px}
 
 /* GAME STATS */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;transition: background 0.3s, border-color 0.3s;}
 .panel-title{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
 
 /* GAME ROW */
 .game-stat-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;margin-bottom:8px;background:var(--bg);transition:all .15s;text-decoration:none;color:var(--text)}
 .game-stat-row:hover{background:#f0f0f8}
-.g-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+[data-theme="dark"] .game-stat-row:hover { background: #1e293b; }
+.g-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition: background 0.3s;}
+[data-theme="dark"] .g-icon { background: #26293b !important; }
 .g-name{font-size:14px;font-weight:700;flex:1}
 .g-score{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
 .g-sub{font-size:11px;color:var(--muted);margin-top:2px}
 .g-bar-wrap{flex:2;max-width:120px}
-.g-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px}
+.g-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:4px;transition: background 0.3s;}
 .g-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
 
 /* LEADERBOARD COMBINED */
-.lb-panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px}
-.lb-tabs{display:flex;gap:6px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px}
+.lb-panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px;transition: background 0.3s, border-color 0.3s;}
+.lb-tabs{display:flex;gap:6px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;transition: background 0.3s;}
 .lb-tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
 .lb-tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .lb-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;margin-bottom:6px;transition:all .15s}
 .lb-item:nth-child(1){background:#fffbeb}
+[data-theme="dark"] .lb-item:nth-child(1) { background: #2e251a; }
 .lb-item:nth-child(2){background:#f9fafb}
+[data-theme="dark"] .lb-item:nth-child(2) { background: #1e2230; }
 .lb-item:nth-child(3){background:#fdf4ff}
+[data-theme="dark"] .lb-item:nth-child(3) { background: #2d1f33; }
 .lb-item:hover{transform:translateX(3px)}
 .lb-rank{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;width:32px;text-align:center}
 .lb-av-sm{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
@@ -87,11 +104,13 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .lb-sc{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--yellow)}
 .lb-game-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:6px}
 .my-row{border:2px solid var(--blue)!important;background:#eff3ff!important}
+[data-theme="dark"] .my-row { background: #1a233d !important; border-color: var(--blue) !important; }
 
 /* ACHIEVEMENTS */
 .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
 .ach-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;transition:all .15s}
 .ach-card.unlocked{border-color:var(--yellow);background:#fffbeb}
+[data-theme="dark"] .ach-card.unlocked { background: #2e251a; border-color: var(--yellow); }
 .ach-card.locked{opacity:.5}
 .ach-icon{font-size:2.2rem;margin-bottom:8px}
 .ach-name{font-size:13px;font-weight:800;margin-bottom:4px}
@@ -102,7 +121,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .chart-area{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px}
 .mini-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .mini-bar-lbl{font-size:12px;font-weight:700;width:80px;text-align:right;flex-shrink:0}
-.mini-bar-track{flex:1;height:22px;background:var(--bg);border-radius:6px;overflow:hidden}
+.mini-bar-track{flex:1;height:22px;background:var(--bg);border-radius:6px;overflow:hidden;transition: background 0.3s;}
 .mini-bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:800;color:#fff;transition:width .8s ease;min-width:32px}
 .mini-bar-val{font-size:12px;font-weight:700;width:50px;text-align:right;flex-shrink:0}
 
@@ -150,8 +169,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <p>O'yinlaringiz tarixi va yutuqlaringiz</p>
   </div>
 
-  <!-- PROFILE -->
-  <div class="profile-card" id="profileCard">
+    <div class="profile-card" id="profileCard">
     <div class="profile-av" id="profileAv">?</div>
     <div class="profile-info">
       <h2 id="profileName">O'yinchi</h2>
@@ -164,8 +182,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-grid">
+    <div class="stats-grid">
     <div class="stat-card">
       <div class="s-icon" style="background:#eff3ff">🎮</div>
       <div><div class="s-val" id="st1">0</div><div class="s-key">O'yinlar soni</div></div>
@@ -184,24 +201,20 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
   </div>
 
-  <!-- TWO COL: game stats + fan chart -->
-  <div class="two-col">
+    <div class="two-col">
 
-    <!-- O'YIN BO'YICHA -->
-    <div class="panel">
+        <div class="panel">
       <div class="panel-title">🎮 O'yin bo'yicha rekordlar</div>
       <div id="gameStatsEl"></div>
     </div>
 
-    <!-- FAN BO'YICHA -->
-    <div class="panel">
+        <div class="panel">
       <div class="panel-title">📚 Fan bo'yicha balllar</div>
       <div id="fanChartEl"></div>
     </div>
   </div>
 
-  <!-- LEADERBOARD -->
-  <div class="lb-panel">
+    <div class="lb-panel">
     <div class="panel-title">🏆 Umumiy reyting jadvali</div>
     <div class="lb-tabs">
       <button class="lb-tab active" onclick="showLB(this,'quiz')">❓ Quiz</button>
@@ -212,22 +225,26 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div id="lbContent"></div>
   </div>
 
-  <!-- ACHIEVEMENTS -->
-  <div class="panel" style="margin-bottom:24px">
+    <div class="panel" style="margin-bottom:24px">
     <div class="panel-title">🏅 Yutuqlar (Achievements)</div>
     <div class="ach-grid" id="achGrid"></div>
   </div>
 
-  <!-- RESET -->
-  <div style="text-align:right;margin-bottom:32px">
+    <div style="text-align:right;margin-bottom:32px">
     <button class="reset-btn" onclick="resetAll()">🗑 Barcha statistikani o'chirish</button>
   </div>
 
 </main>
 
 <script>
+// ── 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH ──────────────────
+(function() {
+  const savedTheme = localStorage.getItem("zy_theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+})();
+
 // ── helpers ──────────────────────────────────────────
-function lsGet(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
+function lsGet(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}/* */}
 function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v));}
 
 const GAME_META=[
@@ -311,6 +328,7 @@ function collectStats(){
 // ── render ────────────────────────────────────────────
 function render(){
   const S=collectStats();
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
 
   // sidebar
   document.getElementById("sideAv").textContent=S.user[0].toUpperCase();
@@ -350,7 +368,7 @@ function render(){
   const maxRec=Math.max(...gameStats.map(g=>g.rec),1);
   document.getElementById("gameStatsEl").innerHTML=gameStats.map(g=>`
     <div class="game-stat-row">
-      <div class="g-icon" style="background:${g.meta.bg}">${g.meta.icon}</div>
+      <div class="g-icon" style="background:${isDark ? '#26293b' : g.meta.bg}">${g.meta.icon}</div>
       <div style="flex:1">
         <div class="g-name">${g.meta.name}</div>
         <div class="g-sub">${g.cnt} o'yin · ${g.label}</div>
@@ -385,16 +403,21 @@ function render(){
   }
 
   // leaderboard default
-  showLBData("quiz",S);
+  showLBData(currentLBGame,S);
 
   // achievements
   document.getElementById("achGrid").innerHTML=ACHIEVEMENTS.map(a=>{
     const unlocked=a.cond(S);
+    let badgeBg = unlocked ? "#fef9c3" : "#f3f4f6";
+    let badgeText = unlocked ? "#854d0e" : "#6b7280";
+    if(isDark && unlocked) { badgeBg = "#453214"; badgeText = "#fef08a"; }
+    else if(isDark && !unlocked) { badgeBg = "#1e293b"; badgeText = "#9ca3af"; }
+
     return `<div class="ach-card ${unlocked?"unlocked":"locked"}">
       <div class="ach-icon">${a.icon}</div>
       <div class="ach-name">${a.name}</div>
       <div class="ach-desc">${a.desc}</div>
-      <span class="ach-badge" style="background:${unlocked?"#fef9c3":"#f3f4f6"};color:${unlocked?"#854d0e":"#6b7280"}">${unlocked?"✅ Olindi":"🔒 Yopiq"}</span>
+      <span class="ach-badge" style="background:${badgeBg};color:${badgeText}">${unlocked?"✅ Olindi":"🔒 Yopiq"}</span>
     </div>`;
   }).join("");
 }
@@ -417,19 +440,16 @@ function showLBData(game,S){
     return;
   }
   const colors=["#4f7cff","#22c55e","#ec4899","#eab308","#a855f7","#f97316","#14b8a6","#ef4444"];
-  el.innerHTML=lb.slice(0,10).map((e,i)=>{
-    const isMe=e.name===S.user;
-    const dateStr=new Date(e.date).toLocaleDateString("uz-UZ");
-    return `<div class="lb-item${isMe?" my-row":""}">
+  el.innerHTML=lb.slice(0,10).map((e,i)=>`
+    <div class="lb-item${e.name===S.user?" my-row":""}">
       <div class="lb-rank">${["🥇","🥈","🥉"][i]||i+1}</div>
       <div class="lb-av-sm" style="background:${colors[i%colors.length]}">${e.name[0].toUpperCase()}</div>
       <div class="lb-info">
-        <div class="lb-nm">${e.name}${isMe?' <span style="color:#4f7cff;font-size:11px">(Men)</span>':""}</div>
-        <div class="lb-detail">${dateStr}</div>
+        <div class="lb-nm">${e.name}${e.name===S.user?' <span style="color:#4f7cff;font-size:11px">(Men)</span>':""}</div>
+        <div class="lb-detail">${new Date(e.date).toLocaleDateString("uz-UZ")}</div>
       </div>
       <div class="lb-sc">${e.score}</div>
-    </div>`;
-  }).join("");
+    </div>`).join("");
 }
 
 function resetAll(){
