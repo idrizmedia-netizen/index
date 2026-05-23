@@ -9,36 +9,52 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--pink:#ec4899;--green:#22c55e;--blue:#4f7cff;--yellow:#eab308;--red:#ef4444}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+
+/* 🌙 TUNGI REJIM RANGALARI (Mavjud dizaynga zarar yetkazmaydi) */
+[data-theme="dark"] {
+  --bg: #0f111a;
+  --white: #161925;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --border: #26293b;
+}
+
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition: background 0.3s, color 0.3s;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;transition: background 0.3s, border-color 0.3s;}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);transition: all 0.2s;}
 .back:hover{background:var(--bg)}
 .tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
 .right{margin-left:auto;display:flex;gap:10px}
-.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;transition: background 0.3s, border-color 0.3s;}
 .wrap{max-width:760px;margin:0 auto;padding:24px 16px}
 
 /* SETUP */
 #setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px}
-.info-box{background:#fdf2f8;border:1px solid #fbcfe8;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#9d174d;line-height:1.6}
+.info-box{background:#fdf2f8;border:1px solid #fbcfe8;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#9d174d;line-height:1.6;transition: all 0.3s;}
+[data-theme="dark"] .info-box { background: #2d1220; border-color: #4d1631; color: #f472b6; }
+
 .lbl{font-size:14px;font-weight:700;margin-bottom:10px}
 .fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
 .fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
 .fan-card:hover{border-color:var(--pink)}
 .fan-card.sel{border-color:var(--pink);background:#fdf2f8}
+[data-theme="dark"] .fan-card.sel { background: #2d1220; border-color: var(--pink); }
+
 .fi{font-size:1.8rem;margin-bottom:6px}
 .fn{font-size:13px;font-weight:700}
 .fc{font-size:11px;color:var(--muted);margin-top:2px}
 .diff-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
-.dbtn{padding:10px 22px;border-radius:30px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.dbtn{padding:10px 22px;border-radius:30px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);transition:all .15s}
 .dbtn.sel{border-color:var(--pink);background:#fdf2f8;color:var(--pink)}
+[data-theme="dark"] .dbtn.sel { background: #2d1220; color: #f472b6; }
+
 .start-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--pink);color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all .15s}
 .start-btn:hover{background:#db2777;transform:translateY(-2px)}
 
 /* GAME */
 #gameScreen{display:none}
 .g-top{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-.stat-pill{background:var(--white);border:1px solid var(--border);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+.stat-pill{background:var(--white);border:1px solid var(--border);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;transition: background 0.3s, border-color 0.3s;}
 .timer-pill{background:var(--pink);color:#fff;padding:8px 16px;border-radius:20px;font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem}
 .timer-pill.warn{background:var(--red)}
 .fan-indicator{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
@@ -58,10 +74,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   position:absolute;inset:0;border-radius:14px;
   backface-visibility:hidden;display:flex;align-items:center;justify-content:center;
   padding:8px;text-align:center;font-size:11px;font-weight:700;line-height:1.3;
+  transition: background 0.3s, border-color 0.3s;
 }
 .card-back{background:var(--pink);border:2px solid #db2777;color:#fff;font-size:1.4rem}
 .card-front{background:var(--white);border:2px solid var(--border);transform:rotateY(180deg);color:var(--text)}
 .mem-card.matched .card-front{border-color:var(--green);background:#f0fdf4;color:var(--green)}
+[data-theme="dark"] .mem-card.matched .card-front { background: #14532d; color: #86efac; }
 
 .match-flash{animation:flashGreen .4s ease}
 @keyframes flashGreen{0%,100%{opacity:1}50%{opacity:.5}}
@@ -70,21 +88,24 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* RESULT */
 #resultScreen{display:none}
-.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px}
+.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px;transition: background 0.3s, border-color 0.3s;}
 .r-emoji{font-size:5rem;margin-bottom:12px}
 .r-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--pink)}
 .r-sub{color:var(--muted);margin-bottom:20px}
 .r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
-.rs{background:var(--bg);border-radius:12px;padding:16px}
+.rs{background:var(--bg);border-radius:12px;padding:16px;transition: background 0.3s;}
 .rs-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
 .rs-k{font-size:12px;color:var(--muted);margin-top:3px}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap}
-.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
-.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--pink);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
-.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);transition: all 0.2s;}
+.bo:hover{background:var(--bg)}
+.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--pink);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition: opacity 0.2s;}
+.bp:hover{opacity: 0.9;}
+.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px;transition: background 0.3s, border-color 0.3s;}
 .lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
-.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px;transition: background 0.3s;}
 .lb-item:nth-child(1){background:#fdf2f8}
+[data-theme="dark"] .lb-item:nth-child(1) { background: #2d1220; }
 .lb-rank{width:30px;font-family:'Outfit',sans-serif;font-weight:800;text-align:center}
 .lb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
 .lb-nm{flex:1;font-size:14px;font-weight:700}
@@ -101,7 +122,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 <div class="wrap">
 
-<!-- SETUP -->
 <div id="setupScreen">
   <h2>🧠 Xotira O'yini</h2>
   <div class="info-box">
@@ -120,7 +140,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <button class="start-btn" onclick="startGame()">🧠 Boshlash!</button>
 </div>
 
-<!-- GAME -->
 <div id="gameScreen">
   <div class="g-top">
     <span class="fan-indicator" id="fanInd"></span>
@@ -132,7 +151,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <div class="card-grid" id="cardGrid"></div>
 </div>
 
-<!-- RESULT -->
 <div id="resultScreen">
   <div class="res-card">
     <div class="r-emoji" id="rEmoji">🏆</div>
@@ -154,6 +172,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
+// 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH
+(function() {
+  const savedTheme = localStorage.getItem("zy_theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+})();
+
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -216,7 +240,17 @@ function startGame(){
 
   const f=FM.find(x=>x.id===G.selFan)||FM[0];
   const ind=document.getElementById("fanInd");
-  ind.textContent=f.icon+" "+f.name;ind.style.background=f.bg;ind.style.color=f.color;
+  ind.textContent=f.icon+" "+f.name;
+  
+  // Tungi rejimda fan indikatori rangi yorug' bo'lib ko'zga tashlanishi uchun
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  if(isDark) {
+    ind.style.background = "#1e293b";
+    ind.style.color = "#f472b6";
+  } else {
+    ind.style.background=f.bg;
+    ind.style.color=f.color;
+  }
 
   show("gameScreen");
   renderGrid();
