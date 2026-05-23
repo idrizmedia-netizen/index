@@ -9,19 +9,32 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--green:#22c55e;--blue:#4f7cff;--red:#ef4444}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+
+/* 🌙 TUNGI REJIM RANGALARI (Mavjud dizaynga zarar yetkazmaydi) */
+[data-theme="dark"] {
+  --bg: #0f111a;
+  --white: #161925;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --border: #26293b;
+}
+
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition: background 0.3s, color 0.3s;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;transition: background 0.3s, border-color 0.3s;}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);transition: all 0.2s;}
 .back:hover{background:var(--bg)}
 .tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
 .right{margin-left:auto;display:flex;gap:10px}
-.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;transition: background 0.3s, border-color 0.3s;}
 .wrap{max-width:640px;margin:0 auto;padding:24px 16px}
 .lbl{font-size:14px;font-weight:700;margin-bottom:10px}
 .fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
 .fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
 .fan-card:hover{border-color:var(--green)}
 .fan-card.sel{border-color:var(--green);background:#f0fdf4}
+/* Tungi rejimda tanlangan fan kartasi to'qroq ko'rinishi uchun */
+[data-theme="dark"] .fan-card.sel { background: #14532d; border-color: var(--green); }
+
 .fi{font-size:1.8rem;margin-bottom:6px}
 .fn{font-size:13px;font-weight:700}
 .fc{font-size:11px;color:var(--muted);margin-top:2px}
@@ -32,15 +45,18 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .card-top{text-align:center;margin-bottom:12px}
 .fan-tag{display:inline-block;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:4px}
 .prog-info{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
-.pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:20px}
+.pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:20px;transition: background 0.3s;}
 .pbf{height:100%;background:var(--green);border-radius:4px;transition:width .4s}
 
 .card-scene{perspective:1000px;margin:0 auto 20px;max-width:520px;height:260px}
 .flip-card{width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative}
 .flip-card.flipped{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;border:2px solid var(--border)}
+.face{position:absolute;inset:0;border-radius:20px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;border:2px solid var(--border);transition: background 0.3s, border-color 0.3s;}
 .front{background:var(--white)}
 .back{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);transform:rotateY(180deg);border-color:var(--green)}
+/* Tungi rejimda javob orqa foni o'ta yorug' bo'lmasligi uchun */
+[data-theme="dark"] .back { background: linear-gradient(135deg, #14532d, #064e3b); border-color: var(--green); }
+
 .face-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.45;margin-bottom:10px}
 .face-txt{font-size:1.25rem;font-weight:700;line-height:1.5}
 .face-hint{font-size:13px;color:var(--muted);margin-top:12px}
@@ -49,22 +65,30 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .act{flex:1;max-width:140px;padding:12px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:all .15s}
 .act-again{background:#fef2f2;color:var(--red)}
 .act-again:hover{background:var(--red);color:#fff}
+[data-theme="dark"] .act-again { background: #451a1a; color: #fca5a5; }
+[data-theme="dark"] .act-again:hover { background: var(--red); color: #fff; }
+
 .act-skip{background:var(--bg);color:var(--muted)}
 .act-skip:hover{background:var(--border)}
+
 .act-know{background:#f0fdf4;color:var(--green)}
 .act-know:hover{background:var(--green);color:#fff}
+[data-theme="dark"] .act-know { background: #14532d; color: #86efac; }
+[data-theme="dark"] .act-know:hover { background: var(--green); color: #fff; }
 
 #doneScreen{display:none;text-align:center}
-.done-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;margin-bottom:20px}
+.done-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;margin-bottom:20px;transition: background 0.3s, border-color 0.3s;}
 .de{font-size:4rem;margin-bottom:12px}
 .dt{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:8px}
 .ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 24px}
-.ds{background:var(--bg);border-radius:12px;padding:16px}
+.ds{background:var(--bg);border-radius:12px;padding:16px;transition: background 0.3s;}
 .dv{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
 .dk{font-size:12px;color:var(--muted);margin-top:3px}
 .btn-row{display:flex;gap:10px}
-.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
-.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--text);transition: background 0.2s, border-color 0.2s;}
+.bo:hover{background:var(--bg)}
+.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition: opacity 0.2s;}
+.bp:hover{opacity: 0.9;}
 </style>
 </head>
 <body>
@@ -133,6 +157,12 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 <script>
+// 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH (Eski kodlar daxlsiz saqlanadi)
+(function() {
+  const savedTheme = localStorage.getItem("zy_theme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+})();
+
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -180,8 +210,20 @@ function showCard(){
   const prog=Math.round((S.cur/tot)*100);
   document.getElementById("pbf").style.width=prog+"%";
   document.getElementById("pct").textContent=prog+"%";
+  
+  // Tungi rejimda ranglar muvozanatini saqlash uchun fan teglari rangini boshqarish
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   const f=FM.find(x=>x.id===c.fan)||{name:c.fan,color:"#4f7cff",bg:"#eff3ff"};
-  const t=document.getElementById("fanTag");t.textContent=f.name;t.style.background=f.bg;t.style.color=f.color;
+  const t=document.getElementById("fanTag");
+  t.textContent=f.name;
+  if(isDark) {
+    t.style.background = "#1e293b";
+    t.style.color = "#60a5fa";
+  } else {
+    t.style.background=f.bg;
+    t.style.color=f.color;
+  }
+  
   document.getElementById("knowC").textContent=S.know;
   document.getElementById("againC").textContent=S.again;
 }
