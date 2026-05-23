@@ -8,20 +8,10 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--orange:#f97316;--purple:#a855f7;--pink:#ec4899;--teal:#14b8a6}
-
-/* TUNGI REJIM RANGALARI */
-[data-theme="dark"] {
-  --bg: #0f111a;
-  --white: #161925;
-  --text: #f3f4f6;
-  --muted: #9ca3af;
-  --border: #26293b;
-}
-
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;transition: background 0.3s, color 0.3s;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
 
 /* SIDEBAR */
-.sidebar{width:240px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;transition: background 0.3s, border-color 0.3s;}
+.sidebar{width:240px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100}
 .logo{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:20px}
 .logo-icon{width:38px;height:38px;border-radius:11px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px}
 .logo-txt{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;color:var(--text)}
@@ -29,12 +19,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .nav-a{display:flex;align-items:center;gap:11px;padding:10px 14px;border-radius:11px;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);transition:all .15s;text-decoration:none;margin-bottom:2px}
 .nav-a:hover{background:var(--bg);color:var(--text)}
 .nav-a.active{background:#eff3ff;color:var(--blue)}
-[data-theme="dark"] .nav-a.active { background: #1e293b; color: #60a5fa; }
-
 .nav-icon{font-size:17px;width:20px;text-align:center}
 .nav-divider{height:1px;background:var(--border);margin:12px 0}
 .sidebar-bottom{margin-top:auto}
-.user-box{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg);border-radius:12px;transition: background 0.3s;}
+.user-box{display:flex;align-items:center;gap:10px;padding:12px;background:var(--bg);border-radius:12px}
 .av{width:34px;height:34px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;flex-shrink:0}
 .uname{font-size:13px;font-weight:700}
 .upts{font-size:12px;color:var(--muted)}
@@ -49,7 +37,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-.stat-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;transition: background 0.3s, border-color 0.3s;}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px}
 .s-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
 .s-val{font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800}
 .s-key{font-size:11px;color:var(--muted);margin-top:2px}
@@ -66,35 +54,34 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 .gc-title{font-family:'Outfit',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:5px}
 .gc-desc{font-size:12px;color:var(--muted);line-height:1.6}
 .gc-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
-.tag{padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;background:var(--bg);color:var(--muted);transition: background 0.3s;}
-.gc-bottom{padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;transition: border-color 0.3s;}
+.tag{padding:3px 9px;border-radius:7px;font-size:10px;font-weight:700;background:var(--bg);color:var(--muted)}
+.gc-bottom{padding:12px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .play-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;font-size:13px;font-weight:800;border:none;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s}
 .gc-info{font-size:11px;color:var(--muted)}
 .featured-card{border-color:var(--blue)}
 .featured-card .gc-top{background:linear-gradient(135deg,#eff3ff 0%,#fff 70%)}
-[data-theme="dark"] .featured-card .gc-top{background:linear-gradient(135deg,#1e293b 0%,#161925 70%)}
 
 /* HOW TO */
 .how-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:28px}
-.how-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;transition: background 0.3s, border-color 0.3s;}
+.how-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px}
 .how-num{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;color:var(--blue);opacity:.3;margin-bottom:6px}
 .how-title{font-size:13px;font-weight:800;margin-bottom:4px}
 .how-desc{font-size:12px;color:var(--muted);line-height:1.5}
 
 @media(max-width:860px){
   .sidebar{display:none}
-  .main{margin-left:0;padding:16px;padding-bottom:100px}
+  .main{margin-left:0;padding:16px;padding-bottom:80px} /* Pastki menyu uchun joy qoldirildi */
   .stats-row{grid-template-columns:repeat(2,1fr)}
 }
 
-/* PORTFOLIO TUGMALARI */
+/* YANGA QO'SHILGAN STYLLAR (ESKILARIGA MUBLOHA YETKAZMAYDI) */
 .portfolio-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
   background: var(--text);
-  color: var(--white);
+  color: #fff;
   text-decoration: none;
   border-radius: 12px;
   font-size: 13px;
@@ -102,7 +89,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   margin-bottom: 20px;
   transition: all 0.2s;
   box-shadow: 0 4px 12px rgba(26,29,46,0.15);
-  border: 1px solid var(--border);
 }
 .portfolio-back-btn:hover {
   transform: translateY(-2px);
@@ -112,10 +98,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   background: #fff1f2;
   color: #f43f5e;
 }
-[data-theme="dark"] .sidebar .portfolio-link-sidebar { background: #881337; color: #fda4af; }
-.sidebar .portfolio-link-sidebar:hover { background: #ffe4e6; color: #e11d48; }
-[data-theme="dark"] .sidebar .portfolio-link-sidebar:hover { background: #4c0519; }
-
+.sidebar .portfolio-link-sidebar:hover {
+  background: #ffe4e6;
+  color: #e11d48;
+}
 /* Mobil Bottom Menu */
 .mobile-nav {
   display: none;
@@ -130,7 +116,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   padding: 8px 10px;
   justify-content: space-around;
   align-items: center;
-  transition: background 0.3s, border-color 0.3s;
 }
 .mobile-nav-item {
   display: flex;
@@ -144,55 +129,14 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   flex: 1;
   text-align: center;
 }
-.mobile-nav-item .m-icon { font-size: 18px; }
-.mobile-nav-item.active { color: var(--blue); }
-@media(max-width:860px){ .mobile-nav { display: flex; } }
-
-/* REJIM VA KUNDALIK TOPSHIRIQ STYLLARI */
-.theme-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 10px 14px;
-  border-radius: 11px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--muted);
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  transition: all .15s;
-  margin-bottom: 2px;
+.mobile-nav-item .m-icon {
+  font-size: 18px;
 }
-.theme-toggle-btn:hover { background: var(--bg); color: var(--text); }
-
-.quest-box {
-  background: linear-gradient(135deg, #4f7cff 0%, #a855f7 100%);
-  border-radius: 16px;
-  padding: 20px;
-  color: #fff;
-  margin-bottom: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 8px 24px rgba(79, 124, 255, 0.25);
-  position: relative;
-  overflow: hidden;
+.mobile-nav-item.active {
+  color: var(--blue);
 }
-.quest-content h3 { font-family: 'Outfit', sans-serif; font-size: 1.15rem; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
-.quest-content p { font-size: 0.9rem; opacity: 0.9; }
-.quest-reward { background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; display: inline-block; margin-top: 6px; text-transform: uppercase; }
-.quest-btn { background: #fff; color: #4f7cff; border: none; padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-.quest-btn:hover { transform: scale(1.03); box-shadow: 0 4px 12px rgba(255,255,255,0.3); }
-.quest-btn.completed { background: #22c55e; color: #fff; cursor: default; }
-.quest-btn.completed:hover { transform: none; box-shadow: none; }
-
-@media(max-width: 600px) {
-  .quest-box { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .quest-btn { width: 100%; text-align: center; }
+@media(max-width:860px){
+  .mobile-nav { display: flex; }
 }
 </style>
 </head>
@@ -204,6 +148,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="logo-icon">🎓</div>
     <div class="logo-txt">Ziyomap <span>Games</span></div>
   </div>
+  <!-- Portfolioga qaytish tugmasi sidebar ichida -->
   <a class="nav-a portfolio-link-sidebar" id="portfolioLinkSide" href="https://ziyomap.vercel.app"><span class="nav-icon">🌐</span>Asosiy Sayt</a>
   <div class="nav-divider"></div>
   <a class="nav-a active" href="index.html"><span class="nav-icon">🏠</span>Bosh sahifa</a>
@@ -214,9 +159,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <a class="nav-a" href="memory.html"><span class="nav-icon">🧠</span>Xotira O'yini</a>
   <div class="nav-divider"></div>
   <a class="nav-a" href="statistika.html"><span class="nav-icon">📊</span>Statistika</a>
-  
-  <button class="theme-toggle-btn" onclick="toggleTheme()"><span class="nav-icon" id="themeIconSide">🌙</span><span id="themeTxtSide">Tungi rejim</span></button>
-
   <div class="sidebar-bottom">
     <div class="user-box">
       <div class="av" id="sideAv">?</div>
@@ -228,7 +170,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </nav>
 
-<!-- MOBIL NAV -->
+<!-- MOBIL FOYDALANUVCHILAR UCHUN BOTTOM MENU (TELEFONDA SIDEBAR VAZIFASINI BAJARADI) -->
 <nav class="mobile-nav">
   <a class="mobile-nav-item active" href="index.html">
     <span class="m-icon">🏠</span>
@@ -242,10 +184,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <span class="m-icon">🃏</span>
     <span>Karta</span>
   </a>
-  <a class="mobile-nav-item" href="javascript:void(0);" onclick="toggleTheme();">
-    <span class="m-icon" id="themeIconMobile">🌙</span>
-    <span id="themeTxtMobile">Rejim</span>
+  <a class="mobile-nav-item" href="tezkor.html">
+    <span class="m-icon">⚡</span>
+    <span>Tezkor</span>
   </a>
+  <a class="mobile-nav-item" href="statistika.html">
+    <span class="m-icon">📊</span>
+    <span>Statistika</span>
+  </a>
+  <!-- Portfolioga qaytish uchun mobil tugma -->
   <a class="mobile-nav-item" id="portfolioLinkMobile" href="https://ziyomap.vercel.app" style="color: #f43f5e;">
     <span class="m-icon">🌐</span>
     <span>Asosiy</span>
@@ -254,17 +201,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 <!-- MAIN -->
 <main class="main">
+  <!-- Asosiy Portfolio sahifasiga qaytish tugmasi (Asosiy kontent tepasida) -->
   <a href="https://ziyomap.vercel.app" id="portfolioLinkMain" class="portfolio-back-btn">⬅ Asosiy Portfolioga Qaytish</a>
-
-  <!-- KUNDALIK TOPSHIRIQ BOXI -->
-  <div class="quest-box" id="questBox">
-    <div class="quest-content">
-      <h3>🔥 Kunlik Missiya <span id="questStatusIcon">🚀</span></h3>
-      <p id="questText">Yuklanmoqda...</p>
-      <span class="quest-reward" id="questRewardTxt">+50 bonus ball</span>
-    </div>
-    <button class="quest-btn" id="questBtn" onclick="actionQuest()">Boshlash ▶</button>
-  </div>
 
   <div class="page-head">
     <div class="breadcrumb">Ziyomap / <span>O'yin platformasi</span></div>
@@ -296,6 +234,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 
   <div class="games-grid">
+
     <!-- QUIZ -->
     <a class="game-card featured-card" href="quiz.html">
       <div class="gc-top">
@@ -380,6 +319,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="gc-info">🧠 6–12 juft</div>
       </div>
     </a>
+
   </div>
 
   <!-- HOW TO -->
@@ -406,10 +346,10 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="how-desc">Har o'yin o'zining reyting jadvali bor. TOP 10 da o'zingizni ko'ring!</div>
     </div>
   </div>
+
 </main>
 
 <script>
-// ASL ESKI LOGIKA (Mutlaqo daxlsiz)
 const name=localStorage.getItem("zy_user")||"";
 if(!name){
   const n=prompt("Ismingizni kiriting:")||"O'yinchi";
@@ -418,118 +358,15 @@ if(!name){
 }
 document.getElementById("sideName").textContent=name;
 document.getElementById("sideAv").textContent=name[0].toUpperCase();
-let pts=parseInt(localStorage.getItem("zy_total")||0);
+const pts=parseInt(localStorage.getItem("zy_total")||0);
 document.getElementById("sidePts").textContent=pts+" ball";
 document.getElementById("myScore").textContent=pts;
 
-// SIZNING ASOSIY PORTFOLIO LINKLARINGIZ (To'liq barqaror)
+// AGAR ASOSIY PORTFOLIO LINKINGIZ BOSHQA MANZILDA BO'LSA, SHU YERDAN BITTA O'ZGARTIRIB QO'YISHINGIZ MUMKIN:
 const portfolioURL = "https://ziyomap.vercel.app"; 
 document.getElementById("portfolioLinkSide").href = portfolioURL;
 document.getElementById("portfolioLinkMobile").href = portfolioURL;
 document.getElementById("portfolioLinkMain").href = portfolioURL;
-
-
-// 1. TUNGI REJIM LOGIKASI (Tuzatildi, ortiqcha yuklanish yo'qoldi)
-function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  const isDark = theme === "dark";
-  
-  document.getElementById("themeIconSide").textContent = isDark ? "☀️" : "🌙";
-  document.getElementById("themeTxtSide").textContent = isDark ? "Kunduzgi rejim" : "Tungi rejim";
-  
-  document.getElementById("themeIconMobile").textContent = isDark ? "☀️" : "🌙";
-  document.getElementById("themeTxtMobile").textContent = isDark ? "Yorug'" : "Tungi";
-  
-  localStorage.setItem("zy_theme", theme);
-}
-
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-  const newTheme = currentTheme === "light" ? "dark" : "light";
-  applyTheme(newTheme);
-}
-
-const savedTheme = localStorage.getItem("zy_theme") || "light";
-applyTheme(savedTheme);
-
-
-// 2. KUNDALIK TOPSHIRIQ LOGIKASI (O'yinlarni buzmaydigan qilib to'g'rilandi)
-const fanningNomlari = ["Fizika", "Matematika", "Kimyo", "Biologiya", "Tarix", "Ona tili", "Ingliz tili", "Geografiya"];
-const oyinlarningNomlari = [
-  { name: "Quiz Musobaqa", file: "quiz.html" },
-  { name: "Flashcard", file: "flashcard.html" },
-  { name: "Tezkor Javob", file: "tezkor.html" },
-  { name: "So'z Topish", file: "puzzle.html" },
-  { name: "Xotira O'yini", file: "memory.html" }
-];
-
-function initDailyQuest() {
-  const bugun = new Date().toDateString();
-  let quest = JSON.parse(localStorage.getItem("zy_daily_quest"));
-
-  if (!quest || quest.date !== bugun) {
-    const tasodifiyFan = fanningNomlari[Math.floor(Math.random() * fanningNomlari.length)];
-    const tasodifiyOyin = oyinlarningNomlari[Math.floor(Math.random() * oyinlarningNomlari.length)];
-    
-    quest = {
-      date: bugun,
-      fan: tasodifiyFan,
-      oyinName: tasodifiyOyin.name,
-      oyinFile: tasodifiyOyin.file,
-      status: "boshlanmagan"
-    };
-    localStorage.setItem("zy_daily_quest", JSON.stringify(quest));
-  }
-
-  renderQuestUI(quest);
-}
-
-function renderQuestUI(quest) {
-  const textEl = document.getElementById("questText");
-  const btnEl = document.getElementById("questBtn");
-  const statusIcon = document.getElementById("questStatusIcon");
-
-  if (quest.status === "boshlanmagan") {
-    textEl.textContent = `Bugungi topshiriq: ${quest.fan} fanidan "${quest.oyinName}" o'yinini o'ynang!`;
-    btnEl.textContent = "Boshlash ▶";
-    btnEl.className = "quest-btn";
-    statusIcon.textContent = "🚀";
-  } else if (quest.status === "jarayonda") {
-    textEl.textContent = `Siz hozir "${quest.oyinName}" o'yinini o'ynadingiz. Mukofotni hisobga qo'shing!`;
-    btnEl.textContent = "Mukofotni olish 🎁";
-    btnEl.className = "quest-btn";
-    statusIcon.textContent = "⏳";
-  } else if (quest.status === "bajarildi") {
-    textEl.textContent = `Tabriklaymiz! Bugungi topshiriqni muvaffaqiyatli bajardingiz va +50 ball oldingiz.`;
-    btnEl.textContent = "Bajarildi ✓";
-    btnEl.className = "quest-btn completed";
-    btnEl.disabled = true;
-    statusIcon.textContent = "✅";
-  }
-}
-
-function actionQuest() {
-  let quest = JSON.parse(localStorage.getItem("zy_daily_quest"));
-  if (!quest) return;
-
-  if (quest.status === "boshlanmagan") {
-    quest.status = "jarayonda";
-    localStorage.setItem("zy_daily_quest", JSON.stringify(quest));
-    window.location.href = quest.oyinFile; // Endi toza o'yinga yo'naltiradi
-  } else if (quest.status === "jarayonda") {
-    quest.status = "bajarildi";
-    localStorage.setItem("zy_daily_quest", JSON.stringify(quest));
-    
-    pts += 50;
-    localStorage.setItem("zy_total", pts);
-    
-    document.getElementById("sidePts").textContent = pts + " ball";
-    document.getElementById("myScore").textContent = pts;
-    renderQuestUI(quest);
-  }
-}
-
-initDailyQuest();
 </script>
 </body>
 </html>
