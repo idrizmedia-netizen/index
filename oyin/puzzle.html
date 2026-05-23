@@ -5,82 +5,459 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>So'z Topish — Ziyomap Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--blue:#4f7cff}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--red:#ef4444;--blue:#4f7cff;--yellow:#eab308}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
-.game-container{max-width:500px;width:100%;margin:auto;padding:24px}
-.card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
-.scrambled-word{font-family:'Outfit',sans-serif;font-size:2.2rem;font-weight:800;color:var(--purple);letter-spacing:6px;text-transform:uppercase;margin:20px 0;background:#faf5ff;padding:16px;border-radius:16px}
-.hint{font-size:14px;color:var(--muted);margin-bottom:24px;font-style:italic}
-input{width:100%;padding:14px;border-radius:12px;border:2px solid var(--border);font-size:16px;font-weight:700;text-align:center;margin-bottom:16px;outline:none;text-transform:uppercase}
-input:focus{border-color:var(--purple)}
-.btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-size:16px;font-weight:700;cursor:pointer}
-.btn-alt{background:var(--blue);margin-top:12px;display:inline-block;text-decoration:none}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+.back:hover{background:var(--bg)}
+.tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.right{margin-left:auto;display:flex;gap:10px}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px}
+
+/* SETUP */
+#setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.info-box{background:#faf5ff;border:1px solid #e9d5ff;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#7e22ce;line-height:1.6}
+.lbl{font-size:14px;font-weight:700;margin-bottom:10px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
+.fan-card:hover{border-color:var(--purple)}
+.fan-card.sel{border-color:var(--purple);background:#faf5ff}
+.fi{font-size:1.8rem;margin-bottom:6px}
+.fn{font-size:13px;font-weight:700}
+.fc{font-size:11px;color:var(--muted);margin-top:2px}
+.diff-row{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.dbtn{padding:10px 22px;border-radius:30px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.dbtn.sel{border-color:var(--purple);background:#faf5ff;color:var(--purple)}
+.start-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--purple);color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all .15s}
+.start-btn:hover{background:#9333ea;transform:translateY(-2px)}
+
+/* GAME */
+#gameScreen{display:none}
+.g-top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.pb-wrap{flex:1}
+.pb-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:5px}
+.pb{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.pbf{height:100%;background:var(--purple);border-radius:4px;transition:width .4s}
+.timer-pill{background:var(--purple);color:#fff;padding:8px 16px;border-radius:20px;font-family:'Outfit',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0}
+.timer-pill.warn{background:var(--red)}
+
+.q-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:24px;margin-bottom:16px}
+.fan-tag{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px}
+.hint-txt{font-size:1rem;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.hint-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:4px}
+
+/* SCRAMBLED LETTERS */
+.scramble-wrap{margin-bottom:20px}
+.scramble-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.letters{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.letter-tile{
+  width:42px;height:42px;border-radius:10px;border:2px solid var(--border);
+  background:var(--white);display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;
+  transition:all .15s;user-select:none;
+}
+.letter-tile:hover{border-color:var(--purple);background:#faf5ff;color:var(--purple)}
+.letter-tile.used{opacity:.3;cursor:default;pointer-events:none}
+
+/* ANSWER TILES */
+.answer-wrap{margin-bottom:16px}
+.answer-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.answer-tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:50px}
+.ans-tile{
+  width:42px;height:42px;border-radius:10px;border:2px dashed var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;
+  transition:all .15s;
+}
+.ans-tile.filled{border:2px solid var(--purple);background:#faf5ff;color:var(--purple)}
+.ans-tile.filled:hover{background:#f3e8ff;border-color:#9333ea}
+.ans-tile.correct-tile{border-color:var(--green);background:#f0fdf4;color:var(--green)}
+.ans-tile.wrong-tile{border-color:var(--red);background:#fef2f2;color:var(--red)}
+
+.action-row{display:flex;gap:10px;margin-bottom:10px}
+.check-btn{flex:2;padding:14px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer}
+.check-btn:hover{background:#9333ea}
+.clear-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.hint-btn{flex:1;padding:14px;border-radius:12px;border:1.5px solid var(--purple);color:var(--purple);background:#faf5ff;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.skip-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.skip-btn:hover{background:var(--bg)}
+
+.feedback{text-align:center;font-size:1rem;font-weight:800;padding:10px;border-radius:12px;margin-bottom:10px;display:none}
+.feedback.ok{background:#f0fdf4;color:var(--green)}
+.feedback.no{background:#fef2f2;color:var(--red)}
+
+/* RESULT */
+#resultScreen{display:none}
+.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px}
+.r-emoji{font-size:5rem;margin-bottom:12px}
+.r-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--purple)}
+.r-sub{color:var(--muted);margin-bottom:20px}
+.r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.rs{background:var(--bg);border-radius:12px;padding:16px}
+.rs-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.rs-k{font-size:12px;color:var(--muted);margin-top:3px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--purple);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
+.lb-item:nth-child(1){background:#faf5ff}
+.lb-rank{width:30px;font-family:'Outfit',sans-serif;font-weight:800;text-align:center}
+.lb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
+.lb-nm{flex:1;font-size:14px;font-weight:700}
+.lb-sc{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--yellow)}
 </style>
 </head>
 <body>
-
 <div class="topbar">
-  <a class="back-btn" href="index.html">⬅ Orqaga</a>
-  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">🧩 So'z Topish</h2>
+  <a class="back" href="index.html">← Orqaga</a>
+  <div class="tt">🔤 So'z Topish</div>
+  <div class="right">
+    <div class="pill">⭐ <span id="hScore">0</span></div>
+  </div>
+</div>
+<div class="wrap">
+
+<!-- SETUP -->
+<div id="setupScreen">
+  <h2>🔤 So'z Topish</h2>
+  <div class="info-box">
+    🧩 Aralashtirilgan harflardan <strong>to'g'ri so'zni</strong> toping!<br>
+    Izohni o'qing va harflarni bosib so'zni yig'ing.<br>
+    Vaqt cheklovi bor — tezroq toping, ko'proq ball!
+  </div>
+  <div class="lbl">📚 Fan tanlang:</div>
+  <div class="fan-grid" id="fanGrid"></div>
+  <div class="lbl">⚡ Savollar soni:</div>
+  <div class="diff-row">
+    <button class="dbtn sel" data-n="10" onclick="pickN(this)">10 ta</button>
+    <button class="dbtn" data-n="20" onclick="pickN(this)">20 ta</button>
+    <button class="dbtn" data-n="30" onclick="pickN(this)">30 ta</button>
+  </div>
+  <button class="start-btn" onclick="startGame()">🔤 Boshlash!</button>
 </div>
 
-<div class="game-container">
-  <div class="card" id="gameBox">
-    <div style="font-size:14px;color:var(--muted)">Bosqich: <span id="roundNum">1/5</span></div>
-    <div class="scrambled-word" id="scrambled">????</div>
-    <div class="hint" id="hintText">Yordamchi ma'no</div>
-    <input type="text" id="wordInput" placeholder="To'g'ri so'zni kiriting...">
-    <button class="btn" onclick="checkWord()">Tugallash</button>
+<!-- GAME -->
+<div id="gameScreen">
+  <div class="g-top">
+    <div class="pb-wrap">
+      <div class="pb-top">
+        <span id="progTxt">1 / 10</span>
+        <span id="fanLbl" style="font-weight:700;color:var(--purple)"></span>
+      </div>
+      <div class="pb"><div class="pbf" id="pbf" style="width:0%"></div></div>
+    </div>
+    <div class="pill">⭐ <span id="scoreEl">0</span></div>
+    <div class="timer-pill" id="timerPill">⏱ 30</div>
   </div>
 
-  <div class="card" id="resultBox" style="display:none">
-    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Ajoyib! 🏆</h2>
-    <p style="font-size:18px;margin-bottom:8px">Siz barcha so'zlarni muvaffaqiyatli topdingiz.</p>
-    <p style="font-size:20px;font-weight:800;color:var(--purple);margin-bottom:24px">+100 ball jamg'arildi!</p>
-    <a class="btn" href="index.html">🏠 Bosh sahifaga qaytish</a>
+  <div class="q-card">
+    <span class="fan-tag" id="fanTag"></span>
+    <div class="hint-lbl">💡 Izoh:</div>
+    <div class="hint-txt" id="hintTxt"></div>
+    <div class="hint-lbl">📏 So'z uzunligi: <span id="wordLen"></span> harf</div>
   </div>
+
+  <div class="scramble-wrap">
+    <div class="scramble-lbl">🔀 Aralashtirilgan harflar — bosing:</div>
+    <div class="letters" id="lettersEl"></div>
+  </div>
+
+  <div class="answer-wrap">
+    <div class="answer-lbl">✏️ Sizning javobingiz:</div>
+    <div class="answer-tiles" id="answerEl"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="action-row">
+    <button class="check-btn" onclick="checkAnswer()">✓ Tekshirish</button>
+    <button class="clear-btn" onclick="clearAnswer()">🗑 Tozalash</button>
+    <button class="hint-btn" onclick="showHint()">💡 Yordam</button>
+  </div>
+  <button class="skip-btn" onclick="skipWord()">⏭ O'tkazib yuborish (–5 ball)</button>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen">
+  <div class="res-card">
+    <div class="r-emoji" id="rEmoji">🏆</div>
+    <div class="r-pts" id="rPts">0</div>
+    <div class="r-sub">ball to'plandi</div>
+    <div class="r-stats">
+      <div class="rs"><div class="rs-v" id="rv1">0</div><div class="rs-k">✅ To'g'ri</div></div>
+      <div class="rs"><div class="rs-v" id="rv2">0</div><div class="rs-k">❌ Xato</div></div>
+      <div class="rs"><div class="rs-v" id="rv3">0%</div><div class="rs-k">📊 Natija</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="bo" onclick="goSetup()">⚙ Sozlash</button>
+      <button class="bp" onclick="startGame()">🔄 Qayta</button>
+      <button class="bo" onclick="location.href='index.html'">🏠 Bosh</button>
+    </div>
+  </div>
+  <div class="lb-box"><div class="lb-title">🏆 So'z Topish Reytingi</div><div id="lbEl"></div></div>
+</div>
 </div>
 
 <script>
-const wordsList = [
-  {correct: "NEWTON", scrambled: "WTNENO", hint: "Kuch birligi va buyuk fizik olim"},
-  {correct: "ALGORITM", scrambled: "GOMTLRIA", hint: "Informatikada ketma-ketlik mantiqi"},
-  {correct: "MATEMATIKA", scrambled: "TAKETAMAMI", hint: "Fanlar ichra shoh fan"},
-  {correct: "TEZLIK", scrambled: "KLIZET", hint: "Fizikada V harfi bilan belgilanadigan kattalik"},
-  {correct: "MONITOR", scrambled: "RTNOMIO", hint: "Kompyuter ekrani"}
+const FM=[
+  {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
+  {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
+  {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
+  {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
+  {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
+  {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
+  {id:"ingliz",name:"Ingliz",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
 ];
 
-let curIdx = 0, earnedPoints = 0;
+let G={
+  user:localStorage.getItem("zy_user")||"O'yinchi",
+  sel:["fizika","matematika","informatika"],
+  numQ:10, pool:[], cur:0, score:0, correct:0, wrong:0,
+  scrambled:[], answer:[], usedIdx:[],
+  tInt:null, tLeft:30, hintUsed:false,
+};
 
-function loadWord() {
-  if(curIdx >= wordsList.length) {
-    document.getElementById("gameBox").style.display = "none";
-    document.getElementById("resultBox").style.display = "block";
-    let total = parseInt(localStorage.getItem("ziyomap_total") || "0");
-    localStorage.setItem("ziyomap_total", total + 100);
-    return;
-  }
-  document.getElementById("roundNum").textContent = `${curIdx + 1}/${wordsList.length}`;
-  document.getElementById("scrambled").textContent = wordsList[curIdx].scrambled;
-  document.getElementById("hintText").textContent = "Yordam: " + wordsList[curIdx].hint;
-  document.getElementById("wordInput").value = "";
+function buildFans(){
+  const g=document.getElementById("fanGrid");g.innerHTML="";
+  FM.forEach(f=>{
+    const cnt=(PUZZLE_WORDS[f.id]||[]).length;
+    const el=document.createElement("div");
+    el.className="fan-card"+(G.sel.includes(f.id)?" sel":"");
+    el.innerHTML=`<div class="fi">${f.icon}</div><div class="fn">${f.name}</div><div class="fc">${cnt} so'z</div>`;
+    el.onclick=()=>{
+      const i=G.sel.indexOf(f.id);
+      if(i>-1){if(G.sel.length===1)return;G.sel.splice(i,1);el.classList.remove("sel");}
+      else{G.sel.push(f.id);el.classList.add("sel");}
+    };
+    g.appendChild(el);
+  });
 }
 
-function checkWord() {
-  let userVal = document.getElementById("wordInput").value.trim().toUpperCase();
-  if(userVal === wordsList[curIdx].correct) {
-    curIdx++;
-    loadWord();
-  } else {
-    alert("Noto'g'ri so'z, qaytadan o'ylab ko'ring!");
+function pickN(btn){
+  document.querySelectorAll(".dbtn").forEach(b=>b.classList.remove("sel"));
+  btn.classList.add("sel"); G.numQ=parseInt(btn.dataset.n);
+}
+
+function startGame(){
+  let pool=[];
+  G.sel.forEach(f=>(PUZZLE_WORDS[f]||[]).forEach(w=>pool.push({...w,fan:f})));
+  pool=pool.sort(()=>Math.random()-.5).slice(0,G.numQ);
+  if(!pool.length){alert("So'zlar topilmadi!");return;}
+  G.pool=pool;G.cur=0;G.score=0;G.correct=0;G.wrong=0;
+  document.getElementById("scoreEl").textContent=0;
+  show("gameScreen"); renderWord();
+}
+
+function scrambleWord(word){
+  const arr=word.split("");
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  // ensure it's not same as original
+  if(arr.join("")===word && word.length>1){[arr[0],arr[1]]=[arr[1],arr[0]];}
+  return arr;
+}
+
+function renderWord(){
+  if(G.cur>=G.pool.length){showResult();return;}
+  const w=G.pool[G.cur];
+  G.scrambled=scrambleWord(w.word);
+  G.answer=[];G.usedIdx=[];G.hintUsed=false;
+  G.tLeft=30;
+
+  const total=G.pool.length;
+  document.getElementById("progTxt").textContent=`${G.cur+1} / ${total}`;
+  document.getElementById("pbf").style.width=`${(G.cur/total)*100}%`;
+
+  const f=FM.find(x=>x.id===w.fan)||{name:w.fan,color:"#a855f7",bg:"#faf5ff"};
+  const ft=document.getElementById("fanTag");ft.textContent=f.name;ft.style.background=f.bg;ft.style.color=f.color;
+  document.getElementById("fanLbl").textContent=f.name;
+  document.getElementById("hintTxt").textContent=w.hint;
+  document.getElementById("wordLen").textContent=w.word.length;
+  document.getElementById("feedback").style.display="none";
+
+  renderLetters(); renderAnswer();
+  startTimer();
+}
+
+function renderLetters(){
+  const el=document.getElementById("lettersEl"); el.innerHTML="";
+  G.scrambled.forEach((ch,i)=>{
+    const tile=document.createElement("div");
+    tile.className="letter-tile"+(G.usedIdx.includes(i)?" used":"");
+    tile.textContent=ch; tile.dataset.idx=i;
+    tile.onclick=()=>pickLetter(i,ch,tile);
+    el.appendChild(tile);
+  });
+}
+
+function renderAnswer(){
+  const el=document.getElementById("answerEl"); el.innerHTML="";
+  const word=G.pool[G.cur].word;
+  for(let i=0;i<word.length;i++){
+    const tile=document.createElement("div");
+    tile.className="ans-tile"+(G.answer[i]!==undefined?"filled":"");
+    tile.textContent=G.answer[i]||"";
+    tile.dataset.pos=i;
+    if(G.answer[i]!==undefined) tile.onclick=()=>removeLetter(i);
+    el.appendChild(tile);
   }
 }
 
-loadWord();
+function pickLetter(idx,ch,tile){
+  if(G.usedIdx.includes(idx))return;
+  const pos=G.answer.findIndex(x=>x===undefined||x===null);
+  const freePos=G.answer.length<G.pool[G.cur].word.length?G.answer.length:null;
+  const targetPos=freePos!==null?freePos:G.pool[G.cur].word.length;
+  if(G.answer.length>=G.pool[G.cur].word.length)return;
+  G.answer.push({ch,srcIdx:idx});
+  G.usedIdx.push(idx);
+  renderLetters(); renderAnswerFull();
+}
+
+function renderAnswerFull(){
+  const el=document.getElementById("answerEl"); el.innerHTML="";
+  const word=G.pool[G.cur].word;
+  for(let i=0;i<word.length;i++){
+    const tile=document.createElement("div");
+    const item=G.answer[i];
+    tile.className="ans-tile"+(item?"filled":"");
+    tile.textContent=item?item.ch:"";
+    if(item){const pos=i;tile.onclick=()=>removeAt(pos);}
+    el.appendChild(tile);
+  }
+}
+
+function removeAt(pos){
+  const item=G.answer[pos];
+  if(!item)return;
+  G.usedIdx=G.usedIdx.filter(i=>i!==item.srcIdx);
+  G.answer.splice(pos,1);
+  renderLetters(); renderAnswerFull();
+}
+
+function clearAnswer(){
+  G.answer=[];G.usedIdx=[];
+  renderLetters(); renderAnswerFull();
+}
+
+function showHint(){
+  if(G.hintUsed)return;
+  G.hintUsed=true;
+  const word=G.pool[G.cur].word;
+  // fill first letter
+  if(G.answer.length===0){
+    const firstChar=word[0];
+    const srcIdx=G.scrambled.findIndex((ch,i)=>ch===firstChar&&!G.usedIdx.includes(i));
+    if(srcIdx>-1){G.answer.push({ch:firstChar,srcIdx});G.usedIdx.push(srcIdx);}
+    renderLetters();renderAnswerFull();
+  }
+  const fb=document.getElementById("feedback");
+  fb.textContent="💡 Birinchi harf ko'rsatildi! –3 ball";
+  fb.className="feedback no";fb.style.display="block";
+  G.score=Math.max(0,G.score-3);
+  document.getElementById("scoreEl").textContent=G.score;
+}
+
+function checkAnswer(){
+  const word=G.pool[G.cur].word;
+  const ans=G.answer.map(x=>x.ch).join("");
+  const fb=document.getElementById("feedback");
+  if(ans.length<word.length){
+    fb.textContent="⚠️ Barcha harflarni to'ldiring!";
+    fb.className="feedback no";fb.style.display="block";return;
+  }
+  clearInterval(G.tInt);
+  const ok=ans===word;
+  // show tile colors
+  const tiles=document.querySelectorAll(".ans-tile");
+  tiles.forEach(t=>{t.classList.remove("filled");t.classList.add(ok?"correct-tile":"wrong-tile");});
+  if(ok){
+    G.correct++;
+    const timeBonus=Math.floor(G.tLeft/5);
+    const pts=10+timeBonus;
+    G.score+=pts;
+    document.getElementById("scoreEl").textContent=G.score;
+    fb.textContent=`✅ To'g'ri! +${pts} ball (vaqt bonus: +${timeBonus})`;
+    fb.className="feedback ok";
+  }else{
+    G.wrong++;
+    fb.textContent=`❌ Noto'g'ri! To'g'ri javob: ${word}`;
+    fb.className="feedback no";
+  }
+  fb.style.display="block";
+  G.cur++;
+  setTimeout(()=>renderWord(),1500);
+}
+
+function skipWord(){
+  clearInterval(G.tInt);
+  G.wrong++;G.score=Math.max(0,G.score-5);
+  document.getElementById("scoreEl").textContent=G.score;
+  G.cur++;renderWord();
+}
+
+function startTimer(){
+  clearInterval(G.tInt);
+  updTimer(G.tLeft);
+  G.tInt=setInterval(()=>{
+    G.tLeft--;updTimer(G.tLeft);
+    if(G.tLeft<=0){clearInterval(G.tInt);timeUp();}
+  },1000);
+}
+function updTimer(t){
+  const p=document.getElementById("timerPill");
+  p.textContent=`⏱ ${t}`;
+  p.classList.toggle("warn",t<=10);
+}
+function timeUp(){
+  const word=G.pool[G.cur].word;
+  const fb=document.getElementById("feedback");
+  fb.textContent=`⌛ Vaqt tugadi! To'g'ri: ${word}`;
+  fb.className="feedback no";fb.style.display="block";
+  G.wrong++;G.cur++;
+  setTimeout(()=>renderWord(),1800);
+}
+
+function showResult(){
+  clearInterval(G.tInt);
+  const total=G.correct+G.wrong;
+  const pct=total?Math.round((G.correct/total)*100):0;
+  document.getElementById("rEmoji").textContent=pct>=80?"🏆":pct>=60?"🎉":pct>=40?"👍":"💪";
+  document.getElementById("rPts").textContent=G.score;
+  document.getElementById("rv1").textContent=G.correct;
+  document.getElementById("rv2").textContent=G.wrong;
+  document.getElementById("rv3").textContent=pct+"%";
+  saveLB();show("resultScreen");renderLB();
+}
+
+function saveLB(){
+  const lb=JSON.parse(localStorage.getItem("zy_puzzle_lb")||"[]");
+  lb.push({name:G.user,score:G.score,date:Date.now()});
+  lb.sort((a,b)=>b.score-a.score);
+  localStorage.setItem("zy_puzzle_lb",JSON.stringify(lb.slice(0,20)));
+}
+function renderLB(){
+  const lb=JSON.parse(localStorage.getItem("zy_puzzle_lb")||"[]");
+  const el=document.getElementById("lbEl");
+  if(!lb.length){el.innerHTML='<p style="color:#6b7280;text-align:center;padding:16px">Hali hech kim o\'ynamagan!</p>';return;}
+  const colors=["#a855f7","#22c55e","#4f7cff","#ec4899","#f97316"];
+  el.innerHTML=lb.slice(0,10).map((e,i)=>`
+    <div class="lb-item">
+      <div class="lb-rank">${["🥇","🥈","🥉"][i]||i+1}</div>
+      <div class="lb-av" style="background:${colors[i%5]}">${e.name[0].toUpperCase()}</div>
+      <div class="lb-nm">${e.name}</div>
+      <div class="lb-sc">${e.score}</div>
+    </div>`).join("");
+}
+function show(id){["setupScreen","gameScreen","resultScreen"].forEach(s=>document.getElementById(s).style.display="none");document.getElementById(id).style.display="block";}
+function goSetup(){clearInterval(G.tInt);show("setupScreen");}
+buildFans();
 </script>
 </body>
 </html>
