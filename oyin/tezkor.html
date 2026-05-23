@@ -5,174 +5,333 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Tezkor Javob — Ziyomap Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--orange:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4f7cff}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--orange:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4f7cff;--yellow:#eab308}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
-.game-container{max-width:500px;width:100%;margin:auto;padding:24px}
-.card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:32px;text-align:center;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
-.timer-bar{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;color:var(--orange);margin-bottom:12px}
-.score-text{font-size:16px;color:var(--muted);margin-bottom:24px}
-.question{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;margin-bottom:32px;line-height:1.4;word-wrap:break-word}
-.input-group{display:flex;gap:12px;margin-bottom:16px}
-input{flex:1;padding:16px;border-radius:12px;border:2px solid var(--border);font-size:18px;font-weight:700;text-align:center;outline:none;font-family:'Nunito',sans-serif}
-input:focus{border-color:var(--orange)}
-.btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
-.btn-alt{background:var(--blue);margin-top:12px;display:inline-block;text-decoration:none}
+.back{font-size:14px;font-weight:700;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border)}
+.back:hover{background:var(--bg)}
+.tt{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800}
+.right{margin-left:auto;display:flex;gap:10px}
+.pill{background:var(--bg);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700}
+.wrap{max-width:640px;margin:0 auto;padding:24px 16px}
 
-/* Fan tanlash uslubi */
-.select-fan{width:100%;padding:12px;border-radius:12px;border:2px solid var(--border);font-size:15px;font-weight:700;margin-bottom:20px;outline:none;font-family:'Nunito',sans-serif;background:var(--white);cursor:pointer}
+/* SETUP */
+#setupScreen h2{font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:8px}
+.info-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:14px;padding:16px;margin-bottom:24px;font-size:14px;color:#9a3412;line-height:1.6}
+.lbl{font-size:14px;font-weight:700;margin-bottom:10px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:24px}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;text-align:center;background:var(--white);transition:all .15s}
+.fan-card:hover{border-color:var(--orange)}
+.fan-card.sel{border-color:var(--orange);background:#fff7ed}
+.fi{font-size:1.8rem;margin-bottom:6px}
+.fn{font-size:13px;font-weight:700}
+.fc{font-size:11px;color:var(--muted);margin-top:2px}
+.start-btn{width:100%;padding:16px;border-radius:14px;border:none;background:var(--orange);color:#fff;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;cursor:pointer;transition:all .15s}
+.start-btn:hover{background:#ea6f0a;transform:translateY(-2px)}
+
+/* GAME */
+#gameScreen{display:none}
+.game-top{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.big-timer{
+  width:80px;height:80px;border-radius:50%;border:4px solid var(--border);
+  display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;
+}
+.big-timer svg{position:absolute;top:-4px;left:-4px;transform:rotate(-90deg)}
+.big-timer svg circle{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.big-timer.warn svg circle{stroke:var(--red)}
+.big-timer.warn .tnum{color:var(--red)}
+.tnum{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.score-big{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;color:var(--orange)}
+.score-lbl{font-size:12px;color:var(--muted)}
+.streak-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 16px;text-align:center}
+.streak-num{font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800;color:var(--orange)}
+.streak-lbl{font-size:11px;color:var(--muted)}
+
+.q-card{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px;margin-bottom:16px;transition:border-color .2s}
+.q-card.correct-flash{border-color:var(--green);background:#f0fdf4}
+.q-card.wrong-flash{border-color:var(--red);background:#fef2f2}
+.q-fan{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px}
+.q-txt{font-size:1.3rem;font-weight:800;line-height:1.4;margin-bottom:6px}
+.q-hint{font-size:13px;color:var(--muted)}
+
+.input-row{display:flex;gap:10px;margin-bottom:12px}
+.ans-input{
+  flex:1;padding:14px 18px;border-radius:14px;border:2px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:700;outline:none;
+  background:var(--white);transition:border-color .2s;
+}
+.ans-input:focus{border-color:var(--orange)}
+.ans-input.ok{border-color:var(--green);background:#f0fdf4}
+.ans-input.no{border-color:var(--red);background:#fef2f2}
+.sub-btn{
+  padding:14px 24px;border-radius:14px;border:none;background:var(--orange);
+  color:#fff;font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;
+}
+.sub-btn:hover{background:#ea6f0a}
+.skip-btn{width:100%;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.skip-btn:hover{background:var(--bg)}
+
+.feedback{text-align:center;font-size:1.1rem;font-weight:800;padding:10px;border-radius:12px;margin-bottom:10px;display:none}
+.feedback.ok{background:#f0fdf4;color:var(--green)}
+.feedback.no{background:#fef2f2;color:var(--red)}
+
+/* RESULT */
+#resultScreen{display:none}
+.res-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:36px 28px;text-align:center;margin-bottom:20px}
+.r-emoji{font-size:5rem;margin-bottom:12px}
+.r-pts{font-family:'Outfit',sans-serif;font-size:3.5rem;font-weight:800;color:var(--orange)}
+.r-sub{color:var(--muted);margin-bottom:20px}
+.r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.rs{background:var(--bg);border-radius:12px;padding:16px}
+.rs-v{font-family:'Outfit',sans-serif;font-size:1.5rem;font-weight:800}
+.rs-k{font-size:12px;color:var(--muted);margin-top:3px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.bo{flex:1;padding:12px;border-radius:12px;border:2px solid var(--border);background:var(--white);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.bp{flex:1;padding:12px;border-radius:12px;border:none;background:var(--orange);color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.lb-box{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px}
+.lb-title{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:16px}
+.lb-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;margin-bottom:6px}
+.lb-item:nth-child(1){background:#fff7ed}
+.lb-rank{width:30px;font-family:'Outfit',sans-serif;font-weight:800;text-align:center}
+.lb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
+.lb-nm{flex:1;font-size:14px;font-weight:700}
+.lb-sc{font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--yellow)}
 </style>
 </head>
 <body>
-
 <div class="topbar">
-  <a class="back-btn" href="index.html">⬅ Orqaga</a>
-  <h2 style="font-family:'Outfit',sans-serif;font-size:1.2rem">⚡ Tezkor Javob</h2>
+  <a class="back" href="index.html">← Orqaga</a>
+  <div class="tt">⚡ Tezkor Javob</div>
+  <div class="right">
+    <div class="pill">🏆 Rekord: <span id="hRecord">0</span></div>
+  </div>
+</div>
+<div class="wrap">
+
+<!-- SETUP -->
+<div id="setupScreen">
+  <h2>⚡ Tezkor Javob</h2>
+  <div class="info-box">
+    ⏱ <strong>60 soniya</strong> vaqtingiz bor!<br>
+    Imkon qadar ko'proq to'g'ri javob bering.<br>
+    To'g'ri javob = <strong>+5 ball</strong> · Ketma-ket to'g'ri = <strong>bonus ball!</strong>
+  </div>
+  <div class="lbl">📚 Fan tanlang:</div>
+  <div class="fan-grid" id="fanGrid"></div>
+  <button class="start-btn" onclick="startGame()">⚡ Boshlash!</button>
 </div>
 
-<div class="game-container">
-  <div class="card" id="startScreen">
-    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Tayyormisiz? ⚡</h2>
-    <p style="color:var(--muted);margin-bottom:20px">60 soniya ichida imkon qadar ko'p savolga to'g'ri javob yozing. Har bir to'g'ri javob +10 ball!</p>
-    
-    <div style="text-align:left;font-size:14px;font-weight:700;margin-bottom:6px">Yo'nalishni tanlang:</div>
-    <select class="select-fan" id="fanSelect">
-      <option value="matematika_auto">📐 Matematika (Avtomatik misollar)</option>
-      <option value="fizika">⚛️ Fizika (Baza bo'yicha)</option>
-      <option value="matematika">📐 Matematika (Baza bo'yicha)</option>
-      <option value="informatika">💻 Informatika (Baza bo'yicha)</option>
-      <option value="biologiya">🧬 Biologiya (Baza bo'yicha)</option>
-      <option value="kimyo">🧪 Kimyo (Baza bo'yicha)</option>
-      <option value="tarix">📜 Tarix (Baza bo'yicha)</option>
-      <option value="ingliztili">🇬🇧 Ingliz tili (Baza bo'yicha)</option>
-      <option value="geografiya">🌍 Geografiya (Baza bo'yicha)</option>
-    </select>
-
-    <button class="btn" onclick="startGame()">▶ O'yinni boshlash</button>
-  </div>
-
-  <div class="card" id="gameScreen" style="display:none">
-    <div class="timer-bar" id="timer">60</div>
-    <div class="score-text">To'g'ri javoblar: <strong id="scoreCount" style="color:var(--green)">0</strong></div>
-    <div class="question" id="problem">2 + 2 = ?</div>
-    <div class="input-group">
-      <input type="text" id="ansInput" placeholder="Javobni yozing..." autocomplete="off">
+<!-- GAME -->
+<div id="gameScreen">
+  <div class="game-top">
+    <div class="big-timer" id="bigTimer">
+      <svg width="88" height="88" viewBox="0 0 88 88">
+        <circle cx="44" cy="44" r="38" id="tArc" stroke-dasharray="238.76" stroke-dashoffset="0"/>
+      </svg>
+      <span class="tnum" id="tNum">60</span>
     </div>
-    <button class="btn" onclick="checkAnswer()">Tekshirish (Enter)</button>
+    <div style="flex:1">
+      <div class="score-big" id="scoreNum">0</div>
+      <div class="score-lbl">ball</div>
+    </div>
+    <div class="streak-box">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-lbl">🔥 ketma-ket</div>
+    </div>
   </div>
 
-  <div class="card" id="endScreen" style="display:none">
-    <h2 style="font-family:'Outfit',sans-serif;margin-bottom:12px;font-size:1.8rem">Vaqt tugadi! 🏁</h2>
-    <p style="font-size:18px;margin-bottom:8px">Siz jami <strong id="finalAns" style="color:var(--green)">0</strong> ta to'g'ri javob berdingiz.</p>
-    <p style="font-size:20px;font-weight:800;margin-bottom:24px">Jamg'arilgan ball: <span style="color:var(--orange)" id="earnedPts">+0 ball</span></p>
-    <button class="btn" onclick="location.reload()">🔄 Qayta urinish</button>
-    <a class="btn btn-alt" href="index.html">🏠 Bosh sahifaga qaytish</a>
+  <div class="feedback" id="feedback"></div>
+
+  <div class="q-card" id="qCard">
+    <span class="q-fan" id="qFan"></span>
+    <div class="q-txt" id="qTxt">Savol yuklanmoqda...</div>
+    <div class="q-hint" id="qHint"></div>
   </div>
+
+  <div class="input-row">
+    <input class="ans-input" id="ansInput" placeholder="Javobingizni yozing..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="handleKey(event)">
+    <button class="sub-btn" onclick="submitAns()">✓</button>
+  </div>
+  <button class="skip-btn" onclick="skipQ()">⏭ O'tkazib yuborish</button>
 </div>
 
-<script src="../js/savollar.js"></script>
+<!-- RESULT -->
+<div id="resultScreen">
+  <div class="res-card">
+    <div class="r-emoji" id="rEmoji">🏆</div>
+    <div class="r-pts" id="rPts">0</div>
+    <div class="r-sub">ball to'plandi (60 soniyada)</div>
+    <div class="r-stats">
+      <div class="rs"><div class="rs-v" id="rv1">0</div><div class="rs-k">✅ To'g'ri</div></div>
+      <div class="rs"><div class="rs-v" id="rv2">0</div><div class="rs-k">❌ Xato</div></div>
+      <div class="rs"><div class="rs-v" id="rv3">0</div><div class="rs-k">🔥 Maks streak</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="bo" onclick="goSetup()">⚙ Sozlash</button>
+      <button class="bp" onclick="startGame()">🔄 Qayta</button>
+      <button class="bo" onclick="location.href='index.html'">🏠 Bosh</button>
+    </div>
+  </div>
+  <div class="lb-box"><div class="lb-title">🏆 Tezkor Reyting</div><div id="lbEl"></div></div>
+</div>
+</div>
 
 <script>
-let time = 60, score = 0, num1, num2, op, currentAnswer, timerInterval;
-let currentPool = [];
-let currentQIndex = 0;
-let isAutoMath = true;
-const input = document.getElementById("ansInput");
+const FM=[
+  {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
+  {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
+  {id:"informatika",name:"Informatika",icon:"💻",color:"#14b8a6",bg:"#f0fdfa"},
+  {id:"biologiya",name:"Biologiya",icon:"🧬",color:"#ec4899",bg:"#fdf2f8"},
+  {id:"kimyo",name:"Kimyo",icon:"🧪",color:"#eab308",bg:"#fefce8"},
+  {id:"tarix",name:"Tarix",icon:"📜",color:"#a855f7",bg:"#faf5ff"},
+  {id:"ingliz",name:"Ingliz",icon:"🇬🇧",color:"#f97316",bg:"#fff7ed"},
+  {id:"geografiya",name:"Geografiya",icon:"🌍",color:"#06b6d4",bg:"#ecfeff"},
+];
 
-input.addEventListener("keypress", function(e) { if(e.key === "Enter") checkAnswer(); });
+let G={
+  user:localStorage.getItem("zy_user")||"O'yinchi",
+  sel:["fizika","matematika","informatika"],
+  pool:[],cur:0,score:0,correct:0,wrong:0,streak:0,maxStreak:0,
+  tInt:null,tLeft:60,
+};
 
-function startGame() {
-  const selectedMode = document.getElementById("fanSelect").value;
-  
-  if (selectedMode === "matematika_auto") {
-    isAutoMath = true;
-    input.type = "number"; // Faqat raqam kiritilishi uchun
-  } else {
-    isAutoMath = false;
-    input.type = "text"; // Matnli javoblar uchun
-    
-    // ZiyomapBaza ob'ektidan tanlangan fanning tezkor savollarini yuklab olamiz
-    if (typeof ZiyomapBaza !== 'undefined' && ZiyomapBaza.tezkor && ZiyomapBaza.tezkor[selectedMode]) {
-      currentPool = [...ZiyomapBaza.tezkor[selectedMode]];
-    } else {
-      currentPool = [];
-    }
-    
-    // Savollarni aralashtirib tashlaymiz
-    currentPool = currentPool.sort(() => Math.random() - 0.5);
-    currentQIndex = 0;
-    
-    if (currentPool.length === 0) {
-      alert("Ushbu fan bo'yicha savollar.js faylida hali tezkor savollar mavjud emas! Avtomatik matematika rejimi ishga tushadi.");
-      isAutoMath = true;
-      input.type = "number";
-    }
+document.getElementById("hRecord").textContent=localStorage.getItem("zy_tezkor_rec")||0;
+
+function buildFans(){
+  const g=document.getElementById("fanGrid");g.innerHTML="";
+  FM.forEach(f=>{
+    const cnt=(TEZKOR_QUESTIONS[f.id]||[]).length;
+    const el=document.createElement("div");
+    el.className="fan-card"+(G.sel.includes(f.id)?" sel":"");
+    el.innerHTML=`<div class="fi">${f.icon}</div><div class="fn">${f.name}</div><div class="fc">${cnt} savol</div>`;
+    el.onclick=()=>{
+      const i=G.sel.indexOf(f.id);
+      if(i>-1){if(G.sel.length===1)return;G.sel.splice(i,1);el.classList.remove("sel");}
+      else{G.sel.push(f.id);el.classList.add("sel");}
+    };
+    g.appendChild(el);
+  });
+}
+
+function startGame(){
+  let pool=[];
+  G.sel.forEach(f=>(TEZKOR_QUESTIONS[f]||[]).forEach(q=>pool.push({...q,fan:f})));
+  pool=pool.sort(()=>Math.random()-.5);
+  if(!pool.length){alert("Savollar topilmadi!");return;}
+  // repeat pool to fill 60s
+  while(pool.length<60) pool=[...pool,...pool];
+  G.pool=pool.sort(()=>Math.random()-.5);
+  G.cur=0;G.score=0;G.correct=0;G.wrong=0;G.streak=0;G.maxStreak=0;
+  G.tLeft=60;
+  show("gameScreen");
+  renderQ();
+  startTimer();
+  document.getElementById("ansInput").focus();
+}
+
+function renderQ(){
+  if(G.cur>=G.pool.length)G.cur=0;
+  const q=G.pool[G.cur];
+  const f=FM.find(x=>x.id===q.fan)||{name:q.fan,color:"#f97316",bg:"#fff7ed"};
+  const ft=document.getElementById("qFan");ft.textContent=f.name;ft.style.background=f.bg;ft.style.color=f.color;
+  document.getElementById("qTxt").textContent=q.q;
+  document.getElementById("ansInput").value="";
+  document.getElementById("ansInput").className="ans-input";
+  document.getElementById("feedback").style.display="none";
+  document.getElementById("qCard").className="q-card";
+  document.getElementById("ansInput").focus();
+}
+
+function handleKey(e){if(e.key==="Enter")submitAns();}
+
+function submitAns(){
+  const inp=document.getElementById("ansInput");
+  const val=inp.value.trim().toLowerCase();
+  if(!val)return;
+  const q=G.pool[G.cur];
+  const correct=q.a.toLowerCase().trim();
+  // flexible check: contains or starts with
+  const ok=val===correct||correct.includes(val)||val.includes(correct)||(val.length>2&&correct.startsWith(val));
+  const fb=document.getElementById("feedback");
+  if(ok){
+    G.correct++;G.streak++;if(G.streak>G.maxStreak)G.maxStreak=G.streak;
+    const bonus=G.streak>=5?10:G.streak>=3?5:0;
+    G.score+=5+bonus;
+    document.getElementById("scoreNum").textContent=G.score;
+    document.getElementById("streakNum").textContent=G.streak;
+    document.getElementById("qCard").className="q-card correct-flash";
+    inp.className="ans-input ok";
+    fb.textContent="✅ To'g'ri!"+(bonus?` +${bonus} bonus!`:"");
+    fb.className="feedback ok";fb.style.display="block";
+  }else{
+    G.wrong++;G.streak=0;
+    document.getElementById("streakNum").textContent=0;
+    document.getElementById("qCard").className="q-card wrong-flash";
+    inp.className="ans-input no";
+    fb.textContent="❌ Noto'g'ri! To'g'ri: "+q.a;
+    fb.className="feedback no";fb.style.display="block";
   }
-
-  document.getElementById("startScreen").style.display = "none";
-  document.getElementById("gameScreen").style.display = "block";
-  input.focus();
-  nextProblem();
-  timerInterval = setInterval(() => {
-    time--;
-    document.getElementById("timer").textContent = time;
-    if(time <= 0) endGame();
-  }, 1000);
+  G.cur++;
+  setTimeout(()=>{if(G.tLeft>0)renderQ();},600);
 }
 
-function nextProblem() {
-  if (isAutoMath) {
-    // Siz yaratgan o'ziga xos avtomatik matematik misollar generatsiyasi (to'liq saqlandi)
-    const ops = ['+', '-', '*'];
-    op = ops[Math.floor(Math.random() * ops.length)];
-    if(op === '*') { num1 = Math.floor(Math.random() * 9) + 2; num2 = Math.floor(Math.random() * 9) + 2; }
-    else { num1 = Math.floor(Math.random() * 80) + 10; num2 = Math.floor(Math.random() * 80) + 10; }
-    if(op === '-' && num1 < num2) { let t = num1; num1 = num2; num2 = t; }
-    currentAnswer = op === '+' ? num1 + num2 : op === '-' ? num1 - num2 : num1 * num2;
-    document.getElementById("problem").textContent = `${num1} ${op} ${num2} = ?`;
-  } else {
-    // Savollar.js dagi ma'lumotlar tugab qolsa, ularni qaytadan aralashtirib aylantiraveradi
-    if (currentQIndex >= currentPool.length) {
-      currentPool = currentPool.sort(() => Math.random() - 0.5);
-      currentQIndex = 0;
-    }
-    
-    const currentQ = currentPool[currentQIndex];
-    // Savollar.js dagi ham question/answer, ham q/a formatlarini xatosiz qo'llab-quvvatlaydi
-    document.getElementById("problem").textContent = currentQ.question || currentQ.q;
-    currentAnswer = currentQ.answer || currentQ.a;
-    currentQIndex++;
-  }
-  input.value = "";
+function skipQ(){G.wrong++;G.streak=0;document.getElementById("streakNum").textContent=0;G.cur++;renderQ();}
+
+function startTimer(){
+  clearInterval(G.tInt);
+  const max=60;const full=238.76;
+  updTimer(G.tLeft,max,full);
+  G.tInt=setInterval(()=>{
+    G.tLeft--;updTimer(G.tLeft,max,full);
+    if(G.tLeft<=0){clearInterval(G.tInt);endGame();}
+  },1000);
 }
 
-function checkAnswer() {
-  let userAnswer = input.value.trim();
-  let correctAnswer = String(currentAnswer).trim();
-
-  // Agar javob raqam bo'lmasa, katta-kichik harflar va bo'shliqlardagi farqni xato deb hisoblamasligi uchun tekshiruv optimizatsiyasi
-  if(userAnswer.toLowerCase() === correctAnswer.toLowerCase()) { 
-    score++; 
-    document.getElementById("scoreCount").textContent = score; 
-  }
-  
-  nextProblem();
-  input.focus();
+function updTimer(t,max,full){
+  document.getElementById("tNum").textContent=t;
+  document.getElementById("tArc").style.strokeDashoffset=full-(t/max)*full;
+  document.getElementById("bigTimer").classList.toggle("warn",t<=10);
 }
 
-function endGame() {
-  clearInterval(timerInterval);
-  document.getElementById("gameScreen").style.display = "none";
-  document.getElementById("endScreen").style.display = "block";
-  document.getElementById("finalAns").textContent = score;
-  let pts = score * 10;
-  document.getElementById("earnedPts").textContent = `+${pts} ball`;
-  let currentTotal = parseInt(localStorage.getItem("ziyomap_total") || "0");
-  localStorage.setItem("ziyomap_total", currentTotal + pts);
+function endGame(){
+  const rec=parseInt(localStorage.getItem("zy_tezkor_rec")||0);
+  if(G.score>rec){localStorage.setItem("zy_tezkor_rec",G.score);document.getElementById("hRecord").textContent=G.score;}
+  const pct=G.correct+G.wrong>0?Math.round((G.correct/(G.correct+G.wrong))*100):0;
+  document.getElementById("rEmoji").textContent=G.score>=100?"🏆":G.score>=60?"🎉":G.score>=30?"👍":"💪";
+  document.getElementById("rPts").textContent=G.score;
+  document.getElementById("rv1").textContent=G.correct;
+  document.getElementById("rv2").textContent=G.wrong;
+  document.getElementById("rv3").textContent=G.maxStreak;
+  saveLB();show("resultScreen");renderLB();
 }
+
+function saveLB(){
+  const lb=JSON.parse(localStorage.getItem("zy_tezkor_lb")||"[]");
+  lb.push({name:G.user,score:G.score,date:Date.now()});
+  lb.sort((a,b)=>b.score-a.score);
+  localStorage.setItem("zy_tezkor_lb",JSON.stringify(lb.slice(0,20)));
+}
+
+function renderLB(){
+  const lb=JSON.parse(localStorage.getItem("zy_tezkor_lb")||"[]");
+  const el=document.getElementById("lbEl");
+  if(!lb.length){el.innerHTML='<p style="color:#6b7280;text-align:center;padding:16px">Hali hech kim o\'ynamagan!</p>';return;}
+  const colors=["#f97316","#22c55e","#4f7cff","#ec4899","#a855f7"];
+  el.innerHTML=lb.slice(0,10).map((e,i)=>`
+    <div class="lb-item">
+      <div class="lb-rank">${["🥇","🥈","🥉"][i]||i+1}</div>
+      <div class="lb-av" style="background:${colors[i%5]}">${e.name[0].toUpperCase()}</div>
+      <div class="lb-nm">${e.name}</div>
+      <div class="lb-sc">${e.score}</div>
+    </div>`).join("");
+}
+
+function show(id){["setupScreen","gameScreen","resultScreen"].forEach(s=>document.getElementById(s).style.display="none");document.getElementById(id).style.display="block";}
+function goSetup(){show("setupScreen");}
+buildFans();
 </script>
 </body>
 </html>
