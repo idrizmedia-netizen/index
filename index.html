@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IdrizMedia | Portfolio</title>
+    <!-- PWA Manifest faylini ulash -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1A73E8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<!-- Service Worker-ni brauzerda ro'yxatdan o'tkazish -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Ziyomap Ilovasi muvaffaqiyatli ulandi!'))
+        .catch(err => console.log('Xatolik yuz berdi:', err));
+    });
+  }
+</script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
