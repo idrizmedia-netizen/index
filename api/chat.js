@@ -5,7 +5,6 @@ export default async function handler(req, res) {
     }
 
     // history - frontenddan keladigan xabarlar massivi
-    // image o'zgaruvchisini endi umumiy 'file' deb ham tushunish mumkin
     const { message, image, mimeType, history } = req.body;
     const API_KEY = process.env.GEMINI_API_KEY;
 
@@ -15,47 +14,49 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 1-O'ZGARISH QILINMADI: Sizning xohishingizga ko'ra model nomi aynan o'z holaticha qoldirildi
+        // Model nomi o'z holicha qoldirildi
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`;
         
-        // 2-O'ZGARISH BAJARILDI: Chat tarixini xavfsiz klonlash (nusxalash) mantiqi qo'yildi
+        // Chat tarixini xavfsiz klonlash
         let contents = history ? [...history] : [];
 
-        // 2. Yangi xabar uchun qismlarni (parts) tayyorlaymiz
+        // Yangi xabar qismlarini tayyorlash
         let newParts = [];
 
         // Matn bo'lsa qo'shamiz
         if (message) {
             newParts.push({ text: message });
         } else if (image && !message) {
-            // Agar faqat fayl yuborilgan bo'lsa, uni turiga qarab so'rov yuboramiz
             const isPDF = mimeType && mimeType.includes('pdf');
             newParts.push({ text: isPDF ? "Ushbu hujjatni tahlil qiling va qisqacha mazmunini ayting." : "Ushbu tasvirni tahlil qiling va tushuntirib bering." });
         }
 
-        // Fayl (Rasm, PDF yoki matnli hujjat) bo'lsa qo'shamiz
+        // Fayl bo'lsa qo'shamiz
         if (image && mimeType) {
             newParts.push({
                 inline_data: {
-                    mime_type: mimeType, // Bu yerda 'application/pdf' yoki 'image/jpeg' ketaveradi
-                    data: image // Base64 formatidagi fayl kodi
+                    mime_type: mimeType,
+                    data: image
                 }
             });
         }
 
-        // 3. Yangi xabarni tarixga qo'shamiz
+        // Yangi xabarni tarixga qo'shamiz
         contents.push({
             role: "user",
             parts: newParts
         });
 
-        // 3-O'ZGARISH BAJARILDI: Tizim ko'rsatmasi (System Instruction) qo'shildi. 
-        // AI barcha fanlardan (Fizika, Matematika, Tarix, Kimyo va b.) mukammal javob berishi belgilandi.
+        // Tizim ko'rsatmasi (LaTeX formulalar qo'shilgan variant)
         const requestBody = {
-            contents: contents, // Barcha tarix yuboriladi
+            contents: contents,
             systemInstruction: {
                 parts: [{
-                    text: "Siz Ziyomap sun'iy intellektisiz. Foydalanuvchilarga, ayniqsa o'qituvchi va o'quvchilarga istalgan fan bo'yicha (fizika, matematika, kimyo, biologiya, tarix, ona tili, adabiyot, ingliz tili va barcha boshqa fanlar) dars konspektlari, masalalar yechimi, metodik tavsiyalar va savollarga aniq, to'g'ri va mukammal javob berasiz. Javoblaringizda doimo o'zbek tili qoidalari va chiroyli Markdown formatlash elementlaridan (sarlavhalar, jadvallar, ro'yxatlar, qalin matnlar) keng foydalaning."
+                    text: `Siz Ziyomap sun'iy intellektisiz. 
+                    1. Barcha matematik va fizik formulalarni doimo LaTeX formatida yozing (masalan: $F=ma$, $\\int x dx$). 
+                    2. Javoblaringizda Markdown formatlash elementlaridan (sarlavhalar, jadvallar) keng foydalaning.
+                    3. O'zbek tilida aniq va mukammal tushuntiring.
+                    4. Foydalanuvchilarga istalgan fan bo'yicha (fizika, matematika, kimyo, biologiya, tarix va b.) dars konspektlari va yechimlar bera olasiz.`
                 }]
             },
             generationConfig: {
@@ -69,7 +70,7 @@ export default async function handler(req, res) {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requestBody) // So'rov tanasi tizim ko'rsatmasi bilan birga yuboriladi
+            body: JSON.stringify(requestBody)
         });
 
         const data = await response.json();
@@ -84,7 +85,6 @@ export default async function handler(req, res) {
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
             const aiReply = data.candidates[0].content.parts[0].text;
             
-            // Ziyomap AI nomi bilan javob qaytaramiz
             res.status(200).json({ 
                 reply: aiReply,
                 role: "model" 
