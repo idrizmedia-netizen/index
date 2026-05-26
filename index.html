@@ -22,9 +22,6 @@
 </script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
     <style>
         :root {
             --primary-color: #2563eb;
@@ -342,61 +339,16 @@
             max-width: none !important;
         }
 
-       /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
-@media (max-width: 600px) {
-    #chat-window.full-screen {
-        width: 100% !important;      /* vw o'rniga % ishlatamiz (skroll barlarga urilmasligi uchun) */
-        height: 100% !important;     /* vh o'rniga % mobil brauzer panellarini hisobga oladi */
-        top: 0 !important;           /* Oynani tepadan boshlaymiz */
-        left: 0 !important;          /* Chap tomondan to'liq yopishtiramiz */
-        bottom: 0 !important;        /* Pastki bo'shliqni nol qilamiz */
-        right: 0 !important;         /* O'ng bo'shliqni nol qilamiz */
-        margin: 0 !important;        /* Har qanday ortiqcha surilishlarni o'chiramiz */
-        border-radius: 0 !important; /* Burchaklarni to'liq tekis qilamiz */
-        max-width: 100% !important;  /* Maksimal kenglik cheklovini yechamiz */
-        max-height: 100% !important; /* Maksimal balandlik cheklovini yechamiz */
-        position: fixed !important;  /* Ekran joyida qulflanishi uchun */
-    }
-}
-
-/* ======================================================= */
-/* CHAT ICHIDAGI MARKDOWN VA NUSXALASH TUGMASI STILI SHU YERDA: */
-/* ======================================================= */
-.message-content h1, .message-content h2, .message-content h3 {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    color: var(--primary-color);
-}
-.message-content ul, .message-content ol {
-    padding-left: 20px;
-    margin: 5px 0;
-}
-.message-content p {
-    margin: 5px 0;
-}
-
-/* Nusxalash tugmasi stili */
-.copy-btn {
-    background: rgba(59, 130, 246, 0.1);
-    border: none;
-    color: var(--primary-color);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 8px;
-    transition: all 0.2s;
-}
-.copy-btn:hover {
-    background: var(--primary-color);
-    color: white;
-}
-/* ======================================================= */
-/* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
-/* ======================================================= */
+        /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
+        @media (max-width: 600px) {
+            #chat-window.full-screen {
+                width: 100vw !important;
+                height: 100vh !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                border-radius: 0 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -563,27 +515,20 @@
                 </div>
             </div>
 
-           <div class="chat-input-container" style="display: flex; gap: 8px; align-items: center; padding: 10px; border-top: 1px solid rgba(56, 189, 248, 0.1);">
-    
-    <button id="clearChatBtn" title="Suhbatni tozalash" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 10px; border-radius: 5px; cursor: pointer; transition: 0.3s;">
-        <i class="fas fa-trash-alt"></i>
-    </button>
-
-    <button id="micBtnAi" title="Ovozli xabar yuborish" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px; border-radius: 5px; cursor: pointer; transition: 0.3s;">
-        <i class="fas fa-microphone" id="micIcon"></i>
-    </button>
-
-    <label for="file-upload" style="cursor: pointer; color: var(--primary-color); font-size: 1.2rem; padding: 5px 2px;">
-        <i class="fas fa-paperclip"></i>
-    </label>
-    <input type="file" id="file-upload" accept="image/*, application/pdf, text/plain" style="display: none;">
-
-    <input type="text" id="userInputAi" placeholder="Ziyomap AI dan xohlagan fangingizni so'rang..." style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; background: var(--light-bg); color: var(--text-color); outline: none;">
-
-    <button id="sendBtnAi" style="padding: 10px 15px; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
-        <i class="fas fa-paper-plane"></i>
-    </button>
-</div>
+            <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label for="file-upload" style="cursor: pointer; color: var(--primary-color); font-size: 1.2rem;">
+                        <i class="fas fa-paperclip"></i>
+                    </label>
+                    <input type="file" id="file-upload" accept="image/*, application/pdf, text/plain" style="display: none;">
+                    
+                    <input type="text" id="user-input-ai" placeholder="Savol yoki rasm tavsifi..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color); outline: none;">
+                    
+                    <button id="send-btn-ai" style="background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1023,7 +968,35 @@ window.addEventListener('click', (e) => {
         else if (hour < 18) greeting.innerText = "Xayrli kun!";
         else greeting.innerText = "Xayrli kech!";
 
-       
+        window.calculateCurrent = function() {
+            const v = document.getElementById('voltage').value;
+            const r = document.getElementById('resistance').value;
+            const resDisplay = document.getElementById('calcResult');
+            if(v && r && r > 0) {
+                const i = (v / r).toFixed(2);
+                resDisplay.innerText = `Tok kuchi: I = ${i} Amper`;
+                let p = parseInt(localStorage.getItem('lab_points') || 0);
+                localStorage.setItem('lab_points', p + 5);
+                document.getElementById('user-points').innerText = p + 5;
+                const list = document.getElementById('results-list');
+                if(list.innerHTML.includes('Hali natijalar yo\'q')) list.innerHTML = '';
+                list.innerHTML += `<div style="background:var(--light-bg); padding:10px; border-radius:10px; margin-bottom:5px;">V=${v}V, R=${r}Ω => I=${i}A</div>`;
+            }
+        }
+
+        window.checkAnswer = function(isCorrect) {
+            const status = document.getElementById('testStatus');
+            if(isCorrect) {
+                status.innerText = "To'g'ri! 🚀 +10 ball";
+                status.style.color = "#10b981";
+                let p = parseInt(localStorage.getItem('lab_points') || 0);
+                localStorage.setItem('lab_points', p + 10);
+                document.getElementById('user-points').innerText = p + 10;
+            } else {
+                status.innerText = "Xato! ❌ Qaytadan urining";
+                status.style.color = "#ef4444";
+            }
+        }
 
         window.clearResults = function() {
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
@@ -1083,51 +1056,15 @@ window.addEventListener('click', (e) => {
             fileInput.value = '';
         }
 
-        // =======================================================
-        // ZIYOMAP SUPER-AI CHAT MANTIQLARI (1, 3 VA 5-FUNKSIYALAR)
-        // =======================================================
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
-
         async function sendAiMessage() {
             const text = userInputAi.value.trim();
             if (!text && !currentFileBase64) return;
-            
-            // Foydalanuvchi xabarini ekranga chiqarish
             appendAiMessage('user', text + (currentFileBase64 ? " [Fayl yuborildi]" : ""));
-            
             const imageToSend = currentFileBase64;
             const typeToSend = currentFileType;
             userInputAi.value = '';
             cancelImage();
-            
             const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
-            
-            // ---------------------------------------------------
-            // 3-FUNKSIYA: RASM CHIZISH BUYRUG'INI ANIQLASH MANTIQLARI
-            // ---------------------------------------------------
-            const rasmKalitSozlari = ["rasm chiz", "rasmini chiz", "rasm yarat", "tasvirlab ber", "rasmini yarat", "draw", "image of"];
-            const rasmSoraldimi = rasmKalitSozlari.some(soz => text.toLowerCase().includes(soz));
-
-            if (rasmSoraldimi) {
-                try {
-                    // Tekin va juda tezkor rasm chizuvchi API (Pollinations AI)
-                    const silliqPrompt = encodeURIComponent(text.replace(/rasm chiz|rasmini chiz|rasm yarat|tasvirlab ber|rasmini yarat/gi, '').trim());
-                    const rasmUrl = `https://image.pollinations.ai/p/${silliqPrompt}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 1000)}`;
-                    
-                    const aiReply = `Sizning so'rovingiz bo'yicha rasm tayyorlandi:\n\n<img src="${rasmUrl}" alt="Ziyomap AI Image" style="width: 100%; max-width: 500px; border-radius: 10px; margin-top: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">`;
-                    
-                    updateAiMessage(loadingId, aiReply, true); // true - HTML formatda chiqarish uchun
-                    addActionButtons(loadingId, `Ziyomap AI tomonidan chizilgan rasm so'rovi: ${text}. Rasm manzili: ${rasmUrl}`);
-                    return; // Gemini-ga so'rov yuborishni to'xtatamiz
-                } catch (err) {
-                    updateAiMessage(loadingId, "Rasm chizishda xatolik yuz berdi.");
-                    return;
-                }
-            }
-
-            // Normal matn yoki faylli xabarlar uchun Gemini API backendga yuborish
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
@@ -1141,10 +1078,8 @@ window.addEventListener('click', (e) => {
                 });
                 const data = await response.json();
                 const aiReply = data.reply || "Javob olinmadi.";
-                
-                updateAiMessage(loadingId, aiReply, false);
-                addActionButtons(loadingId, aiReply);
-                
+                updateAiMessage(loadingId, aiReply);
+                addDownloadBtn(loadingId, aiReply);
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
                 chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
             } catch (error) {
@@ -1153,170 +1088,56 @@ window.addEventListener('click', (e) => {
         }
 
         function appendAiMessage(sender, text) {
-            const id = Date.now() + Math.random().toString(36).substr(2, 9);
+            const id = Date.now();
             const msgDiv = document.createElement('div');
             msgDiv.id = id;
-            msgDiv.style.padding = '12px 15px';
+            msgDiv.style.padding = '10px';
             msgDiv.style.borderRadius = '15px';
-            msgDiv.style.maxWidth = '85%';
-            msgDiv.style.marginBottom = '8px';
-            msgDiv.style.display = 'flex';
-            msgDiv.style.flexDirection = 'column';
-            msgDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)';
-
+            msgDiv.style.maxWidth = '80%';
+            msgDiv.style.marginBottom = '5px';
             if (sender === 'user') {
                 msgDiv.style.alignSelf = 'flex-end';
                 msgDiv.style.background = 'var(--primary-color)';
                 msgDiv.style.color = 'white';
                 msgDiv.style.borderRadius = '15px 15px 0 15px';
-                msgDiv.innerHTML = `<div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
             } else {
                 msgDiv.style.alignSelf = 'flex-start';
                 msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
                 msgDiv.style.color = 'var(--text-color)';
                 msgDiv.style.borderRadius = '15px 15px 15px 0';
-                msgDiv.innerHTML = `<div class="message-content">${text}</div>`;
             }
-            
+            msgDiv.innerText = text;
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             return id;
         }
 
-        function updateAiMessage(id, text, isHTML = false) {
+        function updateAiMessage(id, text) {
             const el = document.getElementById(id);
-            if(el) {
-                const contentDiv = el.querySelector('.message-content');
-                if (contentDiv) {
-                    if (isHTML) {
-                        contentDiv.innerHTML = text;
-                    } else {
-                        if (typeof marked !== 'undefined' && text !== 'Ziyomap AI tahlil qilmoqda...') {
-                            contentDiv.innerHTML = marked.parse(text);
-                        } else {
-                            contentDiv.innerHTML = text.replace(/\n/g, '<br>');
-                        }
-                    }
-                }
-            }
+            if(el) el.innerText = text;
         }
 
-        // 1-FUNKSIYA: MIKROFON ORQALI OVOZ YOZISH MANTIQLARI
-        const micBtnAi = document.getElementById('micBtnAi');
-        const micIcon = document.getElementById('micIcon');
-
-        if(micBtnAi) {
-            micBtnAi.onclick = async () => {
-                if (!isRecording) {
-                    // Ovoz yozishni boshlash
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                        mediaRecorder = new MediaRecorder(stream);
-                        audioChunks = [];
-                        
-                        mediaRecorder.ondataavailable = (event) => { audioChunks.push(event.data); };
-                        
-                        mediaRecorder.onstop = async () => {
-                            const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                            const reader = new FileReader();
-                            reader.readAsDataURL(audioBlob);
-                            reader.onloadend = () => {
-                                // Ovozni Base64 formatga o'tkazib, global o'zgaruvchilarga yuklaymiz
-                                currentFileBase64 = reader.result.split(',')[1];
-                                currentFileType = 'audio/mp3';
-                                userInputAi.value = "🎙 Ovozli xabar yozildi (Tahlil qilish uchun jo'natish tugmasini bosing)";
-                            };
-                        };
-
-                        mediaRecorder.start();
-                        isRecording = true;
-                        micBtnAi.style.background = '#ef4444';
-                        micBtnAi.style.borderColor = '#ef4444';
-                        micIcon.style.color = 'white';
-                        micIcon.className = "fas fa-stop"; // Ikonkani "To'xtatish" ga o'zgartiramiz
-                    } catch (err) {
-                        alert("Mikrofonga ruxsat berilmadi yoki xatolik yuz berdi.");
-                    }
-                } else {
-                    // Ovoz yozishni to'xtatish
-                    mediaRecorder.stop();
-                    // Mikrofonga ulangan strimlarni o'chirish (batareya va xavfsizlik uchun)
-                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                    isRecording = false;
-                    micBtnAi.style.background = 'transparent';
-                    micBtnAi.style.borderColor = 'var(--primary-color)';
-                    micIcon.style.color = 'var(--primary-color)';
-                    micIcon.className = "fas fa-microphone";
-                }
-            };
-        }
-
-        // 5-FUNKSIYA: CHATNI TOZALASH MANTIQLARI
-        const clearChatBtn = document.getElementById('clearChatBtn');
-        if(clearChatBtn) {
-            clearChatBtn.onclick = () => {
-                if(confirm("Haqiqatan ham barcha suhbat tarixini tozalamoqchimisiz?")) {
-                    chatMessages.innerHTML = ''; // Ekranni tozalash
-                    chatHistory = []; // Chat tarixini massivdan ham o'chirish
-                    appendAiMessage('ai', 'Suhbat yangilandi. Ziyomap AI sizga barcha fanlardan yordam berishga tayyor! 😊');
-                }
-            };
-        }
-
-        // NUSXALASH VA SAQLASH TUGMALARI
-        function addActionButtons(msgId, content) {
+        function addDownloadBtn(msgId, content) {
             const msgDiv = document.getElementById(msgId);
-            if (!msgDiv) return;
-
-            const btnContainer = document.createElement('div');
-            btnContainer.style.display = 'flex';
-            btnContainer.style.gap = '8px';
-            btnContainer.style.marginTop = '10px';
-            btnContainer.style.flexWrap = 'wrap';
-
-            const copyBtn = document.createElement('button');
-            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Nusxalash';
-            copyBtn.style = "padding: 5px 10px; font-size: 0.75rem; font-weight:600; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.2s;";
-            copyBtn.onclick = () => {
-                const contentDiv = msgDiv.querySelector('.message-content');
-                const cleanText = contentDiv ? contentDiv.innerText : content;
-                navigator.clipboard.writeText(cleanText).then(() => {
-                    const originalHTML = copyBtn.innerHTML;
-                    copyBtn.innerHTML = `<i class="fas fa-check"></i> Nusxalandi!`;
-                    copyBtn.style.background = "#10b981";
-                    copyBtn.style.color = "white";
-                    copyBtn.style.borderColor = "#10b981";
-                    setTimeout(() => {
-                        copyBtn.innerHTML = originalHTML;
-                        copyBtn.style.background = "transparent";
-                        copyBtn.style.color = "var(--primary-color)";
-                        copyBtn.style.borderColor = "var(--primary-color)";
-                    }, 2000);
-                });
-            };
-
-            const downloadBtn = document.createElement('button');
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Saqlash';
-            downloadBtn.style = "padding: 5px 10px; font-size: 0.75rem; font-weight:600; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.2s;";
-            downloadBtn.onclick = () => {
-                const contentDiv = msgDiv.querySelector('.message-content');
-                const cleanText = contentDiv ? contentDiv.innerText : content;
-                const blob = new Blob([cleanText], { type: 'text/plain' });
+            const btn = document.createElement('button');
+            btn.innerHTML = '<i class="fas fa-download"></i> Saqlash';
+            btn.style = "display: block; margin-top: 10px; padding: 5px 8px; font-size: 0.7rem; cursor: pointer; border-radius: 5px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.3s;";
+            btn.onmouseover = () => { btn.style.background = "var(--primary-color)"; btn.style.color = "white"; };
+            btn.onmouseout = () => { btn.style.background = "transparent"; btn.style.color = "var(--primary-color)"; };
+            btn.onclick = () => {
+                const blob = new Blob([content], { type: 'text/plain' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `Ziyomap_Javob_${msgId}.txt`;
                 link.click();
             };
-
-            btnContainer.appendChild(copyBtn);
-            btnContainer.appendChild(downloadBtn);
-            msgDiv.appendChild(btnContainer);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            msgDiv.appendChild(btn);
         }
 
         sendBtnAi.addEventListener('click', sendAiMessage);
         userInputAi.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAiMessage(); });
-</script> <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    </script>
+
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script src="labs/mexanika.js"></script>
