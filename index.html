@@ -22,6 +22,9 @@
 </script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -355,6 +358,45 @@
         position: fixed !important;  /* Ekran joyida qulflanishi uchun */
     }
 }
+
+/* ======================================================= */
+/* CHAT ICHIDAGI MARKDOWN VA NUSXALASH TUGMASI STILI SHU YERDA: */
+/* ======================================================= */
+.message-content h1, .message-content h2, .message-content h3 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+.message-content ul, .message-content ol {
+    padding-left: 20px;
+    margin: 5px 0;
+}
+.message-content p {
+    margin: 5px 0;
+}
+
+/* Nusxalash tugmasi stili */
+.copy-btn {
+    background: rgba(59, 130, 246, 0.1);
+    border: none;
+    color: var(--primary-color);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    transition: all 0.2s;
+}
+.copy-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+/* ======================================================= */
+/* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
+/* ======================================================= */
     </style>
 </head>
 <body>
@@ -1062,15 +1104,24 @@ window.addEventListener('click', (e) => {
             fileInput.value = '';
         }
 
+        // =======================================================
+        // ZIYOMAP AI CHAT MANTIQLARI (MARKDOWN VA TUGMALAR BILAN)
+        // =======================================================
         async function sendAiMessage() {
             const text = userInputAi.value.trim();
             if (!text && !currentFileBase64) return;
+            
+            // Foydalanuvchi xabarini ekranga chiqarish
             appendAiMessage('user', text + (currentFileBase64 ? " [Fayl yuborildi]" : ""));
+            
             const imageToSend = currentFileBase64;
             const typeToSend = currentFileType;
             userInputAi.value = '';
             cancelImage();
+            
+            // AI yuklanish holati xabarini chiqarish
             const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
+            
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
@@ -1084,8 +1135,12 @@ window.addEventListener('click', (e) => {
                 });
                 const data = await response.json();
                 const aiReply = data.reply || "Javob olinmadi.";
+                
+                // Xabarni yangilash va unga interaktiv tugmalarni uylash
                 updateAiMessage(loadingId, aiReply);
-                addDownloadBtn(loadingId, aiReply);
+                addActionButtons(loadingId, aiReply);
+                
+                // Tarixga qo'shish
                 chatHistory.push({ role: "user", parts: [{ text: text }] });
                 chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
             } catch (error) {
@@ -1097,22 +1152,38 @@ window.addEventListener('click', (e) => {
             const id = Date.now();
             const msgDiv = document.createElement('div');
             msgDiv.id = id;
-            msgDiv.style.padding = '10px';
+            msgDiv.style.padding = '12px 15px';
             msgDiv.style.borderRadius = '15px';
-            msgDiv.style.maxWidth = '80%';
-            msgDiv.style.marginBottom = '5px';
+            msgDiv.style.maxWidth = '85%';
+            msgDiv.style.marginBottom = '8px';
+            msgDiv.style.display = 'flex';
+            msgDiv.style.flexDirection = 'column';
+            msgDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)';
+
             if (sender === 'user') {
                 msgDiv.style.alignSelf = 'flex-end';
                 msgDiv.style.background = 'var(--primary-color)';
                 msgDiv.style.color = 'white';
                 msgDiv.style.borderRadius = '15px 15px 0 15px';
+                
+                // Oddiy matn ko'rinishida chiqarish
+                msgDiv.innerHTML = `<div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
             } else {
                 msgDiv.style.alignSelf = 'flex-start';
                 msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
                 msgDiv.style.color = 'var(--text-color)';
                 msgDiv.style.borderRadius = '15px 15px 15px 0';
+                
+                // AI xabari bo'lsa, marked.js orqali chiroyli formatda chiqarish
+                let formattedText = text;
+                if (typeof marked !== 'undefined' && text !== 'Ziyomap AI tahlil qilmoqda...') {
+                    formattedText = marked.parse(text);
+                } else {
+                    formattedText = text.replace(/\n/g, '<br>');
+                }
+                msgDiv.innerHTML = `<div class="message-content">${formattedText}</div>`;
             }
-            msgDiv.innerText = text;
+            
             chatMessages.appendChild(msgDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
             return id;
@@ -1120,30 +1191,83 @@ window.addEventListener('click', (e) => {
 
         function updateAiMessage(id, text) {
             const el = document.getElementById(id);
-            if(el) el.innerText = text;
+            if(el) {
+                const contentDiv = el.querySelector('.message-content');
+                if (contentDiv) {
+                    // Javob kelganda uni to'liq Markdown tahlilidan o'tkazamiz
+                    if (typeof marked !== 'undefined') {
+                        contentDiv.innerHTML = marked.parse(text);
+                    } else {
+                        contentDiv.innerHTML = text.replace(/\n/g, '<br>');
+                    }
+                }
+            }
         }
 
-        function addDownloadBtn(msgId, content) {
+        // NUSXALASH VA SAQLASH TUGMALARINI STRUKTURAVIY BASHQARISH
+        function addActionButtons(msgId, content) {
             const msgDiv = document.getElementById(msgId);
-            const btn = document.createElement('button');
-            btn.innerHTML = '<i class="fas fa-download"></i> Saqlash';
-            btn.style = "display: block; margin-top: 10px; padding: 5px 8px; font-size: 0.7rem; cursor: pointer; border-radius: 5px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.3s;";
-            btn.onmouseover = () => { btn.style.background = "var(--primary-color)"; btn.style.color = "white"; };
-            btn.onmouseout = () => { btn.style.background = "transparent"; btn.style.color = "var(--primary-color)"; };
-            btn.onclick = () => {
-                const blob = new Blob([content], { type: 'text/plain' });
+            if (!msgDiv) return;
+
+            // Tugmalar uchun maxsus konteyner (yonma-yon turishi uchun)
+            const btnContainer = document.createElement('div');
+            btnContainer.style.display = 'flex';
+            btnContainer.style.gap = '8px';
+            btnContainer.style.marginTop = '10px';
+            btnContainer.style.flexWrap = 'wrap';
+
+            // 1. NUSXALASH TUGMASI
+            const copyBtn = document.createElement('button');
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Nusxalash';
+            copyBtn.style = "padding: 5px 10px; font-size: 0.75rem; font-weight:600; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.2s;";
+            copyBtn.onclick = () => {
+                const contentDiv = msgDiv.querySelector('.message-content');
+                const cleanText = contentDiv ? contentDiv.innerText : content;
+                navigator.clipboard.writeText(cleanText).then(() => {
+                    const originalHTML = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `<i class="fas fa-check"></i> Nusxalandi!`;
+                    copyBtn.style.background = "#10b981";
+                    copyBtn.style.color = "white";
+                    copyBtn.style.borderColor = "#10b981";
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHTML;
+                        copyBtn.style.background = "transparent";
+                        copyBtn.style.color = "var(--primary-color)";
+                        copyBtn.style.borderColor = "var(--primary-color)";
+                    }, 2000);
+                });
+            };
+
+            // 2. TXT FORMATDA SAQLASH TUGMASI
+            const downloadBtn = document.createElement('button');
+            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Saqlash';
+            downloadBtn.style = "padding: 5px 10px; font-size: 0.75rem; font-weight:600; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.2s;";
+            
+            downloadBtn.onmouseover = () => { if(downloadBtn.style.background !== "var(--primary-color)") { downloadBtn.style.background = "rgba(37, 99, 235, 0.05)"; } };
+            downloadBtn.onmouseout = () => { if(downloadBtn.style.background !== "var(--primary-color)") { downloadBtn.style.background = "transparent"; } };
+            
+            downloadBtn.onclick = () => {
+                const contentDiv = msgDiv.querySelector('.message-content');
+                const cleanText = contentDiv ? contentDiv.innerText : content;
+                const blob = new Blob([cleanText], { type: 'text/plain' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `Ziyomap_Javob_${msgId}.txt`;
                 link.click();
             };
-            msgDiv.appendChild(btn);
+
+            btnContainer.appendChild(copyBtn);
+            btnContainer.appendChild(downloadBtn);
+            msgDiv.appendChild(btnContainer);
+            
+            // Skrolni eng pastga tushirish
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         sendBtnAi.addEventListener('click', sendAiMessage);
         userInputAi.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAiMessage(); });
-    </script>
-
+        // =======================================================
+<script>
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script src="labs/mexanika.js"></script>
