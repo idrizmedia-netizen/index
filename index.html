@@ -173,22 +173,49 @@
             .nav-menu.active { left: 0; }
         }
 
-        .profile-dropdown {
+     .profile-dropdown {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        #login-btn {
+        /* ======================================================= */
+        /* YANGI IXCHAM PROFIL TUGMASI KODLARI SHU YERGA QO'YILDI:  */
+        /* ======================================================= */
+        .user-profile-btn {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white !important;
-            padding: 10px 25px;
-            border-radius: 25px;
-            border: none;
+            height: 38px; /* Balandlikni qat'iy 38px qilib qulflaymiz (paneldan chiqmasligi uchun) */
+            padding: 0 14px 0 4px; /* Ichki bo'shliqlarni ixchamlashtirdik */
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            font-size: 13px; /* Shriftni biroz kichraytirdik */
+            font-weight: 600;
+            display: inline-flex; /* To'g'ri tekislash uchun */
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+            transition: all 0.3s ease;
             white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .user-profile-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Tugma ichidagi dumaloq rasmcha */
+        .btn-avatar {
+            width: 28px; /* Ixcham o'lcham */
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid white;
+            background-color: #fff;
+            display: block;
         }
 
         /* Buni <style> ichiga, eng oxiriga qo'shing */
@@ -633,7 +660,7 @@ if (logoutBtn) {
     };
 }
 
-// 6. YANGILANGAN: Foydalanuvchi holatini real vaqtda kuzatish
+// 6. Foydalanuvchi holatini real vaqtda kuzatish (Ixcham tugma dizayni bilan)
 onAuthStateChanged(auth, (user) => {
     const btnAvatar = document.getElementById('btn-user-avatar');
     const btnName = document.getElementById('btn-user-name');
@@ -644,10 +671,13 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
         localStorage.setItem('user', JSON.stringify(user));
         
-        // Yangi tugma ichidagi elementlarni Google ma'lumotlari bilan yangilash
+        // Kirganda: Tugma dizaynini saqlagan holda ichidagi ma'lumotlarni o'zgartiramiz
         if (btnAvatar) btnAvatar.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
         if (btnName) btnName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Profil';
         
+        // Tugma foni kirgandan keyin chiroyli yashil (emerald) tusga kiradi
+        if (loginBtn) loginBtn.style.background = "#10b981";
+
         // Dropdown (menyu) ichini yangilash
         if (userPhoto) userPhoto.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
         if (userName) userName.innerText = user.displayName || 'Foydalanuvchi';
@@ -666,9 +696,12 @@ onAuthStateChanged(auth, (user) => {
     } else {
         localStorage.removeItem('user');
         
-        // Chiqqanda tugmani eski holatiga (standart odamcha rasmi va "Kirish" yozuviga) qaytarish
+        // Chiqqanda: Standart holatga qaytarish
         if (btnAvatar) btnAvatar.src = 'https://www.w3schools.com/howto/img_avatar.png';
         if (btnName) btnName.innerText = 'Kirish';
+        
+        // Tugma fonini yana eski ko'k gradient holatiga qaytaramosiz
+        if (loginBtn) loginBtn.style.background = "linear-gradient(135deg, var(--primary-color), var(--secondary-color))";
         
         // Menyu ichini tozalash
         if (userPhoto) userPhoto.src = '';
