@@ -22,6 +22,9 @@
 </script>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         :root {
             --primary-color: #2563eb;
@@ -340,15 +343,60 @@
         }
 
         /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
-        @media (max-width: 600px) {
-            #chat-window.full-screen {
-                width: 100vw !important;
-                height: 100vh !important;
-                bottom: 0 !important;
-                right: 0 !important;
-                border-radius: 0 !important;
-            }
-        }
+@media (max-width: 600px) {
+    #chat-window.full-screen {
+        width: 100% !important;      /* vw o'rniga % ishlatamiz (skroll barlarga urilmasligi uchun) */
+        height: 100% !important;     /* vh o'rniga % mobil brauzer panellarini hisobga oladi */
+        top: 0 !important;           /* Oynani tepadan boshlaymiz */
+        left: 0 !important;          /* Chap tomondan to'liq yopishtiramiz */
+        bottom: 0 !important;        /* Pastki bo'shliqni nol qilamiz */
+        right: 0 !important;         /* O'ng bo'shliqni nol qilamiz */
+        margin: 0 !important;        /* Har qanday ortiqcha surilishlarni o'chiramiz */
+        border-radius: 0 !important; /* Burchaklarni to'liq tekis qilamiz */
+        max-width: 100% !important;  /* Maksimal kenglik cheklovini yechamiz */
+        max-height: 100% !important; /* Maksimal balandlik cheklovini yechamiz */
+        position: fixed !important;  /* Ekran joyida qulflanishi uchun */
+    }
+}
+
+/* ======================================================= */
+/* CHAT ICHIDAGI MARKDOWN VA NUSXALASH TUGMASI STILI SHU YERDA: */
+/* ======================================================= */
+.message-content h1, .message-content h2, .message-content h3 {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+.message-content ul, .message-content ol {
+    padding-left: 20px;
+    margin: 5px 0;
+}
+.message-content p {
+    margin: 5px 0;
+}
+
+/* Nusxalash tugmasi stili */
+.copy-btn {
+    background: rgba(59, 130, 246, 0.1);
+    border: none;
+    color: var(--primary-color);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    transition: all 0.2s;
+}
+.copy-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+/* ======================================================= */
+/* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
+/* ======================================================= */
     </style>
 </head>
 <body>
@@ -1029,13 +1077,13 @@ window.addEventListener('click', (e) => {
         }
 
         // =======================================================
-        // ZIYOMAP AI CHAT MANTIQLARI (MARKDOWN VA TUGMALAR BILAN)
+        // ZIYOMAP AI CHAT MANTIQLARI (XATOSIZ TO'LIQ VARIANT)
         // =======================================================
         async function sendAiMessage() {
             const text = userInputAi.value.trim();
             if (!text && !currentFileBase64) return;
             
-            // Foydalanuvchi xabarini ekranga chiqarish
+            // Foydalanuvchi xabarini alohida chiqarish ('user' sifatida)
             appendAiMessage('user', text + (currentFileBase64 ? " [Fayl yuborildi]" : ""));
             
             const imageToSend = currentFileBase64;
@@ -1043,7 +1091,7 @@ window.addEventListener('click', (e) => {
             userInputAi.value = '';
             cancelImage();
             
-            // AI yuklanish holati xabarini chiqarish
+            // AI xabari uchun mutlaqo yangi va alohida blok ochamiz (loadingId)
             const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
             
             try {
@@ -1060,7 +1108,7 @@ window.addEventListener('click', (e) => {
                 const data = await response.json();
                 const aiReply = data.reply || "Javob olinmadi.";
                 
-                // Xabarni yangilash va unga interaktiv tugmalarni uylash
+                // Faqat o'sha ochilgan AI blokini yangilaymiz
                 updateAiMessage(loadingId, aiReply);
                 addActionButtons(loadingId, aiReply);
                 
@@ -1073,7 +1121,7 @@ window.addEventListener('click', (e) => {
         }
 
         function appendAiMessage(sender, text) {
-            const id = Date.now();
+            const id = Date.now() + Math.random().toString(36).substr(2, 9); // Unikal ID yaratish
             const msgDiv = document.createElement('div');
             msgDiv.id = id;
             msgDiv.style.padding = '12px 15px';
@@ -1090,22 +1138,22 @@ window.addEventListener('click', (e) => {
                 msgDiv.style.color = 'white';
                 msgDiv.style.borderRadius = '15px 15px 0 15px';
                 
-                // Oddiy matn ko'rinishida chiqarish
-                msgDiv.innerHTML = `<div class="message-content">${text.replace(/\n/g, '<br>')}</div>`;
+                // Foydalanuvchi bloki ichiga klass beramiz
+                msgDiv.innerHTML = `<div class="message-content user-text">${text.replace(/\n/g, '<br>')}</div>`;
             } else {
                 msgDiv.style.alignSelf = 'flex-start';
                 msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
                 msgDiv.style.color = 'var(--text-color)';
                 msgDiv.style.borderRadius = '15px 15px 15px 0';
                 
-                // AI xabari bo'lsa, marked.js orqali chiroyli formatda chiqarish
+                // AI bloki ichiga alohida klass beramiz
                 let formattedText = text;
                 if (typeof marked !== 'undefined' && text !== 'Ziyomap AI tahlil qilmoqda...') {
                     formattedText = marked.parse(text);
                 } else {
                     formattedText = text.replace(/\n/g, '<br>');
                 }
-                msgDiv.innerHTML = `<div class="message-content">${formattedText}</div>`;
+                msgDiv.innerHTML = `<div class="message-content ai-text">${formattedText}</div>`;
             }
             
             chatMessages.appendChild(msgDiv);
@@ -1116,9 +1164,9 @@ window.addEventListener('click', (e) => {
         function updateAiMessage(id, text) {
             const el = document.getElementById(id);
             if(el) {
+                // Aynan shu ID ga tegishli AI matn blokini topamiz
                 const contentDiv = el.querySelector('.message-content');
                 if (contentDiv) {
-                    // Javob kelganda uni to'liq Markdown tahlilidan o'tkazamiz
                     if (typeof marked !== 'undefined') {
                         contentDiv.innerHTML = marked.parse(text);
                     } else {
