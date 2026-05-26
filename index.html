@@ -339,16 +339,22 @@
             max-width: none !important;
         }
 
-        /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
-        @media (max-width: 600px) {
-            #chat-window.full-screen {
-                width: 100vw !important;
-                height: 100vh !important;
-                bottom: 0 !important;
-                right: 0 !important;
-                border-radius: 0 !important;
-            }
-        }
+       /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
+@media (max-width: 600px) {
+    #chat-window.full-screen {
+        width: 100% !important;      /* vw o'rniga % ishlatamiz (skroll barlarga urilmasligi uchun) */
+        height: 100% !important;     /* vh o'rniga % mobil brauzer panellarini hisobga oladi */
+        top: 0 !important;           /* Oynani tepadan boshlaymiz */
+        left: 0 !important;          /* Chap tomondan to'liq yopishtiramiz */
+        bottom: 0 !important;        /* Pastki bo'shliqni nol qilamiz */
+        right: 0 !important;         /* O'ng bo'shliqni nol qilamiz */
+        margin: 0 !important;        /* Har qanday ortiqcha surilishlarni o'chiramiz */
+        border-radius: 0 !important; /* Burchaklarni to'liq tekis qilamiz */
+        max-width: 100% !important;  /* Maksimal kenglik cheklovini yechamiz */
+        max-height: 100% !important; /* Maksimal balandlik cheklovini yechamiz */
+        position: fixed !important;  /* Ekran joyida qulflanishi uchun */
+    }
+}
     </style>
 </head>
 <body>
