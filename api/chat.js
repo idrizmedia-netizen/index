@@ -15,11 +15,11 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Ziyomap AI uchun eng optimal model
+        // 1-O'ZGARISH QILINMADI: Sizning xohishingizga ko'ra model nomi aynan o'z holaticha qoldirildi
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`;
         
-        // 1. Chat tarixini shakllantiramiz (agar bo'sh bo'lsa, yangi massiv)
-        let contents = history || [];
+        // 2-O'ZGARISH BAJARILDI: Chat tarixini xavfsiz klonlash (nusxalash) mantiqi qo'yildi
+        let contents = history ? [...history] : [];
 
         // 2. Yangi xabar uchun qismlarni (parts) tayyorlaymiz
         let newParts = [];
@@ -49,18 +49,27 @@ export default async function handler(req, res) {
             parts: newParts
         });
 
+        // 3-O'ZGARISH BAJARILDI: Tizim ko'rsatmasi (System Instruction) qo'shildi. 
+        // AI barcha fanlardan (Fizika, Matematika, Tarix, Kimyo va b.) mukammal javob berishi belgilandi.
+        const requestBody = {
+            contents: contents, // Barcha tarix yuboriladi
+            systemInstruction: {
+                parts: [{
+                    text: "Siz Ziyomap sun'iy intellektisiz. Foydalanuvchilarga, ayniqsa o'qituvchi va o'quvchilarga istalgan fan bo'yicha (fizika, matematika, kimyo, biologiya, tarix, ona tili, adabiyot, ingliz tili va barcha boshqa fanlar) dars konspektlari, masalalar yechimi, metodik tavsiyalar va savollarga aniq, to'g'ri va mukammal javob berasiz. Javoblaringizda doimo o'zbek tili qoidalari va chiroyli Markdown formatlash elementlaridan (sarlavhalar, jadvallar, ro'yxatlar, qalin matnlar) keng foydalaning."
+                }]
+            },
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.95,
+                topK: 40,
+                maxOutputTokens: 2048,
+            }
+        };
+
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: contents, // Barcha tarix yuboriladi
-                generationConfig: {
-                    temperature: 0.7,
-                    topP: 0.95,
-                    topK: 40,
-                    maxOutputTokens: 2048,
-                }
-            })
+            body: JSON.stringify(requestBody) // So'rov tanasi tizim ko'rsatmasi bilan birga yuboriladi
         });
 
         const data = await response.json();
