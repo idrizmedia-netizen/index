@@ -397,9 +397,10 @@
 /* ======================================================= */
 /* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
 /* ======================================================= */
-        .draggable-icon {
+/* SUZUVCHI TUGMALAR STYLE */
+.draggable-icon {
     position: fixed;
-    z-index: 1000;
+    z-index: 9999;
     cursor: move;
     width: 50px;
     height: 50px;
@@ -411,6 +412,7 @@
     justify-content: center;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     user-select: none;
+    transition: transform 0.2s;
 }
     </style>
 
@@ -1446,6 +1448,33 @@ document.addEventListener("DOMContentLoaded", () => {
     startZiyoClock();
     startZiyoQuotes();
 });
+    // SUZUVCHI TUGMALAR MANTIQI
+function makeDraggable(el) {
+    el.onmousedown = function(event) {
+        let shiftX = event.clientX - el.getBoundingClientRect().left;
+        let shiftY = event.clientY - el.getBoundingClientRect().top;
+        function moveAt(pageX, pageY) {
+            el.style.left = pageX - shiftX + 'px';
+            el.style.top = pageY - shiftY + 'px';
+            el.style.right = 'auto'; el.style.bottom = 'auto';
+        }
+        function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
+        document.addEventListener('mousemove', onMouseMove);
+        el.onmouseup = function() { document.removeEventListener('mousemove', onMouseMove); };
+    };
+    el.ondragstart = () => false;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    makeDraggable(document.getElementById('ai-bot'));
+    makeDraggable(document.getElementById('whiteboard-icon'));
+});
 </script>
+    <div id="ai-bot" class="draggable-icon" style="bottom: 20px; right: 20px;">
+    <i class="fas fa-robot"></i>
+</div>
+<div id="whiteboard-icon" class="draggable-icon" style="bottom: 90px; right: 20px; background: #f59e0b;">
+    <i class="fas fa-pencil-alt"></i>
+</div>
 </body>
 </html>
