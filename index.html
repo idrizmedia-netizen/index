@@ -397,13 +397,7 @@
 /* ======================================================= */
 /* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
 /* ======================================================= */
-/* Robot va Qalamcha tugmalari uchun */
-#ai-bot, #whiteboard-icon {
-    position: fixed !important; 
-    z-index: 9999 !important;
-    cursor: move; 
-    transition: none; 
-}
+
 
     </style>
 
@@ -1439,33 +1433,7 @@ document.addEventListener("DOMContentLoaded", () => {
     startZiyoClock();
     startZiyoQuotes();
 });
-// Mavjud tugmalarni suzuvchi qilish funksiyasi
-function makeExistingDraggable(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
 
-    el.onmousedown = function(event) {
-        let shiftX = event.clientX - el.getBoundingClientRect().left;
-        let shiftY = event.clientY - el.getBoundingClientRect().top;
-        
-        function moveAt(pageX, pageY) {
-            el.style.left = pageX - shiftX + 'px';
-            el.style.top = pageY - shiftY + 'px';
-            el.style.right = 'auto';
-            el.style.bottom = 'auto';
-        }
-        function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
-        document.addEventListener('mousemove', onMouseMove);
-        el.onmouseup = function() { document.removeEventListener('mousemove', onMouseMove); };
-    };
-    el.ondragstart = () => false;
-}
-
-// Sahifa yuklanganda mavjud tugmalarni "suzuvchi" qilamiz
-document.addEventListener("DOMContentLoaded", () => {
-    makeExistingDraggable('ai-bot');
-    makeExistingDraggable('whiteboard-icon');
-});
 </script>
 </body>
 </html>
