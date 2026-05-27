@@ -1179,27 +1179,22 @@ window.addEventListener('click', (e) => {
             return id;
         }
 
-        function updateAiMessage(id, text, isHTML = false) {
+       function updateAiMessage(id, text, isHTML = false) {
     const el = document.getElementById(id);
     if(el) {
         const contentDiv = el.querySelector('.message-content');
         if (contentDiv) {
-            if (isHTML) {
-                contentDiv.innerHTML = text;
-            } else {
-                // Markdown va formulalarni to'g'irlash
-                let formatted = (typeof marked !== 'undefined') ? marked.parse(text) : text.replace(/\n/g, '<br>');
-                contentDiv.innerHTML = formatted;
-                
-                // MATHJAXNI MAJBURAN ISHLATISH
-                if (window.MathJax) {
-                    MathJax.typesetPromise([contentDiv]).catch(err => console.log(err));
-                }
+            // Markdownni tahlil qilish
+            const formatted = (typeof marked !== 'undefined') ? marked.parse(text) : text.replace(/\n/g, '<br>');
+            contentDiv.innerHTML = formatted;
+
+            // MATHJAXNI MAJBURAN ISHLATISH
+            if (window.MathJax) {
+                MathJax.typesetPromise([contentDiv]).catch(err => console.log(err));
             }
         }
     }
 }
-
         // NUSXALASH VA SAQLASH TUGMALARINI STRUKTURAVIY BASHQARISH
         function addActionButtons(msgId, content) {
             const msgDiv = document.getElementById(msgId);
