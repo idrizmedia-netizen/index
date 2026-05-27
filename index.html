@@ -397,6 +397,21 @@
 /* ======================================================= */
 /* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
 /* ======================================================= */
+        .draggable-icon {
+    position: fixed;
+    z-index: 1000;
+    cursor: move;
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    user-select: none;
+}
     </style>
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -1164,20 +1179,26 @@ window.addEventListener('click', (e) => {
             return id;
         }
 
-        function updateAiMessage(id, text) {
-            const el = document.getElementById(id);
-            if(el) {
-                // Aynan shu ID ga tegishli AI matn blokini topamiz
-                const contentDiv = el.querySelector('.message-content');
-                if (contentDiv) {
-                    if (typeof marked !== 'undefined') {
-                        contentDiv.innerHTML = marked.parse(text);
-                    } else {
-                        contentDiv.innerHTML = text.replace(/\n/g, '<br>');
-                    }
+        function updateAiMessage(id, text, isHTML = false) {
+    const el = document.getElementById(id);
+    if(el) {
+        const contentDiv = el.querySelector('.message-content');
+        if (contentDiv) {
+            if (isHTML) {
+                contentDiv.innerHTML = text;
+            } else {
+                // Markdown va formulalarni to'g'irlash
+                let formatted = (typeof marked !== 'undefined') ? marked.parse(text) : text.replace(/\n/g, '<br>');
+                contentDiv.innerHTML = formatted;
+                
+                // MATHJAXNI MAJBURAN ISHLATISH
+                if (window.MathJax) {
+                    MathJax.typesetPromise([contentDiv]).catch(err => console.log(err));
                 }
             }
         }
+    }
+}
 
         // NUSXALASH VA SAQLASH TUGMALARINI STRUKTURAVIY BASHQARISH
         function addActionButtons(msgId, content) {
