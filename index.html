@@ -397,23 +397,14 @@
 /* ======================================================= */
 /* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
 /* ======================================================= */
-/* SUZUVCHI TUGMALAR STYLE */
-.draggable-icon {
-    position: fixed;
-    z-index: 9999;
-    cursor: move;
-    width: 50px;
-    height: 50px;
-    background: var(--primary-color);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    user-select: none;
-    transition: transform 0.2s;
+/* Robot va Qalamcha tugmalari uchun */
+#ai-bot, #whiteboard-icon {
+    position: fixed !important; 
+    z-index: 9999 !important;
+    cursor: move; 
+    transition: none; 
 }
+
     </style>
 
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
@@ -1448,15 +1439,20 @@ document.addEventListener("DOMContentLoaded", () => {
     startZiyoClock();
     startZiyoQuotes();
 });
-    // SUZUVCHI TUGMALAR MANTIQI
-function makeDraggable(el) {
+// Mavjud tugmalarni suzuvchi qilish funksiyasi
+function makeExistingDraggable(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+
     el.onmousedown = function(event) {
         let shiftX = event.clientX - el.getBoundingClientRect().left;
         let shiftY = event.clientY - el.getBoundingClientRect().top;
+        
         function moveAt(pageX, pageY) {
             el.style.left = pageX - shiftX + 'px';
             el.style.top = pageY - shiftY + 'px';
-            el.style.right = 'auto'; el.style.bottom = 'auto';
+            el.style.right = 'auto';
+            el.style.bottom = 'auto';
         }
         function onMouseMove(event) { moveAt(event.pageX, event.pageY); }
         document.addEventListener('mousemove', onMouseMove);
@@ -1465,16 +1461,11 @@ function makeDraggable(el) {
     el.ondragstart = () => false;
 }
 
+// Sahifa yuklanganda mavjud tugmalarni "suzuvchi" qilamiz
 document.addEventListener("DOMContentLoaded", () => {
-    makeDraggable(document.getElementById('ai-bot'));
-    makeDraggable(document.getElementById('whiteboard-icon'));
+    makeExistingDraggable('ai-bot');
+    makeExistingDraggable('whiteboard-icon');
 });
 </script>
-    <div id="ai-bot" class="draggable-icon" style="bottom: 20px; right: 20px;">
-    <i class="fas fa-robot"></i>
-</div>
-<div id="whiteboard-icon" class="draggable-icon" style="bottom: 90px; right: 20px; background: #f59e0b;">
-    <i class="fas fa-pencil-alt"></i>
-</div>
 </body>
 </html>
