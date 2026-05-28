@@ -1,34 +1,13 @@
 /**
  * ============================================================
- *  ZIYOMAP GAMES — SAVOLLAR FAYLI
- *  Faqat shu faylni tahrirlang, o'yin kodlariga tegmang!
- * ============================================================
- *
- *  TUZILISH:
- *  - QUIZ_QUESTIONS   → quiz.html uchun (4 variantli test)
- *  - FLASHCARD_CARDS  → flashcard.html uchun (savol-javob kartalari)
- *  - TEZKOR_QUESTIONS → tezkor.html uchun (tez javob)
- *  - PUZZLE_WORDS     → puzzle.html uchun (so'z topish)
- *  - MEMORY_PAIRS     → memory.html uchun (juft topish)
- *
- *  HAR BIR FAN UCHUN ALOHIDA BO'LIM BOR:
- *  fizika | matematika | informatika | biologiya | kimyo | tarix | ingliz | geografiya
- *
- *  SAVOL QO'SHISH/O'ZGARTIRISH:
- *  1. Kerakli o'yin va fan bo'limini toping
- *  2. Yangi savol ob'ekti qo'shing (namunadagi formatda)
- *  3. Faylni saqlang — o'yin avtomatik yangilanadi
+ *  ZIYOMAP GAMES — SAVOLLAR FAYLI (YANGILANGAN)
+ *  Xatolar tuzatildi. Takrorlanuvchi savollar olib tashlandi.
+ *  Har bir bo'limga yangi savollar qo'shildi.
  * ============================================================
  */
 
 // ============================================================
-//  1. QUIZ SAVOLLARI  (quiz.html ishlatadi)
-//  Format: { q, a, o:[A,B,C,D], e, d }
-//    q = savol matni
-//    a = to'g'ri javob indeksi (0,1,2,3)
-//    o = 4 ta variant [A, B, C, D]
-//    e = tushuntirish (javobdan keyin ko'rsatiladi)
-//    d = qiyinlik: "easy" | "medium" | "hard"
+//  1. QUIZ SAVOLLARI
 // ============================================================
 const QUIZ_QUESTIONS = {
 
@@ -36,421 +15,435 @@ const QUIZ_QUESTIONS = {
     { q: "Yorug'lik vakuumda qanday tezlikda tarqaladi?",
       a: 1, o: ["100,000 km/s","300,000 km/s","150,000 km/s","500,000 km/s"],
       e: "Yorug'lik tezligi c ≈ 3×10⁸ m/s = 300,000 km/s.", d: "easy" },
-
     { q: "Nyutonning ikkinchi qonuni formulasi?",
       a: 0, o: ["F = ma","E = mc²","P = mv","W = Fd"],
       e: "F = ma — kuch massa va tezlanish ko'paytmasiga teng.", d: "easy" },
-
     { q: "Ohm qonuniga ko'ra tok kuchi I = ?",
       a: 2, o: ["U × R","R / U","U / R","U + R"],
       e: "I = U/R — Ohm qonuni.", d: "easy" },
-
     { q: "Gravitatsiya tezlanishi Yorda qancha?",
       a: 0, o: ["9.8 m/s²","6.7 m/s²","12 m/s²","3.7 m/s²"],
       e: "g ≈ 9.8 m/s² Yer yuzasida.", d: "easy" },
-
     { q: "1 kVt necha Vt?",
       a: 3, o: ["10 Vt","100 Vt","10,000 Vt","1000 Vt"],
       e: "1 kVt = 1000 Vt.", d: "easy" },
-
     { q: "Elektr quvvati P = ?",
       a: 2, o: ["P = I/U","P = R·I","P = U·I","P = U²/I"],
       e: "P = U·I — quvvat formulasi.", d: "medium" },
-
     { q: "1 atm bosim necha Pa?",
       a: 1, o: ["10,000 Pa","101,325 Pa","100,000 Pa","98,000 Pa"],
       e: "1 atm = 101,325 Pa.", d: "medium" },
-
     { q: "Arximed kuchi formulasi?",
       a: 0, o: ["F = ρgV","F = mg","F = ma","F = kx"],
       e: "Arximed kuchi F = ρ·g·V.", d: "medium" },
-
     { q: "Plank doimiysi belgisi?",
       a: 0, o: ["h","k","R","G"],
       e: "Plank doimiysi h = 6.626×10⁻³⁴ J·s.", d: "hard" },
-
     { q: "Doppler effekti nima?",
       a: 1, o: ["Optik illyuziya","To'lqin chastotasining o'zgarishi","Magnit maydon","Yorug'lik sinishi"],
       e: "Doppler effekti — manba harakatida to'lqin chastotasining o'zgarishi.", d: "hard" },
-
     { q: "Atom yadrosini kim kashf etdi?",
       a: 2, o: ["Bor","Tomson","Rezerford","Kyuri"],
       e: "Ernest Rezerford 1911 yilda atom yadrosini kashf etdi.", d: "medium" },
-
     { q: "Magnit induksiyasining SI birligi?",
       a: 2, o: ["Veber","Genri","Tesla","Farad"],
       e: "Magnit induksiyasi B ning birligi Tesla (T).", d: "medium" },
-
     { q: "Issiqlik miqdori formulasi?",
       a: 1, o: ["Q = mc","Q = mcΔT","Q = mΔT","Q = cΔT"],
       e: "Q = m·c·ΔT — massa × solishtirma issiqlik × temperatura o'zgarishi.", d: "medium" },
-
     { q: "Yorug'lik sinishi qonuni (Snell)?",
       a: 0, o: ["n₁sinθ₁ = n₂sinθ₂","n₁cosθ₁ = n₂cosθ₂","n₁/n₂ = sinθ","n = c/v faqat"],
       e: "Snell qonuni: n₁·sin(θ₁) = n₂·sin(θ₂).", d: "hard" },
-
     { q: "Radioaktiv yarim yemirilish davri nima?",
       a: 2, o: ["To'liq yemirilish vaqti","Yadroning yoshi","Moddaning yarmi yemiriladigan vaqt","Proton soni"],
       e: "Yarim yemirilish davri — radioaktiv moddaning yarmi yemiriladigan vaqt.", d: "hard" },
+    { q: "Foton energiyasi formulasi?",
+      a: 1, o: ["E = mv²","E = hf","E = qU","E = kT"],
+      e: "E = h·f — Plank doimiysi × chastota.", d: "medium" },
+    { q: "Elektron zaryadining qiymati?",
+      a: 0, o: ["1.6×10⁻¹⁹ Kl","3.2×10⁻¹⁹ Kl","9.1×10⁻³¹ Kl","6.6×10⁻³⁴ Kl"],
+      e: "e = 1.6×10⁻¹⁹ Kulon.", d: "hard" },
+    { q: "Nyutonning birinchi qonuni nima?",
+      a: 2, o: ["Harakat miqdori saqlanadi","Kuch tezlanishga teng","Tashqi kuch bo'lmasa jism holatini saqlaydi","Har kuchga teng qarama-qarshi kuch bor"],
+      e: "1-qonun: tashqi kuch bo'lmasa jism tinchlik yoki tekis harakatini saqlaydi.", d: "easy" },
+    { q: "Mexanik ish formulasi?",
+      a: 3, o: ["A = m·v","A = P·t","A = F/s","A = F·s·cosα"],
+      e: "A = F·s·cos(α) — kuch yo'nalishi va siljish orasidagi burchak.", d: "medium" },
+    { q: "Kinetik energiya formulasi?",
+      a: 1, o: ["Ek = mgh","Ek = mv²/2","Ek = Fs","Ek = P/t"],
+      e: "Kinetik energiya Ek = mv²/2.", d: "easy" },
   ],
 
   matematika: [
     { q: "π (pi) ning taxminiy qiymati?",
       a: 0, o: ["3.14159","3.12345","3.16000","3.10000"],
       e: "π ≈ 3.14159265...", d: "easy" },
-
     { q: "log₂(8) = ?",
       a: 2, o: ["2","4","3","1"],
       e: "2³ = 8, shuning uchun log₂(8) = 3.", d: "easy" },
-
     { q: "sin(90°) = ?",
       a: 3, o: ["0","√2/2","√3/2","1"],
       e: "sin(90°) = 1.", d: "easy" },
-
     { q: "cos(0°) = ?",
       a: 2, o: ["0","1/2","1","√3/2"],
       e: "cos(0°) = 1.", d: "easy" },
-
     { q: "5! (besh faktorial) = ?",
       a: 1, o: ["100","120","60","24"],
       e: "5! = 1×2×3×4×5 = 120.", d: "easy" },
-
     { q: "Kvadrat tenglama D > 0 nima bildiradi?",
       a: 1, o: ["Ildizlar yo'q","Ikki haqiqiy ildiz","Bitta ildiz","Kompleks ildizlar"],
       e: "D > 0 → ikki xil haqiqiy ildiz mavjud.", d: "medium" },
-
     { q: "Arifmetik progressiya n-hadi formulasi?",
       a: 0, o: ["a₁+(n−1)d","a₁×dⁿ","a₁+nd","a₁−nd"],
       e: "aₙ = a₁ + (n−1)·d.", d: "medium" },
-
     { q: "(a+b)² = ?",
       a: 0, o: ["a²+2ab+b²","a²+b²","a²−2ab+b²","2(a+b)"],
       e: "(a+b)² = a² + 2ab + b².", d: "easy" },
-
     { q: "∫x dx = ?",
       a: 2, o: ["x","x²","x²/2+C","2x+C"],
       e: "∫x dx = x²/2 + C.", d: "hard" },
-
     { q: "Vektorlar skalyar ko'paytmasi a·b = ?",
       a: 1, o: ["|a|×|b|","|a||b|cos(θ)","a+b","|a||b|sin(θ)"],
       e: "a·b = |a||b|·cos(θ).", d: "medium" },
-
     { q: "Uchburchak ichki burchaklar yig'indisi?",
       a: 2, o: ["90°","270°","180°","360°"],
       e: "Uchburchak burchaklari yig'indisi 180°.", d: "easy" },
-
     { q: "Geometric progressiya cheksiz yig'indisi (|q|<1)?",
       a: 2, o: ["a₁/(1+q)","a₁·q","a₁/(1−q)","a₁/(q−1)"],
       e: "S∞ = a₁/(1−q) faqat |q|<1 da.", d: "hard" },
-
     { q: "e (Eyler soni) taxminiy qiymati?",
       a: 1, o: ["2.51828","2.71828","2.81828","3.14159"],
       e: "e ≈ 2.71828... — tabiiy logarifm asosi.", d: "medium" },
-
     { q: "Kombinatsiya C(n,k) formulasi?",
       a: 0, o: ["n!/(k!(n−k)!)","n!/k!","n!/(n−k)!","k!/(n−k)!"],
       e: "C(n,k) = n! / (k! × (n−k)!)", d: "hard" },
-
     { q: "Doira yuzasi formulasi?",
       a: 1, o: ["2πr","πr²","πd","2πr²"],
       e: "S = π·r² — doira yuzasi.", d: "easy" },
+    { q: "Shar hajmi formulasi?",
+      a: 2, o: ["2πr³","πr³","4πr³/3","3πr²"],
+      e: "V = (4/3)·π·r³", d: "medium" },
+    { q: "Pifagor teoremasi?",
+      a: 0, o: ["a²+b²=c²","a+b=c","a²-b²=c²","2a+b=c²"],
+      e: "To'g'ri burchakli uchburchakda a² + b² = c².", d: "easy" },
+    { q: "d/dx(x³) = ?",
+      a: 1, o: ["x²","3x²","3x","x³/3"],
+      e: "d/dx(xⁿ) = n·xⁿ⁻¹, shuning uchun d/dx(x³) = 3x².", d: "medium" },
+    { q: "tan(45°) = ?",
+      a: 3, o: ["0","√3","1/2","1"],
+      e: "tan(45°) = sin(45°)/cos(45°) = 1.", d: "easy" },
+    { q: "Binomial koeffitsient (a−b)² = ?",
+      a: 1, o: ["a²+2ab+b²","a²−2ab+b²","a²−b²","(a+b)(a−b)"],
+      e: "(a−b)² = a² − 2ab + b².", d: "easy" },
   ],
 
   informatika: [
     { q: "Ikkilikda 1010₂ = ? (o'nlik)",
       a: 2, o: ["8","12","10","14"],
       e: "1×8+0×4+1×2+0×1 = 10.", d: "easy" },
-
     { q: "HTML qisqartmasi?",
       a: 0, o: ["HyperText Markup Language","High Text Making Lang","Hyper Typing Module","HyperText Making Links"],
       e: "HTML = HyperText Markup Language.", d: "easy" },
-
     { q: "HTTP 404 nima?",
       a: 1, o: ["Server xatosi","Sahifa topilmadi","Muvaffaqiyatli","Yo'naltirish"],
       e: "404 Not Found — sahifa topilmadi.", d: "easy" },
-
     { q: "RAM qisqartmasi?",
       a: 0, o: ["Random Access Memory","Read All Memory","Rapid Access Module","Run And Monitor"],
       e: "RAM = Random Access Memory — operativ xotira.", d: "easy" },
-
     { q: "Qaysi saralash O(n log n) kafolatli?",
       a: 3, o: ["Bubble sort","Selection sort","Insertion sort","Merge sort"],
       e: "Merge sort har doim O(n log n) da ishlaydi.", d: "medium" },
-
     { q: "TCP/IP modelida necha qatlam?",
       a: 1, o: ["3","4","5","7"],
       e: "TCP/IP = 4 qatlam: tarmoq, internet, transport, ilova.", d: "medium" },
-
     { q: "OOP da encapsulation nima?",
       a: 2, o: ["Meros olish","Polimorfizm","Ma'lumot yashirish","Abstraktsiya"],
       e: "Encapsulation — ma'lumot va metodlarni yashirish prinsipi.", d: "hard" },
-
     { q: "SQL DISTINCT nima qiladi?",
       a: 0, o: ["Takrorlanmas qiymat qaytaradi","Saralaydi","Bo'sh o'chiradi","Birlashtiradi"],
       e: "DISTINCT — takrorlanuvchi qatorlarni olib tashlaydi.", d: "medium" },
-
     { q: "git stash nima qiladi?",
       a: 1, o: ["O'chiradi","Vaqtincha saqlaydi","Branch yaratadi","Push qiladi"],
       e: "git stash — commit qilinmagan o'zgarishlarni vaqtincha saqlaydi.", d: "hard" },
-
     { q: "Python listining asosiy xususiyati?",
       a: 2, o: ["Immutable","Faqat int","Mutable (o'zgaruvchan)","Faqat str"],
       e: "Python list mutable — yaratilgandan so'ng o'zgartirilishi mumkin.", d: "easy" },
-
     { q: "DNS nima?",
       a: 2, o: ["Tarmoq kabeli","Operatsion tizim","Domen nomini IP ga aylantirish","Antivirus"],
       e: "DNS = Domain Name System.", d: "medium" },
-
     { q: "Big O notatsiyasida O(1) nima?",
       a: 1, o: ["Juda sekin","Doimiy vaqt","Chiziqli","Logaritmik"],
       e: "O(1) = constant time — kirish hajmidan qat'iy nazar bir xil vaqt.", d: "hard" },
-
     { q: "CSS Flexbox da justify-content nima?",
       a: 0, o: ["Gorizontal tekislash","Vertikal tekislash","Shrift o'lchami","Chegara"],
       e: "justify-content — elementlarni asosiy o'q bo'ylab tekislaydi.", d: "medium" },
-
     { q: "REST API da DELETE method nima qiladi?",
       a: 0, o: ["Ma'lumot o'chiradi","Ma'lumot oladi","Yangilaydi","Qo'shadi"],
       e: "HTTP DELETE — resursni o'chirish uchun ishlatiladi.", d: "medium" },
-
     { q: "Boolean qiymatlar?",
       a: 1, o: ["0 va 1 faqat","True va False","Yes va No","On va Off"],
       e: "Boolean = True (1) va False (0).", d: "easy" },
+    { q: "1 bayt necha bitdan iborat?",
+      a: 2, o: ["4","6","8","16"],
+      e: "1 bayt = 8 bit.", d: "easy" },
+    { q: "Python'da lug'at (dictionary) e'lon qilish?",
+      a: 1, o: ["d = []","d = {}","d = ()","d = <>"],
+      e: "Dictionary {} — kalit-qiymat juftliklari.", d: "easy" },
+    { q: "HTTP 200 nima bildiradi?",
+      a: 0, o: ["Muvaffaqiyatli","Sahifa topilmadi","Server xatosi","Yo'naltirish"],
+      e: "HTTP 200 OK — so'rov muvaffaqiyatli bajarildi.", d: "easy" },
+    { q: "Rekursiyaning asosiy sharti nima?",
+      a: 2, o: ["Sikllar bo'lmasin","Faqat o'nlik sonlar","To'xtash sharti (base case)","Bitta parametr"],
+      e: "Rekursiyada base case bo'lmasa, cheksiz tsiklga tushadi.", d: "medium" },
+    { q: "git pull nima qiladi?",
+      a: 1, o: ["Lokal o'zgarishlarni yuboradi","Masofadan o'zgarishlarni oladi","Yangi branch yaratadi","Reponi o'chiradi"],
+      e: "git pull = git fetch + git merge — masofadan so'nggi o'zgarishlarni tortadi.", d: "medium" },
   ],
 
   biologiya: [
     { q: "ATP ishlab chiqaradigan organell?",
       a: 2, o: ["Yadro","Ribosoma","Mitoxondriya","Plastida"],
       e: "Mitoxondriya — hujayra nafas olish organi, ATP sintezi.", d: "easy" },
-
     { q: "DNK ning to'liq nomi?",
       a: 0, o: ["Dezoksiribonuklein kislota","Dinukleotid kislota","Diploid nukleotid","Difuziyali nukleotid"],
       e: "DNK = Dezoksiribonuklein kislota.", d: "easy" },
-
     { q: "Fotosintez qaysi organellda?",
       a: 1, o: ["Mitoxondriya","Xloroplast","Yadro","Vakuol"],
       e: "Xloroplast — fotosintez joyi.", d: "easy" },
-
     { q: "Inson genomi taxminan nechta gen?",
       a: 2, o: ["1,000","100,000","20,000–25,000","500,000"],
       e: "~20,000–25,000 gen.", d: "hard" },
-
     { q: "Immunitet asosiy hujayralari?",
       a: 0, o: ["Leykositlar","Eritrositlar","Trombositlar","Neyrositlar"],
       e: "Leykositlar — oq qon hujayralari, immunitet asosi.", d: "medium" },
-
     { q: "Hujayra bo'linishining ikki asosiy turi?",
       a: 1, o: ["Mitoz va fuziya","Mitoz va meyoz","Meyoz va fertilizatsiya","Apoptoz va meyoz"],
       e: "Mitoz (somatik) va meyoz (jinsiy) bo'linish.", d: "medium" },
-
     { q: "Qon guruhlari nechi xil (ABO)?",
       a: 2, o: ["2","3","4","6"],
       e: "ABO sistemasida 4 qon guruhi: O, A, B, AB.", d: "easy" },
-
     { q: "Evolyutsiya nazariyasi muallifi?",
       a: 3, o: ["Mendel","Pastyor","Watson","Darvin"],
       e: "Charlz Darvin — tabiy tanlanish yo'li bilan evolyutsiya nazariyasi.", d: "easy" },
-
     { q: "Hujayra membranasi asosi?",
       a: 0, o: ["Ikki qavat fosfolipid","Oqsil qavati","DNK","Sellyuloza"],
       e: "Hujayra membranasi — ikki qavat fosfolipid + oqsillar.", d: "medium" },
-
     { q: "Ferment (enzim) nima?",
       a: 2, o: ["Lipid","Vitamin","Biologik katalizator","Mineral"],
       e: "Ferment — reaksiyani tezlashtiradigan biologik katalizator (oqsil).", d: "medium" },
-
     { q: "Fotosintez umumiy tenglamasi?",
       a: 1, o: ["CO₂+H₂O→O₂","6CO₂+6H₂O→C₆H₁₂O₆+6O₂","C₆H₁₂O₆→CO₂+H₂O","O₂+CO₂→H₂O"],
       e: "6CO₂ + 6H₂O + yorug'lik → C₆H₁₂O₆ + 6O₂", d: "medium" },
-
     { q: "Yadro vazifasi?",
       a: 0, o: ["DNK saqlash va boshqarish","Energiya ishlab chiqarish","Oqsil sintezi","Nafas olish"],
       e: "Yadro — DNK saqlash va hujayra faoliyatini boshqarish.", d: "easy" },
+    { q: "Odam tanasidagi eng katta organ?",
+      a: 3, o: ["Jigar","Miyya","O'pka","Teri"],
+      e: "Teri — eng katta organ, ~2 m² ga yaqin.", d: "easy" },
+    { q: "RNK ning vazifasi?",
+      a: 1, o: ["Irsiyatni saqlash","Oqsil sintezini boshqarish","Energiya berish","Hujayrani himoya qilish"],
+      e: "RNK — DNK dan ma'lumot ko'chirib, oqsil sintezida ishtirok etadi.", d: "medium" },
+    { q: "Odam tanasida nechta suyak bor (katta yoshda)?",
+      a: 2, o: ["150","186","206","230"],
+      e: "Katta yoshdagi odamda 206 ta suyak bor.", d: "medium" },
   ],
 
   kimyo: [
     { q: "Suvning kimyoviy formulasi?",
       a: 1, o: ["HO","H₂O","H₂O₂","OH₂"],
       e: "H₂O — ikki vodorod, bir kislorod.", d: "easy" },
-
     { q: "Birinchi element davriy jadvalda?",
       a: 0, o: ["Vodorod (H)","Geliy (He)","Litiy (Li)","Berilliy (Be)"],
       e: "H — atom raqami 1.", d: "easy" },
-
     { q: "pH = 7 qanday eritma?",
       a: 2, o: ["Kislotali","Ishqoriy","Neytral","O'ta kislotali"],
       e: "pH 7 = neytral (toza suv).", d: "easy" },
-
     { q: "NaCl bog' turi?",
       a: 0, o: ["Ion bog'","Kovalent","Metall","Vodorod"],
       e: "NaCl — Na⁺ va Cl⁻ o'rtasidagi ion bog'.", d: "medium" },
-
     { q: "Avogadro soni?",
       a: 2, o: ["3.01×10²³","3.16×10²³","6.022×10²³","9.8×10²³"],
       e: "Nₐ ≈ 6.022×10²³ zarrcha/mol.", d: "medium" },
-
     { q: "Ideal gaz tenglamasi?",
       a: 0, o: ["PV = nRT","PV = mRT","P = nRT/m","PV = RT"],
       e: "PV = nRT — ideal gaz holat tenglamasi.", d: "medium" },
-
     { q: "Oksidlanish nima?",
       a: 1, o: ["Elektron olish","Elektron berish","Proton berish","Proton olish"],
       e: "Oksidlanish — elektron berish jarayoni.", d: "hard" },
-
     { q: "Benzol formulasi?",
       a: 1, o: ["C₆H₁₂","C₆H₆","C₅H₅","C₆H₁₂O₆"],
       e: "Benzol C₆H₆ — aromatik uglevodorod.", d: "medium" },
-
     { q: "Mis (Cu) ning atom raqami?",
       a: 2, o: ["26","28","29","30"],
       e: "Cu — mis, atom raqami 29.", d: "hard" },
-
     { q: "Organik kimyoda asosiy element?",
       a: 1, o: ["Kislorod","Uglerod","Azot","Vodorod"],
       e: "Uglerod (C) — organik kimyo asosi.", d: "medium" },
-
     { q: "Davriy jadvalda nechta guruh bor?",
       a: 2, o: ["7","14","18","20"],
       e: "Davriy jadvalda 18 ta guruh mavjud.", d: "medium" },
-
     { q: "Elektrolitik dissotsiatsiya nima?",
       a: 0, o: ["Ionlarga ajralish","Atom parchalanish","Molekula birikish","Oksidlanish"],
       e: "Dissotsiatsiya — erituvchida ionlarga ajralish.", d: "hard" },
+    { q: "Davriy qonunni kim kashf qildi?",
+      a: 2, o: ["Kyuri","Lavuaze","Mendeleev","Rezerford"],
+      e: "Dmitriy Mendeleev 1869 yilda davriy qonunni kashf etdi.", d: "easy" },
+    { q: "Vodorodning valentligi?",
+      a: 0, o: ["I","II","III","IV"],
+      e: "Vodorod (H) valentligi doim I ga teng.", d: "easy" },
+    { q: "Kislota va ishqor reaksiyasi nomi?",
+      a: 3, o: ["Oksidlanish","Gidroliz","Termoliz","Neytrallanish"],
+      e: "Kislota + Ishqor → Tuz + Suv — neytrallanish reaksiyasi.", d: "medium" },
   ],
 
   tarix: [
     { q: "Amir Temur qaysi yili tug'ilgan?",
       a: 0, o: ["1336","1356","1370","1300"],
       e: "Amir Temur 1336 yil 8 aprel, Shahrisabz.", d: "easy" },
-
     { q: "I Jahon urushi yillari?",
       a: 0, o: ["1914-1918","1939-1945","1912-1916","1917-1921"],
       e: "I Jahon urushi 1914–1918 yillar.", d: "easy" },
-
     { q: "O'zbekiston mustaqillik yili?",
       a: 1, o: ["1990","1991","1992","1993"],
       e: "1991 yil 1 sentabr.", d: "easy" },
-
     { q: "Renessans qayerda boshlangan?",
       a: 0, o: ["Italiya","Fransiya","Germaniya","Ispaniya"],
       e: "Renessans XIV–XVII asrlarda Italiyada boshlangan.", d: "medium" },
-
     { q: "Al-Xorazmiy kim?",
       a: 1, o: ["Fizik","Matematik va astronom","Shifokor","Shoir"],
       e: "IX asr matematik, algebra asoschisi, algoritm atamasi undan.", d: "easy" },
-
     { q: "Gutenberg nima ixtiro qildi?",
       a: 2, o: ["Telegraf","Kompas","Bosmaxona","Telefon"],
       e: "Iogann Gutenberg ~1440 yilda bosmaxonani ixtiro qildi.", d: "medium" },
-
     { q: "Fransuz inqilobi yili?",
       a: 1, o: ["1776","1789","1804","1815"],
       e: "Fransuz buyuk inqilobi 1789 yilda boshlangan.", d: "medium" },
-
     { q: "Ibn Sino kim?",
       a: 0, o: ["Shifokor va faylasuf","Matematik","Shoir","Astronom"],
       e: "Ibn Sino — O'rta asrlar ulug' tabib, 'Tib qonunlari' muallifi.", d: "easy" },
-
     { q: "Buyuk Ipak yo'li nima?",
       a: 2, o: ["Dengiz yo'li","Temir yo'l","Qadimiy savdo yo'li","Harbiy yo'l"],
       e: "Ipak yo'li — Sharq va G'arbni bog'lagan qadimiy savdo yo'li.", d: "easy" },
-
     { q: "II Jahon urushi qachon tugagan?",
       a: 1, o: ["1944","1945","1946","1947"],
       e: "II Jahon urushi 1945 yil 2 sentabrda tugagan.", d: "easy" },
+    { q: "Ulug'bek kim edi?",
+      a: 2, o: ["Shoir","Sarkarda","Astronom va matematik","Tabib"],
+      e: "Ulug'bek — Amir Temur nabirasi, astronom, Samarqand rasadxonasi.", d: "medium" },
+    { q: "Beruni qaysi asrda yashagan?",
+      a: 1, o: ["X asr","XI asr","XII asr","IX asr"],
+      e: "Abu Rayhon Beruni 973–1048 yillarda yashagan (XI asr).", d: "medium" },
+    { q: "Qaysi shahar Temuriylar davlatining poytaxti bo'lgan?",
+      a: 0, o: ["Samarqand","Buxoro","Xiva","Toshkent"],
+      e: "Samarqand — Amir Temur va Temuriylar poytaxti.", d: "easy" },
+    { q: "AQSH mustaqillik yili?",
+      a: 2, o: ["1763","1789","1776","1800"],
+      e: "AQSh mustaqilligi 1776 yil 4 iyulda e'lon qilingan.", d: "medium" },
+    { q: "Birinchi kosmosga chiqqan odam?",
+      a: 1, o: ["Neil Armstrong","Yuriy Gagarin","Buzz Aldrin","Valentina Tereşkova"],
+      e: "Yuriy Gagarin 1961 yil 12 aprelda kosmosga birinchi uchgan.", d: "easy" },
   ],
 
   ingliz: [
     { q: "'Apple' o'zbekcha?",
       a: 0, o: ["Olma","Nok","Uzum","Shaftoli"],
       e: "Apple = olma.", d: "easy" },
-
     { q: "Present Perfect formulasi?",
       a: 2, o: ["did + V1","will + V1","have/has + V3","am/is/are + Ving"],
       e: "Present Perfect = have/has + Past Participle (V3).", d: "medium" },
-
     { q: "'She ___ every day.' (go)",
       a: 1, o: ["go","goes","going","gone"],
       e: "3-shaxs birlik Present Simple da goes.", d: "easy" },
-
     { q: "Passive voice (past simple)?",
       a: 0, o: ["was/were + V3","be + V3","has + V3","did + V3"],
       e: "Past simple passive: was/were + V3.", d: "medium" },
-
     { q: "Conditional II gap?",
       a: 1, o: ["If+V1 → will+V1","If+Past → would+V1","If+had → would have+V3","If+V3 → can+V1"],
       e: "If + Past Simple → would + V1 — 2-tip shart.", d: "hard" },
-
     { q: "'Synonym' nima?",
       a: 0, o: ["Ma'nodosh so'z","Qarama-qarshi so'z","Tarjima","Qisqartma"],
       e: "Synonym = sinonim = bir xil yoki yaqin ma'noli so'z.", d: "medium" },
-
     { q: "Modal verb misollari?",
       a: 2, o: ["do, did, does","have, has, had","can, must, should","be, am, is, are"],
       e: "Modal verblar: can, could, may, might, must, should, would, will.", d: "medium" },
-
     { q: "'Phenomenon' ko'pligi?",
       a: 1, o: ["phenomenons","phenomena","phenomenas","phenomenes"],
       e: "Phenomenon → phenomena (lotin ko'plik shakli).", d: "hard" },
-
     { q: "'Nevertheless' ma'nosi?",
       a: 0, o: ["Shunga qaramay","Shuning uchun","Misol uchun","Boshqacha aytganda"],
       e: "Nevertheless = shunga qaramay, biroq (however, yet).", d: "hard" },
-
     { q: "Article 'the' qachon ishlatiladi?",
       a: 1, o: ["Har doim","Ma'lum ob'ekt oldidan","Har bir ot oldidan","Sonlar oldidan"],
       e: "'The' — definite article, ma'lum/aniq ob'ekt oldida ishlatiladi.", d: "medium" },
+    { q: "'Water' qanday turkumga kiradi?",
+      a: 2, o: ["Countable noun","Verb","Uncountable noun","Adjective"],
+      e: "Water — uncountable noun (sanalmaydigan ot).", d: "medium" },
+    { q: "Future Simple formulasi?",
+      a: 0, o: ["will + V1","would + V1","shall + V3","can + V1"],
+      e: "Future Simple = will + V1 (infinitive).", d: "easy" },
+    { q: "Comparative degree: 'good' → ?",
+      a: 1, o: ["gooder","better","more good","goodest"],
+      e: "good → better → best — noto'g'ri shakldagi sifat darajasi.", d: "medium" },
+    { q: "'I ___ to school yesterday.' (go)",
+      a: 2, o: ["go","goes","went","gone"],
+      e: "Past Simple: go → went (noto'g'ri fe'l).", d: "easy" },
+    { q: "Present Continuous formulasi?",
+      a: 3, o: ["V1+s/es","will+V1","have+V3","am/is/are + Ving"],
+      e: "Present Continuous = am/is/are + V-ing.", d: "easy" },
   ],
 
   geografiya: [
     { q: "Dunyodagi eng baland tog'?",
       a: 2, o: ["K2","Elbrus","Everest","Kangchenjunga"],
       e: "Everest (Chomolungma) — 8,848 m, Himoloy.", d: "easy" },
-
     { q: "O'zbekiston poytaxti?",
       a: 0, o: ["Toshkent","Samarqand","Buxoro","Namangan"],
       e: "Toshkent — O'zbekiston poytaxti.", d: "easy" },
-
     { q: "Dunyodagi eng katta okean?",
       a: 1, o: ["Atlantika","Tinch okean","Hind okeani","Shimoliy Muz"],
       e: "Tinch okean (Pasifik) — eng katta okean.", d: "easy" },
-
     { q: "Amazon daryosi qaysi qit'ada?",
       a: 2, o: ["Afrika","Osiyo","Janubiy Amerika","Avstraliya"],
       e: "Amazon — Janubiy Amerika, eng ko'p suvli daryo.", d: "easy" },
-
     { q: "Sahara cho'li qaysi qit'ada?",
       a: 0, o: ["Afrika","Osiyo","Avstraliya","Amerika"],
       e: "Sahara — Afrika qit'asida, dunyodagi eng katta issiq cho'l.", d: "easy" },
-
     { q: "O'rta Osiyo davlatlari soni?",
       a: 2, o: ["3","4","5","6"],
       e: "5 ta: O'zbekiston, Qozog'iston, Tojikiston, Turkmaniston, Qirg'iziston.", d: "medium" },
-
     { q: "Dunyodagi eng chuqur ko'l?",
       a: 1, o: ["Kaspiy","Baykal","Orol","Superior"],
       e: "Baykal — dunyodagi eng chuqur ko'l, 1642 m, Sibir.", d: "medium" },
-
     { q: "Nil daryosi qaysi dengizga quyiladi?",
       a: 0, o: ["O'rta er dengizi","Qizil dengiz","Hind okeani","Atlantika"],
       e: "Nil O'rta er dengiziga quyiladi.", d: "medium" },
-
     { q: "Yer yuzasining necha foizi suv?",
       a: 2, o: ["51%","61%","71%","81%"],
       e: "Yer yuzasining taxminan 71% i suv bilan qoplangan.", d: "medium" },
-
     { q: "Dunyodagi eng katta davlat (maydon)?",
       a: 0, o: ["Rossiya","Kanada","Xitoy","AQSH"],
       e: "Rossiya — 17.1 mln km², dunyodagi eng katta davlat.", d: "easy" },
+    { q: "Yerning aylana harakati davri?",
+      a: 1, o: ["24 soat","365.25 kun","30 kun","12 oy"],
+      e: "Yer Quyosh atrofini 365.25 kun (1 yil) da aylanadi.", d: "easy" },
+    { q: "Antarktidada o'rtacha temperatura qancha?",
+      a: 2, o: ["0°C","-20°C","-57°C","-10°C"],
+      e: "Antarktidada o'rtacha temperatura −57°C ga yaqin.", d: "hard" },
+    { q: "Osiyo qit'asidagi eng katta davlat?",
+      a: 0, o: ["Xitoy","Hindiston","Rossiya (Osiyo qismi)","Qozog'iston"],
+      e: "Xitoy — Osiyo qit'asining eng katta davlati.", d: "medium" },
+    { q: "Orol dengizi qaysi davlatlar orasida?",
+      a: 1, o: ["O'zbekiston va Tojikiston","O'zbekiston va Qozog'iston","Qozog'iston va Rossiya","Turkmaniston va Eron"],
+      e: "Orol dengizi O'zbekiston va Qozog'iston o'rtasida joylashgan.", d: "medium" },
+    { q: "Dunyodagi eng uzun daryo?",
+      a: 0, o: ["Nil","Amazon","Yanszı","Missisipi"],
+      e: "Nil — ~6,650 km, Afrika, dunyodagi eng uzun daryo.", d: "easy" },
   ],
 };
 
 
 // ============================================================
-//  2. FLASHCARD KARTALARI  (flashcard.html ishlatadi)
-//  Format: { q, a }
-//    q = savol (old tomoni)
-//    a = javob (orqa tomoni)
+//  2. FLASHCARD KARTALARI
 // ============================================================
 const FLASHCARD_CARDS = {
 
@@ -470,6 +463,11 @@ const FLASHCARD_CARDS = {
     { q: "Snell qonuni?",                           a: "n₁·sin(θ₁) = n₂·sin(θ₂)" },
     { q: "Elektr zaryadlari birligi?",              a: "Kulon (C)" },
     { q: "Akustika nima o'rganadi?",               a: "Tovush to'lqinlarini" },
+    { q: "Kinetik energiya formulasi?",             a: "Ek = m·v²/2" },
+    { q: "Potensial energiya (balandlik)?",         a: "Ep = m·g·h" },
+    { q: "Mexanik ish formulasi?",                  a: "A = F·s·cos(α)" },
+    { q: "Nyuton III qonuni?",                      a: "Har kuchga teng va qarama-qarshi kuch bor" },
+    { q: "Elektron massasi?",                       a: "mₑ ≈ 9.1×10⁻³¹ kg" },
   ],
 
   matematika: [
@@ -488,6 +486,11 @@ const FLASHCARD_CARDS = {
     { q: "C(n,k) kombinatsiya formulasi?",          a: "n! / (k! × (n−k)!)" },
     { q: "Shar hajmi?",                             a: "V = (4/3)πr³" },
     { q: "Pifagor teoremasi?",                      a: "a² + b² = c²" },
+    { q: "tan(45°) = ?",                           a: "1" },
+    { q: "cos(60°) = ?",                           a: "1/2" },
+    { q: "Geometrik progressiya yig'indisi?",       a: "Sn = a₁(qⁿ − 1)/(q − 1)" },
+    { q: "Binomial: (a−b)² = ?",                   a: "a² − 2ab + b²" },
+    { q: "Determinant 2×2 |a b; c d| = ?",         a: "ad − bc" },
   ],
 
   informatika: [
@@ -506,6 +509,11 @@ const FLASHCARD_CARDS = {
     { q: "Python tuple?",                           a: "Immutable (o'zgarmas) tartibli to'plam" },
     { q: "HTTP GET vs POST?",                       a: "GET — olish; POST — yuborish/yaratish" },
     { q: "Binary search murakkabligi?",             a: "O(log n)" },
+    { q: "1 bayt = ? bit",                          a: "8 bit" },
+    { q: "HTTP 200 nima?",                          a: "OK — so'rov muvaffaqiyatli" },
+    { q: "git pull nima?",                          a: "Masofadan so'nggi o'zgarishlarni tortish" },
+    { q: "Python list vs tuple farqi?",             a: "List mutable, tuple immutable" },
+    { q: "CSS selector '.class' nima?",             a: "Klass bo'yicha elementni tanlash" },
   ],
 
   biologiya: [
@@ -524,6 +532,11 @@ const FLASHCARD_CARDS = {
     { q: "Ekosistema nima?",                        a: "Tirik organizmlar + muhit birligi" },
     { q: "Virus — tirik organizm?",                 a: "Yo'q, hujayradan tashqarida tirik emas" },
     { q: "Gomeostatik nima?",                       a: "Organizm ichki muhitining barqarorligi" },
+    { q: "Odam tanasida nechta suyak?",             a: "206 ta (katta yoshda)" },
+    { q: "Eng katta organ?",                        a: "Teri (~2 m²)" },
+    { q: "DNK qo'sh spiralini kim kashf qildi?",   a: "Watson va Krik (1953)" },
+    { q: "Leykosit nima?",                          a: "Oq qon hujayra — immunitet muhofazasi" },
+    { q: "Odam tanadagi eng katta bez?",            a: "Jigar (buyrak usti bezlari emas)" },
   ],
 
   kimyo: [
@@ -537,11 +550,16 @@ const FLASHCARD_CARDS = {
     { q: "Mis atom raqami?",                         a: "29" },
     { q: "Davriy jadvalda guruhlar soni?",           a: "18 ta guruh" },
     { q: "NaCl bog' turi?",                          a: "Ion bog'" },
-    { q: "Mол nima?",                                a: "6.022×10²³ ta zarrcha" },
+    { q: "Mol nima?",                                a: "6.022×10²³ ta zarrcha" },
     { q: "Elektroliz nima?",                         a: "Elektr toki ta'sirida kimyoviy reaksiya" },
     { q: "Organik kimyo asosiy elementi?",           a: "Uglerod (C)" },
     { q: "Vodorod bog'?",                            a: "H va elektromanfiy atom (O, N, F) orasidagi bog'" },
     { q: "Davriy qonunni kim kashf qildi?",          a: "Dmitriy Mendeleev (1869)" },
+    { q: "H₂SO₄ nima?",                             a: "Sulfat kislota" },
+    { q: "Neytrallanish reaksiyasi?",                a: "Kislota + Ishqor → Tuz + Suv" },
+    { q: "Glyukoza formulasi?",                      a: "C₆H₁₂O₆" },
+    { q: "Vodorod valentligi?",                      a: "I (bir)" },
+    { q: "Kislorodning atom raqami?",                a: "8" },
   ],
 
   tarix: [
@@ -557,6 +575,14 @@ const FLASHCARD_CARDS = {
     { q: "Ipak yo'li nima?",                         a: "Sharq–G'arb qadimiy savdo yo'li" },
     { q: "Ulug'bek kim?",                            a: "Amir Temur nabirasi, astronom va olim" },
     { q: "Beruni kim?",                              a: "XI asr olim, matematikchi, tarixchi" },
+    { q: "Samarqand qaysi sulolaning poytaxti?",     a: "Temuriylar sulolasining poytaxti" },
+    { q: "AQSH mustaqillik yili?",                   a: "1776 yil 4 iyul" },
+    { q: "Birinchi kosmosga chiqqan inson?",         a: "Yuriy Gagarin (1961 yil 12 aprel)" },
+    { q: "Napoleon kim edi?",                        a: "Fransuz imperatori va sarkarda (1769–1821)" },
+    { q: "Qog'ozni kim ixtiro qildi?",               a: "Xitoyliklar (Tsay Lun, ~105 yil)" },
+    { q: "Birinchi olimpiya o'yinlari qayerda?",     a: "Yunoniston, Olimpiya, 776 miloddan avval" },
+    { q: "Temur vafot etgan yil va joy?",            a: "1405 yil, Otror (Qozog'iston)" },
+    { q: "Sovet Ittifoqi qachon tugagan?",           a: "1991 yil 25 dekabr" },
   ],
 
   ingliz: [
@@ -572,6 +598,14 @@ const FLASHCARD_CARDS = {
     { q: "'Nevertheless' ma'nosi?",                  a: "Shunga qaramay" },
     { q: "Definite article 'the' nima?",             a: "Ma'lum ob'ekt oldidan qo'yiladigan article" },
     { q: "Future Simple formulasi?",                 a: "will + V1" },
+    { q: "Comparative: good → ?",                   a: "better" },
+    { q: "Superlative: good → ?",                   a: "best" },
+    { q: "Past Simple: go → ?",                     a: "went" },
+    { q: "'Water' — countable yoki uncountable?",   a: "Uncountable (sanalmaydigan ot)" },
+    { q: "Present Continuous formulasi?",            a: "am/is/are + V-ing" },
+    { q: "Conditional I formulasi?",                 a: "If + Present Simple → will + V1" },
+    { q: "'Antonym' nima?",                          a: "Qarama-qarshi ma'noli so'z" },
+    { q: "Preposition misollari?",                   a: "in, on, at, by, under, over, between" },
   ],
 
   geografiya: [
@@ -587,52 +621,66 @@ const FLASHCARD_CARDS = {
     { q: "Dunyodagi eng uzun daryo?",                a: "Nil (Afrika) — ~6,650 km" },
     { q: "Orol dengizi nima bo'ldi?",                a: "XX asrda qurib, maydon 10x kichraydi" },
     { q: "Antarktidani qit'a deyish mumkinmi?",      a: "Ha, muzlik ostida quruqlik bor" },
+    { q: "Yerning qatlamlari (tashqaridan)?",        a: "Qobiq → Mantiya → Tashqi yadro → Ichki yadro" },
+    { q: "Qaysi qit'ada davlat yo'q?",              a: "Antarktida" },
+    { q: "Dunyoda nechta qit'a bor?",               a: "6 ta (yoki 7 ta — turli tasnifga ko'ra)" },
+    { q: "O'zbekistonning eng baland tog'i?",        a: "Hazrat Sulton (4643 m)" },
+    { q: "Kaspiy dengizi nima?",                     a: "Dunyadagi eng katta ko'l (dengiz emas)" },
+    { q: "Nil daryosi qaysi dengizga quyiladi?",     a: "O'rta er dengizi" },
+    { q: "Osiyo va Yevropani nima ajratadi?",        a: "Ural tog'lari va Ural daryosi" },
+    { q: "Dunyodagi eng kichik davlat?",             a: "Vatikan (0.44 km²)" },
   ],
 };
 
 
 // ============================================================
-//  3. TEZKOR SAVOLLARI  (tezkor.html ishlatadi)
-//  Format: { q, a }
-//    q = qisqa savol
-//    a = qisqa to'g'ri javob (matn bilan tekshiriladi)
-//  Eslatma: javob kichik harfda tekshiriladi, trim() qilinadi
+//  3. TEZKOR SAVOLLARI (xatolar tuzatildi)
 // ============================================================
 const TEZKOR_QUESTIONS = {
 
   fizika: [
-    { q: "F = m × ?",         a: "a" },
-    { q: "1 kVt = ? Vt",      a: "1000" },
-    { q: "I = U / ?",         a: "r" },
-    { q: "g = ? m/s²",        a: "9.8" },
-    { q: "P = U × ?",         a: "i" },
-    { q: "c = ? km/s",        a: "300000" },
-    { q: "1 atm = ? Pa",      a: "101325" },
-    { q: "E = m × c × ?",     a: "2" },
+    { q: "F = m × ?",              a: "a" },
+    { q: "1 kVt = ? Vt",           a: "1000" },
+    { q: "I = U / ?",              a: "r" },
+    { q: "g = ? m/s²",             a: "9.8" },
+    { q: "P = U × ?",              a: "i" },
+    { q: "c = ? km/s",             a: "300000" },
+    { q: "1 atm = ? Pa",           a: "101325" },
+    { q: "E = m × ?²",             a: "c" },
+    { q: "Q = m × c × ?",          a: "dt" },
+    { q: "Arximed kuchi: F = ρ×g×?", a: "v" },
+    { q: "1 Joule = 1 N × ? m",    a: "1" },
+    { q: "Chastota birligi?",       a: "gerts" },
   ],
 
   matematika: [
-    { q: "π ≈ ?",             a: "3.14" },
-    { q: "5! = ?",            a: "120" },
-    { q: "sin 90° = ?",       a: "1" },
-    { q: "cos 0° = ?",        a: "1" },
-    { q: "log₂(8) = ?",       a: "3" },
-    { q: "√144 = ?",          a: "12" },
-    { q: "2⁸ = ?",            a: "256" },
-    { q: "7 × 8 = ?",         a: "56" },
-    { q: "15² = ?",           a: "225" },
-    { q: "e ≈ ?",             a: "2.72" },
+    { q: "π ≈ ?",                  a: "3.14" },
+    { q: "5! = ?",                 a: "120" },
+    { q: "sin 90° = ?",            a: "1" },
+    { q: "cos 0° = ?",             a: "1" },
+    { q: "log₂(8) = ?",            a: "3" },
+    { q: "√144 = ?",               a: "12" },
+    { q: "2⁸ = ?",                 a: "256" },
+    { q: "7 × 8 = ?",              a: "56" },
+    { q: "15² = ?",                a: "225" },
+    { q: "e ≈ ?",                  a: "2.72" },
+    { q: "tan 45° = ?",            a: "1" },
+    { q: "0! = ?",                 a: "1" },
   ],
 
   informatika: [
-    { q: "1010₂ = ? (o'nlik)", a: "10" },
-    { q: "HTTP 404 = ?",       a: "not found" },
-    { q: "DNS = ?",            a: "domain name system" },
-    { q: "RAM = ?",            a: "random access memory" },
-    { q: "HTML = ?",           a: "hypertext markup language" },
-    { q: "1 bayt = ? bit",     a: "8" },
-    { q: "1 KB = ? bayt",      a: "1024" },
-    { q: "WWW = ?",            a: "world wide web" },
+    { q: "1010₂ = ? (o'nlik)",     a: "10" },
+    { q: "HTTP 404 = ?",           a: "not found" },
+    { q: "DNS = ?",                a: "domain name system" },
+    { q: "RAM = ?",                a: "random access memory" },
+    { q: "HTML = ?",               a: "hypertext markup language" },
+    { q: "1 bayt = ? bit",         a: "8" },
+    { q: "1 KB = ? bayt",          a: "1024" },
+    { q: "WWW = ?",                a: "world wide web" },
+    { q: "HTTP 200 = ?",           a: "ok" },
+    { q: "CSS = ?",                a: "cascading style sheets" },
+    { q: "1111₂ = ? (o'nlik)",     a: "15" },
+    { q: "OOP = ?",                a: "object oriented programming" },
   ],
 
   biologiya: [
@@ -641,29 +689,44 @@ const TEZKOR_QUESTIONS = {
     { q: "DNK = ?",                           a: "dezoksiribonuklein kislota" },
     { q: "Qon guruhlari soni (ABO)?",         a: "4" },
     { q: "Odam kromosomlari soni?",           a: "46" },
+    { q: "Odam tanadagi suyaklar soni?",      a: "206" },
+    { q: "Fotosintez mahsuloti (qand)?",      a: "glyukoza" },
+    { q: "Oqsil sintezi qayerda?",            a: "ribosoma" },
   ],
 
   kimyo: [
-    { q: "H₂O = ?",           a: "suv" },
-    { q: "Neytral pH = ?",    a: "7" },
-    { q: "NaCl = ?",          a: "osh tuzi" },
-    { q: "Cu atom raqami?",   a: "29" },
-    { q: "Benzol = ?",        a: "c6h6" },
-    { q: "Avogadro soni?",    a: "6.022" },
+    { q: "H₂O = ?",               a: "suv" },
+    { q: "Neytral pH = ?",        a: "7" },
+    { q: "NaCl = ?",              a: "osh tuzi" },
+    { q: "Cu atom raqami?",       a: "29" },
+    { q: "Benzol = ?",            a: "c6h6" },
+    { q: "Avogadro soni?",        a: "6.022" },
+    { q: "O atom raqami?",        a: "8" },
+    { q: "H atom raqami?",        a: "1" },
+    { q: "CO₂ = ?",               a: "karbonat angidrid" },
+    { q: "Davriy jadvaldagi guruhlar?", a: "18" },
   ],
 
   tarix: [
-    { q: "Temur tug'ilgan yil?",   a: "1336" },
-    { q: "O'z. mustaqillik yili?", a: "1991" },
-    { q: "I Jahon urushi boshlanishi?", a: "1914" },
-    { q: "Fransuz inqilobi yili?", a: "1789" },
+    { q: "Temur tug'ilgan yil?",       a: "1336" },
+    { q: "O'z. mustaqillik yili?",     a: "1991" },
+    { q: "I JU boshlanishi?",          a: "1914" },
+    { q: "Fransuz inqilobi yili?",     a: "1789" },
+    { q: "II JU tugagan yil?",         a: "1945" },
+    { q: "AQSH mustaqillik yili?",     a: "1776" },
+    { q: "Gagarin kosmosga chiqqan yil?", a: "1961" },
+    { q: "Temur vafot etgan yil?",     a: "1405" },
   ],
 
   ingliz: [
-    { q: "Apple = ?",          a: "olma" },
-    { q: "have + ? = P.Perfect", a: "v3" },
+    { q: "Apple = ?",              a: "olma" },
+    { q: "have + ? = P.Perfect",   a: "v3" },
     { q: "3-shaxs birlik: he go_", a: "es" },
-    { q: "Synonym = ?",        a: "ma'nodosh" },
+    { q: "Synonym = ?",            a: "ma'nodosh" },
+    { q: "good → ? (comparative)", a: "better" },
+    { q: "will + V1 = ?",          a: "future simple" },
+    { q: "go → ? (past simple)",   a: "went" },
+    { q: "Antonym = ?",            a: "qarama-qarshi" },
   ],
 
   geografiya: [
@@ -672,125 +735,142 @@ const TEZKOR_QUESTIONS = {
     { q: "Eng katta okean?",           a: "tinch" },
     { q: "Eng chuqur ko'l?",           a: "baykal" },
     { q: "Yer yuzasi suv % ?",         a: "71" },
+    { q: "Eng katta davlat?",          a: "rossiya" },
+    { q: "Eng uzun daryo?",            a: "nil" },
+    { q: "O'rta Osiyo davlatlari soni?", a: "5" },
   ],
 };
 
 
 // ============================================================
-//  4. SO'Z TOPISH (puzzle.html ishlatadi)
-//  Format: { word, hint }
-//    word = topilishi kerak so'z (KATTA HARFDA)
-//    hint = izoh/maslahat
+//  4. SO'Z TOPISH (xatolar tuzatildi, takrorlar olib tashlandi)
 // ============================================================
 const PUZZLE_WORDS = {
 
   fizika: [
-    { word: "PROTON",      hint: "Atom yadrosidagi musbat zaryadli zarrcha" },
-    { word: "NEYTRON",     hint: "Atom yadrosidagi zaryadlanmagan zarrcha" },
-    { word: "ELEKTRON",    hint: "Manfiy zaryadli elementar zarrcha" },
-    { word: "FOTON",       hint: "Yorug'likning kvanti" },
-    { word: "ENERGIA",     hint: "Ish bajarish qobiliyati (J)" },
-    { word: "INERSIYA",    hint: "Jismning tinchlik holatini saqlash xususiyati" },
-    { word: "TEZLIK",      hint: "Vaqt birligidagi yo'l (m/s)" },
-    { word: "MASSA",       hint: "Jism inersiyasining o'lchovi (kg)" },
-    { word: "BOSIM",       hint: "Yuzaga perpendikulyar kuch (Pa)" },
-    { word: "MAGNIT",      hint: "Metallarni tortadigan jism" },
+    { word: "PROTON",        hint: "Atom yadrosidagi musbat zaryadli zarrcha" },
+    { word: "NEYTRON",       hint: "Atom yadrosidagi zaryadlanmagan zarrcha" },
+    { word: "ELEKTRON",      hint: "Manfiy zaryadli elementar zarrcha" },
+    { word: "FOTON",         hint: "Yorug'likning kvanti" },
+    { word: "ENERGIYA",      hint: "Ish bajarish qobiliyati (J)" },
+    { word: "INERSIYA",      hint: "Jismning tinchlik holatini saqlash xususiyati" },
+    { word: "TEZLIK",        hint: "Vaqt birligidagi yo'l (m/s)" },
+    { word: "MASSA",         hint: "Jism inersiyasining o'lchovi (kg)" },
+    { word: "BOSIM",         hint: "Yuzaga perpendikulyar kuch (Pa)" },
+    { word: "MAGNIT",        hint: "Metallarni tortadigan jism" },
+    { word: "IMPULS",        hint: "Massaning tezlikka ko'paytmasi (kg·m/s)" },
+    { word: "REZONANS",      hint: "Majburiy tebranish amplitudasining keskin ortishi" },
   ],
 
   matematika: [
-    { word: "INTEGRAL",    hint: "Funksiya ostidagi maydonni hisoblash" },
-    { word: "DERIVATIV",   hint: "Funksiyaning o'zgarish tezligi" },
-    { word: "VEKTOR",      hint: "Yo'nalishi va kattaligi bor miqdor" },
-    { word: "MATRISA",     hint: "Sonlar to'rtburchak jadvali" },
-    { word: "FUNKSIYA",    hint: "x dan y ga moslik qoidasi" },
-    { word: "LOGARIFM",    hint: "Darajaning teskari amali" },
-    { word: "FAKTORIAL",   hint: "n! = 1×2×3×...×n" },
-    { word: "DIAGONAL",    hint: "Quadrat yoki to'rtburchakni kesuvchi chiziq" },
-    { word: "KVADRAT",     hint: "To'rt teng tomonli to'rtburchak" },
-    { word: "KOMBINATSIYA",hint: "Tartibsiz tanlov soni" },
+    { word: "INTEGRAL",      hint: "Funksiya ostidagi maydonni hisoblash" },
+    { word: "DERIVATIV",     hint: "Funksiyaning o'zgarish tezligi" },
+    { word: "VEKTOR",        hint: "Yo'nalishi va kattaligi bor miqdor" },
+    { word: "MATRISA",       hint: "Sonlar to'rtburchak jadvali" },
+    { word: "LOGARIFM",      hint: "Darajaning teskari amali" },
+    { word: "FAKTORIAL",     hint: "n! = 1×2×3×...×n" },
+    { word: "DIAGONAL",      hint: "To'rtburchakni burchakdan burchakka kesuvchi chiziq" },
+    { word: "KVADRAT",       hint: "To'rt teng tomonli to'rtburchak" },
+    { word: "KOMBINATSIYA",  hint: "Tartibsiz tanlov soni" },
+    { word: "PIFAGOR",       hint: "a²+b²=c² teoremasi muallifi" },
+    { word: "PARALLELEPIPED",hint: "Olti to'rtburchak yuzli ko'pburchak" },
+    { word: "DETERMINANT",   hint: "Matrisa qiymati (ad-bc)" },
   ],
 
   informatika: [
-    { word: "ALGORITM",    hint: "Masalani hal qilish ketma-ket qadamlari" },
-    { word: "MASSIV",      hint: "Bir turdagi elementlar to'plami (array)" },
-    { word: "FUNKSIYA",    hint: "Qayta ishlatiladigan kod bloki" },
-    { word: "REKURSIYA",   hint: "O'zini o'zi chaqiradigan funksiya" },
-    { word: "PROTOKOL",    hint: "Tarmoq aloqa qoidalari (HTTP, TCP)" },
-    { word: "KOMPILATOR",  hint: "Kodni mashina tiliga o'giruvchi dastur" },
-    { word: "INTERFEYS",   hint: "Foydalanuvchi bilan dastur orasidagi muhit" },
-    { word: "OBEKT",       hint: "OOP da ma'lumot va metodlar birligi" },
-    { word: "SINF",        hint: "OOP da ob'ekt uchun shablon (class)" },
-    { word: "ITERATOR",    hint: "To'plam elementlarini birma-bir aylanuvchi" },
+    { word: "ALGORITM",      hint: "Masalani hal qilish ketma-ket qadamlari" },
+    { word: "MASSIV",        hint: "Bir turdagi elementlar to'plami (array)" },
+    { word: "REKURSIYA",     hint: "O'zini o'zi chaqiradigan funksiya" },
+    { word: "PROTOKOL",      hint: "Tarmoq aloqa qoidalari (HTTP, TCP)" },
+    { word: "KOMPILATOR",    hint: "Kodni mashina tiliga o'giruvchi dastur" },
+    { word: "INTERFEYS",     hint: "Foydalanuvchi bilan dastur orasidagi muhit" },
+    { word: "OBEKT",         hint: "OOP da ma'lumot va metodlar birligi" },
+    { word: "SINF",          hint: "OOP da ob'ekt uchun shablon (class)" },
+    { word: "ITERATOR",      hint: "To'plam elementlarini birma-bir aylanuvchi" },
+    { word: "KODLASH",       hint: "Ma'lumotni belgilar tizimiga o'girish" },
+    { word: "TARMOQ",        hint: "Kompyuterlar o'rtasidagi aloqa tizimi" },
+    { word: "XOTIRA",        hint: "Dastur ma'lumotlarini saqlash joyi" },
   ],
 
   biologiya: [
-    { word: "HUJAYRА",     hint: "Hayotning asosiy strukturaviy birligi" },
-    { word: "XLOROFIL",    hint: "O'simlikka yashil rang beradigan pigment" },
-    { word: "MITOZ",       hint: "Somatik hujayra bo'linishi" },
-    { word: "FERMENT",     hint: "Biologik katalizator (enzim)" },
-    { word: "VAKUOL",      hint: "Hujayradagi suv to'plangan bo'shliq" },
-    { word: "VITAMIN",     hint: "Ozuqa modda, oz miqdorda zarur" },
-    { word: "PROTEIN",     hint: "Aminokislotalardan tuzilgan biopolimer" },
-    { word: "LIPID",       hint: "Yog'lar va moy — energiya zahirasi" },
-    { word: "GLIKOLIZ",    hint: "Glyukozaning parchalanish jarayoni" },
-    { word: "MUTATSIYA",   hint: "DNK dagi o'zgarish" },
+    { word: "HUJAYRA",       hint: "Hayotning asosiy strukturaviy birligi" },
+    { word: "XLOROFIL",      hint: "O'simlikka yashil rang beradigan pigment" },
+    { word: "MITOZ",         hint: "Somatik hujayra bo'linishi" },
+    { word: "FERMENT",       hint: "Biologik katalizator (enzim)" },
+    { word: "VAKUOL",        hint: "Hujayradagi suv to'plangan bo'shliq" },
+    { word: "VITAMIN",       hint: "Ozuqa modda, oz miqdorda zarur" },
+    { word: "PROTEIN",       hint: "Aminokislotalardan tuzilgan biopolimer" },
+    { word: "LIPID",         hint: "Yog'lar va moy — energiya zahirasi" },
+    { word: "GLIKOLIZ",      hint: "Glyukozaning parchalanish jarayoni" },
+    { word: "MUTATSIYA",     hint: "DNK dagi o'zgarish" },
+    { word: "RIBOSOMA",      hint: "Oqsil sintezi organel" },
+    { word: "LEYKOSIT",      hint: "Oq qon hujayra — immunitet" },
   ],
 
   kimyo: [
-    { word: "ELEKTRON",    hint: "Manfiy zaryadli zarrcha, atom tarkibida" },
-    { word: "VALENT",      hint: "Element kimyoviy bog' hosil qilish qobiliyati" },
-    { word: "POLIMER",     hint: "Ko'p monomerdan tashkil topgan makromolekula" },
-    { word: "KISLOTA",     hint: "pH < 7, H⁺ ion ajratuvchi modda" },
-    { word: "ISHQOR",      hint: "pH > 7, OH⁻ ion ajratuvchi modda" },
-    { word: "KATALIZ",     hint: "Katalizator ta'sirida reaksiya tezlashishi" },
-    { word: "IZOMER",      hint: "Bir xil formulali, har xil tuzilishli molekulalar" },
-    { word: "BENZOL",      hint: "C₆H₆ — aromatik uglevodorod" },
-    { word: "OKSID",       hint: "Kislorod bilan birikma" },
-    { word: "ERITMA",      hint: "Bir modda boshqasida eriganidan hosil bo'lgan aralashma" },
+    { word: "VALENT",        hint: "Element kimyoviy bog' hosil qilish qobiliyati" },
+    { word: "POLIMER",       hint: "Ko'p monomerdan tashkil topgan makromolekula" },
+    { word: "KISLOTA",       hint: "pH < 7, H⁺ ion ajratuvchi modda" },
+    { word: "ISHQOR",        hint: "pH > 7, OH⁻ ion ajratuvchi modda" },
+    { word: "KATALIZ",       hint: "Katalizator ta'sirida reaksiya tezlashishi" },
+    { word: "IZOMER",        hint: "Bir xil formulali, har xil tuzilishli molekulalar" },
+    { word: "BENZOL",        hint: "C₆H₆ — aromatik uglevodorod" },
+    { word: "OKSID",         hint: "Kislorod bilan birikma" },
+    { word: "ERITMA",        hint: "Bir modda boshqasida eriganidan hosil bo'lgan aralashma" },
+    { word: "NEYTRON",       hint: "Atom yadrosidagi zaryadlanmagan zarrcha" },
+    { word: "FORMULA",       hint: "Kimyoviy birikmaning belgilar yozuvi" },
+    { word: "REAKSIYA",      hint: "Moddalar o'rtasidagi kimyoviy o'zgarish" },
   ],
 
   tarix: [
-    { word: "IMPERIYA",    hint: "Ko'p millatli yirik davlat tuzilmasi" },
-    { word: "RESPUBLIKA",  hint: "Saylov yo'li bilan boshqariladigan davlat" },
-    { word: "DEMOKRATIYA", hint: "Xalq boshqaruvi prinsipi" },
-    { word: "INQILOB",     hint: "Jamiyatdagi tez va tubdan o'zgarish" },
-    { word: "DIPLOMATIYA", hint: "Davlatlar orasidagi munosabatlar san'ati" },
-    { word: "ARXEOLOGIYA", hint: "Qazishmalar orqali o'tmishni o'rganish" },
-    { word: "RENESSANS",   hint: "Uyg'onish davri — XIV–XVII asrlar" },
-    { word: "KOLONIYA",    hint: "Boshqa davlat tomonidan boshqariladigan hudud" },
+    { word: "IMPERIYA",      hint: "Ko'p millatli yirik davlat tuzilmasi" },
+    { word: "RESPUBLIKA",    hint: "Saylov yo'li bilan boshqariladigan davlat" },
+    { word: "DEMOKRATIYA",   hint: "Xalq boshqaruvi prinsipi" },
+    { word: "INQILOB",       hint: "Jamiyatdagi tez va tubdan o'zgarish" },
+    { word: "DIPLOMATIYA",   hint: "Davlatlar orasidagi munosabatlar san'ati" },
+    { word: "ARXEOLOGIYA",   hint: "Qazishmalar orqali o'tmishni o'rganish" },
+    { word: "RENESSANS",     hint: "Uyg'onish davri — XIV–XVII asrlar" },
+    { word: "KOLONIYA",      hint: "Boshqa davlat tomonidan boshqariladigan hudud" },
+    { word: "SULOLA",        hint: "Bir oiladan ketma-ket hukmdorlar" },
+    { word: "FEODALIZM",     hint: "O'rta asrlar er egaligi tizimi" },
+    { word: "IQTISOD",       hint: "Ishlab chiqarish va taqsimlash fani" },
+    { word: "MILODDAN",      hint: "Esa/Avval — yil hisob tizimida" },
   ],
 
   ingliz: [
-    { word: "GRAMMAR",     hint: "Til qoidalari tizimi" },
-    { word: "SYNONYM",     hint: "Ma'nodosh so'z" },
-    { word: "ANTONYM",     hint: "Qarama-qarshi ma'noli so'z" },
-    { word: "PRONOUN",     hint: "Otning o'rnini bosuvchi so'z (I, she, they)" },
-    { word: "ADJECTIVE",   hint: "Sifat — otni ta'riflovchi so'z" },
-    { word: "ADVERB",      hint: "Ravish — fe'lni ta'riflovchi so'z" },
-    { word: "PASSIVE",     hint: "Majhul nisbat (was written)" },
-    { word: "TENSE",       hint: "Zamon (o'tgan, hozirgi, kelasi)" },
+    { word: "GRAMMAR",       hint: "Til qoidalari tizimi" },
+    { word: "SYNONYM",       hint: "Ma'nodosh so'z" },
+    { word: "ANTONYM",       hint: "Qarama-qarshi ma'noli so'z" },
+    { word: "PRONOUN",       hint: "Otning o'rnini bosuvchi so'z (I, she, they)" },
+    { word: "ADJECTIVE",     hint: "Sifat — otni ta'riflovchi so'z" },
+    { word: "ADVERB",        hint: "Ravish — fe'lni ta'riflovchi so'z" },
+    { word: "PASSIVE",       hint: "Majhul nisbat (was written)" },
+    { word: "TENSE",         hint: "Zamon (o'tgan, hozirgi, kelasi)" },
+    { word: "PREPOSITION",   hint: "Ko'makchi: in, on, at, by..." },
+    { word: "CONJUNCTION",   hint: "Bog'lovchi: and, but, or..." },
+    { word: "VOCABULARY",    hint: "Lug'at boyligi, so'zlar to'plami" },
+    { word: "ARTICLE",       hint: "a, an, the — determinant so'zlar" },
   ],
 
   geografiya: [
-    { word: "MATERIK",     hint: "Katta quruqlik (qit'a)" },
-    { word: "VULKAN",      hint: "Lava otadigan tog'" },
-    { word: "EKVATOR",     hint: "Yer sharini ikkiga bo'ladigan xayoliy chiziq" },
-    { word: "MERIDIAN",    hint: "Shimoldan Janubga yo'nalgan xayoliy chiziq" },
-    { word: "GIDROSFERA",  hint: "Yer yuzasidagi barcha suv qobig'i" },
-    { word: "LITOSFERA",   hint: "Yer qobig'i va yuqori mantiya" },
-    { word: "ATMOSFERA",   hint: "Yer atrofidagi gaz qobig'i" },
-    { word: "TSUNAMI",     hint: "Zilzila yoki vulqon natijasida paydo bo'lgan to'lqin" },
-    { word: "DELTA",       hint: "Daryo quyilgan joyda hosil bo'lgan tekislik" },
-    { word: "PLATFORMA",   hint: "Tekis va barqaror yer qobig'i bo'limi" },
+    { word: "MATERIK",       hint: "Katta quruqlik (qit'a)" },
+    { word: "VULKAN",        hint: "Lava otadigan tog'" },
+    { word: "EKVATOR",       hint: "Yer sharini ikkiga bo'ladigan xayoliy chiziq" },
+    { word: "MERIDIAN",      hint: "Shimoldan Janubga yo'nalgan xayoliy chiziq" },
+    { word: "GIDROSFERA",    hint: "Yer yuzasidagi barcha suv qobig'i" },
+    { word: "LITOSFERA",     hint: "Yer qobig'i va yuqori mantiya" },
+    { word: "ATMOSFERA",     hint: "Yer atrofidagi gaz qobig'i" },
+    { word: "TSUNAMI",       hint: "Zilzila yoki vulqon natijasida paydo bo'lgan to'lqin" },
+    { word: "DELTA",         hint: "Daryo quyilgan joyda hosil bo'lgan tekislik" },
+    { word: "PLATFORMA",     hint: "Tekis va barqaror yer qobig'i bo'limi" },
+    { word: "MANTIYA",       hint: "Yer qobig'i ostidagi qatlam" },
+    { word: "OKEAN",         hint: "Yerdagi eng katta suv havzasi" },
   ],
 };
 
 
 // ============================================================
-//  5. XOTIRA O'YINI JUFTLARI  (memory.html ishlatadi)
-//  Format: { term, definition }
-//    term       = birinchi karta (atama)
-//    definition = ikkinchi karta (ta'rif/javob)
+//  5. XOTIRA O'YINI JUFTLARI
 // ============================================================
 const MEMORY_PAIRS = {
 
@@ -807,6 +887,10 @@ const MEMORY_PAIRS = {
     { term: "Watt",               definition: "Quvvat birligi" },
     { term: "Hertz",              definition: "Chastota birligi" },
     { term: "Ohm",                definition: "Qarshilik birligi" },
+    { term: "Q = mcΔT",           definition: "Issiqlik miqdori formulasi" },
+    { term: "E = hf",             definition: "Foton energiyasi" },
+    { term: "Ek = mv²/2",         definition: "Kinetik energiya" },
+    { term: "Ep = mgh",           definition: "Potensial energiya" },
   ],
 
   matematika: [
@@ -822,6 +906,10 @@ const MEMORY_PAIRS = {
     { term: "1 radian",         definition: "180°/π ≈ 57.3°" },
     { term: "sin²θ+cos²θ",      definition: "= 1" },
     { term: "(4/3)πr³",         definition: "Shar hajmi" },
+    { term: "a²-2ab+b²",        definition: "(a-b)²" },
+    { term: "tan(θ)",            definition: "sin(θ)/cos(θ)" },
+    { term: "log_a(b·c)",        definition: "log_a(b)+log_a(c)" },
+    { term: "S∞=a₁/(1-q)",      definition: "Geom. prog. cheksiz yig'indisi" },
   ],
 
   informatika: [
@@ -837,6 +925,10 @@ const MEMORY_PAIRS = {
     { term: "RAM",               definition: "Random Access Memory" },
     { term: "SQL",               definition: "Structured Query Language" },
     { term: "OOP",               definition: "Object Oriented Programming" },
+    { term: "git commit",        definition: "O'zgarishlarni saqlash" },
+    { term: "500",               definition: "Internal Server Error" },
+    { term: "O(1)",              definition: "Doimiy vaqt murakkabligi" },
+    { term: "CSS flexbox",       definition: "Moslashuvchan joylashtirish" },
   ],
 
   biologiya: [
@@ -852,6 +944,10 @@ const MEMORY_PAIRS = {
     { term: "DNK",               definition: "Irsiy ma'lumot tashuvchi" },
     { term: "Ferment",           definition: "Biologik katalizator" },
     { term: "Ekosistema",        definition: "Organizmlar + muhit birligi" },
+    { term: "Darvin",            definition: "Evolyutsiya nazariyasi muallifi" },
+    { term: "Xlorofil",          definition: "O'simlikka yashil rang beruvchi" },
+    { term: "46",                definition: "Odam kromosomlari soni" },
+    { term: "206",               definition: "Katta odamdagi suyaklar soni" },
   ],
 
   kimyo: [
@@ -867,6 +963,10 @@ const MEMORY_PAIRS = {
     { term: "6.022×10²³",       definition: "Avogadro soni" },
     { term: "Ion bog'",          definition: "NaCl tipidagi bog'" },
     { term: "Kovalent bog'",     definition: "H₂, O₂ tipidagi bog'" },
+    { term: "Cu — 29",           definition: "Mis atom raqami" },
+    { term: "O — 8",             definition: "Kislorod atom raqami" },
+    { term: "Mendeleev",         definition: "Davriy jadval muallifi" },
+    { term: "18 guruh",          definition: "Davriy jadval guruhlari soni" },
   ],
 
   tarix: [
@@ -882,6 +982,10 @@ const MEMORY_PAIRS = {
     { term: "Gutenberg",         definition: "Bosmaxona ixtirosi ~1440" },
     { term: "Beruni",            definition: "XI asr encyclopedist olim" },
     { term: "Ipak yo'li",        definition: "Sharq-G'arb savdo yo'li" },
+    { term: "1776 yil",          definition: "AQSH mustaqilligi" },
+    { term: "Gagarin",           definition: "Birinchi kosmonavt (1961)" },
+    { term: "1405 yil",          definition: "Amir Temur vafot etgan yil" },
+    { term: "Samarqand",         definition: "Temuriylar poytaxti" },
   ],
 
   ingliz: [
@@ -891,12 +995,16 @@ const MEMORY_PAIRS = {
     { term: "If+Past→would+V1", definition: "Conditional II" },
     { term: "Synonym",           definition: "Ma'nodosh so'z" },
     { term: "Antonym",           definition: "Qarama-qarshi so'z" },
-    { term: "Noun",              definition: "Ot (odам, kitob)" },
+    { term: "Noun",              definition: "Ot (odam, kitob)" },
     { term: "Verb",              definition: "Fe'l (run, write)" },
     { term: "Adjective",         definition: "Sifat (beautiful)" },
     { term: "Adverb",            definition: "Ravish (quickly)" },
     { term: "Article",           definition: "a, an, the" },
     { term: "Preposition",       definition: "in, on, at, by..." },
+    { term: "am/is/are+Ving",    definition: "Present Continuous" },
+    { term: "go → went",         definition: "Past Simple (irregular)" },
+    { term: "good → better",     definition: "Comparative degree" },
+    { term: "If+V1→will+V1",    definition: "Conditional I" },
   ],
 
   geografiya: [
@@ -912,5 +1020,9 @@ const MEMORY_PAIRS = {
     { term: "Atmosfera",         definition: "Yer atrofidagi havo qobig'i" },
     { term: "Vulkan",            definition: "Lava otadigan tog'" },
     { term: "Delta",             definition: "Daryo og'zidagi tekislik" },
+    { term: "Vatikan",           definition: "Dunyodagi eng kichik davlat" },
+    { term: "Ural",              definition: "Osiyo va Yevropani ajratuvchi tog'" },
+    { term: "71%",               definition: "Yer yuzasining suv qismi" },
+    { term: "Antarktida",        definition: "Davlatlar bo'lmagan qit'a" },
   ],
 };
