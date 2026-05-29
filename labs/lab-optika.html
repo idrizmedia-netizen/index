@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Optika — Yorug'lik Sinishi — Ziyomap</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--accent2:#60a5fa;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--yellow:#facc15;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.lab-wrap{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;background:#05080f;cursor:crosshair;}
+#sim-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(5,8,15,.9);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.tool-btn{padding:8px 16px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+.tool-btn.active{background:var(--accent);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.panel-section{margin-bottom:1.5rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.medium-btn{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:var(--bg3);color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;margin-right:6px;margin-bottom:6px;transition:.15s;}
+.medium-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(59,130,246,.12);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:1rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.color-swatch{width:20px;height:20px;border-radius:50%;display:inline-block;border:2px solid rgba(255,255,255,.2);cursor:pointer;transition:.15s;}
+.color-swatch.active{border-color:#fff;transform:scale(1.2);}
+
+/* ══ LIGHT MODE ══ */
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#ffffff;--bg3:#e8edf8;--card:#ffffff;--accent:#2563eb;--accent2:#3b82f6;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff !important;color:#0f172a !important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95) !important;border-bottom-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .control-panel{background:#ffffff !important;border-left-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.92) !important;border-color:rgba(0,0,0,.1) !important;color:#1e293b !important;}
+[data-theme="light"] .energy-bars{background:rgba(240,244,255,.92) !important;border-color:rgba(0,0,0,.1) !important;}
+[data-theme="light"] .formula-card{background:#e8edf8 !important;border-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .formula-desc{color:#475569 !important;}
+[data-theme="light"] .data-table th{background:#e8edf8 !important;}
+[data-theme="light"] .data-table td{color:#0f172a !important;}
+[data-theme="light"] .check-row{background:#e8edf8 !important;}
+[data-theme="light"] .check-label{color:#475569 !important;}
+[data-theme="light"] .slider-name{color:#475569 !important;}
+[data-theme="light"] .planet-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07) !important;color:#475569 !important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12) !important;}
+[data-theme="light"] .canvas-area{background:linear-gradient(180deg,#c8d9f5,#b8cff0) !important;}
+[data-theme="light"] .ebar-label,[data-theme="light"] .ebar-val{color:#475569 !important;}
+[data-theme="light"] .mol-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] .medium-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] #therm-label{color:#d97706 !important;}
+</style>
+<script>
+(function(){
+  var p=new URLSearchParams(location.search).get('theme');
+  var s=p||localStorage.getItem('zy_theme')||localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',s);
+  if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}
+})();
+</script>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">🔆 Optika: Yorug'lik Sinishi</span>
+  <div style="display:flex;align-items:center;gap:8px;"><button onclick="toggleLabTheme()" style="padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2,#94a3b8);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;"><span id="theme-icon">☀️</span><span id="theme-label">Kun</span></button><a href="../" class="nav-logo">Ziyomap</a></div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area" id="canvas-wrap">
+    <canvas id="sim-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" style="color:var(--yellow);">θ₁ = <span id="hud-t1">45.0</span>°</div>
+      <div class="hud-badge" style="color:var(--accent2);">θ₂ = <span id="hud-t2">28.1</span>°</div>
+      <div class="hud-badge" style="color:var(--green);">n₁/n₂ = <span id="hud-n">1.00/1.50</span></div>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn reset" id="btn-mode" onclick="toggleMode()">🔦 Nur sochuvchi</button>
+      <button class="tool-btn reset" onclick="addPrism()">🔺 Prizma</button>
+      <button class="tool-btn reset" onclick="resetSim()">↺ Tozalash</button>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Yorug'lik rangi</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="color-swatch active" style="background:#ffffff;" onclick="setColor('#ffffff',this)" title="Oq"></span>
+          <span class="color-swatch" style="background:#ef4444;" onclick="setColor('#ef4444',this)" title="Qizil"></span>
+          <span class="color-swatch" style="background:#f97316;" onclick="setColor('#f97316',this)" title="To'q sariq"></span>
+          <span class="color-swatch" style="background:#facc15;" onclick="setColor('#facc15',this)" title="Sariq"></span>
+          <span class="color-swatch" style="background:#22c55e;" onclick="setColor('#22c55e',this)" title="Yashil"></span>
+          <span class="color-swatch" style="background:#3b82f6;" onclick="setColor('#3b82f6',this)" title="Ko'k"></span>
+          <span class="color-swatch" style="background:#8b5cf6;" onclick="setColor('#8b5cf6',this)" title="Binafsha"></span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Muhitlar</div>
+        <div style="margin-bottom:.75rem;">
+          <div style="font-size:.75rem;color:var(--text2);margin-bottom:6px;">Yuqori muhit (n₁):</div>
+          <button class="medium-btn active" onclick="setMedium(1,1.0,'Havo',this)">Havo 1.00</button>
+          <button class="medium-btn" onclick="setMedium(1,1.33,'Suv',this)">💧 Suv 1.33</button>
+          <button class="medium-btn" onclick="setMedium(1,1.5,'Shisha',this)">🔷 Shisha 1.50</button>
+        </div>
+        <div>
+          <div style="font-size:.75rem;color:var(--text2);margin-bottom:6px;">Quyi muhit (n₂):</div>
+          <button class="medium-btn" onclick="setMedium(2,1.0,'Havo',this)">Havo 1.00</button>
+          <button class="medium-btn" onclick="setMedium(2,1.33,'Suv',this)">💧 Suv 1.33</button>
+          <button class="medium-btn active" onclick="setMedium(2,1.5,'Shisha',this)">🔷 Shisha 1.50</button>
+          <button class="medium-btn" onclick="setMedium(2,2.42,'Olmos',this)">💎 Olmos 2.42</button>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Tushish burchagi</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">θ₁ burchak</span><span class="slider-val"><span id="v-angle">45</span>°</span></div>
+          <input type="range" id="s-angle" min="0" max="89" step="1" value="45" oninput="updateAngle(this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Nurlar soni</span><span class="slider-val"><span id="v-rays">1</span></span></div>
+          <input type="range" id="s-rays" min="1" max="7" step="1" value="1" oninput="updateRays(this.value)">
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Hisoblash natijalari</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>Tushish burchagi (θ₁)</td><td><span id="d-t1">45.0°</span></td></tr>
+            <tr><td>Sinish burchagi (θ₂)</td><td><span id="d-t2">—</span></td></tr>
+            <tr><td>Qaytish burchagi</td><td><span id="d-tr">45.0°</span></td></tr>
+            <tr><td>To'liq ichki qaytish</td><td><span id="d-tir" style="color:var(--red);">—</span></td></tr>
+            <tr><td>Kritik burchak</td><td><span id="d-crit">—</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Snell qonuni</div>
+        <div class="formula-card"><div class="formula-eq">n₁·sin(θ₁) = n₂·sin(θ₂)</div><div class="formula-desc">Yorug'likning sinish qonuni. n — sindirish ko'rsatkichi, θ — normal bilan burchak.</div></div>
+        <div class="formula-card"><div class="formula-eq">θ_crit = arcsin(n₂/n₁)</div><div class="formula-desc">To'liq ichki qaytish kritik burchagi. Faqat n₁ > n₂ da mavjud.</div></div>
+        <div class="formula-card"><div class="formula-eq">n = c / v</div><div class="formula-desc">Sindirish ko'rsatkichi. c — vakuumdagi yorug'lik tezligi, v — muhitdagi tezlik.</div></div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Muhitlar</div>
+        <div style="font-size:.78rem;color:var(--text2);line-height:2;">
+          Havo: n = 1.000<br>
+          Suv: n = 1.333<br>
+          Shisha: n = 1.500<br>
+          Olmos: n = 2.417<br>
+          Kremni shisha: n = 1.458
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('sim-canvas');
+const ctx=canvas.getContext('2d');
+let state={n1:1.0,n2:1.5,angle:45,color:'#ffffff',rays:1,mode:'single',prism:false};
+let animId;
+
+function initCanvas(){
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  ctx.scale(dpr,dpr);draw();
+}
+
+function draw(){
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.width/dpr,H=canvas.height/dpr;
+  ctx.clearRect(0,0,W,H);
+  const mx=W/2,my=H/2;
+
+  // Medium backgrounds
+  ctx.fillStyle='rgba(5,10,20,1)';ctx.fillRect(0,0,W,my);
+  const m1Color=state.n1>1?'rgba(30,60,100,.3)':'rgba(5,10,20,0)';
+  ctx.fillStyle=m1Color;ctx.fillRect(0,0,W,my);
+  const m2Colors={'1.0':'rgba(5,8,15,0)','1.33':'rgba(10,30,80,.4)','1.5':'rgba(20,40,100,.5)','2.42':'rgba(40,20,80,.6)'};
+  ctx.fillStyle=m2Colors[state.n2.toString()]||'rgba(20,40,100,.4)';ctx.fillRect(0,my,W,H-my);
+  // Medium label
+  ctx.fillStyle='rgba(255,255,255,.15)';ctx.font='13px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(`n₁ = ${state.n1}`,mx,my-20);
+  ctx.fillText(`n₂ = ${state.n2}`,mx,my+20);
+  ctx.textAlign='left';
+
+  // Interface line
+  ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=1.5;ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(0,my);ctx.lineTo(W,my);ctx.stroke();
+
+  // Normal line (dashed)
+  ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;ctx.setLineDash([6,6]);
+  ctx.beginPath();ctx.moveTo(mx,my-120);ctx.lineTo(mx,my+120);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Angle arc (incoming)
+  ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(mx,my,40,Math.PI*1.5-state.angle*Math.PI/180,Math.PI*1.5,false);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.4)';ctx.font='11px Segoe UI';
+  const ar=50,aa=Math.PI*1.5-state.angle*Math.PI/2/90;
+  ctx.fillText('θ₁',mx+Math.sin(-state.angle*Math.PI/180)*ar-16,my-Math.cos(state.angle*Math.PI/180)*ar+4);
+
+  // Refraction angle
+  const sinT2=state.n1*Math.sin(state.angle*Math.PI/180)/state.n2;
+  const totalInternalReflection=sinT2>1;
+  const t2=totalInternalReflection?null:Math.asin(sinT2);
+
+  // Draw rays
+  const spread=state.rays>1?20:0;
+  for(let ri=0;ri<state.rays;ri++){
+    const offset=(ri-(state.rays-1)/2)*spread;
+    const sx=mx+offset;
+    const rayAngle=state.angle*Math.PI/180;
+
+    // Incoming ray
+    const incLen=Math.min(180,H*0.4);
+    const idx=sx-Math.sin(rayAngle)*incLen;
+    const idy=my-Math.cos(rayAngle)*incLen;
+    drawRay(ctx,idx,idy,sx,my,state.color,state.rays>1?0.7:1);
+
+    // Reflected ray
+    const refLen=120;
+    const rfx=sx+Math.sin(rayAngle)*refLen;
+    const rfy=my-Math.cos(rayAngle)*refLen;
+    drawRay(ctx,sx,my,rfx,rfy,state.color,0.35);
+
+    // Refracted ray
+    if(!totalInternalReflection){
+      const refractLen=Math.min(200,H*0.4);
+      const rtx=sx+Math.sin(t2)*refractLen;
+      const rty=my+Math.cos(t2)*refractLen;
+      drawRay(ctx,sx,my,rtx,rty,state.color,state.rays>1?0.7:1);
+      // Angle arc (refracted)
+      if(ri===Math.floor(state.rays/2)){
+        ctx.strokeStyle='rgba(100,200,255,.25)';ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(sx,my,40,Math.PI/2,Math.PI/2+t2,false);ctx.stroke();
+        ctx.fillStyle='rgba(100,200,255,.5)';ctx.font='11px Segoe UI';
+        ctx.fillText('θ₂',sx+Math.sin(t2/2)*50+4,my+Math.cos(t2/2)*40+4);
+      }
+    }
+    // Hit point glow
+    const gGrad=ctx.createRadialGradient(sx,my,0,sx,my,15);
+    gGrad.addColorStop(0,state.color.replace(')',',0.4)').replace('rgb','rgba').replace('#','rgba(').replace(/([0-9a-f]{2})/gi,h=>parseInt(h,16)+',').slice(0,-1));
+    try{ctx.beginPath();ctx.arc(sx,my,10,0,Math.PI*2);ctx.fillStyle=state.color+'44';ctx.fill();}catch(e){}
+  }
+
+  // Prism mode
+  if(state.prism){
+    ctx.save();ctx.translate(W*0.6,H*0.4);
+    ctx.strokeStyle='rgba(150,200,255,.5)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,-80);ctx.lineTo(70,50);ctx.lineTo(-70,50);ctx.closePath();ctx.stroke();
+    ctx.fillStyle='rgba(30,80,150,.2)';ctx.fill();
+    // Rainbow rays
+    const colors=['#ef4444','#f97316','#facc15','#22c55e','#3b82f6','#8b5cf6','#ec4899'];
+    colors.forEach((c,i)=>{
+      const spread=i-3;
+      ctx.strokeStyle=c;ctx.lineWidth=1.5;ctx.globalAlpha=0.7;
+      ctx.beginPath();ctx.moveTo(-100,-20);ctx.lineTo(0,-20+spread*3);
+      ctx.lineTo(100+spread*8,-20+spread*15+i*8);ctx.stroke();
+    });
+    ctx.globalAlpha=1;ctx.restore();
+    ctx.fillStyle='rgba(255,255,255,.4)';ctx.font='12px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Prizma: Dispursiya',W*0.6,H*0.4+80);ctx.textAlign='left';
+  }
+
+  updateHUD(t2,totalInternalReflection);
+}
+
+function drawRay(ctx,x1,y1,x2,y2,color,alpha){
+  const len=Math.sqrt((x2-x1)**2+(y2-y1)**2);
+  if(len<1)return;
+  ctx.save();ctx.globalAlpha=alpha;
+  // Glow
+  ctx.shadowBlur=12;ctx.shadowColor=color;
+  ctx.strokeStyle=color;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  // Arrow
+  const angle=Math.atan2(y2-y1,x2-x1);
+  ctx.translate((x1+x2)/2,(y1+y2)/2);ctx.rotate(angle);
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-8,-4);ctx.lineTo(-8,4);ctx.closePath();ctx.fillStyle=color;ctx.fill();
+  ctx.shadowBlur=0;ctx.restore();
+}
+
+function updateHUD(t2,tir){
+  document.getElementById('hud-t1').textContent=state.angle.toFixed(1);
+  document.getElementById('hud-t2').textContent=t2?(t2*180/Math.PI).toFixed(1):'TIR';
+  document.getElementById('hud-n').textContent=`${state.n1}/${state.n2}`;
+  document.getElementById('d-t1').textContent=state.angle+'°';
+  document.getElementById('d-t2').textContent=t2?(t2*180/Math.PI).toFixed(2)+'°':'To\'liq qaytish!';
+  document.getElementById('d-tr').textContent=state.angle+'°';
+  document.getElementById('d-tir').textContent=tir?'✅ HA':'—';
+  if(state.n1>state.n2){
+    const crit=Math.asin(state.n2/state.n1)*180/Math.PI;
+    document.getElementById('d-crit').textContent=crit.toFixed(1)+'°';
+  } else {document.getElementById('d-crit').textContent='n₁<n₂';}
+}
+
+// Drag to change angle
+let dragging=false;
+canvas.addEventListener('mousedown',e=>{dragging=true;updateAngleFromMouse(e);});
+canvas.addEventListener('mousemove',e=>{if(dragging)updateAngleFromMouse(e);});
+canvas.addEventListener('mouseup',()=>dragging=false);
+function updateAngleFromMouse(e){
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const x=(e.clientX-rect.left),y=(e.clientY-rect.top);
+  const mx=rect.width/2,my=rect.height/2;
+  if(y<my){
+    const angle=Math.atan2(Math.abs(x-mx),my-y)*180/Math.PI;
+    state.angle=Math.max(0,Math.min(89,Math.round(angle)));
+    document.getElementById('s-angle').value=state.angle;
+    document.getElementById('v-angle').textContent=state.angle;
+    draw();
+  }
+}
+
+function updateAngle(v){state.angle=parseInt(v);document.getElementById('v-angle').textContent=v;draw();}
+function updateRays(v){state.rays=parseInt(v);document.getElementById('v-rays').textContent=v;draw();}
+function setColor(c,el){state.color=c;document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));el.classList.add('active');draw();}
+function setMedium(which,n,name,btn){
+  if(which===1){state.n1=n;btn.closest('.panel-section').querySelectorAll('.medium-btn').forEach(b=>{if(b.textContent.includes(name)||b===btn){b.classList.add('active');}else b.classList.remove('active');});}
+  else{state.n2=n;const btns=btn.parentElement.querySelectorAll('.medium-btn');btns.forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  draw();
+}
+function toggleMode(){state.prism=!state.prism;draw();}
+function addPrism(){state.prism=!state.prism;draw();}
+function resetSim(){state.prism=false;state.angle=45;state.rays=1;document.getElementById('s-angle').value=45;document.getElementById('v-angle').textContent=45;draw();}
+function switchTab(t,btn){['params','theory'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+window.addEventListener('resize',initCanvas);
+initCanvas();
+
+function toggleLabTheme(){
+  var html=document.documentElement;
+  var cur=html.getAttribute('data-theme');
+  var next=cur==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  localStorage.setItem('zy_theme',next);
+  localStorage.setItem('theme',next);
+  var icon=document.getElementById('theme-icon');
+  var lbl=document.getElementById('theme-label');
+  if(icon){icon.textContent=next==='dark'?'☀️':'🌙';}
+  if(lbl){lbl.textContent=next==='dark'?'Kun':'Tun';}
+}
+(function(){
+  var t=document.documentElement.getAttribute('data-theme')||'dark';
+  var icon=document.getElementById('theme-icon');
+  var lbl=document.getElementById('theme-label');
+  if(icon){icon.textContent=t==='dark'?'☀️':'🌙';}
+  if(lbl){lbl.textContent=t==='dark'?'Kun':'Tun';}
+})();
+</script>
+</body>
+</html>
