@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Molekular Harakat — Ziyomap</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--accent2:#60a5fa;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.lab-wrap{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;background:#0a0e1a;}
+#sim-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,14,26,.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.tool-btn{padding:8px 20px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+.tool-btn.play{background:var(--green);color:#fff;}
+.tool-btn.pause{background:var(--orange);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.panel-section{margin-bottom:1.5rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;color:var(--text);background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:1rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;transition:.15s;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.mol-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.5rem;}
+.mol-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:var(--bg3);color:var(--text2);font-size:.78rem;font-weight:600;cursor:pointer;transition:.15s;}
+.mol-btn.active{border-color:var(--accent);color:var(--accent2);background:rgba(59,130,246,.12);}
+.thermometer{position:absolute;right:12px;top:12px;width:28px;height:180px;background:rgba(10,14,26,.85);border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;padding:4px;}
+.therm-fill{position:absolute;bottom:4px;left:4px;right:4px;border-radius:10px;transition:height .3s;background:linear-gradient(180deg,#ef4444,#f59e0b);}
+.therm-label{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:.65rem;color:var(--orange);white-space:nowrap;font-weight:700;}
+
+/* ══ LIGHT MODE ══ */
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#ffffff;--bg3:#e8edf8;--card:#ffffff;--accent:#2563eb;--accent2:#3b82f6;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff !important;color:#0f172a !important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95) !important;border-bottom-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .control-panel{background:#ffffff !important;border-left-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.92) !important;border-color:rgba(0,0,0,.1) !important;color:#1e293b !important;}
+[data-theme="light"] .energy-bars{background:rgba(240,244,255,.92) !important;border-color:rgba(0,0,0,.1) !important;}
+[data-theme="light"] .formula-card{background:#e8edf8 !important;border-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .formula-desc{color:#475569 !important;}
+[data-theme="light"] .data-table th{background:#e8edf8 !important;}
+[data-theme="light"] .data-table td{color:#0f172a !important;}
+[data-theme="light"] .check-row{background:#e8edf8 !important;}
+[data-theme="light"] .check-label{color:#475569 !important;}
+[data-theme="light"] .slider-name{color:#475569 !important;}
+[data-theme="light"] .planet-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07) !important;color:#475569 !important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12) !important;}
+[data-theme="light"] .canvas-area{background:linear-gradient(180deg,#c8d9f5,#b8cff0) !important;}
+[data-theme="light"] .ebar-label,[data-theme="light"] .ebar-val{color:#475569 !important;}
+[data-theme="light"] .mol-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] .medium-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] #therm-label{color:#d97706 !important;}
+</style>
+<script>
+(function(){
+  var p=new URLSearchParams(location.search).get('theme');
+  var s=p||localStorage.getItem('zy_theme')||localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',s);
+  if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}
+})();
+</script>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">🧪 Molekular Harakat Laboratoriyasi</span>
+  <div style="display:flex;align-items:center;gap:8px;"><button onclick="toggleLabTheme()" style="padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2,#94a3b8);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;"><span id="theme-icon">☀️</span><span id="theme-label">Kun</span></button><a href="../" class="nav-logo">Ziyomap</a></div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area">
+    <canvas id="sim-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" style="color:var(--orange);">🌡️ T = <span id="hud-T">300</span> K</div>
+      <div class="hud-badge" style="color:var(--accent2);">📦 N = <span id="hud-N">50</span></div>
+      <div class="hud-badge" style="color:var(--green);">⚡ v̄ = <span id="hud-v">0</span> m/s</div>
+    </div>
+    <div style="position:absolute;right:12px;top:12px;display:flex;flex-direction:column;align-items:center;">
+      <span style="font-size:.65rem;color:var(--orange);margin-bottom:4px;font-weight:700;" id="therm-label">300K</span>
+      <div style="width:24px;height:160px;background:rgba(30,40,60,.9);border:1px solid rgba(255,255,255,.15);border-radius:12px;overflow:hidden;position:relative;">
+        <div id="therm-fill" style="position:absolute;bottom:0;left:2px;right:2px;border-radius:8px;background:linear-gradient(180deg,#ef4444,#f59e0b);transition:height .3s;height:30%;"></div>
+      </div>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn reset" onclick="resetSim()">↺ Qayta</button>
+      <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
+      <button class="tool-btn reset" onclick="addHeat()">🔥 +Issiq</button>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Molekula turi</div>
+        <div class="mol-selector">
+          <div class="mol-btn active" onclick="setMol('H2O',this)">💧 H₂O</div>
+          <div class="mol-btn" onclick="setMol('O2',this)">🔴 O₂</div>
+          <div class="mol-btn" onclick="setMol('N2',this)">🔵 N₂</div>
+          <div class="mol-btn" onclick="setMol('CO2',this)">⚫ CO₂</div>
+          <div class="mol-btn" onclick="setMol('He',this)">🟡 He</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Parametrlar</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Temperatura (T)</span><span class="slider-val"><span id="v-T">300</span> K</span></div>
+          <input type="range" id="s-T" min="50" max="1000" step="10" value="300" oninput="updateT(this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Molekulalar soni</span><span class="slider-val"><span id="v-N">50</span></span></div>
+          <input type="range" id="s-N" min="10" max="150" step="5" value="50" oninput="updateN(this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Konteyner hajmi</span><span class="slider-val"><span id="v-vol">100</span> %</span></div>
+          <input type="range" id="s-vol" min="40" max="100" step="5" value="100" oninput="updateVol(this.value)">
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Holat ma'lumotlari</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>Bosim (P)</td><td><span id="d-P">—</span></td></tr>
+            <tr><td>O'rtacha tezlik</td><td><span id="d-v">—</span></td></tr>
+            <tr><td>Kinetik energiya</td><td><span id="d-ke">—</span></td></tr>
+            <tr><td>To'qnashuvlar/s</td><td><span id="d-coll">0</span></td></tr>
+            <tr><td>Holat</td><td><span id="d-state" style="color:var(--accent2);">Gaz</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Formulalar</div>
+        <div class="formula-card"><div class="formula-eq">PV = nRT</div><div class="formula-desc">Ideal gaz holat tenglamasi. P — bosim, V — hajm, n — mol soni, R — gaz doimiysi (8.314), T — temperatura.</div></div>
+        <div class="formula-card"><div class="formula-eq">Ek = 3/2 · kT</div><div class="formula-desc">Bir molekulaning o'rtacha kinetik energiyasi. k = 1.38×10⁻²³ J/K (Bolsman doimiysi).</div></div>
+        <div class="formula-card"><div class="formula-eq">v̄ = √(3RT/M)</div><div class="formula-desc">O'rtacha kvadratik tezlik. M — molar massa (kg/mol).</div></div>
+        <div class="formula-card"><div class="formula-eq">P = nkT/V</div><div class="formula-desc">Bosim formulasi molekular kinetik nazariya bo'yicha.</div></div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Molekulalar haqida</div>
+        <div style="font-size:.8rem;color:var(--text2);line-height:1.8;" id="mol-info">
+          💧 <strong style="color:var(--text);">H₂O (Suv)</strong><br>
+          Molar massa: 18 g/mol<br>
+          300K da v̄ ≈ 590 m/s<br>
+          Qutbli molekula
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const MOLECULES={
+  H2O:{color:'#60a5fa',r:6,M:0.018,name:'Suv (H₂O)',info:'💧 <strong style="color:var(--text);">H₂O</strong><br>Molar massa: 18 g/mol<br>Qutbli molekula'},
+  O2:{color:'#ef4444',r:7,M:0.032,name:'Kislorod (O₂)',info:'🔴 <strong style="color:var(--text);">O₂</strong><br>Molar massa: 32 g/mol<br>Ikki atomli molekula'},
+  N2:{color:'#3b82f6',r:7,M:0.028,name:'Azot (N₂)',info:'🔵 <strong style="color:var(--text);">N₂</strong><br>Molar massa: 28 g/mol<br>Havo tarkibida 78%'},
+  CO2:{color:'#6b7280',r:8,M:0.044,name:'CO₂',info:'⚫ <strong style="color:var(--text);">CO₂</strong><br>Molar massa: 44 g/mol<br>Issiqxona gazi'},
+  He:{color:'#f59e0b',r:4,M:0.004,name:'Geliy (He)',info:'🟡 <strong style="color:var(--text);">He</strong><br>Molar massa: 4 g/mol<br>Nobilgaz, eng engil'},
+};
+const canvas=document.getElementById('sim-canvas');
+const ctx=canvas.getContext('2d');
+const k=1.38e-23, R_const=8.314;
+let state={T:300,N:50,mol:'H2O',volPct:100,playing:false,particles:[],collisions:0,collTimer:0};
+let animId,lastTime;
+
+function initCanvas(){
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  ctx.scale(dpr,dpr);
+}
+
+function getBox(){
+  const W=canvas.width/(window.devicePixelRatio||1),H=canvas.height/(window.devicePixelRatio||1);
+  const pct=state.volPct/100;
+  const bw=W*0.7*pct,bh=H*0.75*pct;
+  return{x:(W-bw)/2,y:(H-bh)/2,w:bw,h:bh,W,H};
+}
+
+function initParticles(){
+  const box=getBox();
+  const mol=MOLECULES[state.mol];
+  const vMean=Math.sqrt(3*R_const*state.T/mol.M)*0.001;
+  state.particles=[];
+  for(let i=0;i<state.N;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=vMean*(0.5+Math.random());
+    state.particles.push({
+      x:box.x+mol.r+Math.random()*(box.w-mol.r*2),
+      y:box.y+mol.r+Math.random()*(box.h-mol.r*2),
+      vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+      r:mol.r,color:mol.color,
+      hue:Math.random()*40-20
+    });
+  }
+}
+
+function step(dt){
+  const box=getBox();
+  const mol=MOLECULES[state.mol];
+  const vMean=Math.sqrt(3*R_const*state.T/mol.M)*0.001;
+  let collCount=0;
+  state.particles.forEach(p=>{
+    p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;
+    if(p.x-p.r<box.x){p.x=box.x+p.r;p.vx=Math.abs(p.vx);collCount++;}
+    if(p.x+p.r>box.x+box.w){p.x=box.x+box.w-p.r;p.vx=-Math.abs(p.vx);collCount++;}
+    if(p.y-p.r<box.y){p.y=box.y+p.r;p.vy=Math.abs(p.vy);collCount++;}
+    if(p.y+p.r>box.y+box.h){p.y=box.y+box.h-p.r;p.vy=-Math.abs(p.vy);collCount++;}
+    // Adjust speed toward mean
+    const spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+    if(spd>0){const f=1+(vMean-spd)*0.001;p.vx*=f;p.vy*=f;}
+  });
+  // Particle-particle collisions (simplified, check nearby)
+  for(let i=0;i<state.particles.length;i++){
+    for(let j=i+1;j<state.particles.length;j++){
+      const a=state.particles[i],b=state.particles[j];
+      const dx=b.x-a.x,dy=b.y-a.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const minD=a.r+b.r;
+      if(dist<minD&&dist>0){
+        const nx=dx/dist,ny=dy/dist;
+        const overlap=(minD-dist)/2;
+        a.x-=nx*overlap;a.y-=ny*overlap;b.x+=nx*overlap;b.y+=ny*overlap;
+        const dvx=a.vx-b.vx,dvy=a.vy-b.vy;
+        const dot=dvx*nx+dvy*ny;
+        if(dot>0){a.vx-=dot*nx;a.vy-=dot*ny;b.vx+=dot*nx;b.vy+=dot*ny;collCount++;}
+      }
+    }
+  }
+  state.collTimer+=dt;
+  if(state.collTimer>0.5){state.collisions=Math.round(collCount/state.collTimer);state.collTimer=0;}
+}
+
+function draw(){
+  const box=getBox();
+  const W=box.W,H=box.H;
+  ctx.clearRect(0,0,W,H);
+  // Background
+  ctx.fillStyle='#0a0e1a';ctx.fillRect(0,0,W,H);
+  // Grid dots
+  ctx.fillStyle='rgba(255,255,255,.03)';
+  for(let x=20;x<W;x+=40)for(let y=20;y<H;y+=40){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill();}
+  // Container wall glow
+  const wallGlow=ctx.createLinearGradient(box.x,box.y,box.x+box.w,box.y+box.h);
+  wallGlow.addColorStop(0,'rgba(59,130,246,.15)');wallGlow.addColorStop(1,'rgba(139,92,246,.1)');
+  ctx.fillStyle=wallGlow;ctx.fillRect(box.x,box.y,box.w,box.h);
+  // Container border
+  ctx.strokeStyle='rgba(59,130,246,.6)';ctx.lineWidth=2;
+  ctx.strokeRect(box.x,box.y,box.w,box.h);
+  // Wall glow segments
+  ctx.shadowBlur=8;ctx.shadowColor='rgba(59,130,246,.4)';ctx.strokeRect(box.x,box.y,box.w,box.h);ctx.shadowBlur=0;
+  // Molecules
+  const mol=MOLECULES[state.mol];
+  const vMean=Math.sqrt(3*R_const*state.T/mol.M)*0.001;
+  state.particles.forEach(p=>{
+    const spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+    const ratio=Math.min(1,spd/vMean*0.7);
+    // Color by speed: blue(cold) → red(hot)
+    const r=Math.floor(59+ratio*196),g=Math.floor(130-ratio*94),b=Math.floor(246-ratio*210);
+    const pGrad=ctx.createRadialGradient(p.x-p.r*.3,p.y-p.r*.3,p.r*.1,p.x,p.y,p.r);
+    pGrad.addColorStop(0,`rgba(${Math.min(255,r+60)},${Math.min(255,g+40)},${Math.min(255,b+20)},1)`);
+    pGrad.addColorStop(1,`rgba(${r},${g},${b},.9)`);
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=pGrad;ctx.fill();
+    // Shine
+    ctx.beginPath();ctx.arc(p.x-p.r*.3,p.y-p.r*.3,p.r*.25,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,.25)';ctx.fill();
+    // Velocity vector (tiny)
+    if(spd>vMean*0.3){
+      const vScale=p.r*1.5;
+      ctx.strokeStyle=`rgba(255,255,255,.2)`;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+p.vx/spd*vScale,p.y+p.vy/spd*vScale);ctx.stroke();
+    }
+  });
+  // Temperature color on walls
+  const tRatio=Math.min(1,(state.T-50)/950);
+  ctx.strokeStyle=`rgba(${Math.floor(59+tRatio*196)},${Math.floor(130-tRatio*94)},${Math.floor(246-tRatio*210)},.6)`;
+  ctx.lineWidth=2;ctx.strokeRect(box.x,box.y,box.w,box.h);
+  // Labels
+  ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='11px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(MOLECULES[state.mol].name,W/2,box.y-8);ctx.textAlign='left';
+  // Pressure indicator
+  const P=state.N*k*state.T/(box.w*box.h*1e-6);
+  const pw=Math.min(80,P*10);
+  ctx.fillStyle='rgba(245,158,11,.15)';ctx.fillRect(box.x,box.y+box.h,pw,6);
+  ctx.strokeStyle='rgba(245,158,11,.4)';ctx.lineWidth=1;ctx.strokeRect(box.x,box.y+box.h,box.w,6);
+}
+
+function updateHUD(){
+  const mol=MOLECULES[state.mol];
+  const vMean=Math.sqrt(3*R_const*state.T/mol.M)*0.001;
+  const box=getBox();
+  const P=(state.N*k*state.T)/(box.w*box.h*1e-6);
+  document.getElementById('hud-T').textContent=state.T;
+  document.getElementById('hud-N').textContent=state.N;
+  document.getElementById('hud-v').textContent=(vMean*1000).toFixed(0);
+  document.getElementById('d-P').textContent=(P*1e-3).toFixed(2)+' kPa';
+  document.getElementById('d-v').textContent=(vMean*1000).toFixed(1)+' m/s';
+  document.getElementById('d-ke').textContent=(1.5*k*state.T*1e21).toFixed(2)+'×10⁻²¹ J';
+  document.getElementById('d-coll').textContent=state.collisions;
+  const phase=state.T<273?'Qattiq':state.T<373?'Suyuq':'Gaz';
+  document.getElementById('d-state').textContent=phase;
+  // Thermometer
+  const tPct=((state.T-50)/950)*100;
+  document.getElementById('therm-fill').style.height=tPct+'%';
+  document.getElementById('therm-label').textContent=state.T+'K';
+}
+
+function loop(ts){
+  if(!lastTime)lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,.033);
+  lastTime=ts;
+  if(state.playing)step(dt);
+  draw();updateHUD();
+  animId=requestAnimationFrame(loop);
+}
+function togglePlay(){state.playing=!state.playing;const btn=document.getElementById('play-btn');btn.textContent=state.playing?'⏸ Pauza':'▶ Davom';btn.className='tool-btn '+(state.playing?'pause':'play');}
+function resetSim(){state.playing=false;const btn=document.getElementById('play-btn');btn.textContent='▶ Boshlash';btn.className='tool-btn play';initParticles();}
+function updateT(v){state.T=parseInt(v);document.getElementById('v-T').textContent=v;const mol=MOLECULES[state.mol];const vMean=Math.sqrt(3*R_const*state.T/mol.M)*0.001;state.particles.forEach(p=>{const spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);if(spd>0){const f=vMean/spd;p.vx*=f;p.vy*=f;}});}
+function updateN(v){state.N=parseInt(v);document.getElementById('v-N').textContent=v;initParticles();}
+function updateVol(v){state.volPct=parseInt(v);document.getElementById('v-vol').textContent=v;initParticles();}
+function addHeat(){state.T=Math.min(1000,state.T+50);document.getElementById('s-T').value=state.T;updateT(state.T);}
+function setMol(mol,btn){state.mol=mol;document.querySelectorAll('.mol-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('mol-info').innerHTML=MOLECULES[mol].info;initParticles();}
+function switchTab(tab,btn){['params','theory'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===tab?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+window.addEventListener('resize',()=>{initCanvas();initParticles();});
+initCanvas();initParticles();requestAnimationFrame(loop);
+
+function toggleLabTheme(){
+  var html=document.documentElement;
+  var cur=html.getAttribute('data-theme');
+  var next=cur==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  localStorage.setItem('zy_theme',next);
+  localStorage.setItem('theme',next);
+  var icon=document.getElementById('theme-icon');
+  var lbl=document.getElementById('theme-label');
+  if(icon){icon.textContent=next==='dark'?'☀️':'🌙';}
+  if(lbl){lbl.textContent=next==='dark'?'Kun':'Tun';}
+}
+(function(){
+  var t=document.documentElement.getAttribute('data-theme')||'dark';
+  var icon=document.getElementById('theme-icon');
+  var lbl=document.getElementById('theme-label');
+  if(icon){icon.textContent=t==='dark'?'☀️':'🌙';}
+  if(lbl){lbl.textContent=t==='dark'?'Kun':'Tun';}
+})();
+</script>
+</body>
+</html>
