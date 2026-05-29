@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mayatnik Laboratoriyasi — Ziyomap</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--card:#141e30;
+  --accent:#3b82f6;--accent2:#60a5fa;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+/* NAV */
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;
+  background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);
+  position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:.85rem;text-decoration:none;
+  padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);transition:.2s;}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.nav-title{font-size:.9rem;font-weight:600;color:var(--text);}
+/* MAIN LAYOUT */
+.lab-wrap{display:grid;grid-template-columns:1fr 300px;gap:0;height:calc(100vh - 56px);}
+@media(max-width:900px){.lab-wrap{grid-template-columns:1fr;grid-template-rows:1fr auto;}}
+/* CANVAS AREA */
+.canvas-area{position:relative;background:linear-gradient(180deg,#0d1420 0%,#0a1628 100%);overflow:hidden;}
+#sim-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+  background:rgba(10,14,26,.8);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;font-size:.8rem;font-weight:600;}
+.hud-badge.period{color:var(--accent2);}
+.hud-badge.angle{color:var(--orange);}
+.hud-badge.energy{color:var(--green);}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+  display:flex;gap:8px;}
+.tool-btn{padding:8px 20px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;
+  cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px;}
+.tool-btn.play{background:var(--green);color:#fff;}
+.tool-btn.pause{background:var(--orange);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.tool-btn:hover{filter:brightness(1.15);transform:translateY(-2px);}
+/* ENERGY BAR */
+.energy-bars{position:absolute;bottom:60px;right:12px;width:130px;
+  background:rgba(10,14,26,.85);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:10px;}
+.ebar-title{font-size:.65rem;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+.ebar-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.ebar-label{font-size:.65rem;color:var(--text2);min-width:24px;}
+.ebar-track{flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.ebar-fill{height:100%;border-radius:4px;transition:width .1s;}
+.ebar-val{font-size:.6rem;color:var(--text2);min-width:28px;text-align:right;}
+/* PANEL */
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);
+  overflow-y:auto;padding:1.25rem;}
+.panel-section{margin-bottom:1.5rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--accent2);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+/* SLIDERS */
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;color:var(--text);
+  background:var(--bg3);border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;outline:none;
+  background:rgba(255,255,255,.1);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;
+  border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(59,130,246,.5);}
+/* CHECKBOXES */
+.check-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;
+  background:var(--bg3);margin-bottom:6px;cursor:pointer;transition:.15s;}
+.check-row:hover{background:rgba(59,130,246,.08);}
+.check-box{width:18px;height:18px;border-radius:4px;border:2px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;}
+.check-box.on{background:var(--accent);border-color:var(--accent);}
+.check-box.on::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
+.check-label{font-size:.82rem;color:var(--text2);}
+/* DATA TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);
+  font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.data-table tr:last-child td{border-bottom:none;}
+/* FORMULA CARD */
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:1rem;font-weight:700;color:var(--accent);text-align:center;
+  font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);
+  border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;
+  background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;transition:.15s;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+/* GRAPH */
+#graph-canvas{width:100%;height:100px;border-radius:8px;background:var(--bg3);}
+/* PLANET SELECT */
+.planet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.5rem;}
+.planet-btn{padding:8px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  background:var(--bg3);color:var(--text2);font-size:.72rem;font-weight:600;cursor:pointer;transition:.15s;text-align:center;}
+.planet-btn.active{background:rgba(59,130,246,.2);border-color:var(--accent);color:var(--accent2);}
+.planet-btn:hover{border-color:var(--accent2);}
+.planet-icon{font-size:1.1rem;display:block;margin-bottom:2px;}
+/* TRACE toggle */
+.trace-line{position:absolute;top:0;left:0;pointer-events:none;}
+
+/* ══ LIGHT MODE (labs shared) ══ */
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#ffffff;--bg3:#e8edf8;--card:#ffffff;--accent:#2563eb;--accent2:#3b82f6;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff !important;color:#0f172a !important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95) !important;border-bottom-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .control-panel{background:#ffffff !important;border-left-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.95) !important;border-color:rgba(0,0,0,.1) !important;color:#1e293b !important;}
+[data-theme="light"] .energy-bars{background:rgba(240,244,255,.95) !important;border-color:rgba(0,0,0,.1) !important;}
+[data-theme="light"] .formula-card{background:#e8edf8 !important;border-color:rgba(0,0,0,.08) !important;}
+[data-theme="light"] .formula-desc{color:#475569 !important;}
+[data-theme="light"] .data-table th{background:#e8edf8 !important;}
+[data-theme="light"] .data-table td{color:#0f172a !important;}
+[data-theme="light"] .check-row{background:#e8edf8 !important;}
+[data-theme="light"] .check-label{color:#475569 !important;}
+[data-theme="light"] .slider-name{color:#475569 !important;}
+[data-theme="light"] .planet-btn{background:#e8edf8 !important;color:#475569 !important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07) !important;color:#475569 !important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12) !important;}
+[data-theme="light"] .canvas-area{background:linear-gradient(180deg,#dce6f9,#c8d9f5) !important;}
+[data-theme="light"] .ebar-label,[data-theme="light"] .ebar-val{color:#475569 !important;}
+</style>
+
+<script>
+(function(){
+  var p=new URLSearchParams(location.search).get('theme');
+  var s=p||localStorage.getItem('zy_theme')||localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',s);
+  if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}
+})();
+</script>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span class="nav-title">⚗️ Mayatnik Laboratoriyasi</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button onclick="toggleLabTheme()" id="theme-toggle-btn" style="padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px;" title="Tema almashtirish">
+      <span id="theme-icon">☀️</span><span id="theme-label">Kun</span>
+    </button>
+    <a href="../" class="nav-logo">Ziyomap</a>
+  </div>
+</nav>
+
+<div class="lab-wrap">
+  <!-- SIMULATION -->
+  <div class="canvas-area">
+    <canvas id="sim-canvas"></canvas>
+    <canvas id="trace-canvas" class="trace-line" style="pointer-events:none;"></canvas>
+
+    <!-- HUD badges -->
+    <div class="canvas-overlay">
+      <div class="hud-badge period">⏱ T = <span id="hud-period">2.00</span> s</div>
+      <div class="hud-badge angle">📐 θ = <span id="hud-angle">30.0</span>°</div>
+      <div class="hud-badge energy" id="hud-vel">⚡ v = 0.00 m/s</div>
+    </div>
+
+    <!-- Energy bars -->
+    <div class="energy-bars">
+      <div class="ebar-title">Energiya</div>
+      <div class="ebar-row">
+        <span class="ebar-label">KE</span>
+        <div class="ebar-track"><div class="ebar-fill" id="ke-bar" style="width:0%;background:#10b981;"></div></div>
+        <span class="ebar-val" id="ke-val">0</span>
+      </div>
+      <div class="ebar-row">
+        <span class="ebar-label">PE</span>
+        <div class="ebar-track"><div class="ebar-fill" id="pe-bar" style="width:100%;background:#3b82f6;"></div></div>
+        <span class="ebar-val" id="pe-val">0</span>
+      </div>
+      <div class="ebar-row">
+        <span class="ebar-label">ΣE</span>
+        <div class="ebar-track"><div class="ebar-fill" id="te-bar" style="width:100%;background:#8b5cf6;"></div></div>
+        <span class="ebar-val" id="te-val">0</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="canvas-tools">
+      <button class="tool-btn reset" onclick="resetSim()">↺ Qayta</button>
+      <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
+      <button class="tool-btn reset" onclick="clearTrace()">✕ Iz</button>
+    </div>
+  </div>
+
+  <!-- CONTROL PANEL -->
+  <div class="control-panel">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('graph',this)">Grafik</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+
+    <!-- PARAMS TAB -->
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Asosiy parametrlar</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Uzunlik (L)</span><span class="slider-val"><span id="v-length">1.0</span> m</span></div>
+          <input type="range" id="s-length" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateParam('length',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Massa (m)</span><span class="slider-val"><span id="v-mass">1.0</span> kg</span></div>
+          <input type="range" id="s-mass" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateParam('mass',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Boshlang'ich burchak</span><span class="slider-val"><span id="v-angle">30</span>°</span></div>
+          <input type="range" id="s-angle" min="5" max="85" step="1" value="30" oninput="updateParam('angle',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Havo qarshiligi</span><span class="slider-val"><span id="v-damp">0.00</span></span></div>
+          <input type="range" id="s-damp" min="0" max="0.5" step="0.01" value="0" oninput="updateParam('damp',this.value)">
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="ps-title">Sayyora tanlash</div>
+        <div class="planet-grid" id="planet-grid"></div>
+        <div style="font-size:.75rem;color:var(--text3);text-align:center;">
+          g = <span id="g-val" style="color:var(--orange);font-weight:700;">9.8</span> m/s²
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="ps-title">Ko'rsatish sozlamalari</div>
+        <div class="check-row" onclick="toggleShow('trace')">
+          <div class="check-box on" id="chk-trace"></div>
+          <span class="check-label">Harakat izi</span>
+        </div>
+        <div class="check-row" onclick="toggleShow('vector')">
+          <div class="check-box" id="chk-vector"></div>
+          <span class="check-label">Tezlik vektori</span>
+        </div>
+        <div class="check-row" onclick="toggleShow('forces')">
+          <div class="check-box" id="chk-forces"></div>
+          <span class="check-label">Kuchlar</span>
+        </div>
+        <div class="check-row" onclick="toggleShow('grid')">
+          <div class="check-box" id="chk-grid"></div>
+          <span class="check-label">Setka</span>
+        </div>
+        <div class="check-row" onclick="toggleShow('slow')">
+          <div class="check-box" id="chk-slow"></div>
+          <span class="check-label">Sekin harakat (0.25x)</span>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="ps-title">O'lchov ma'lumotlari</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>Davr (T)</td><td><span id="d-period">—</span></td></tr>
+            <tr><td>Chastota (f)</td><td><span id="d-freq">—</span></td></tr>
+            <tr><td>Max tezlik</td><td><span id="d-vmax">—</span></td></tr>
+            <tr><td>Max KE</td><td><span id="d-kemax">—</span></td></tr>
+            <tr><td>Tebranishlar</td><td><span id="d-count">0</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GRAPH TAB -->
+    <div id="tab-graph" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Burchak — Vaqt grafigi</div>
+        <canvas id="graph-canvas" height="100"></canvas>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <span style="font-size:.65rem;color:var(--text3);">0</span>
+          <span style="font-size:.65rem;color:var(--text3);">t →</span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Energiya — Vaqt grafigi</div>
+        <canvas id="energy-graph" height="100"></canvas>
+        <div style="display:flex;gap:12px;margin-top:6px;flex-wrap:wrap;">
+          <span style="font-size:.65rem;color:#10b981;">— KE (kinetik)</span>
+          <span style="font-size:.65rem;color:#3b82f6;">— PE (potensial)</span>
+          <span style="font-size:.65rem;color:#8b5cf6;">— ΣE (jami)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THEORY TAB -->
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Asosiy formulalar</div>
+        <div class="formula-card">
+          <div class="formula-eq">T = 2π√(L/g)</div>
+          <div class="formula-desc">Mayatnik davri. L — uzunlik (m), g — erkin tushish tezlanishi (m/s²). <strong style="color:var(--accent2);">Massaga bog'liq emas!</strong></div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-eq">ω = √(g/L)</div>
+          <div class="formula-desc">Burchak chastotasi (rad/s). Kichik burchaklarda to'g'ri.</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-eq">θ(t) = θ₀ cos(ωt)</div>
+          <div class="formula-desc">Burchak koordinatasi vaqt funksiyasi sifatida (kichik tebranishlar uchun).</div>
+        </div>
+        <div class="formula-card">
+          <div class="formula-eq">Ek = ½mv² | Ep = mgh</div>
+          <div class="formula-desc">Kinetik va potensial energiya. Havo qarshiligi bo'lmasa ΣE = const.</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Muhim faktlar</div>
+        <div style="font-size:.8rem;color:var(--text2);line-height:1.8;">
+          • Kichik burchaklarda (θ &lt; 15°) aniq sinusoidal<br>
+          • Davr faqat L va g ga bog'liq<br>
+          • Massa davriga ta'sir qilmaydi<br>
+          • Galiley kashfiyoti: izoxronizm<br>
+          • Havo qarshiligi amplitudani pasaytiradi
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  length: 1.0, mass: 1.0, angle: 30, damp: 0.0,
+  g: 9.8, playing: false, slow: false,
+  theta: 30*Math.PI/180, omega: 0, t: 0,
+  show: { trace:true, vector:false, forces:false, grid:false, slow:false },
+  swings: 0, lastSign: 1, maxV: 0,
+  angleHistory: [], energyHistory: [],
+  tracePoints: []
+};
+
+const PLANETS = [
+  {n:'Yer',icon:'🌍',g:9.8},{n:'Oy',icon:'🌕',g:1.62},
+  {n:'Mars',icon:'🔴',g:3.72},{n:'Yupiter',icon:'🟠',g:24.8},
+  {n:'Saturn',icon:'💫',g:10.4},{n:'Venera',icon:'🟡',g:8.87},
+];
+
+// ============================================================
+// INIT
+// ============================================================
+const canvas = document.getElementById('sim-canvas');
+const ctx = canvas.getContext('2d');
+const traceCanvas = document.getElementById('trace-canvas');
+const traceCtx = traceCanvas.getContext('2d');
+let animId = null, lastTime = null;
+
+function initCanvas(){
+  const dpr = window.devicePixelRatio||1;
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
+  traceCanvas.width = w*dpr; traceCanvas.height = h*dpr;
+  traceCanvas.style.width = w+'px'; traceCanvas.style.height = h+'px';
+  ctx.scale(dpr,dpr); traceCtx.scale(dpr,dpr);
+}
+
+// Build planet buttons
+function buildPlanets(){
+  const grid = document.getElementById('planet-grid');
+  grid.innerHTML = '';
+  PLANETS.forEach((p,i)=>{
+    const btn = document.createElement('div');
+    btn.className = 'planet-btn'+(i===0?' active':'');
+    btn.innerHTML = `<span class="planet-icon">${p.icon}</span>${p.n}<br><span style="font-size:.6rem;color:var(--text3);">${p.g} m/s²</span>`;
+    btn.onclick = ()=>{ state.g=p.g; document.getElementById('g-val').textContent=p.g;
+      grid.querySelectorAll('.planet-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active'); resetSim(); };
+    grid.appendChild(btn);
+  });
+}
+buildPlanets();
+
+// ============================================================
+// PHYSICS
+// ============================================================
+function step(dt){
+  if(state.slow) dt *= 0.25;
+  // Runge-Kutta 4
+  function deriv(th,om){ return [om, -(state.g/state.length)*Math.sin(th) - state.damp*om]; }
+  const [dth1,dom1] = deriv(state.theta, state.omega);
+  const [dth2,dom2] = deriv(state.theta+dth1*dt/2, state.omega+dom1*dt/2);
+  const [dth3,dom3] = deriv(state.theta+dth2*dt/2, state.omega+dom2*dt/2);
+  const [dth4,dom4] = deriv(state.theta+dth3*dt, state.omega+dom3*dt);
+  state.theta += dt*(dth1+2*dth2+2*dth3+dth4)/6;
+  state.omega += dt*(dom1+2*dom2+2*dom3+dom4)/6;
+  state.t += dt;
+
+  // Count swings
+  const sign = state.omega > 0 ? 1 : -1;
+  if(sign !== state.lastSign){ state.swings++; state.lastSign = sign; }
+
+  // Update history (max 200 pts)
+  if(state.angleHistory.length>200) state.angleHistory.shift();
+  state.angleHistory.push(state.theta*180/Math.PI);
+  if(state.energyHistory.length>200) state.energyHistory.shift();
+  const bob = bobPos();
+  const h = state.length - state.length*Math.cos(state.theta);
+  const ke = 0.5*state.mass*Math.pow(state.omega*state.length,2);
+  const pe = state.mass*state.g*h;
+  state.energyHistory.push({ke,pe,te:ke+pe});
+  if(ke>state.maxV) state.maxV = ke;
+
+  // Trace
+  if(state.show.trace){
+    state.tracePoints.push({x:bob.x,y:bob.y});
+    if(state.tracePoints.length>600) state.tracePoints.shift();
+  }
+}
+
+function bobPos(){
+  const W = canvas.width/(window.devicePixelRatio||1);
+  const H = canvas.height/(window.devicePixelRatio||1);
+  const px = 1.0; // scale: 1m = pxPerM px
+  const pxPerM = Math.min(W,H)*0.28;
+  const pivotX = W/2, pivotY = H*0.18;
+  return {
+    x: pivotX + Math.sin(state.theta)*state.length*pxPerM,
+    y: pivotY + Math.cos(state.theta)*state.length*pxPerM,
+    pivotX, pivotY, pxPerM
+  };
+}
+
+// ============================================================
+// DRAW
+// ============================================================
+function draw(){
+  const W = canvas.width/(window.devicePixelRatio||1);
+  const H = canvas.height/(window.devicePixelRatio||1);
+  ctx.clearRect(0,0,W,H);
+
+  const bob = bobPos();
+
+  // Grid
+  if(state.show.grid){
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    ctx.restore();
+  }
+
+  // Ceiling
+  ctx.fillStyle='rgba(59,130,246,.15)';
+  ctx.fillRect(0,0,W,bob.pivotY*0.7);
+  // Ceiling edge
+  ctx.strokeStyle='rgba(59,130,246,.4)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,bob.pivotY*0.7); ctx.lineTo(W,bob.pivotY*0.7); ctx.stroke();
+
+  // Angle arc
+  const pxPerM = bob.pxPerM;
+  ctx.save();
+  ctx.strokeStyle='rgba(245,158,11,.3)'; ctx.lineWidth=1.5;
+  const r0 = state.length*pxPerM*0.35;
+  ctx.beginPath(); ctx.arc(bob.pivotX,bob.pivotY,r0,Math.PI/2-Math.abs(state.theta)*1.0,Math.PI/2,false);
+  ctx.stroke();
+  // Angle label
+  ctx.fillStyle='rgba(245,158,11,.7)'; ctx.font='12px Segoe UI';
+  ctx.fillText((state.theta*180/Math.PI).toFixed(1)+'°', bob.pivotX+r0*0.5, bob.pivotY+r0*0.5+4);
+  ctx.restore();
+
+  // Pivot support
+  ctx.save();
+  ctx.fillStyle='rgba(100,116,139,.5)';
+  ctx.beginPath(); ctx.arc(bob.pivotX, bob.pivotY, 7, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(148,163,184,.6)'; ctx.lineWidth=2;
+  ctx.stroke(); ctx.restore();
+
+  // Thread
+  const threadLen = state.length*pxPerM;
+  const gradient = ctx.createLinearGradient(bob.pivotX,bob.pivotY,bob.x,bob.y);
+  gradient.addColorStop(0,'rgba(148,163,184,.6)');
+  gradient.addColorStop(1,'rgba(148,163,184,.3)');
+  ctx.strokeStyle=gradient; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(bob.pivotX,bob.pivotY); ctx.lineTo(bob.x,bob.y); ctx.stroke();
+
+  // Thread length indicator
+  ctx.fillStyle='rgba(148,163,184,.4)'; ctx.font='11px Segoe UI';
+  const mx=(bob.pivotX+bob.x)/2+10, my=(bob.pivotY+bob.y)/2;
+  ctx.fillText(state.length.toFixed(1)+' m',mx,my);
+
+  // Forces
+  if(state.show.forces){
+    const scale=40*state.mass;
+    // Gravity
+    ctx.strokeStyle='#ef4444'; ctx.lineWidth=2; ctx.fillStyle='#ef4444';
+    drawArrow(ctx,bob.x,bob.y,bob.x,bob.y+state.g*state.mass*3,'#ef4444');
+    ctx.font='11px Segoe UI'; ctx.fillText('mg',bob.x+5,bob.y+state.g*state.mass*3+12);
+    // Tension
+    const tx=bob.pivotX-bob.x, ty=bob.pivotY-bob.y;
+    const tlen=Math.sqrt(tx*tx+ty*ty);
+    const tension=state.mass*state.g*Math.cos(state.theta)+state.mass*state.omega*state.omega*state.length;
+    drawArrow(ctx,bob.x,bob.y,bob.x+tx/tlen*tension*3,bob.y+ty/tlen*tension*3,'#3b82f6');
+    ctx.fillStyle='#3b82f6'; ctx.font='11px Segoe UI'; ctx.fillText('T',bob.x+tx/tlen*tension*3+5,bob.y+ty/tlen*tension*3);
+  }
+
+  // Velocity vector
+  if(state.show.vector){
+    const vx = Math.cos(state.theta)*state.omega*state.length*10;
+    const vy = -Math.sin(state.theta)*state.omega*state.length*10;
+    drawArrow(ctx,bob.x,bob.y,bob.x+vx,bob.y+vy,'#10b981');
+    ctx.fillStyle='#10b981'; ctx.font='11px Segoe UI';
+    ctx.fillText('v='+Math.abs(state.omega*state.length).toFixed(2)+'m/s',bob.x+vx+5,bob.y+vy);
+  }
+
+  // Bob shadow
+  ctx.beginPath(); ctx.ellipse(bob.x,H-20,state.mass*12+8,5,0,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,.3)'; ctx.fill();
+
+  // Bob
+  const r = state.mass*12+8;
+  const bobGrad = ctx.createRadialGradient(bob.x-r*0.3,bob.y-r*0.3,r*0.1,bob.x,bob.y,r);
+  const ke = 0.5*state.mass*Math.pow(state.omega*state.length,2);
+  const maxKE = 0.5*state.mass*state.g*state.length*(1-Math.cos(state.angle*Math.PI/180));
+  const heat = maxKE>0 ? ke/maxKE : 0;
+  const r1=Math.floor(59+heat*180), g1=Math.floor(130-heat*60), b1=Math.floor(246-heat*200);
+  bobGrad.addColorStop(0,`rgba(${r1+60},${g1+40},${b1+20},1)`);
+  bobGrad.addColorStop(0.7,`rgba(${r1},${g1},${b1},1)`);
+  bobGrad.addColorStop(1,`rgba(${Math.max(0,r1-40)},${Math.max(0,g1-40)},${Math.max(0,b1-60)},1)`);
+  ctx.beginPath(); ctx.arc(bob.x,bob.y,r,0,Math.PI*2);
+  ctx.fillStyle=bobGrad; ctx.fill();
+  ctx.strokeStyle=`rgba(${r1+40},${g1+40},${b1+20},.6)`; ctx.lineWidth=2; ctx.stroke();
+
+  // Bob shine
+  ctx.beginPath(); ctx.arc(bob.x-r*0.25,bob.y-r*0.25,r*0.2,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fill();
+
+  // Mass label inside bob
+  if(r>18){
+    ctx.fillStyle='rgba(255,255,255,.9)'; ctx.font=`bold ${Math.min(13,r*0.6)}px Segoe UI`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(state.mass+'kg',bob.x,bob.y);
+    ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  }
+
+  // Floor reference line
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1; ctx.setLineDash([6,6]);
+  ctx.beginPath(); ctx.moveTo(0,H*0.85); ctx.lineTo(W,H*0.85); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Trace (on separate canvas)
+  if(!state.show.trace) traceCtx.clearRect(0,0,W,H);
+}
+
+function drawTrace(){
+  if(!state.show.trace) return;
+  const W=traceCanvas.width/(window.devicePixelRatio||1);
+  const H=traceCanvas.height/(window.devicePixelRatio||1);
+  if(state.tracePoints.length<2) return;
+  traceCtx.clearRect(0,0,W,H);
+  traceCtx.save();
+  traceCtx.lineWidth=1.5;
+  for(let i=1;i<state.tracePoints.length;i++){
+    const alpha=(i/state.tracePoints.length)*0.6;
+    traceCtx.beginPath();
+    traceCtx.strokeStyle=`rgba(59,130,246,${alpha})`;
+    traceCtx.moveTo(state.tracePoints[i-1].x,state.tracePoints[i-1].y);
+    traceCtx.lineTo(state.tracePoints[i].x,state.tracePoints[i].y);
+    traceCtx.stroke();
+  }
+  traceCtx.restore();
+}
+
+function drawArrow(ctx,x1,y1,x2,y2,color){
+  const dx=x2-x1, dy=y2-y1, len=Math.sqrt(dx*dx+dy*dy);
+  if(len<5) return;
+  const angle=Math.atan2(dy,dx);
+  ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.beginPath(); ctx.translate(x2,y2); ctx.rotate(angle);
+  ctx.moveTo(0,0); ctx.lineTo(-8,-4); ctx.lineTo(-8,4); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+// ============================================================
+// HUD UPDATE
+// ============================================================
+function updateHUD(){
+  const period = 2*Math.PI*Math.sqrt(state.length/state.g);
+  const bob = bobPos();
+  const h = state.length - state.length*Math.cos(state.theta);
+  const v = state.omega*state.length;
+  const ke = 0.5*state.mass*v*v;
+  const pe = state.mass*state.g*h;
+  const te = ke+pe;
+  const maxE = state.mass*state.g*state.length*(1-Math.cos(state.angle*Math.PI/180));
+
+  document.getElementById('hud-period').textContent = period.toFixed(2);
+  document.getElementById('hud-angle').textContent = (state.theta*180/Math.PI).toFixed(1);
+  document.getElementById('hud-vel').textContent = `⚡ v = ${Math.abs(v).toFixed(2)} m/s`;
+
+  const pct=e=>maxE>0?Math.min(100,(e/maxE)*100).toFixed(0)+'%':'0%';
+  document.getElementById('ke-bar').style.width=pct(ke);
+  document.getElementById('pe-bar').style.width=pct(pe);
+  document.getElementById('te-bar').style.width='100%';
+  document.getElementById('ke-val').textContent=(ke).toFixed(2);
+  document.getElementById('pe-val').textContent=(pe).toFixed(2);
+  document.getElementById('te-val').textContent=(te).toFixed(2);
+
+  document.getElementById('d-period').textContent=period.toFixed(3)+' s';
+  document.getElementById('d-freq').textContent=(1/period).toFixed(3)+' Hz';
+  const vMax=Math.sqrt(2*state.g*state.length*(1-Math.cos(state.angle*Math.PI/180)));
+  document.getElementById('d-vmax').textContent=vMax.toFixed(3)+' m/s';
+  document.getElementById('d-kemax').textContent=(0.5*state.mass*vMax*vMax).toFixed(3)+' J';
+  document.getElementById('d-count').textContent=Math.floor(state.swings/2);
+}
+
+// ============================================================
+// GRAPH
+// ============================================================
+function drawGraphs(){
+  drawLineGraph('graph-canvas',state.angleHistory,'#3b82f6','Burchak (°)',[-state.angle*1.1,state.angle*1.1]);
+  const eg=document.getElementById('energy-graph');
+  if(!eg) return;
+  const gctx=eg.getContext('2d');
+  const W=eg.width, H=eg.height;
+  gctx.clearRect(0,0,W,H);
+  gctx.fillStyle='#1a2235'; gctx.fillRect(0,0,W,H);
+  const maxE=state.mass*state.g*state.length*(1-Math.cos(state.angle*Math.PI/180))+0.001;
+  const colors=['#10b981','#3b82f6','#8b5cf6'];
+  const keys=['ke','pe','te'];
+  if(state.energyHistory.length<2) return;
+  keys.forEach((k,ci)=>{
+    gctx.beginPath(); gctx.strokeStyle=colors[ci]; gctx.lineWidth=1.5;
+    state.energyHistory.forEach((e,i)=>{
+      const x=(i/(state.energyHistory.length-1))*W;
+      const y=H-(e[k]/maxE)*H*0.9-4;
+      i===0?gctx.moveTo(x,y):gctx.lineTo(x,y);
+    });
+    gctx.stroke();
+  });
+}
+
+function drawLineGraph(id,data,color,label,range){
+  const gc=document.getElementById(id);
+  if(!gc) return;
+  const gctx=gc.getContext('2d');
+  const W=gc.width, H=gc.height;
+  gctx.clearRect(0,0,W,H);
+  gctx.fillStyle='#1a2235'; gctx.fillRect(0,0,W,H);
+  // zero line
+  gctx.strokeStyle='rgba(255,255,255,.1)'; gctx.lineWidth=1;
+  gctx.beginPath(); gctx.moveTo(0,H/2); gctx.lineTo(W,H/2); gctx.stroke();
+  if(data.length<2) return;
+  const mn=range[0], mx=range[1], span=mx-mn||1;
+  gctx.beginPath(); gctx.strokeStyle=color; gctx.lineWidth=1.5;
+  data.forEach((v,i)=>{
+    const x=(i/(data.length-1))*W;
+    const y=H-((v-mn)/span)*H*0.9-4;
+    i===0?gctx.moveTo(x,y):gctx.lineTo(x,y);
+  });
+  gctx.stroke();
+}
+
+// ============================================================
+// ANIMATION LOOP
+// ============================================================
+function loop(ts){
+  if(!lastTime) lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000, 0.033);
+  lastTime=ts;
+  if(state.playing) step(dt);
+  draw();
+  drawTrace();
+  updateHUD();
+  drawGraphs();
+  animId=requestAnimationFrame(loop);
+}
+
+// ============================================================
+// CONTROLS
+// ============================================================
+function togglePlay(){
+  state.playing=!state.playing;
+  const btn=document.getElementById('play-btn');
+  if(state.playing){ btn.textContent='⏸ Pauza'; btn.className='tool-btn pause'; }
+  else { btn.textContent='▶ Davom'; btn.className='tool-btn play'; }
+}
+
+function resetSim(){
+  state.playing=false;
+  state.theta=state.angle*Math.PI/180;
+  state.omega=0; state.t=0; state.swings=0; state.lastSign=1; state.maxV=0;
+  state.angleHistory=[]; state.energyHistory=[]; state.tracePoints=[];
+  const btn=document.getElementById('play-btn');
+  btn.textContent='▶ Boshlash'; btn.className='tool-btn play';
+  clearTrace();
+}
+
+function clearTrace(){
+  state.tracePoints=[];
+  const W=traceCanvas.width/(window.devicePixelRatio||1);
+  const H=traceCanvas.height/(window.devicePixelRatio||1);
+  traceCtx.clearRect(0,0,W,H);
+}
+
+function updateParam(key,val){
+  val=parseFloat(val);
+  if(key==='length'){state.length=val;document.getElementById('v-length').textContent=val.toFixed(1);}
+  else if(key==='mass'){state.mass=val;document.getElementById('v-mass').textContent=val.toFixed(1);}
+  else if(key==='angle'){state.angle=val;document.getElementById('v-angle').textContent=val;}
+  else if(key==='damp'){state.damp=val;document.getElementById('v-damp').textContent=val.toFixed(2);}
+  resetSim();
+}
+
+function toggleShow(key){
+  state.show[key]=!state.show[key];
+  const el=document.getElementById('chk-'+key);
+  if(el) el.className='check-box'+(state.show[key]?' on':'');
+  if(key==='slow') state.slow=state.show.slow;
+  if(!state.show.trace) clearTrace();
+}
+
+function switchTab(tab,btn){
+  ['params','graph','theory'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ============================================================
+// RESIZE + START
+// ============================================================
+window.addEventListener('resize',()=>{ initCanvas(); });
+initCanvas();
+// init theta
+state.theta = state.angle*Math.PI/180;
+requestAnimationFrame(loop);
+
+function toggleLabTheme(){
+  var html=document.documentElement;
+  var cur=html.getAttribute('data-theme');
+  var next=cur==='dark'?'light':'dark';
+  html.setAttribute('data-theme',next);
+  localStorage.setItem('zy_theme',next);
+  localStorage.setItem('theme',next);
+  updateThemeBtn(next);
+}
+function updateThemeBtn(theme){
+  var icon=document.getElementById('theme-icon');
+  var lbl=document.getElementById('theme-label');
+  if(!icon)return;
+  if(theme==='dark'){icon.textContent='☀️';lbl.textContent='Kun';}
+  else{icon.textContent='🌙';lbl.textContent='Tun';}
+}
+updateThemeBtn(document.documentElement.getAttribute('data-theme'));
+
+</script>
+</body>
+</html>
