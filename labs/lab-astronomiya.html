@@ -2,24 +2,23 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <title>Interaktiv Fizika Laboratoriyasi</title>
-    <style>
-        body { margin: 0; background: #000; color: white; font-family: sans-serif; }
-    </style>
+    <title>3D Astronomiya</title>
+    <style>body { margin: 0; background: #000; overflow: hidden; }</style>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "dat.gui": "https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.module.js"
+            }
+        }
+    </script>
 </head>
 <body>
-    <script type="importmap">
-        { "imports": { 
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "dat.gui": "https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.9/dat.gui.module.js"
-        } }
-    </script>
-
     <script type="module">
         import * as THREE from 'three';
         import { GUI } from 'dat.gui';
 
-        // 1. Sahna
+        // 1. Sahna va Render
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -36,21 +35,17 @@
         orbit.add(earth);
         earth.position.x = 7;
 
-        scene.add(new THREE.PointLight(0xffffff, 100, 50));
-        scene.add(new THREE.AmbientLight(0x222222));
-        camera.position.set(0, 5, 15);
-        camera.lookAt(0, 0, 0);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        camera.position.z = 20;
 
-        // 3. Boshqaruv paneli (PhET uslubi)
-        const params = { speed: 0.01, distance: 7 };
+        // 3. Boshqaruv
+        const params = { speed: 0.01 };
         const gui = new GUI();
-        gui.add(params, 'speed', 0, 0.05).name('Orbita tezligi');
-        gui.add(params, 'distance', 5, 15).name('Masofa (AU)').onChange(v => earth.position.x = v);
+        gui.add(params, 'speed', 0, 0.05).name('Tezlik');
 
-        // 4. Animatsiya
         function animate() {
             requestAnimationFrame(animate);
-            orbit.rotation.y += params.speed; // Tezlik dinamik o'zgaradi
+            orbit.rotation.y += params.speed;
             renderer.render(scene, camera);
         }
         animate();
