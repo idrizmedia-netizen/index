@@ -2,45 +2,110 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ziyomap - Interaktiv Metodlar</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="../js/metodlar-theme.js"></script>
     <style>
-        /* Portfoliongizga mos fon rangi simulyatsiyasi */
+        [data-theme="dark"] {
+            --metod-bg: #0b1120;
+            --metod-header: #0f172a;
+            --metod-card: #1e293b;
+            --metod-text: #f1f5f9;
+            --metod-muted: #94a3b8;
+            --metod-border: #334155;
+            --metod-btn: #1e293b;
+        }
+        [data-theme="light"] {
+            --metod-bg: #f0f9ff;
+            --metod-header: #ffffff;
+            --metod-card: #ffffff;
+            --metod-text: #0f172a;
+            --metod-muted: #64748b;
+            --metod-border: #e2e8f0;
+            --metod-btn: #f1f5f9;
+        }
         body {
-            background-color: #0b1120;
+            background-color: var(--metod-bg);
+            color: var(--metod-text);
+            transition: background 0.3s, color 0.3s;
+        }
+        .metod-header {
+            border-color: var(--metod-border);
+            background: color-mix(in srgb, var(--metod-header) 88%, transparent);
+        }
+        .metod-filter {
+            background: var(--metod-btn);
+            color: var(--metod-muted);
+            border-color: var(--metod-border);
+        }
+        .metod-filter:hover {
+            background: var(--metod-border);
+            color: var(--metod-text);
+        }
+        .metod-filter.active {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        .theme-metod-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--metod-border);
+            background: var(--metod-btn);
+            color: var(--metod-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .back-portfolio {
+            background: var(--metod-btn);
+            border-color: var(--metod-border);
+            color: var(--metod-text);
+        }
+        .back-portfolio:hover {
+            background: var(--metod-border);
         }
     </style>
 </head>
-<body class="text-gray-100 font-sans antialiased min-h-screen">
+<body class="min-h-screen antialiased">
 
-    <header class="border-b border-gray-800 bg-[#0f172a]/80 backdrop-blur sticky top-0 z-50 py-6">
+    <header class="metod-header border-b backdrop-blur sticky top-0 z-50 py-5">
         <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
                     ✨ Pedagogik Metodlar va Interaktiv O'yinlar
                 </h1>
-                <p class="text-gray-400 text-xs md:text-sm mt-1">Darslarni qiziqarli o'tish uchun tayyor metodik xazina</p>
+                <p class="text-sm mt-1" style="color: var(--metod-muted);">Darslarni qiziqarli o'tish uchun tayyor metodik xazina</p>
             </div>
-            <a href="../index.html" class="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-sm font-medium transition border border-gray-700">
-                ← Portfolioga qaytish
-            </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <button type="button" class="theme-metod-btn" onclick="MetodlarTheme.toggleTheme()">
+                    <span id="metod-theme-icon">☀️</span>
+                    <span id="metod-theme-label">Kun rejimi</span>
+                </button>
+                <a href="../index.html" class="back-portfolio px-4 py-2 rounded-lg text-sm font-medium transition border">
+                    ← Portfolioga qaytish
+                </a>
+            </div>
         </div>
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-10">
         
         <div class="flex flex-wrap justify-center gap-3 mb-10" id="filter-buttons">
-            <button onclick="filterMetodlar('all')" class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-medium shadow-lg shadow-blue-500/20 transition hover:bg-blue-500 cursor-pointer text-sm">
+            <button onclick="filterMetodlar('all')" class="metod-filter active px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition cursor-pointer text-sm border">
                 📌 Barchasi
             </button>
-            <button onclick="filterMetodlar('yangi-mavzu')" class="px-5 py-2.5 rounded-xl bg-[#1e293b] text-gray-300 border border-gray-700 font-medium transition hover:bg-gray-700 hover:text-white cursor-pointer text-sm">
+            <button onclick="filterMetodlar('yangi-mavzu')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
                 🚀 Yangi mavzu uchun
             </button>
-            <button onclick="filterMetodlar('mustahkamlash')" class="px-5 py-2.5 rounded-xl bg-[#1e293b] text-gray-300 border border-gray-700 font-medium transition hover:bg-gray-700 hover:text-white cursor-pointer text-sm">
+            <button onclick="filterMetodlar('mustahkamlash')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
                 🧠 Mavzuni mustahkamlash
             </button>
-            <button onclick="filterMetodlar('refleksiya')" class="px-5 py-2.5 rounded-xl bg-[#1e293b] text-gray-300 border border-gray-700 font-medium transition hover:bg-gray-700 hover:text-white cursor-pointer text-sm">
+            <button onclick="filterMetodlar('refleksiya')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
                 🎯 Dars oxirida (Refleksiya)
             </button>
         </div>
