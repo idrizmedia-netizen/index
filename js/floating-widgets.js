@@ -19,24 +19,24 @@
         return Math.min(Math.max(val, min), max);
     }
 
-    function makeDraggable(el) {
-        const id = el.dataset.fabId || el.id || 'fab';
-        const defaults = {
-            robot: { left: window.innerWidth - 76, top: window.innerHeight - 100 },
-            doska: { left: window.innerWidth - 76, top: window.innerHeight - 170 },
+    function defaultPos(id) {
+        const map = {
+            robot: { left: window.innerWidth - 68, top: window.innerHeight - 88 },
+            doska: { left: window.innerWidth - 68, top: window.innerHeight - 158 },
         };
-        const fallback = defaults[id] || {
-            left: window.innerWidth - 76,
-            top: window.innerHeight - 120,
-        };
-        const saved = loadPos(id, fallback);
-        el.style.position = 'fixed';
-        el.style.left = saved.left + 'px';
-        el.style.top = saved.top + 'px';
-        el.style.right = 'auto';
-        el.style.bottom = 'auto';
-        el.style.zIndex = '9990';
-        el.style.touchAction = 'none';
+        return map[id] || { left: window.innerWidth - 68, top: window.innerHeight - 120 };
+    }
+
+    function makeDraggable(wrapper) {
+        const id = wrapper.dataset.fabId || wrapper.id || 'fab';
+        const link = wrapper.querySelector('.fab-link');
+        const handle = wrapper.querySelector('.fab-drag-handle') || wrapper;
+        const saved = loadPos(id, defaultPos(id));
+
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = saved.left + 'px';
+        wrapper.style.top = saved.top + 'px';
+        wrapper.style.zIndex = '9990';
 
         let dragging = false;
         let moved = false;
@@ -45,67 +45,102 @@
         let origLeft = 0;
         let origTop = 0;
 
-        const onPointerDown = (e) => {
-            if (e.button !== undefined && e.button !== 0) return;
+        function onStart(clientX, clientY) {
             dragging = true;
             moved = false;
-            startX = e.clientX;
-            startY = e.clientY;
-            origLeft = parseFloat(el.style.left) || 0;
-            origTop = parseFloat(el.style.top) || 0;
-            el.setPointerCapture?.(e.pointerId);
-            el.classList.add('fab-dragging');
-        };
+            startX = clientX;
+            startY = clientY;
+            origLeft = parseFloat(wrapper.style.left) || 0;
+            origTop = parseFloat(wrapper.style.top) || 0;
+            wrapper.classList.add('fab-dragging');
+        }
 
-        const onPointerMove = (e) => {
+        function onMove(clientX, clientY) {
             if (!dragging) return;
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            if (Math.abs(dx) + Math.abs(dy) > 4) moved = true;
-            const w = el.offsetWidth;
-            const h = el.offsetHeight;
-            const left = clamp(origLeft + dx, 8, window.innerWidth - w - 8);
-            const top = clamp(origTop + dy, 8, window.innerHeight - h - 8);
-            el.style.left = left + 'px';
-            el.style.top = top + 'px';
-        };
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            if (Math.abs(dx) + Math.abs(dy) > 6) moved = true;
+            const w = wrapper.offsetWidth;
+            const h = wrapper.offsetHeight;
+            wrapper.style.left = clamp(origLeft + dx, 4, window.innerWidth - w - 4) + 'px';
+            wrapper.style.top = clamp(origTop + dy, 4, window.innerHeight - h - 4) + 'px';
+        }
 
-        const onPointerUp = (e) => {
+        function onEnd() {
             if (!dragging) return;
             dragging = false;
-            el.classList.remove('fab-dragging');
-            el.releasePointerCapture?.(e.pointerId);
-            const left = parseFloat(el.style.left) || 0;
-            const top = parseFloat(el.style.top) || 0;
-            savePos(id, left, top);
+            wrapper.classList.remove('fab-dragging');
+            savePos(id, parseFloat(wrapper.style.left) || 0, parseFloat(wrapper.style.top) || 0);
             if (moved) {
-                el.dataset.didDrag = '1';
-                setTimeout(() => {
-                    delete el.dataset.didDrag;
-                }, 300);
+                wrapper.dataset.didDrag = '1';
+                setTimeout(() => delete wrapper.dataset.didDrag, 400);
             }
-        };
+        }
 
-        el.addEventListener('pointerdown', onPointerDown);
-        el.addEventListener('pointermove', onPointerMove);
-        el.addEventListener('pointerup', onPointerUp);
-        el.addEventListener('pointercancel', onPointerUp);
+        wrapper.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            onStart(e.clientX, e.clientY);
 
-        el.addEventListener(
-            'click',
+            const mm = (ev) => onMove(ev.clientX, ev.clientY);
+            const mu = () => {
+                onEnd();
+                document.removeEventListener('mousemove', mm);
+                document.removeEventListener('mouseup', mu);
+            };
+            document.addEventListener('mousemove', mm);
+            document.addEventListener('mouseup', mu);
+        });
+
+        /* Sensorli ekran — butun tugma */
+        wrapper.addEventListener(
+            'touchstart',
             (e) => {
-                if (el.dataset.didDrag === '1') {
+                const t = e.touches[0];
+                onStart(t.clientX, t.clientY);
+            },
+            { passive: true }
+        );
+
+        wrapper.addEventListener(
+            'touchmove',
+            (e) => {
+                if (!dragging) return;
+                const t = e.touches[0];
+                onMove(t.clientX, t.clientY);
+                if (moved) e.preventDefault();
+            },
+            { passive: false }
+        );
+
+        wrapper.addEventListener('touchend', onEnd);
+
+        if (link) {
+            link.addEventListener('click', (e) => {
+                if (wrapper.dataset.didDrag === '1') {
                     e.preventDefault();
                     e.stopPropagation();
                 }
-            },
-            true
-        );
+            });
+        }
     }
 
     function init() {
-        document.querySelectorAll('.floating-widget').forEach(makeDraggable);
+        document.querySelectorAll('.floating-widget-wrap').forEach(makeDraggable);
     }
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.floating-widget-wrap').forEach((el) => {
+            const id = el.dataset.fabId;
+            if (!id) return;
+            const left = parseFloat(el.style.left) || 0;
+            const top = parseFloat(el.style.top) || 0;
+            const w = el.offsetWidth;
+            const h = el.offsetHeight;
+            el.style.left = clamp(left, 4, window.innerWidth - w - 4) + 'px';
+            el.style.top = clamp(top, 4, window.innerHeight - h - 4) + 'px';
+        });
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
