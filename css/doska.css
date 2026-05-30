@@ -13,7 +13,40 @@ body {
     background: var(--doska-bg);
     color: var(--doska-text);
     overflow: hidden;
+    height: 100dvh;
     height: 100vh;
+}
+
+@media (max-width: 768px) {
+    .doska-top {
+        padding: 8px 12px;
+        padding-top: max(8px, env(safe-area-inset-top));
+    }
+
+    .doska-top h1 {
+        font-size: 0.9rem;
+    }
+
+    .doska-canvas-wrap {
+        top: 48px;
+    }
+
+    .floating-toolbar {
+        min-width: 0;
+        max-width: min(300px, 94vw);
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .color-dot {
+        width: 32px;
+        height: 32px;
+    }
+
+    .tb-btn {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
 }
 
 .doska-top {
