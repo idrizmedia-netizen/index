@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZiyoDoska | Onlayn doska</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/doska.css">
+</head>
+<body>
+    <header class="doska-top">
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
+        <h1><i class="fas fa-pencil-alt"></i> ZiyoDoska</h1>
+        <button type="button" class="tb-btn" id="btn-fullscreen" title="To'liq ekran"><i class="fas fa-expand"></i></button>
+    </header>
+
+    <div class="doska-canvas-wrap">
+        <canvas id="board-canvas"></canvas>
+    </div>
+
+    <div id="floating-toolbar" class="floating-toolbar" data-fab-id="doska-toolbar">
+        <div class="tb-drag"><i class="fas fa-grip-lines"></i> Surib ko'chiring</div>
+        <div class="tb-row">
+            <button type="button" class="color-dot active" data-color="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
+            <button type="button" class="color-dot" data-color="#38bdf8" style="background:#38bdf8" title="Ko'k"></button>
+            <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444" title="Qizil"></button>
+            <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981" title="Yashil"></button>
+            <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b" title="Sariq"></button>
+            <button type="button" class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Binafsha"></button>
+            <button type="button" class="color-dot" data-color="#000000" style="background:#000" title="Qora"></button>
+        </div>
+        <label class="tb-label">Qalam qalinligi: <span id="brush-size-label">4px</span></label>
+        <input type="range" class="brush-range" id="brush-size" min="1" max="40" value="4">
+        <div class="tb-row">
+            <button type="button" class="tb-btn" id="btn-eraser"><i class="fas fa-eraser"></i> O'chirgich</button>
+            <button type="button" class="tb-btn" id="btn-undo"><i class="fas fa-undo"></i> Orqaga</button>
+            <button type="button" class="tb-btn danger" id="btn-clear"><i class="fas fa-trash"></i> Tozalash</button>
+            <button type="button" class="tb-btn" id="btn-save"><i class="fas fa-download"></i> PNG</button>
+        </div>
+    </div>
+
+    <script src="js/ziyomap-usage.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script>ZiyomapAuthGuard.protectPage();</script>
+    <script src="js/floating-widgets.js"></script>
+    <script src="js/doska.js"></script>
+</body>
+</html>
