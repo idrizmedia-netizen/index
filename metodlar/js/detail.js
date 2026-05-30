@@ -26,18 +26,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 3. Kerakli jihozlar (equipment) ro'yxatini HTML ko'rinishida shakllantirish
     const equipmentList = metod.equipment.map(item => `
-        <span class="px-3 py-1.5 bg-[#0f172a]/60 rounded-xl text-xs font-medium text-gray-300 border border-gray-800">
+        <span class="px-3 py-1.5 rounded-xl text-xs font-medium border" style="background: var(--metod-btn); color: var(--metod-text); border-color: var(--metod-border);">
             🛠 ${item}
         </span>
     `).join("");
 
-    // 4. Qadamlarni (steps) tartib raqami bilan, bosqichma-bosqich shakllantirish
     const stepsList = metod.steps.map((step, index) => `
-        <div class="flex gap-4 items-start p-4 bg-[#0f172a]/20 rounded-2xl border border-gray-800/40 hover:border-blue-500/20 transition duration-200">
-            <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-blue-600/10 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-sm">
+        <div class="flex gap-4 items-start p-4 rounded-2xl border transition duration-200" style="background: var(--metod-btn); border-color: var(--metod-border);">
+            <div class="flex-shrink-0 w-8 h-8 rounded-xl bg-blue-600/10 text-blue-500 border border-blue-500/30 flex items-center justify-center font-bold text-sm">
                 ${index + 1}
             </div>
-            <p class="text-gray-300 text-sm md:text-base leading-relaxed pt-0.5">${step}</p>
+            <p class="text-sm md:text-base leading-relaxed pt-0.5" style="color: var(--metod-text);">${step}</p>
         </div>
     `).join("");
 
@@ -47,27 +46,27 @@ document.addEventListener("DOMContentLoaded", () => {
             ${metod.categoryLabel}
         </span>
         
-        <h1 class="text-2xl md:text-3xl font-bold text-white mt-4 mb-3">${metod.title}</h1>
+        <h1 class="text-2xl md:text-3xl font-bold mt-4 mb-3" style="color: var(--metod-text);">${metod.title}</h1>
         
-        <p class="text-gray-400 text-sm md:text-base leading-relaxed mb-6 italic">
+        <p class="text-sm md:text-base leading-relaxed mb-6 italic" style="color: var(--metod-muted);">
             "${metod.description}"
         </p>
         
-        <div class="flex flex-wrap gap-4 p-4 bg-[#0f172a]/40 rounded-2xl mb-8 border border-gray-800/60 text-xs md:text-sm text-gray-300">
-            <div><span class="text-gray-500">⏱ Davomiyligi:</span> <strong class="text-white">${metod.duration}</strong></div>
-            <div class="hidden md:block text-gray-700">|</div>
-            <div><span class="text-gray-500">📊 Tayyorgarlik darajasi:</span> <strong class="text-white">${metod.difficulty}</strong></div>
+        <div class="flex flex-wrap gap-4 p-4 rounded-2xl mb-8 border text-xs md:text-sm" style="background: var(--metod-btn); border-color: var(--metod-border); color: var(--metod-text);">
+            <div><span style="color: var(--metod-muted);">⏱ Davomiyligi:</span> <strong>${metod.duration}</strong></div>
+            <div class="hidden md:block" style="color: var(--metod-border);">|</div>
+            <div><span style="color: var(--metod-muted);">📊 Tayyorgarlik darajasi:</span> <strong>${metod.difficulty}</strong></div>
         </div>
 
         <div class="mb-8">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">Kerakli jihozlar:</h3>
+            <h3 class="text-sm font-bold uppercase tracking-wider mb-3" style="color: var(--metod-muted);">Kerakli jihozlar:</h3>
             <div class="flex flex-wrap gap-2">${equipmentList}</div>
         </div>
 
-        <hr class="border-gray-800 my-8">
+        <hr class="my-8" style="border-color: var(--metod-border);">
 
         <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">🎯 Dars ssenariysi (Bosqichma-bosqich):</h3>
+            <h3 class="text-sm font-bold uppercase tracking-wider mb-4" style="color: var(--metod-muted);">🎯 Dars ssenariysi (Bosqichma-bosqich):</h3>
             <div class="space-y-3">${stepsList}</div>
         </div>
     `;
