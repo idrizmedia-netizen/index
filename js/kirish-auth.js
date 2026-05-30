@@ -15,7 +15,7 @@ import {
  * id — eslatma / kelajak uchun; username — majburiy (masalan: ZiyomapBot, @ siz).
  */
 const TELEGRAM_BOTS = [
-   { id: '8733813153', username: 'ziyomapbot' }, // 1-bot: ID va username ni yozing
+    { id: '', username: '' }, // 1-bot: ID va username ni yozing
     { id: '', username: '' }, // 2-bot: ikkkinchi bot (ixtiyoriy)
 ];
 
