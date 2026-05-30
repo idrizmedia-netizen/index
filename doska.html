@@ -1,49 +1,132 @@
 <!DOCTYPE html>
+
 <html lang="uz">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
     <title>ZiyoDoska | Onlayn doska</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <link rel="stylesheet" href="css/doska.css">
+
     <link rel="stylesheet" href="css/mobile.css">
+
 </head>
+
 <body>
+
     <header class="doska-top">
+
         <a href="index.html"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
+
         <h1><i class="fas fa-pencil-alt"></i> ZiyoDoska</h1>
+
         <button type="button" class="tb-btn" id="btn-fullscreen" title="To'liq ekran"><i class="fas fa-expand"></i></button>
+
     </header>
 
-    <div class="doska-canvas-wrap">
+
+
+    <div class="doska-canvas-wrap" id="doska-bg-wrap">
+
         <canvas id="board-canvas"></canvas>
+
     </div>
+
+
 
     <div id="floating-toolbar" class="floating-toolbar" data-fab-id="doska-toolbar">
-        <div class="tb-drag"><i class="fas fa-grip-lines"></i> Surib ko'chiring</div>
-        <div class="tb-row">
-            <button type="button" class="color-dot active" data-color="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
-            <button type="button" class="color-dot" data-color="#38bdf8" style="background:#38bdf8" title="Ko'k"></button>
-            <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444" title="Qizil"></button>
-            <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981" title="Yashil"></button>
-            <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b" title="Sariq"></button>
-            <button type="button" class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Binafsha"></button>
-            <button type="button" class="color-dot" data-color="#000000" style="background:#000" title="Qora"></button>
+
+        <div class="tb-toolbar-head">
+
+            <button type="button" class="tb-toggle-btn" id="tb-collapse" title="Menyuni yig'ish / ochish" aria-expanded="true">
+
+                <i class="fas fa-chevron-up" id="tb-collapse-icon"></i>
+
+            </button>
+
+            <span class="tb-head-title"><i class="fas fa-palette"></i> Asboblar</span>
+
+            <span class="tb-drag" title="Surish"><i class="fas fa-grip-lines"></i></span>
+
         </div>
-        <label class="tb-label">Qalam qalinligi: <span id="brush-size-label">4px</span></label>
-        <input type="range" class="brush-range" id="brush-size" min="1" max="40" value="4">
-        <div class="tb-row">
-            <button type="button" class="tb-btn" id="btn-eraser"><i class="fas fa-eraser"></i> O'chirgich</button>
-            <button type="button" class="tb-btn" id="btn-undo"><i class="fas fa-undo"></i> Orqaga</button>
-            <button type="button" class="tb-btn danger" id="btn-clear"><i class="fas fa-trash"></i> Tozalash</button>
-            <button type="button" class="tb-btn" id="btn-save"><i class="fas fa-download"></i> PNG</button>
+
+        <div class="tb-body" id="tb-body">
+
+            <div class="tb-row">
+
+                <span class="tb-mini-label">Qalam</span>
+
+                <button type="button" class="color-dot active" data-color="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
+
+                <button type="button" class="color-dot" data-color="#38bdf8" style="background:#38bdf8" title="Ko'k"></button>
+
+                <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444" title="Qizil"></button>
+
+                <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981" title="Yashil"></button>
+
+                <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b" title="Sariq"></button>
+
+                <button type="button" class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Binafsha"></button>
+
+                <button type="button" class="color-dot" data-color="#000000" style="background:#000" title="Qora"></button>
+
+            </div>
+
+            <div class="tb-row tb-bg-row">
+
+                <span class="tb-mini-label">Doska</span>
+
+                <button type="button" class="bg-dot active" data-bg="#0f172a" style="background:#0f172a" title="To'q"></button>
+
+                <button type="button" class="bg-dot" data-bg="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
+
+                <button type="button" class="bg-dot" data-bg="#1e3a5f" style="background:#1e3a5f" title="Ko'k"></button>
+
+                <button type="button" class="bg-dot" data-bg="#14532d" style="background:#14532d" title="Yashil"></button>
+
+                <button type="button" class="bg-dot" data-bg="#fef3c7" style="background:#fef3c7" title="Sariq"></button>
+
+            </div>
+
+            <label class="tb-label">Qalam qalinligi: <span id="brush-size-label">4px</span></label>
+
+            <input type="range" class="brush-range" id="brush-size" min="1" max="40" value="4">
+
+            <div class="tb-row">
+
+                <button type="button" class="tb-btn" id="btn-eraser"><i class="fas fa-eraser"></i> O'chirgich</button>
+
+                <button type="button" class="tb-btn" id="btn-undo"><i class="fas fa-undo"></i> Orqaga</button>
+
+                <button type="button" class="tb-btn danger" id="btn-clear"><i class="fas fa-trash"></i> Tozalash</button>
+
+                <button type="button" class="tb-btn" id="btn-save"><i class="fas fa-download"></i> PNG</button>
+
+            </div>
+
         </div>
+
     </div>
 
+
+
     <script src="js/ziyomap-usage.js"></script>
+
     <script src="js/auth-guard.js"></script>
+
     <script>ZiyomapAuthGuard.protectPage();</script>
+
     <script src="js/floating-widgets.js"></script>
+
     <script src="js/doska.js"></script>
+
 </body>
+
 </html>
+
