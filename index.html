@@ -23,8 +23,6 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
     <style>
         :root {
             --primary-color: #2563eb;
@@ -231,6 +229,28 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.doska-menu-btn {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white !important;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.doska-menu-btn:hover {
+    transform: translateY(-2px);
+    color: white !important;
 }
 
 .btn-game {
@@ -266,6 +286,33 @@
 
         .dropdown-content.show { display: block; animation: fadeIn 0.3s ease; }
         .dropdown-content img { width: 70px; height: 70px; border-radius: 50%; border: 3px solid var(--primary-color); }
+
+        .usage-history-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+            margin: 12px 0 8px;
+            text-align: left;
+        }
+        #usage-history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .usage-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .usage-label { font-size: 0.9rem; font-weight: 600; }
+        .usage-time { font-size: 0.75rem; opacity: 0.65; }
+        #usage-history-empty { font-size: 0.85rem; opacity: 0.6; text-align: center; padding: 8px 0; }
 
         .hero {
             height: 100vh;
@@ -333,76 +380,43 @@
             border: 2px dashed var(--primary-color); border-radius: 20px;
         }
 
-        /* YANGI: TO'LIQ EKRAN REJIMI UCHUN STIL QO'SHILDI */
-        #chat-window.full-screen {
-            width: 90vw !important; /* Ekran kengligining 90 foizi */
-            height: 85vh !important; /* Ekran balandligining 85 foizi */
-            bottom: 20px !important;
-            right: 20px !important;
-            max-width: none !important;
+        .floating-widget {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            transition: box-shadow 0.2s;
+            cursor: grab;
+        }
+        .floating-widget:hover { color: white; }
+        .floating-widget.fab-dragging {
+            cursor: grabbing;
+            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
+        }
+        .fab-robot {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        .fab-doska {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            font-size: 20px;
+        }
+        .fab-hint {
+            position: fixed;
+            bottom: 8px;
+            right: 8px;
+            font-size: 0.65rem;
+            opacity: 0.45;
+            z-index: 9989;
+            pointer-events: none;
         }
 
-        /* Mobil qurilmalarda yanada qulayroq bo'lishi uchun */
-@media (max-width: 600px) {
-    #chat-window.full-screen {
-        width: 100% !important;      /* vw o'rniga % ishlatamiz (skroll barlarga urilmasligi uchun) */
-        height: 100% !important;     /* vh o'rniga % mobil brauzer panellarini hisobga oladi */
-        top: 0 !important;           /* Oynani tepadan boshlaymiz */
-        left: 0 !important;          /* Chap tomondan to'liq yopishtiramiz */
-        bottom: 0 !important;        /* Pastki bo'shliqni nol qilamiz */
-        right: 0 !important;         /* O'ng bo'shliqni nol qilamiz */
-        margin: 0 !important;        /* Har qanday ortiqcha surilishlarni o'chiramiz */
-        border-radius: 0 !important; /* Burchaklarni to'liq tekis qilamiz */
-        max-width: 100% !important;  /* Maksimal kenglik cheklovini yechamiz */
-        max-height: 100% !important; /* Maksimal balandlik cheklovini yechamiz */
-        position: fixed !important;  /* Ekran joyida qulflanishi uchun */
-    }
-}
-
-/* ======================================================= */
-/* CHAT ICHIDAGI MARKDOWN VA NUSXALASH TUGMASI STILI SHU YERDA: */
-/* ======================================================= */
-.message-content h1, .message-content h2, .message-content h3 {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    color: var(--primary-color);
-}
-.message-content ul, .message-content ol {
-    padding-left: 20px;
-    margin: 5px 0;
-}
-.message-content p {
-    margin: 5px 0;
-}
-
-/* Nusxalash tugmasi stili */
-.copy-btn {
-    background: rgba(59, 130, 246, 0.1);
-    border: none;
-    color: var(--primary-color);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 8px;
-    transition: all 0.2s;
-}
-.copy-btn:hover {
-    background: var(--primary-color);
-    color: white;
-}
-/* ======================================================= */
-/* STYLE TUGASHIDAN OLDINGI OXIRGI QATOR                   */
-/* ======================================================= */
-
-
     </style>
-
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 </head>
 <body>
@@ -423,23 +437,23 @@
         <div class="nav-menu" id="nav-links">
             <a href="#home">Asosiy</a>
             <a href="#projects">Loyihalar</a>
-           <a href="labs/index.html">Laboratoriya</a>
+           <a href="labs/index.html" data-require-auth data-track="laboratoriya" data-track-label="Laboratoriya">Laboratoriya</a>
             <a href="#blog">Blog</a>
             <a href="#contact">Aloqa</a>
-            <a href="metodlar/index.html" class="text-gray-300 hover:text-blue-400 font-medium transition text-sm md:text-base">✨ Metodlar</a>
-            <a href="oyin/index.html" class="game-menu-btn" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; text-decoration: none;">
+            <a href="metodlar/index.html" data-track="metodlar" data-track-label="Metodlar">✨ Metodlar</a>
+            <a href="oyin/index.html" class="game-menu-btn" data-require-auth data-track="oyinlar" data-track-label="O'yinlar" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 5px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 500; text-decoration: none;">
                 <i class="fas fa-gamepad"></i> O'yinlar
             </a>
-            <button onclick="openBoard()" class="text-gray-300 hover:text-blue-400 font-medium transition text-sm md:text-base cursor-pointer style="background: transparent; border: none; margin-left: 10px;">
-    ✏️ Onlayn Doska
-</button>
+            <a href="doska.html" class="doska-menu-btn" data-require-auth data-track="doska" data-track-label="Onlayn doska">
+                <i class="fas fa-pencil-alt"></i> Onlayn Doska
+            </a>
            <div class="profile-dropdown">
     <i class="fas fa-moon" id="theme-toggle" style="cursor:pointer; font-size: 1.2rem; margin-right: 15px;"></i>
     
-    <button id="login-btn" class="user-profile-btn">
+    <a href="kirish.html" id="login-btn" class="user-profile-btn">
         <img id="btn-user-avatar" src="https://www.w3schools.com/howto/img_avatar.png" alt="Avatar" class="btn-avatar">
         <span id="btn-user-name">Kirish</span>
-    </button>
+    </a>
 </div>
         </div>
     </div>
@@ -452,6 +466,12 @@
         <p id="user-email">email@example.com</p>
     </div>
     
+    <div id="usage-history-section" style="display:none;">
+        <p class="usage-history-title">Foydalanish tarixi</p>
+        <p id="usage-history-empty">Hali yozuv yo‘q</p>
+        <ul id="usage-history-list"></ul>
+    </div>
+
     <div style="height:1px; background:rgba(59,130,246,0.2); margin:15px 0;"></div>
     
     <a href="#" class="logout-link" id="logout-btn" style="color:#ef4444; text-decoration:none; font-weight:bold;">
@@ -480,8 +500,8 @@
     </div>
     <div data-aos="zoom-in" data-aos-delay="400">
         <a href="#projects" class="btn">Loyihalarni ko'rish</a>
-        <a href="https://ziyomap.streamlit.app/" target="_blank" class="btn btn-outline">Ziyomap</a>
-        <a href="ai-tools.html" class="btn" style="margin-left: 10px;">AI Asboblar</a>
+        <a href="https://ziyomap.streamlit.app/" target="_blank" class="btn btn-outline" data-require-auth data-auth-return="https://ziyomap.streamlit.app/">Ziyomap</a>
+        <a href="ai-tools.html" class="btn" style="margin-left: 10px;" data-require-auth>AI Asboblar</a>
     </div>
 </section>
 
@@ -530,49 +550,13 @@
         </div>
     </section>
 
-    <div id="ai-chat-wrapper" style="position: fixed; bottom: 30px; right: 30px; z-index: 2000;">
-        <button id="chat-toggle" style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-color); border: none; color: white; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); transition: 0.3s;">
-            <i class="fas fa-robot"></i>
-        </button>
-
-        <div id="chat-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 350px; height: 500px; background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.2); box-shadow: 0 15px 50px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden;">
-            <div style="background: var(--primary-color); padding: 15px; color: white; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: bold;"><i class="fas fa-brain"></i> Ziyomap AI</span>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <i class="fas fa-expand-alt" id="full-screen-chat" style="cursor: pointer; font-size: 0.9rem;"></i>
-                    <i class="fas fa-times" id="close-chat" style="cursor: pointer;"></i>
-                </div>
-            </div>
-            
-            <div id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
-                <div style="background: rgba(56, 189, 248, 0.1); padding: 10px; border-radius: 15px 15px 15px 0; align-self: flex-start; max-width: 80%;">
-                    Assalomu alaykum, xush kelibsiz! Rasm va fayl  yuklashingiz yoki savol berishingiz mumkin.
-                </div>
-            </div>
-
-            <div id="image-preview-box" style="display: none; padding: 10px; background: rgba(56, 189, 248, 0.05); border-top: 1px solid rgba(56, 189, 248, 0.1);">
-                <div style="position: relative; display: inline-block;">
-                    <img id="preview-img" src="" style="max-height: 80px; border-radius: 8px; border: 1px solid var(--primary-color);">
-                    <i class="fas fa-times-circle" onclick="cancelImage()" style="position: absolute; top: -5px; right: -5px; color: #ef4444; cursor: pointer; background: white; border-radius: 50%;"></i>
-                </div>
-            </div>
-
-            <div style="padding: 15px; border-top: 1px solid rgba(56, 189, 248, 0.1); display: flex; flex-direction: column; gap: 5px;">
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <label for="file-upload" style="cursor: pointer; color: var(--primary-color); font-size: 1.2rem;">
-                        <i class="fas fa-paperclip"></i>
-                    </label>
-                    <input type="file" id="file-upload" accept="image/*, application/pdf, text/plain" style="display: none;">
-                    
-                    <input type="text" id="user-input-ai" placeholder="Savol yoki rasm tavsifi..." style="flex: 1; padding: 10px; border-radius: 10px; border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color); outline: none;">
-                    
-                    <button id="send-btn-ai" style="background: var(--primary-color); color: white; border: none; padding: 10px 15px; border-radius: 10px; cursor: pointer;">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <a href="ai-chat.html" id="fab-robot" class="floating-widget fab-robot" data-fab-id="robot" title="Ziyomap AI — surib ko'chiring" data-require-auth data-track="ai-chat" data-track-label="Ziyomap AI">
+        <i class="fas fa-robot"></i>
+    </a>
+    <a href="doska.html" id="fab-doska" class="floating-widget fab-doska" data-fab-id="doska" title="Onlayn doska — surib ko'chiring" data-require-auth data-track="doska" data-track-label="Onlayn doska">
+        <i class="fas fa-pencil-alt"></i>
+    </a>
+    <span class="fab-hint">Tugmalarni surib joylashtiring</span>
 
     <footer>
         <div class="social-links" data-aos="fade-up">
@@ -582,392 +566,13 @@
         </div>
         <p style="margin-top: 30px; opacity: 0.7;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
-<div id="board-circle-btn" onclick="openBoard()" style="position: fixed; bottom: 100px; right: 24px; width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 50%; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); z-index: 9998; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; border: 2px solid rgba(255, 255, 255, 0.1);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="Doskani ochish">
-    <i class="fas fa-pencil-alt" style="color: white; font-size: 22px;"></i>
-</div>
-
-<div id="floating-board" style="display: none; position: fixed; bottom: 24px; right: 24px; max-width: 90vw; width: 380px; height: 280px; background-color: #0f172a; border: 1px solid #334155; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); z-index: 9999; overflow: hidden; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1e293b; padding: 10px 14px; border-bottom: 1px solid #334155; user-select: none;">
-        <span style="font-size: 13px; font-weight: bold; color: #f1f5f9; font-family: sans-serif; display: flex; align-items: center; gap: 6px;">✏️ ZiyoDoska</span>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <button onclick="toggleMinimize()" id="resize-btn" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 2px;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'" title="Kengaytirish">🔲</button>
-            <button onclick="closeBoard()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 14px; padding: 2px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#94a3b8'" title="Yopish">❌</button>
-        </div>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background-color: #0f172a; border-bottom: 1px solid rgba(51, 65, 85, 0.5);">
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button onclick="setBoardColor('#ffffff')" style="width: 18px; height: 18px; border-radius: 50%; background: #ffffff; border: 1px solid #64748b; cursor: pointer;"></button>
-            <button onclick="setBoardColor('#38bdf8')" style="width: 18px; height: 18px; border-radius: 50%; background: #38bdf8; border: none; cursor: pointer;"></button>
-            <button onclick="setBoardColor('#ef4444')" style="width: 18px; height: 18px; border-radius: 50%; background: #ef4444; border: none; cursor: pointer;"></button>
-            <button onclick="setBoardColor('#10b981')" style="width: 18px; height: 18px; border-radius: 50%; background: #10b981; border: none; cursor: pointer;"></button>
-        </div>
-        <button onclick="clearBoard()" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 500; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff'">Tozalash</button>
-    </div>
-
-    <div style="flex-grow: 1; position: relative; background-color: #0f172a; width: 100%; height: calc(100% - 85px);">
-        <canvas id="floatCanvas" style="width: 100%; height: 100%; display: block; cursor: crosshair;"></canvas>
-    </div>
-</div>
- <script type="module">
-    // 1. Firebase v12 kutubxonalari
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { 
-    getAuth, 
-    signInWithCredential, 
-    GoogleAuthProvider, 
-    onAuthStateChanged, 
-    signOut 
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-
-// 2. Konfiguratsiya
-const firebaseConfig = {
-    apiKey: "AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI",
-    authDomain: "ziyomap.firebaseapp.com",
-    projectId: "ziyomap",
-    storageBucket: "ziyomap.firebasestorage.app",
-    messagingSenderId: "982123868162",
-    appId: "1:982123868162:web:6845723988c030fcd1f71b",
-    measurementId: "G-Y3EQ1ZJW3B"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-
-// HTML elementlarni olish
-const loginBtn = document.getElementById('login-btn');
-const dropdown = document.getElementById('myDropdown');
-const logoutBtn = document.getElementById('logout-btn');
-const userInputAi = document.getElementById('user-input-ai');
-const chatWindow = document.getElementById('chat-window');
-
-// 3. OAuth oqimidan qaytgan tokenni ushlash
-async function handleGoogleCallback() {
-    const hash = window.location.hash;
-    if (hash.includes("id_token")) {
-        const params = new URLSearchParams(hash.replace("#", "?"));
-        const idToken = params.get("id_token");
-        
-        if (idToken) {
-            try {
-                const credential = GoogleAuthProvider.credential(idToken);
-                const result = await signInWithCredential(auth, credential);
-                localStorage.setItem('user', JSON.stringify(result.user));
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } catch (error) {
-                console.error("Token bilan kirishda xato:", error);
-            }
-        }
-    }
-}
-handleGoogleCallback();
-
-// 4. Kirish funksiyasi (Google OAuth)
-if (loginBtn) {
-    loginBtn.onclick = (e) => {
-        e.preventDefault();
-        if (!auth.currentUser) {
-            const clientId = "982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com";
-            const redirectUri = window.location.origin + "/"; 
-            
-            const googleOAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-                `client_id=${clientId}` +
-                `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-                `&response_type=id_token` +
-                `&scope=openid%20profile%20email` +
-                `&nonce=random_nonce_string` +
-                `&prompt=select_account`;
-
-            window.location.href = googleOAuthUrl;
-        } else {
-            if (dropdown) dropdown.classList.toggle('show');
-        }
-    };
-}
-
-// 5. Chiqish funksiyasi
-if (logoutBtn) {
-    logoutBtn.onclick = async (e) => {
-        e.preventDefault();
-        if (confirm("Tizimdan chiqishni xohlaysizmi?")) {
-            try {
-                await signOut(auth);
-                localStorage.removeItem('user');
-                window.location.reload();
-            } catch (err) {
-                console.error("Logout xatosi:", err);
-            }
-        }
-    };
-}
-
-// 6. Foydalanuvchi holatini real vaqtda kuzatish (Ixcham tugma dizayni bilan)
-onAuthStateChanged(auth, (user) => {
-    const btnAvatar = document.getElementById('btn-user-avatar');
-    const btnName = document.getElementById('btn-user-name');
-    const userPhoto = document.getElementById('user-photo');
-    const userName = document.getElementById('user-name');
-    const userEmail = document.getElementById('user-email');
-
-    if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
-        
-        // Kirganda: Tugma dizaynini saqlagan holda ichidagi ma'lumotlarni o'zgartiramiz
-        if (btnAvatar) btnAvatar.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
-        if (btnName) btnName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Profil';
-        
-        // Tugma foni kirgandan keyin chiroyli yashil (emerald) tusga kiradi
-        if (loginBtn) loginBtn.style.background = "#10b981";
-
-        // Dropdown (menyu) ichini yangilash
-        if (userPhoto) userPhoto.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
-        if (userName) userName.innerText = user.displayName || 'Foydalanuvchi';
-        if (userEmail) userEmail.innerText = user.email || '';
-
-        // AI Chat oynasini faollashtirish
-        if (userInputAi) {
-            userInputAi.disabled = false;
-            userInputAi.placeholder = "Savol yozing...";
-        }
-        if (chatWindow) {
-            chatWindow.style.opacity = "1";
-            chatWindow.style.pointerEvents = "auto";
-            chatWindow.style.filter = "none";
-        }
-    } else {
-        localStorage.removeItem('user');
-        
-        // Chiqqanda: Standart holatga qaytarish
-        if (btnAvatar) btnAvatar.src = 'https://www.w3schools.com/howto/img_avatar.png';
-        if (btnName) btnName.innerText = 'Kirish';
-        
-        // Tugma fonini yana eski ko'k gradient holatiga qaytaramosiz
-        if (loginBtn) loginBtn.style.background = "linear-gradient(135deg, var(--primary-color), var(--secondary-color))";
-        
-        // Menyu ichini tozalash
-        if (userPhoto) userPhoto.src = '';
-        if (userName) userName.innerText = 'Foydalanuvchi';
-        if (userEmail) userEmail.innerText = 'email@example.com';
-
-        // AI Chat oynasini qulflash
-        if (userInputAi) {
-            userInputAi.disabled = true;
-            userInputAi.placeholder = "Tizimga kiring...";
-        }
-        if (chatWindow) {
-            chatWindow.style.opacity = "0.5";
-            chatWindow.style.pointerEvents = "none";
-            chatWindow.style.filter = "grayscale(1)";
-        }
-    }
-});
-
-// 7. Dropdown yopilish mantiqi
-window.addEventListener('click', (e) => {
-    if (dropdown && dropdown.classList.contains('show')) {
-        if (!loginBtn.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.classList.remove('show');
-        }
-    }
-});
-
-   // =========================================================
-    // SANITY-DAN MAQOLALARNI DINAMIK YUKLASH VA TELEGRAMGA ULASH
-    // =========================================================
-    
-    // JUDA MUHIM TUZATISH: Bu yerga Sanity panelidagi haqiqiy Project ID kodingizni yozing!
-    const SANITY_PROJECT_ID = "25lh4m7u"; 
-    const SANITY_DATASET = "production";
-
-    // So'rov formatini xavfsiz va toza holatga keltiramiz
-    const queryText = '*[_type == "post"] | order(publishedAt desc) { title, description, excerpt, body, telegramLink, category, categories[]->{title}, "categoryTitle": category->title, "imageUrl": mainImage.asset->url }';
-    const sanityQuery = encodeURIComponent(queryText);
-    const sanityUrl = `https://${SANITY_PROJECT_ID}.api.sanity.io/v2021-10-21/data/query/${SANITY_DATASET}?query=${sanityQuery}`;
-
-    // Sanity-dan kelgan maqolalarni HTML kartochkalarga aylantirish funksiyasi
-    function displaySanityPosts(posts) {
-        const postsContainer = document.getElementById('posts-container');
-        if (!postsContainer) return;
-        if (!posts || posts.length === 0) {
-            postsContainer.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">Hozircha maqolalar mavjud emas.</p>';
-            return;
-        }
-
-        postsContainer.innerHTML = posts.map((post, index) => {
-            const delay = index * 200;
-            const imageUrl = post.imageUrl || 'https://via.placeholder.com/400x250?text=Ziyomap';
-
-            // 1. KATEGORIYA UCHUN TUZATISH
-            // Sanity-dan kelishi mumkin bo'lgan barcha kategoriya formatlarini tekshiramiz
-            let postCategory = "Maqola";
-            if (post.category) {
-                postCategory = typeof post.category === 'object' ? (post.category.title || post.category.name) : post.category;
-            } else if (post.categories && post.categories[0]) {
-                postCategory = post.categories[0].title || post.categories[0].name || "Maqola";
-            }
-            
-            // Agar tasodifan "Yaqinda" yoki sana formatlari kelib qolsa, ularni tozalaymiz
-            if (postCategory === "Yaqinda" || postCategory.includes("2026") || postCategory.includes("-")) {
-                postCategory = "Fizika / Ta'lim"; // Zaxira chiroyli nom
-            }
-
-            // 2. TA'RIF UCHUN TUZATISH
-            // Sanity-da siz yozgan matn oddiy string emas, "Block Content" (Rich Text) bo'lishi ham mumkin.
-            // Shuning uchun ham u sizga matn ko'rinishida chiqmayapti.
-            let postDescription = 'Ushbu maqola uchun qisqacha ta\'rif kiritilmagan.';
-            
-            // Agar ob'ekt massiv (Block content) bo'lsa, ichidagi matnlarni birlashtiramiz
-            if (Array.isArray(post.description)) {
-                postDescription = post.description.map(block => block.children ? block.children.map(c => c.text).join('') : '').join(' ');
-            } else if (Array.isArray(post.body)) {
-                postDescription = post.body.map(block => block.children ? block.children.map(c => c.text).join('') : '').join(' ');
-            } else if (typeof post.description === 'string' && post.description.trim() !== '') {
-                postDescription = post.description;
-            } else if (typeof post.excerpt === 'string' && post.excerpt.trim() !== '') {
-                postDescription = post.excerpt;
-            }
-
-            // Matn juda uzun bo'lib ketsa, kartochka chiroyli turishi uchun qisqartiramiz (max 150 harf)
-            if (postDescription.length > 150) {
-                postDescription = postDescription.substring(0, 150) + "...";
-            }
-
-            return `
-                <div class="card" data-aos="fade-up" data-aos-delay="${delay}">
-                    <div class="card-image" style="width: 100%; height: 200px; overflow: hidden; border-radius: 8px; margin-bottom: 15px;">
-                        <img src="${imageUrl}" alt="${post.title}" style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-
-                    <span style="color: var(--primary-color); font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; display: block;">
-                        ${postCategory}
-                    </span>
-                    
-                    <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 1.4rem;">${post.title}</h3>
-                    
-                    <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9; margin-bottom: 25px;">
-                        ${postDescription}
-                    </p>
-                    
-                    <a href="${post.telegramLink || '#'}" target="_blank" class="btn" style="padding: 10px 25px; font-size: 14px; margin: 0; display: inline-block;">
-                        O'qish
-                    </a>
-                </div>
-            `;
-        }).join('');
-    }
-    async function loadSanityPosts() {
-        try {
-            const response = await fetch(sanityUrl);
-            const data = await response.json();
-            if (data && data.result) {
-                displaySanityPosts(data.result);
-            }
-        } catch (error) {
-            console.error("Maqolalarni yuklashda xatolik:", error);
-        }
-    }
-
-    loadSanityPosts();
-</script>
+    <script src="js/ziyomap-usage.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/floating-widgets.js"></script>
+    <script src="js/sanity-blog.js"></script>
+    <script src="js/nav-auth.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // ==========================================
-        // YANGILANGAN ZIYODOSKA LOGIKASI
-        // ==========================================
-        const board = document.getElementById('floating-board');
-        const boardBtn = document.getElementById('board-circle-btn');
-        const fCanvas = document.getElementById('floatCanvas');
-        let fCtx;
-        if(fCanvas) fCtx = fCanvas.getContext('2d');
-        let fDrawing = false;
-        let fColor = '#ffffff';
-        let isMaximized = false;
-
-        window.openBoard = function() {
-            if(board && boardBtn) {
-                board.style.display = 'flex';
-                boardBtn.style.display = 'none'; // Doska ochilganda mitti tugma yashirinadi
-                initCanvas();
-            }
-        }
-
-        window.closeBoard = function() {
-            if(board && boardBtn) {
-                board.style.display = 'none';
-                boardBtn.style.display = 'flex'; // Doska yopilganda mitti tugma qaytib chiqadi
-            }
-        }
-
-        window.toggleMinimize = function() {
-            const resizeBtn = document.getElementById('resize-btn');
-            
-            // Chizilgan rasmni xotirada saqlash
-            const temp = document.createElement('canvas');
-            temp.width = fCanvas.width;
-            temp.height = fCanvas.height;
-            temp.getContext('2d').drawImage(fCanvas, 0, 0);
-
-            if (!isMaximized) {
-                // To'liq ekranga kengaytirish (chiroyli chekka joy qoldirib)
-                board.style.width = "calc(100% - 48px)";
-                board.style.height = "calc(100% - 120px)";
-                board.style.bottom = "24px";
-                board.style.right = "24px";
-                if(resizeBtn) resizeBtn.innerText = "🔳";
-                isMaximized = true;
-            } else {
-                // Kichik oyna (vidjet) holatiga qaytarish
-                board.style.width = "380px";
-                board.style.height = "280px";
-                board.style.bottom = "24px";
-                board.style.right = "24px";
-                if(resizeBtn) resizeBtn.innerText = "🔲";
-                isMaximized = false;
-            }
-
-            // Canvas o'lchamlarini animatsiyadan so'ng tiklash
-            setTimeout(() => {
-                fCanvas.width = fCanvas.parentElement.clientWidth;
-                fCanvas.height = fCanvas.parentElement.clientHeight;
-                fCtx.lineCap = 'round';
-                fCtx.lineJoin = 'round';
-                fCtx.lineWidth = isMaximized ? 4 : 2;
-                fCtx.strokeStyle = fColor;
-                fCtx.drawImage(temp, 0, 0, fCanvas.width, fCanvas.height);
-            }, 320);
-        }
-
-        function initCanvas() {
-            if(!fCanvas) return;
-            fCanvas.width = fCanvas.parentElement.clientWidth;
-            fCanvas.height = fCanvas.parentElement.clientHeight;
-            fCtx.lineCap = 'round';
-            fCtx.lineJoin = 'round';
-            fCtx.lineWidth = 2;
-            fCtx.strokeStyle = fColor;
-        }
-
-        function getCoords(e) {
-            const rect = fCanvas.getBoundingClientRect();
-            if (e.touches && e.touches.length > 0) {
-                return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
-            }
-            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        }
-
-        if(fCanvas) {
-            fCanvas.addEventListener('mousedown', (e) => { fDrawing = true; const p = getCoords(e); fCtx.beginPath(); fCtx.moveTo(p.x, p.y); });
-            fCanvas.addEventListener('mousemove', (e) => { if (!fDrawing) return; e.preventDefault(); const p = getCoords(e); fCtx.lineTo(p.x, p.y); fCtx.stroke(); });
-            fCanvas.addEventListener('mouseup', () => fDrawing = false);
-            
-            fCanvas.addEventListener('touchstart', (e) => { fDrawing = true; const p = getCoords(e); fCtx.beginPath(); fCtx.moveTo(p.x, p.y); });
-            fCanvas.addEventListener('touchmove', (e) => { if (!fDrawing) return; e.preventDefault(); const p = getCoords(e); fCtx.lineTo(p.x, p.y); fCtx.stroke(); });
-            fCanvas.addEventListener('touchend', () => fDrawing = false);
-        }
-
-        window.setBoardColor = function(c) { fColor = c; fCtx.strokeStyle = c; }
-        window.clearBoard = function() { fCtx.clearRect(0, 0, fCanvas.width, fCanvas.height); }
         window.addEventListener('load', () => {
             const preloader = document.getElementById('preloader');
             setTimeout(() => { preloader.classList.add('fade-out'); }, 2000);
@@ -1016,226 +621,7 @@ window.addEventListener('click', (e) => {
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
 
-        let currentFileBase64 = null;
-        let currentFileType = null;
-        let chatHistory = []; 
-
-        const chatToggle = document.getElementById('chat-toggle');
-        const chatWindow = document.getElementById('chat-window');
-        const closeChat = document.getElementById('close-chat');
-        const fullScreenBtn = document.getElementById('full-screen-chat');
-        const sendBtnAi = document.getElementById('send-btn-ai');
-        const userInputAi = document.getElementById('user-input-ai');
-        const chatMessages = document.getElementById('chat-messages');
-        const fileInput = document.getElementById('file-upload');
-        const previewBox = document.getElementById('image-preview-box');
-        const previewImg = document.getElementById('preview-img');
-
-        chatToggle.addEventListener('click', () => {
-            chatWindow.style.display = chatWindow.style.display === 'none' ? 'flex' : 'none';
-        });
-
-        closeChat.addEventListener('click', () => {
-            chatWindow.style.display = 'none';
-        });
-
-        fullScreenBtn.addEventListener('click', () => {
-            chatWindow.classList.toggle('full-screen');
-            fullScreenBtn.classList.toggle('fa-expand-alt');
-            fullScreenBtn.classList.toggle('fa-compress-alt');
-        });
-
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                currentFileType = file.type;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    currentFileBase64 = event.target.result.split(',')[1];
-                    if (file.type.startsWith('image/')) {
-                        previewImg.src = event.target.result;
-                        previewBox.style.display = 'block';
-                    } else {
-                        previewBox.style.display = 'none';
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        window.cancelImage = function() {
-            currentFileBase64 = null;
-            currentFileType = null;
-            previewBox.style.display = 'none';
-            fileInput.value = '';
-        }
-
-        // =======================================================
-        // ZIYOMAP AI CHAT MANTIQLARI (XATOSIZ TO'LIQ VARIANT)
-        // =======================================================
-        async function sendAiMessage() {
-            const text = userInputAi.value.trim();
-            if (!text && !currentFileBase64) return;
-            
-            // Foydalanuvchi xabarini alohida chiqarish ('user' sifatida)
-            appendAiMessage('user', text + (currentFileBase64 ? " [Fayl yuborildi]" : ""));
-            
-            const imageToSend = currentFileBase64;
-            const typeToSend = currentFileType;
-            userInputAi.value = '';
-            cancelImage();
-            
-            // AI xabari uchun mutlaqo yangi va alohida blok ochamiz (loadingId)
-            const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
-            
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: text,
-                        history: chatHistory, 
-                        image: imageToSend,
-                        mimeType: typeToSend
-                    })
-                });
-                const data = await response.json();
-                const aiReply = data.reply || "Javob olinmadi.";
-                
-                // Faqat o'sha ochilgan AI blokini yangilaymiz
-                updateAiMessage(loadingId, aiReply);
-                addActionButtons(loadingId, aiReply);
-                
-                // Tarixga qo'shish
-                chatHistory.push({ role: "user", parts: [{ text: text }] });
-                chatHistory.push({ role: "model", parts: [{ text: aiReply }] });
-            } catch (error) {
-                updateAiMessage(loadingId, "Xatolik yuz berdi.");
-            }
-        }
-
-        function appendAiMessage(sender, text) {
-            const id = Date.now() + Math.random().toString(36).substr(2, 9); // Unikal ID yaratish
-            const msgDiv = document.createElement('div');
-            msgDiv.id = id;
-            msgDiv.style.padding = '12px 15px';
-            msgDiv.style.borderRadius = '15px';
-            msgDiv.style.maxWidth = '85%';
-            msgDiv.style.marginBottom = '8px';
-            msgDiv.style.display = 'flex';
-            msgDiv.style.flexDirection = 'column';
-            msgDiv.style.boxShadow = '0 2px 5px rgba(0,0,0,0.02)';
-
-            if (sender === 'user') {
-                msgDiv.style.alignSelf = 'flex-end';
-                msgDiv.style.background = 'var(--primary-color)';
-                msgDiv.style.color = 'white';
-                msgDiv.style.borderRadius = '15px 15px 0 15px';
-                
-                // Foydalanuvchi bloki ichiga klass beramiz
-                msgDiv.innerHTML = `<div class="message-content user-text">${text.replace(/\n/g, '<br>')}</div>`;
-            } else {
-                msgDiv.style.alignSelf = 'flex-start';
-                msgDiv.style.background = 'rgba(56, 189, 248, 0.1)';
-                msgDiv.style.color = 'var(--text-color)';
-                msgDiv.style.borderRadius = '15px 15px 15px 0';
-                
-                // AI bloki ichiga alohida klass beramiz
-                let formattedText = text;
-                if (typeof marked !== 'undefined' && text !== 'Ziyomap AI tahlil qilmoqda...') {
-                    formattedText = marked.parse(text);
-                } else {
-                    formattedText = text.replace(/\n/g, '<br>');
-                }
-                msgDiv.innerHTML = `<div class="message-content ai-text">${formattedText}</div>`;
-            }
-            
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return id;
-        }
-
-       function updateAiMessage(id, text, isHTML = false) {
-    const el = document.getElementById(id);
-    if(el) {
-        const contentDiv = el.querySelector('.message-content');
-        if (contentDiv) {
-            // Markdownni tahlil qilish
-            const formatted = (typeof marked !== 'undefined') ? marked.parse(text) : text.replace(/\n/g, '<br>');
-            contentDiv.innerHTML = formatted;
-
-            // MATHJAXNI MAJBURAN ISHLATISH
-            if (window.MathJax) {
-                MathJax.typesetPromise([contentDiv]).catch(err => console.log(err));
-            }
-        }
-    }
-}
-        // NUSXALASH VA SAQLASH TUGMALARINI STRUKTURAVIY BASHQARISH
-        function addActionButtons(msgId, content) {
-            const msgDiv = document.getElementById(msgId);
-            if (!msgDiv) return;
-
-            // Tugmalar uchun maxsus konteyner (yonma-yon turishi uchun)
-            const btnContainer = document.createElement('div');
-            btnContainer.style.display = 'flex';
-            btnContainer.style.gap = '8px';
-            btnContainer.style.marginTop = '10px';
-            btnContainer.style.flexWrap = 'wrap';
-
-            // 1. NUSXALASH TUGMASI
-            const copyBtn = document.createElement('button');
-            copyBtn.innerHTML = '<i class="fas fa-copy"></i> Nusxalash';
-            copyBtn.style = "padding: 5px 10px; font-size: 0.75rem; font-weight:600; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.2s;";
-            copyBtn.onclick = () => {
-                const contentDiv = msgDiv.querySelector('.message-content');
-                const cleanText = contentDiv ? contentDiv.innerText : content;
-                navigator.clipboard.writeText(cleanText).then(() => {
-                    const originalHTML = copyBtn.innerHTML;
-                    copyBtn.innerHTML = `<i class="fas fa-check"></i> Nusxalandi!`;
-                    copyBtn.style.background = "#10b981";
-                    copyBtn.style.color = "white";
-                    copyBtn.style.borderColor = "#10b981";
-                    setTimeout(() => {
-                        copyBtn.innerHTML = originalHTML;
-                        copyBtn.style.background = "transparent";
-                        copyBtn.style.color = "var(--primary-color)";
-                        copyBtn.style.borderColor = "var(--primary-color)";
-                    }, 2000);
-                });
-            };
-
-            // 2. TXT FORMATDA SAQLASH TUGMASI
-            const downloadBtn = document.createElement('button');
-            downloadBtn.innerHTML = '<i class="fas fa-download"></i> Saqlash';
-            downloadBtn.style = "padding: 5px 10px; font-size: 0.75rem; font-weight:600; cursor: pointer; border-radius: 6px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-color); transition: 0.2s;";
-            
-            downloadBtn.onmouseover = () => { if(downloadBtn.style.background !== "var(--primary-color)") { downloadBtn.style.background = "rgba(37, 99, 235, 0.05)"; } };
-            downloadBtn.onmouseout = () => { if(downloadBtn.style.background !== "var(--primary-color)") { downloadBtn.style.background = "transparent"; } };
-            
-            downloadBtn.onclick = () => {
-                const contentDiv = msgDiv.querySelector('.message-content');
-                const cleanText = contentDiv ? contentDiv.innerText : content;
-                const blob = new Blob([cleanText], { type: 'text/plain' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `Ziyomap_Javob_${msgId}.txt`;
-                link.click();
-            };
-
-            btnContainer.appendChild(copyBtn);
-            btnContainer.appendChild(downloadBtn);
-            msgDiv.appendChild(btnContainer);
-            
-            // Skrolni eng pastga tushirish
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        sendBtnAi.addEventListener('click', sendAiMessage);
-        userInputAi.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendAiMessage(); });
-        // =======================================================
-  </script> <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+  </script>
     <script src="js/data.js"></script>
     <script src="js/main.js"></script>
     <script src="labs/mexanika.js"></script>
