@@ -315,16 +315,211 @@
         #usage-history-empty { font-size: 0.85rem; opacity: 0.6; text-align: center; padding: 8px 0; }
 
         .hero {
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 0 20px;
+            padding: 100px 20px 60px;
         }
-        .hero h1 { font-size: clamp(2.5rem, 8vw, 4rem); font-weight: 800; margin-bottom: 20px; }
-        .hero p { font-size: 1.2rem; max-width: 700px; line-height: 1.6; }
+        .hero h1 { font-size: clamp(2rem, 8vw, 4rem); font-weight: 800; margin-bottom: 16px; }
+        .hero p { font-size: clamp(1rem, 3.5vw, 1.2rem); max-width: 700px; line-height: 1.6; padding: 0 8px; }
+
+        .hero-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            width: 100%;
+            max-width: 640px;
+            margin-top: 24px;
+            padding: 0 12px;
+        }
+
+        .hero-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            padding: 20px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white !important;
+            transition: transform 0.25s, box-shadow 0.25s;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            min-height: 130px;
+        }
+
+        .hero-card:hover {
+            transform: translateY(-4px);
+            color: white !important;
+        }
+
+        .hero-card i {
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+
+        .hero-card h3 {
+            margin: 0 0 8px;
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .hero-card p {
+            margin: 0;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            opacity: 0.92;
+            max-width: none;
+            padding: 0;
+        }
+
+        .hero-card.ziyomap-card {
+            background: linear-gradient(145deg, #6366f1, #4f46e5);
+        }
+
+        .hero-card.ai-card {
+            background: linear-gradient(145deg, #0ea5e9, #2563eb);
+        }
+
+        .floating-widget-wrap {
+            position: fixed;
+            z-index: 9990;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .fab-drag-handle {
+            width: 44px;
+            height: 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.35);
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.9);
+            user-select: none;
+            line-height: 1;
+        }
+
+        .floating-widget-wrap.fab-dragging .fab-drag-handle {
+            cursor: grabbing;
+        }
+
+        .floating-widget {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            text-decoration: none;
+            color: white;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+        }
+
+        .fab-link {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white !important;
+            text-decoration: none;
+        }
+
+        .fab-robot { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+        .fab-doska { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+        .fab-hint {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
+            opacity: 0.45;
+            z-index: 9989;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                min-height: auto;
+                padding: 90px 16px 40px;
+            }
+
+            .hero-actions {
+                grid-template-columns: 1fr;
+                max-width: 360px;
+                gap: 14px;
+            }
+
+            .hero-card {
+                min-height: auto;
+                padding: 22px 20px;
+            }
+
+            .section {
+                padding: 60px 16px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .dropdown-content {
+                position: fixed !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%);
+                top: 72px !important;
+                margin-top: 0 !important;
+                width: min(320px, 92vw);
+            }
+
+            .nav-menu a, .game-menu-btn, .doska-menu-btn {
+                width: min(280px, 85vw);
+                justify-content: center;
+            }
+
+            .clock-section {
+                margin: 20px auto;
+                padding: 8px;
+            }
+
+            .clock-display {
+                font-size: clamp(1.8rem, 10vw, 2.5rem) !important;
+            }
+
+            .floating-widget-wrap .fab-drag-handle {
+                display: none;
+            }
+
+            .floating-widget, .fab-link {
+                width: 56px;
+                height: 56px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.85rem; }
+            .logo-brand { font-size: 1.2rem; }
+        }
 
         .btn {
             display: inline-block;
@@ -374,49 +569,20 @@
         .social-links a { font-size: 1.8rem; color: white; margin: 0 20px; transition: 0.3s; }
         .social-links a:hover { color: var(--primary-color); transform: scale(1.2); }
 
-        #results-sidebar {
-            margin-top: 40px;
-            padding: 30px; background: var(--card-bg);
-            border: 2px dashed var(--primary-color); border-radius: 20px;
-        }
-
-        .floating-widget {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            text-decoration: none;
-            color: white;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-            transition: box-shadow 0.2s;
-            cursor: grab;
-        }
-        .floating-widget:hover { color: white; }
-        .floating-widget.fab-dragging {
-            cursor: grabbing;
-            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
-        }
-        .fab-robot {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-        }
-        .fab-doska {
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            font-size: 20px;
-        }
         .fab-hint {
             position: fixed;
             bottom: 8px;
-            right: 8px;
+            left: 50%;
+            transform: translateX(-50%);
             font-size: 0.65rem;
             opacity: 0.45;
             z-index: 9989;
             pointer-events: none;
+            white-space: nowrap;
         }
 
     </style>
+    <link rel="stylesheet" href="css/mobile.css">
 
 </head>
 <body>
@@ -498,10 +664,17 @@
             <span class="quote-author">— Ziyomap Ma'rifat Kengashi</span>
         </div>
     </div>
-    <div data-aos="zoom-in" data-aos-delay="400">
-        <a href="#projects" class="btn">Loyihalarni ko'rish</a>
-        <a href="https://ziyomap.streamlit.app/" target="_blank" class="btn btn-outline" data-require-auth data-auth-return="https://ziyomap.streamlit.app/">Ziyomap</a>
-        <a href="ai-tools.html" class="btn" style="margin-left: 10px;" data-require-auth>AI Asboblar</a>
+    <div class="hero-actions" data-aos="zoom-in" data-aos-delay="400">
+        <a href="https://ziyomap.streamlit.app/" target="_blank" rel="noopener" class="hero-card ziyomap-card" data-require-auth data-auth-return="https://ziyomap.streamlit.app/">
+            <i class="fas fa-atom"></i>
+            <h3>Ziyomap</h3>
+            <p>Streamlit ta'lim platformasi — fizika darslari va interaktiv mashg'ulotlar.</p>
+        </a>
+        <a href="ai-tools.html" class="hero-card ai-card" data-require-auth>
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <h3>AI Asboblar</h3>
+            <p>Sun'iy intellekt yordamida dars tayyorlash, tahlil va tez javoblar.</p>
+        </a>
     </div>
 </section>
 
@@ -550,13 +723,19 @@
         </div>
     </section>
 
-    <a href="ai-chat.html" id="fab-robot" class="floating-widget fab-robot" data-fab-id="robot" title="Ziyomap AI — surib ko'chiring" data-require-auth data-track="ai-chat" data-track-label="Ziyomap AI">
-        <i class="fas fa-robot"></i>
-    </a>
-    <a href="doska.html" id="fab-doska" class="floating-widget fab-doska" data-fab-id="doska" title="Onlayn doska — surib ko'chiring" data-require-auth data-track="doska" data-track-label="Onlayn doska">
-        <i class="fas fa-pencil-alt"></i>
-    </a>
-    <span class="fab-hint">Tugmalarni surib joylashtiring</span>
+    <div class="floating-widget-wrap fab-robot-wrap" data-fab-id="robot">
+        <span class="fab-drag-handle" title="Surish">⋯</span>
+        <a href="ai-chat.html" id="fab-robot" class="fab-link fab-robot" title="Ziyomap AI" data-require-auth data-track="ai-chat" data-track-label="Ziyomap AI">
+            <i class="fas fa-robot"></i>
+        </a>
+    </div>
+    <div class="floating-widget-wrap fab-doska-wrap" data-fab-id="doska">
+        <span class="fab-drag-handle" title="Surish">⋯</span>
+        <a href="doska.html" id="fab-doska" class="fab-link fab-doska" title="Onlayn doska" data-require-auth data-track="doska" data-track-label="Onlayn doska">
+            <i class="fas fa-pencil-alt"></i>
+        </a>
+    </div>
+    <span class="fab-hint">Kompyuterda ⋯ ushlab suring · Telefonda bosib oching</span>
 
     <footer>
         <div class="social-links" data-aos="fade-up">
@@ -622,7 +801,17 @@
         }
 
   </script>
-  
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+    <script src="labs/mexanika.js"></script>
+    <script src="labs/optika.js"></script>
+    <script src="labs/elektr.js"></script>
+    <script src="labs/astronomiya.js"></script>
+    <script src="labs/termodinamika.js"></script>
+    <script src="labs/yadro-fizikasi.js"></script>
+    <script src="labs/tolqinlar.js"></script>
+    <script src="labs/amaliy-fizika.js"></script>
+    <script src="labs/paradokslar.js"></script>
 <style>
 /* --- Soat Moduli Stillari --- */
 .clock-section {
