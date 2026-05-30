@@ -15,7 +15,7 @@ import {
  * id — eslatma / kelajak uchun; username — majburiy (masalan: ZiyomapBot, @ siz).
  */
 const TELEGRAM_BOTS = [
-    { id: '8733813153', username: 'ziyomapbot' }, // 1-bot: ID va username ni yozing
+   { id: '8733813153', username: 'ziyomapbot' }, // 1-bot: ID va username ni yozing
     { id: '', username: '' }, // 2-bot: ikkkinchi bot (ixtiyoriy)
 ];
 
@@ -121,8 +121,6 @@ handleGoogleCallback();
 
 if (loginBtn) {
     loginBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (auth.currentUser) return;
         const clientId = '982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com';
         const redirectUri = window.location.origin + '/kirish.html';
         const googleOAuthUrl =
@@ -243,27 +241,68 @@ function initTelegramWidgets() {
     const box1 = document.getElementById('telegram-login-1');
     const box2 = document.getElementById('telegram-login-2');
     const hint = document.getElementById('telegram-hint');
+    const tgLink = document.getElementById('telegram-open-link');
 
     if (bots.length === 0) {
         if (hint) {
             hint.textContent =
-                'Telegram: js/kirish-auth.js ichida TELEGRAM_BOTS ga bot ID (ixtiyoriy) va username (@ siz) yozing.';
+                'Telegram widget ishlashi uchun js/kirish-auth.js da bot username (@siz) yozing. Vaqtincha Google yoki ism bilan kiring.';
         }
         return;
     }
 
-    if (hint) hint.style.display = 'none';
+    const uname = bots[0].username.trim().replace(/^@/, '');
+    if (hint) {
+        hint.textContent =
+            'Widget ishlamasa — pastdagi bot havolasini bosing yoki Google / ism bilan kiring.';
+    }
+    if (tgLink) {
+        tgLink.href = 'https://t.me/' + uname;
+        tgLink.style.display = 'inline-flex';
+    }
+
     if (box1 && bots[0]) {
         if (bots[0].id) box1.setAttribute('data-bot-id', bots[0].id);
-        createTelegramWidget(box1, bots[0].username.trim());
+        createTelegramWidget(box1, uname);
     }
     if (box2 && bots[1]) {
         box2.style.display = 'flex';
+        const u2 = bots[1].username.trim().replace(/^@/, '');
         if (bots[1].id) box2.setAttribute('data-bot-id', bots[1].id);
-        createTelegramWidget(box2, bots[1].username.trim());
+        createTelegramWidget(box2, u2);
     } else if (box2) {
         box2.style.display = 'none';
     }
+}
+
+const guestForm = document.getElementById('guest-form');
+const guestNameInput = document.getElementById('guest-name');
+
+function loginAsGuest(name) {
+    const trimmed = (name || '').trim().slice(0, 40);
+    if (!trimmed) {
+        setStatus('Iltimos, ismingizni yozing.');
+        return;
+    }
+    saveUser(
+        {
+            uid: 'guest_' + Date.now(),
+            displayName: trimmed,
+            email: null,
+            photoURL: null,
+        },
+        'guest',
+        'Ism bilan kirish'
+    );
+    setStatus(`Xush kelibsiz, ${trimmed}! Yo‘naltirilmoqdasiz...`);
+    setTimeout(redirectAfterLogin, 600);
+}
+
+if (guestForm) {
+    guestForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        loginAsGuest(guestNameInput?.value);
+    });
 }
 
 initTelegramWidgets();
@@ -307,10 +346,11 @@ onAuthStateChanged(auth, (user) => {
         );
         showLoggedInUI(user.displayName || user.phoneNumber);
     } else if (!params.get('logout') && !window.ZiyomapUsage?.getUser()) {
+        document.getElementById('auth-methods')?.style.removeProperty('display');
         if (loginBtn) loginBtn.style.display = 'inline-flex';
         if (loggedPanel) loggedPanel.style.display = 'none';
         if (statusEl && !window.location.hash.includes('id_token')) {
-            statusEl.textContent = 'Davom etish uchun quyidagi usullardan birini tanlang.';
+            setStatus('Tez kirish — Google yoki ismingiz bilan. Bepul.');
         }
     }
 });
