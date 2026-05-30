@@ -2,34 +2,77 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ziyomap - Metod Ssenariysi</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="../js/metodlar-theme.js"></script>
     <style>
+        [data-theme="dark"] {
+            --metod-bg: #0b1120;
+            --metod-card: rgba(30, 41, 59, 0.4);
+            --metod-text: #f1f5f9;
+            --metod-muted: #94a3b8;
+            --metod-border: #334155;
+            --metod-btn: #1e293b;
+        }
+        [data-theme="light"] {
+            --metod-bg: #f0f9ff;
+            --metod-card: #ffffff;
+            --metod-text: #0f172a;
+            --metod-muted: #64748b;
+            --metod-border: #e2e8f0;
+            --metod-btn: #f1f5f9;
+        }
         body {
-            background-color: #0b1120;
+            background-color: var(--metod-bg);
+            color: var(--metod-text);
+            transition: background 0.3s, color 0.3s;
+        }
+        .theme-metod-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--metod-border);
+            background: var(--metod-btn);
+            color: var(--metod-text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #metod-content {
+            background: var(--metod-card);
+            border-color: var(--metod-border);
         }
     </style>
 </head>
-<body class="text-gray-100 font-sans antialiased min-h-screen flex flex-col justify-between">
+<body class="min-h-screen flex flex-col justify-between antialiased">
 
-    <main class="max-w-3xl mx-auto px-4 py-12 w-full flex-grow">
+    <div class="max-w-3xl mx-auto px-4 pt-6 w-full flex justify-end">
+        <button type="button" class="theme-metod-btn" onclick="MetodlarTheme.toggleTheme()">
+            <span id="metod-theme-icon">☀️</span>
+            <span id="metod-theme-label">Kun rejimi</span>
+        </button>
+    </div>
+
+    <main class="max-w-3xl mx-auto px-4 py-8 w-full flex-grow">
         
-        <a href="index.html" class="inline-flex items-center gap-2 text-blue-400 font-medium mb-8 hover:text-blue-300 transition group text-sm">
+        <a href="index.html" class="inline-flex items-center gap-2 text-blue-500 font-medium mb-8 hover:text-blue-400 transition group text-sm">
             <span class="transform group-hover:-translate-x-1 transition duration-200">←</span> 
             Metodlar ro'yxatiga qaytish
         </a>
 
-        <div class="bg-[#1e293b]/40 rounded-3xl border border-gray-800 p-6 md:p-10 backdrop-blur-sm shadow-xl" id="metod-content">
+        <div class="rounded-3xl border p-6 md:p-10 backdrop-blur-sm shadow-xl" id="metod-content">
             
             <div class="animate-pulse space-y-6">
-                <div class="h-6 bg-gray-800 rounded w-1/4"></div>
-                <div class="h-10 bg-gray-800 rounded w-3/4"></div>
+                <div class="h-6 rounded w-1/4" style="background: var(--metod-border);"></div>
+                <div class="h-10 rounded w-3/4" style="background: var(--metod-border);"></div>
                 <div class="space-y-2">
-                    <div class="h-4 bg-gray-800 rounded"></div>
-                    <div class="h-4 bg-gray-800 rounded w-5/6"></div>
+                    <div class="h-4 rounded" style="background: var(--metod-border);"></div>
+                    <div class="h-4 rounded w-5/6" style="background: var(--metod-border);"></div>
                 </div>
-                <div class="h-20 bg-gray-800 rounded-xl"></div>
+                <div class="h-20 rounded-xl" style="background: var(--metod-border);"></div>
             </div>
 
         </div>
