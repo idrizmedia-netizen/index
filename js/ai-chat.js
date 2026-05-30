@@ -202,4 +202,22 @@ if (userInputAi) {
     userInputAi.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendAiMessage();
     });
+    userInputAi.addEventListener('focus', () => {
+        setTimeout(() => {
+            userInputAi.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }, 300);
+    });
+}
+
+function syncMobileKeyboardOffset() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const gap = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty('--kb-offset', gap + 'px');
+}
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncMobileKeyboardOffset);
+    window.visualViewport.addEventListener('scroll', syncMobileKeyboardOffset);
+    syncMobileKeyboardOffset();
 }
