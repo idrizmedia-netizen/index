@@ -262,9 +262,14 @@ function draw(){
       }
     }
     // Hit point glow
-    const gGrad=ctx.createRadialGradient(sx,my,0,sx,my,15);
-    gGrad.addColorStop(0,state.color.replace(')',',0.4)').replace('rgb','rgba').replace('#','rgba(').replace(/([0-9a-f]{2})/gi,h=>parseInt(h,16)+',').slice(0,-1));
-    try{ctx.beginPath();ctx.arc(sx,my,10,0,Math.PI*2);ctx.fillStyle=state.color+'44';ctx.fill();}catch(e){}
+    try{
+      const hex=state.color.replace('#','');
+      const rr=parseInt(hex.slice(0,2),16),gg=parseInt(hex.slice(2,4),16),bb=parseInt(hex.slice(4,6),16);
+      const gGrad=ctx.createRadialGradient(sx,my,0,sx,my,15);
+      gGrad.addColorStop(0,`rgba(${rr},${gg},${bb},0.5)`);
+      gGrad.addColorStop(1,`rgba(${rr},${gg},${bb},0)`);
+      ctx.beginPath();ctx.arc(sx,my,15,0,Math.PI*2);ctx.fillStyle=gGrad;ctx.fill();
+    }catch(e){}
   }
 
   // Prism mode
