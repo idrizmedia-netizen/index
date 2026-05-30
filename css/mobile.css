@@ -1,0 +1,33 @@
+/* Umumiy mobil qulaylik — index, kirish, ai-chat, doska, ai-tools */
+
+@media (max-width: 768px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .section h2,
+    .section-title {
+        font-size: 1.5rem !important;
+    }
+
+    #contact form,
+    #contact > div {
+        padding: 24px 16px !important;
+        margin: 24px 12px !important;
+        border-radius: 20px !important;
+    }
+
+    .lab-input {
+        font-size: 16px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .fab-hint {
+        display: none !important;
+    }
+}
