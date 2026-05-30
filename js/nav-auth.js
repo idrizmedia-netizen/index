@@ -47,7 +47,11 @@
             if (userPhoto) userPhoto.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
             if (userName) userName.innerText = user.displayName || 'Foydalanuvchi';
             if (userEmail) {
-                const prov = user.provider === 'phone' ? user.phoneNumber : user.provider === 'telegram' ? '@' + (user.username || 'telegram') : user.email || '';
+                let prov = '';
+                if (user.provider === 'phone') prov = user.phoneNumber || '';
+                else if (user.provider === 'telegram') prov = '@' + (user.username || 'telegram');
+                else if (user.provider === 'guest') prov = 'Mehmon (ism bilan)';
+                else prov = user.email || '';
                 userEmail.innerText = prov || '';
             }
         } else {
