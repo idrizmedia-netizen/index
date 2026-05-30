@@ -2,9 +2,10 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Kirish | Ziyomap</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <style>
         :root {
             --primary-color: #2563eb;
@@ -15,144 +16,110 @@
         body {
             font-family: Inter, sans-serif;
             margin: 0;
-            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
             background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
             color: var(--text-color);
-            padding: 20px;
+            padding: 16px;
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
         .card {
             background: var(--card-bg);
-            padding: 32px;
-            border-radius: 24px;
+            padding: 24px 20px;
+            border-radius: 20px;
             max-width: 440px;
             width: 100%;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.08);
         }
-        .back { display: inline-block; margin-bottom: 16px; color: var(--primary-color); text-decoration: none; font-weight: 600; }
-        h1 { margin: 0 0 8px; font-size: 1.5rem; text-align: center; }
-        #auth-status { margin: 12px 0 20px; opacity: 0.85; line-height: 1.5; text-align: center; font-size: 0.95rem; }
+        .back { display: inline-block; margin-bottom: 12px; color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+        h1 { margin: 0 0 8px; font-size: 1.35rem; text-align: center; }
+        #auth-status { margin: 10px 0 16px; opacity: 0.85; line-height: 1.5; text-align: center; font-size: 0.9rem; }
         .auth-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0;
-            color: #64748b;
-            font-size: 0.8rem;
+            display: flex; align-items: center; gap: 10px; margin: 18px 0; color: #64748b; font-size: 0.78rem;
         }
-        .auth-divider::before, .auth-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-        .user-profile-btn {
+        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .user-profile-btn, .guest-btn, .tg-open-btn {
             background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
+            color: white; border: none; padding: 14px 20px; border-radius: 14px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
         }
-        .phone-block label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: #64748b; }
-        .phone-block input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            font-size: 1rem;
-            box-sizing: border-box;
-            margin-bottom: 10px;
+        .guest-btn { background: linear-gradient(135deg, #10b981, #059669); margin-top: 10px; }
+        .tg-open-btn { background: linear-gradient(135deg, #0088cc, #006699); text-decoration: none; margin-top: 10px; }
+        .guest-block input {
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+            font-size: 16px; box-sizing: border-box; margin-bottom: 0;
         }
-        .btn-row { display: flex; gap: 8px; }
-        .btn-secondary {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid var(--primary-color);
-            background: transparent;
-            color: var(--primary-color);
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-primary {
-            flex: 1;
-            padding: 10px;
-            border-radius: 10px;
-            border: none;
-            background: var(--primary-color);
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        #phone-step-2 { display: none; }
-        #recaptcha-container { margin: 12px 0; display: flex; justify-content: center; }
+        .method-note { font-size: 0.78rem; opacity: 0.75; text-align: center; margin: 8px 0 0; line-height: 1.4; }
         .telegram-login-box { display: flex; justify-content: center; min-height: 44px; margin-top: 8px; }
-        .tg-hint { font-size: 0.8rem; text-align: center; opacity: 0.75; }
+        .tg-hint { font-size: 0.78rem; text-align: center; opacity: 0.75; line-height: 1.4; }
         #logged-panel { display: none; text-align: center; margin-top: 16px; }
-        #logout-btn {
-            color: #ef4444;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 1rem;
-            margin-top: 12px;
-        }
-        .hint { font-size: 0.8rem; opacity: 0.7; margin-top: 16px; text-align: center; line-height: 1.5; }
+        #logout-btn { color: #ef4444; font-weight: bold; cursor: pointer; border: none; background: none; font-size: 1rem; margin-top: 12px; }
+        .hint { font-size: 0.78rem; opacity: 0.7; margin-top: 16px; text-align: center; line-height: 1.5; }
+        details.phone-details { margin-top: 12px; font-size: 0.85rem; }
+        details.phone-details summary { cursor: pointer; color: #64748b; padding: 8px 0; }
+        .phone-block label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; color: #64748b; }
+        .phone-block input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 16px; box-sizing: border-box; margin-bottom: 8px; }
+        .btn-primary { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary-color); color: white; font-weight: 600; cursor: pointer; font-size: 15px; }
+        #phone-step-2 { display: none; margin-top: 8px; }
+        #recaptcha-container { margin: 8px 0; display: flex; justify-content: center; overflow: hidden; }
+        .free-badge { display: inline-block; background: #dcfce7; color: #166534; font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 700; margin-left: 6px; }
     </style>
 </head>
 <body>
     <div class="card">
         <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
         <h1>Ziyomap hisobi</h1>
-        <p id="auth-status">Davom etish uchun quyidagi usullardan birini tanlang.</p>
+        <p id="auth-status">Tez kirish — Google yoki ismingiz bilan. Bepul.</p>
 
         <div id="auth-methods">
             <button type="button" id="login-btn" class="user-profile-btn">
                 <i class="fab fa-google"></i> Google orqali kirish
             </button>
 
-            <div class="auth-divider">yoki telefon</div>
+            <div class="auth-divider">eng oson — bepul</div>
 
-            <div class="phone-block">
-                <label for="phone-input">Telefon raqam</label>
-                <input type="tel" id="phone-input" placeholder="+998 90 123 45 67" autocomplete="tel">
-                <div id="recaptcha-container"></div>
-                <div class="btn-row">
-                    <button type="button" id="send-code-btn" class="btn-primary">SMS kod olish</button>
-                </div>
-                <div id="phone-step-2">
-                    <label for="sms-code-input">SMS kod</label>
-                    <input type="text" id="sms-code-input" placeholder="6 xonali kod" inputmode="numeric" maxlength="6">
-                    <div class="btn-row">
-                        <button type="button" id="verify-code-btn" class="btn-primary">Tasdiqlash</button>
-                    </div>
-                </div>
-            </div>
+            <form id="guest-form" class="guest-block">
+                <label for="guest-name" style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:6px;color:#64748b;">Ismingiz bilan kirish <span class="free-badge">BEPUL</span></label>
+                <input type="text" id="guest-name" placeholder="Masalan: Ali" required maxlength="40" autocomplete="name">
+                <button type="submit" class="guest-btn"><i class="fas fa-user-check"></i> Davom etish</button>
+            </form>
+            <p class="method-note">SMS yoki pul kerak emas. Faqat ism yozasiz — sayt ochiladi.</p>
 
-            <div class="auth-divider">yoki Telegram</div>
-            <p id="telegram-hint" class="tg-hint">Telegram bot sozlanmagan.</p>
+            <div class="auth-divider">Telegram</div>
+            <p id="telegram-hint" class="tg-hint">Telegram widget yoki bot havolasi (js/kirish-auth.js da sozlang).</p>
             <div id="telegram-login-1" class="telegram-login-box"></div>
-            <div id="telegram-login-2" class="telegram-login-box" style="display:none;margin-top:12px;"></div>
+            <div id="telegram-login-2" class="telegram-login-box" style="display:none;margin-top:10px;"></div>
+            <a id="telegram-open-link" class="tg-open-btn" href="#" target="_blank" rel="noopener" style="display:none;">
+                <i class="fab fa-telegram-plane"></i> Telegram botda ochish
+            </a>
+
+            <details class="phone-details">
+                <summary>SMS orqali kirish (pullik, ixtiyoriy)</summary>
+                <div class="phone-block">
+                    <label for="phone-input">Telefon (+998...)</label>
+                    <input type="tel" id="phone-input" placeholder="+998 90 123 45 67" autocomplete="tel">
+                    <div id="recaptcha-container"></div>
+                    <button type="button" id="send-code-btn" class="btn-primary">SMS kod olish</button>
+                    <div id="phone-step-2">
+                        <label for="sms-code-input">SMS kod</label>
+                        <input type="text" id="sms-code-input" placeholder="6 xonali kod" inputmode="numeric" maxlength="6">
+                        <button type="button" id="verify-code-btn" class="btn-primary" style="margin-top:8px;">Tasdiqlash</button>
+                    </div>
+                    <p class="method-note">Firebase SMS pullik. Agar pulingiz bo'lmasa, yuqoridagi usullardan foydalaning.</p>
+                </div>
+            </details>
         </div>
 
         <div id="logged-panel">
             <p>Siz tizimga kirdingiz.</p>
-            <p><a href="index.html" style="color:var(--primary-color);font-weight:600;">Bosh sahifaga o‘tish →</a></p>
+            <p><a href="index.html" style="color:var(--primary-color);font-weight:600;">Bosh sahifaga o'tish →</a></p>
             <button type="button" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Chiqish</button>
         </div>
 
-        <p class="hint">Laboratoriya, o‘yinlar, AI asboblar va Ziyomap ilovasiga kirish uchun avval tizimga kiring. Chiqsangiz — foydalanish tarixi o‘chadi.</p>
+        <p class="hint">Chiqsangiz — foydalanish tarixi o'chadi.</p>
     </div>
 
     <script src="js/ziyomap-usage.js"></script>
