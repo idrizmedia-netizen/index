@@ -4,10 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ziyomap - Metod Ssenariysi</title>
+    <script>
+        (function () {
+            var t = localStorage.getItem('zy_theme') || localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+        })();
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="../js/metodlar-theme.js"></script>
     <style>
-        [data-theme="dark"] {
+        html[data-theme="dark"] body {
+            background-color: #0b1120 !important;
+            color: #f1f5f9 !important;
+        }
+        html[data-theme="light"] body {
+            background-color: #f0f9ff !important;
+            color: #0f172a !important;
+        }
+        html[data-theme="dark"] {
             --metod-bg: #0b1120;
             --metod-card: rgba(30, 41, 59, 0.4);
             --metod-text: #f1f5f9;
@@ -15,7 +28,7 @@
             --metod-border: #334155;
             --metod-btn: #1e293b;
         }
-        [data-theme="light"] {
+        html[data-theme="light"] {
             --metod-bg: #f0f9ff;
             --metod-card: #ffffff;
             --metod-text: #0f172a;
@@ -50,9 +63,9 @@
 <body class="min-h-screen flex flex-col justify-between antialiased">
 
     <div class="max-w-3xl mx-auto px-4 pt-6 w-full flex justify-end">
-        <button type="button" class="theme-metod-btn" onclick="MetodlarTheme.toggleTheme()">
-            <span id="metod-theme-icon">☀️</span>
-            <span id="metod-theme-label">Kun rejimi</span>
+        <button type="button" class="theme-metod-btn" data-metod-theme-toggle>
+            <span data-metod-theme-icon>☀️</span>
+            <span data-metod-theme-label>Kun rejimi</span>
         </button>
     </div>
 
@@ -80,5 +93,6 @@
 
     <script src="js/data.js"></script>
     <script src="js/detail.js"></script>
+    <script src="../js/metodlar-theme.js"></script>
 </body>
 </html>
