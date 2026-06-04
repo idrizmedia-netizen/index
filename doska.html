@@ -44,7 +44,7 @@
 
         <div class="tb-toolbar-head">
 
-            <button type="button" class="tb-toggle-btn" id="tb-collapse" title="Menyuni yig'ish / ochish" aria-expanded="true">
+            <button type="button" class="tb-toggle-btn" id="tb-collapse" title="Menyuni yig'ish / ochish" aria-expanded="true" onclick="window.DoskaUI&&DoskaUI.toggleToolbar();return false;">
 
                 <i class="fas fa-chevron-up" id="tb-collapse-icon"></i>
 
@@ -121,9 +121,6 @@
     <script src="js/auth-guard.js"></script>
 
     <script>ZiyomapAuthGuard.protectPage();</script>
-
-    <script src="js/floating-widgets.js"></script>
-
     <script src="js/doska.js"></script>
 
 </body>
