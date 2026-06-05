@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tartiblash — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
+<script src="questions2.js"></script>
+<script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--indigo:#6366f1;--green:#22c55e;--red:#ef4444}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.tt{font-family:Outfit,sans-serif;font-weight:800}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:16px 0}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white)}
+.fan-card.sel{border-color:var(--indigo);background:#eef2ff}
+.fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}
+.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--indigo);color:#fff;font-weight:800;cursor:pointer}
+#game{display:none}
+.hud{display:flex;justify-content:space-between;margin-bottom:12px;font-weight:800;font-size:14px}
+.prompt{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;font-weight:700;line-height:1.5}
+.pool,.picked{min-height:60px}
+.lbl{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin:12px 0 8px;letter-spacing:.04em}
+.item{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--white);margin-bottom:8px;cursor:pointer;font-weight:700;transition:.15s;color:var(--text)}
+.item:hover{border-color:var(--indigo)}
+.item.in-pick{border-color:var(--indigo);background:#eef2ff;opacity:.85}
+.item.bad{border-color:var(--red);background:#fef2f2}
+.item.good{border-color:var(--green);background:#f0fdf4}
+.actions{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-go{background:var(--indigo);color:#fff}
+.btn-reset{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">📋 Tartiblash</span></div>
+<div class="wrap">
+  <div id="setup">
+    <h2 style="font-family:Outfit,sans-serif;font-weight:800">Voqealarni tartiblang</h2>
+    <p style="color:var(--muted);font-size:14px;margin:8px 0">Elementlarni to'g'ri ketma-ketlikda bosing (1-chi, 2-chi, 3-chi...)</p>
+    <div class="fan-grid" id="fanGrid"></div>
+    <button class="start" onclick="startGame()">Boshlash ▶</button>
+  </div>
+  <div id="game">
+    <div class="hud"><span>📋 <span id="round">1</span>/<span id="totalR">3</span></span><span>⭐ <span id="score">0</span></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="lbl">Sizning tartibingiz</div>
+    <div class="picked" id="picked"></div>
+    <div class="lbl">Variantlar — ketma-ket bosing</div>
+    <div class="pool" id="pool"></div>
+    <div class="actions">
+      <button class="btn btn-reset" onclick="resetPick()">↺ Qayta</button>
+      <button class="btn btn-go" onclick="submitOrder()">✓ Tekshirish</button>
+    </div>
+  </div>
+</div>
+<script>
+let fan='tarix', rounds=[], ri=0, score=0, pickOrder=[], locked=false;
+zyRenderFanGrid('fanGrid', id=>{ fan=id; }, fan);
+function startGame(){
+  rounds=zyShuffle(window.ORDER_QUESTIONS?.[fan]||[]).slice(0,3);
+  if(!rounds.length){ alert('Bu fanda tartiblash savollari yo\'q'); return; }
+  ri=0; score=0;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('totalR').textContent=rounds.length;
+  showRound();
+}
+function showRound(){
+  locked=false; pickOrder=[];
+  const r=rounds[ri];
+  document.getElementById('round').textContent=ri+1;
+  document.getElementById('score').textContent=score;
+  document.getElementById('prompt').textContent=r.prompt;
+  const shuffled=zyShuffle(r.items.map((t,i)=>({t,i})));
+  document.getElementById('pool').innerHTML=shuffled.map(x=>
+    `<div class="item" data-i="${x.i}" onclick="tapItem(this,${x.i})">${x.t}</div>`).join('');
+  document.getElementById('picked').innerHTML='';
+}
+function tapItem(el,idx){
+  if(locked||el.classList.contains('in-pick')) return;
+  el.classList.add('in-pick');
+  pickOrder.push(idx);
+  const n=document.createElement('div');
+  n.className='item in-pick'; n.textContent=(pickOrder.length)+'. '+el.textContent;
+  document.getElementById('picked').appendChild(n);
+}
+function resetPick(){
+  if(locked) return;
+  pickOrder=[];
+  document.querySelectorAll('#pool .item').forEach(x=>x.classList.remove('in-pick'));
+  document.getElementById('picked').innerHTML='';
+}
+function submitOrder(){
+  if(locked||!pickOrder.length) return;
+  locked=true;
+  const correct=rounds[ri].order;
+  const ok=correct.length===pickOrder.length&&correct.every((v,i)=>v===pickOrder[i]);
+  const poolItems=document.querySelectorAll('#pool .item');
+  if(ok){
+    score+=30;
+    document.getElementById('score').textContent=score;
+    document.getElementById('picked').querySelectorAll('.item').forEach(x=>x.classList.add('good'));
+  } else {
+    document.getElementById('picked').querySelectorAll('.item').forEach(x=>x.classList.add('bad'));
+    poolItems.forEach(el=>{
+      const idx=+el.dataset.i;
+      if(correct.includes(idx)) el.classList.add('good');
+    });
+  }
+  setTimeout(()=>{
+    ri++;
+    if(ri>=rounds.length){
+      zyAddPoints(score); zySaveGameScore('tartib', score, { fan });
+      alert((ok?'Tabriklaymiz! ':'')+'O\'yin tugadi. Ball: '+score);
+      location.reload();
+      return;
+    }
+    showRound();
+  }, ok?800:1800);
+}
+</script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
+</body>
+</html>
