@@ -8,121 +8,303 @@
     <link rel="stylesheet" href="css/mobile.css">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #1e293b;
-            --border: rgba(56, 189, 248, 0.25);
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --success: #059669;
         }
+        * { box-sizing: border-box; }
         body {
-            font-family: Inter, sans-serif;
+            font-family: Inter, system-ui, sans-serif;
             margin: 0;
             min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
-            color: var(--text-color);
+            background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+            color: var(--text);
             padding: 16px;
             padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
         .card {
-            background: var(--card-bg);
-            padding: 24px 20px;
-            border-radius: 20px;
-            max-width: 440px;
+            background: var(--card);
+            border-radius: 24px;
+            max-width: 420px;
             width: 100%;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+            box-shadow: 0 20px 50px rgba(37, 99, 235, 0.12);
+            overflow: hidden;
         }
-        .back { display: inline-block; margin-bottom: 12px; color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
-        h1 { margin: 0 0 8px; font-size: 1.35rem; text-align: center; }
-        #auth-status { margin: 10px 0 16px; opacity: 0.85; line-height: 1.5; text-align: center; font-size: 0.9rem; }
-        .auth-divider {
-            display: flex; align-items: center; gap: 10px; margin: 18px 0; color: #64748b; font-size: 0.78rem;
+        .card-head {
+            padding: 24px 24px 0;
+            text-align: center;
         }
-        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-        .user-profile-btn, .guest-btn, .tg-open-btn {
-            background: linear-gradient(135deg, #2563eb, #3b82f6);
-            color: white; border: none; padding: 14px 20px; border-radius: 14px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+        .back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
         }
-        .guest-btn { background: linear-gradient(135deg, #10b981, #059669); margin-top: 10px; }
-        .tg-open-btn { background: linear-gradient(135deg, #0088cc, #006699); text-decoration: none; margin-top: 10px; }
-        .guest-block input {
-            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
-            font-size: 16px; box-sizing: border-box; margin-bottom: 0;
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
         }
-        .method-note { font-size: 0.78rem; opacity: 0.75; text-align: center; margin: 8px 0 0; line-height: 1.4; }
-        .telegram-login-box { display: flex; justify-content: center; min-height: 44px; margin-top: 8px; }
-        .tg-hint { font-size: 0.78rem; text-align: center; opacity: 0.75; line-height: 1.4; }
-        #logged-panel { display: none; text-align: center; margin-top: 16px; }
-        #logout-btn { color: #ef4444; font-weight: bold; cursor: pointer; border: none; background: none; font-size: 1rem; margin-top: 12px; }
-        .hint { font-size: 0.78rem; opacity: 0.7; margin-top: 16px; text-align: center; line-height: 1.5; }
-        details.phone-details { margin-top: 12px; font-size: 0.85rem; }
-        details.phone-details summary { cursor: pointer; color: #64748b; padding: 8px 0; }
-        .phone-block label { display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px; color: #64748b; }
-        .phone-block input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 16px; box-sizing: border-box; margin-bottom: 8px; }
-        .btn-primary { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary-color); color: white; font-weight: 600; cursor: pointer; font-size: 15px; }
-        #phone-step-2 { display: none; margin-top: 8px; }
-        #recaptcha-container { margin: 8px 0; display: flex; justify-content: center; overflow: hidden; }
-        .free-badge { display: inline-block; background: #dcfce7; color: #166534; font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 700; margin-left: 6px; }
+        h1 { margin: 0 0 6px; font-size: 1.4rem; }
+        .subtitle { margin: 0 0 20px; color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+        #auth-status {
+            margin: 0 24px 12px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            text-align: center;
+            display: none;
+        }
+        #auth-status.show { display: block; }
+        #auth-status.info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        #auth-status.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        #auth-status.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+        .section {
+            padding: 0 24px 24px;
+        }
+        .section + .section {
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-label i { color: var(--primary); }
+        .btn-google {
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 14px;
+            background: #fff;
+            color: #374151;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 0 0 1px #e5e7eb, 0 4px 12px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .btn-google:hover {
+            box-shadow: 0 0 0 1px #d1d5db, 0 6px 16px rgba(0,0,0,0.08);
+            transform: translateY(-1px);
+        }
+        .btn-google i { font-size: 1.2rem; color: #ea4335; }
+        .field { margin-bottom: 12px; }
+        .field label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .field input {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .field input:focus { border-color: var(--primary); }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .hint {
+            font-size: 0.76rem;
+            color: var(--muted);
+            line-height: 1.45;
+            margin-top: 10px;
+            text-align: center;
+        }
+        #logged-panel { display: none; padding: 0 24px 24px; }
+        .welcome-box {
+            text-align: center;
+            padding: 16px;
+            background: #f0fdf4;
+            border-radius: 16px;
+            border: 1px solid #bbf7d0;
+            margin-bottom: 16px;
+        }
+        .welcome-box h2 { margin: 0 0 4px; font-size: 1.1rem; color: #065f46; }
+        .welcome-box p { margin: 0; font-size: 0.85rem; color: #047857; }
+        .setup-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .setup-box h3 {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .setup-box p {
+            margin: 0 0 14px;
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+        .setup-done {
+            display: none;
+            padding: 12px;
+            background: #ecfdf5;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #047857;
+            margin-bottom: 16px;
+        }
+        .btn-link {
+            display: block;
+            text-align: center;
+            padding: 14px;
+            border-radius: 14px;
+            background: var(--success);
+            color: white !important;
+            text-decoration: none;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        #logout-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #fecaca;
+            background: #fff;
+            color: #dc2626;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .footer-note {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--muted);
+            padding: 0 24px 20px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
-        <h1>Ziyomap hisobi</h1>
-        <p id="auth-status">Tez kirish — Google yoki ismingiz bilan. Bepul.</p>
+        <div class="card-head">
+            <a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
+            <div class="logo-icon"><i class="fas fa-user-shield"></i></div>
+            <h1>Ziyomap hisobi</h1>
+            <p class="subtitle">Google yoki o‘zingiz o‘rnatgan login va parol bilan kiring.</p>
+        </div>
+
+        <p id="auth-status" role="alert"></p>
 
         <div id="auth-methods">
-            <button type="button" id="login-btn" class="user-profile-btn">
-                <i class="fab fa-google"></i> Google orqali kirish
-            </button>
+            <div class="section">
+                <div class="section-label"><i class="fab fa-google"></i> Google orqali</div>
+                <button type="button" id="login-btn" class="btn-google">
+                    <i class="fab fa-google"></i>
+                    Google hisobi bilan kirish
+                </button>
+                <p class="hint">Birinchi marta Google bilan kirsangiz, keyin login va parol o‘rnatishingiz mumkin.</p>
+            </div>
 
-            <div class="auth-divider">eng oson — bepul</div>
-
-            <form id="guest-form" class="guest-block">
-                <label for="guest-name" style="display:block;font-size:0.78rem;font-weight:600;margin-bottom:6px;color:#64748b;">Ismingiz bilan kirish <span class="free-badge">BEPUL</span></label>
-                <input type="text" id="guest-name" placeholder="Masalan: Ali" required maxlength="40" autocomplete="name">
-                <button type="submit" class="guest-btn"><i class="fas fa-user-check"></i> Davom etish</button>
-            </form>
-            <p class="method-note">SMS yoki pul kerak emas. Faqat ism yozasiz — sayt ochiladi.</p>
-
-            <div class="auth-divider">Telegram</div>
-            <p id="telegram-hint" class="tg-hint">Telegram widget yoki bot havolasi (js/kirish-auth.js da sozlang).</p>
-            <div id="telegram-login-1" class="telegram-login-box"></div>
-            <div id="telegram-login-2" class="telegram-login-box" style="display:none;margin-top:10px;"></div>
-            <a id="telegram-open-link" class="tg-open-btn" href="#" target="_blank" rel="noopener" style="display:none;">
-                <i class="fab fa-telegram-plane"></i> Telegram botda ochish
-            </a>
-
-            <details class="phone-details">
-                <summary>SMS orqali kirish (pullik, ixtiyoriy)</summary>
-                <div class="phone-block">
-                    <label for="phone-input">Telefon (+998...)</label>
-                    <input type="tel" id="phone-input" placeholder="+998 90 123 45 67" autocomplete="tel">
-                    <div id="recaptcha-container"></div>
-                    <button type="button" id="send-code-btn" class="btn-primary">SMS kod olish</button>
-                    <div id="phone-step-2">
-                        <label for="sms-code-input">SMS kod</label>
-                        <input type="text" id="sms-code-input" placeholder="6 xonali kod" inputmode="numeric" maxlength="6">
-                        <button type="button" id="verify-code-btn" class="btn-primary" style="margin-top:8px;">Tasdiqlash</button>
+            <div class="section">
+                <div class="section-label"><i class="fas fa-key"></i> Login va parol</div>
+                <form id="local-login-form">
+                    <div class="field">
+                        <label for="local-login">Login</label>
+                        <input type="text" id="local-login" autocomplete="username" placeholder="Masalan: ali_2024" maxlength="24" required>
                     </div>
-                    <p class="method-note">Firebase SMS pullik. Agar pulingiz bo'lmasa, yuqoridagi usullardan foydalaning.</p>
-                </div>
-            </details>
+                    <div class="field">
+                        <label for="local-password">Parol</label>
+                        <input type="password" id="local-password" autocomplete="current-password" placeholder="Parolingiz" required>
+                    </div>
+                    <button type="submit" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Kirish</button>
+                </form>
+                <p class="hint">Login va parol faqat Google bilan bir marta kirgandan keyin o‘rnatiladi.</p>
+            </div>
         </div>
 
         <div id="logged-panel">
-            <p>Siz tizimga kirdingiz.</p>
-            <p><a href="index.html" style="color:var(--primary-color);font-weight:600;">Bosh sahifaga o'tish →</a></p>
+            <div class="welcome-box">
+                <h2 id="welcome-name">Xush kelibsiz!</h2>
+                <p id="welcome-email">—</p>
+            </div>
+
+            <div id="setup-done" class="setup-done">
+                <i class="fas fa-check-circle"></i>
+                Login o‘rnatilgan: <strong id="saved-login-label">—</strong>.
+                Keyingi safar shu login va parol bilan kira olasiz.
+            </div>
+
+            <div id="setup-box" class="setup-box">
+                <h3><i class="fas fa-lock"></i> Login va parol o‘rnatish</h3>
+                <p>Keyingi safar Google’siz, shu login va parol bilan tez kiring. Login 3–24 belgi (harf, raqam, _), parol kamida 6 belgi.</p>
+                <form id="setup-credentials-form">
+                    <div class="field">
+                        <label for="new-login">Yangi login</label>
+                        <input type="text" id="new-login" autocomplete="username" placeholder="Masalan: ziyo_teacher" maxlength="24" required>
+                    </div>
+                    <div class="field">
+                        <label for="new-password">Parol</label>
+                        <input type="password" id="new-password" autocomplete="new-password" placeholder="Kamida 6 belgi" required>
+                    </div>
+                    <div class="field">
+                        <label for="new-password2">Parolni tasdiqlang</label>
+                        <input type="password" id="new-password2" autocomplete="new-password" placeholder="Yana bir marta" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Saqlash</button>
+                </form>
+            </div>
+
+            <a href="index.html" class="btn-link" id="continue-btn">Davom etish →</a>
             <button type="button" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Chiqish</button>
         </div>
 
-        <p class="hint">Chiqsangiz — foydalanish tarixi o'chadi.</p>
+        <p class="footer-note">Chiqsangiz — shu qurilmadagi foydalanish tarixi o‘chadi.</p>
     </div>
 
     <script src="js/ziyomap-usage.js"></script>
+    <script src="js/kirish-credentials.js"></script>
     <script src="js/auth-guard.js"></script>
     <script type="module" src="js/kirish-auth.js"></script>
 </body>
