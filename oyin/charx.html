@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Omad Charxi — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
+<script src="questions2.js"></script>
+<script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--red:#ef4444}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.tt{font-family:Outfit,sans-serif;font-weight:800;font-size:1.1rem}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px;text-align:center}
+.wheel-wrap{position:relative;width:min(300px,90vw);height:min(300px,90vw);margin:20px auto}
+canvas{border-radius:50%;box-shadow:0 12px 40px rgba(168,85,247,.25);max-width:100%}
+.spin-btn{margin-top:16px;padding:14px 32px;border:none;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:1rem;cursor:pointer}
+.spin-btn:disabled{opacity:.5;cursor:not-allowed}
+.stats{display:flex;justify-content:center;gap:20px;margin:16px 0;font-weight:800}
+.q-box{display:none;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px}
+.q-txt{font-weight:800;margin-bottom:12px}
+.opts{display:grid;gap:8px}
+.opt{padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
+.opt:hover{border-color:var(--purple)}
+.seg-label{font-size:13px;color:var(--muted);margin-top:8px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">🎡 Omad Charxi</span></div>
+<div class="wrap">
+  <p style="color:var(--muted);font-size:14px">Charxni aylantiring — tushgan fan bo'yicha savol javob bering!</p>
+  <div class="stats"><span>⭐ <span id="score">0</span></span><span>🎯 <span id="spins">5</span> aylanish</span></div>
+  <div class="wheel-wrap"><canvas id="wheel" width="300" height="300"></canvas></div>
+  <div class="seg-label" id="segLabel">Charxni aylantiring</div>
+  <button class="spin-btn" id="spinBtn" onclick="spin()">Charxni aylantirish 🎡</button>
+  <div class="q-box" id="qBox">
+    <div class="q-txt" id="qTxt"></div>
+    <div class="opts" id="opts"></div>
+  </div>
+</div>
+<script>
+const segments=[
+  ...ZY_FANS.map(f=>({...f,label:f.name,type:'fan'})),
+  { id:'bonus', name:'Bonus +25', icon:'⭐', label:'Bonus', type:'bonus' },
+  { id:'bomb', name:'Tuzoq -10', icon:'💣', label:'Tuzoq', type:'bomb' },
+  { id:'x2', name:'2× Ball', icon:'✨', label:'2×', type:'double' },
+];
+let angle=0, spinning=false, score=0, spinsLeft=5, currentFan=null, locked=false, nextMult=1;
+const canvas=document.getElementById('wheel');
+const ctx=canvas.getContext('2d');
+const colors=['#4f7cff','#22c55e','#a855f7','#ec4899','#f97316','#eab308','#14b8a6','#3b82f6','#fbbf24','#ef4444','#6366f1'];
+
+function drawWheel(rot){
+  const cx=150,cy=150,r=140,n=segments.length,slice=2*Math.PI/n;
+  ctx.clearRect(0,0,300,300);
+  segments.forEach((s,i)=>{
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,i*slice+rot,(i+1)*slice+rot);
+    ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(i*slice+slice/2+rot);
+    ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 13px Nunito';
+    ctx.fillText(s.icon+' '+s.label.slice(0,8),r-10,5);ctx.restore();
+  });
+  ctx.beginPath();ctx.moveTo(150,0);ctx.lineTo(142,24);ctx.lineTo(158,24);ctx.closePath();
+  ctx.fillStyle='#334155';ctx.fill();
+}
+drawWheel(0);
+
+function spin(){
+  if(spinning||spinsLeft<=0) return;
+  spinning=true;
+  document.getElementById('spinBtn').disabled=true;
+  document.getElementById('qBox').style.display='none';
+  const extra=360*4+Math.random()*360;
+  const start=angle; const end=angle+extra; const t0=performance.now();
+  function anim(t){
+    const p=Math.min(1,(t-t0)/3500);
+    const ease=1-Math.pow(1-p,3);
+    angle=start+(end-start)*ease;
+    drawWheel(angle*Math.PI/180);
+    if(p<1) requestAnimationFrame(anim);
+    else finishSpin();
+  }
+  requestAnimationFrame(anim);
+}
+function finishSpin(){
+  spinning=false;
+  spinsLeft--;
+  document.getElementById('spins').textContent=spinsLeft;
+  const n=segments.length;
+  const norm=((360-(angle%360))+360)%360;
+  const idx=Math.floor(((norm+360/n/2)%360)/(360/n))%n;
+  currentFan=segments[idx].id;
+  const seg=segments[idx];
+  if(seg.type==='bonus'){
+    score+=25; document.getElementById('score').textContent=score;
+    document.getElementById('segLabel').textContent='⭐ Bonus! +25 ball';
+    document.getElementById('qBox').style.display='none';
+  } else if(seg.type==='bomb'){
+    score=Math.max(0,score-10); document.getElementById('score').textContent=score;
+    document.getElementById('segLabel').textContent='💣 Tuzoq! -10 ball';
+    document.getElementById('qBox').style.display='none';
+  } else if(seg.type==='double'){
+    nextMult=2;
+    document.getElementById('segLabel').textContent='✨ Keyingi to\'g\'ri javob 2 barobar!';
+    document.getElementById('qBox').style.display='none';
+  } else {
+    document.getElementById('segLabel').textContent='Fan: '+seg.name+' — savol!';
+    showQuestion();
+  }
+  document.getElementById('spinBtn').disabled=spinsLeft<=0;
+  if(spinsLeft<=0) setTimeout(()=>{
+    zyAddPoints(score); zySaveGameScore('charx',score,{});
+    alert('O\'yin tugadi! Ball: '+score);
+  },500);
+}
+function showQuestion(){
+  const qs=zyPickQuestions(currentFan,'all',1);
+  if(!qs.length){ document.getElementById('segLabel').textContent='Savol topilmadi'; return; }
+  const q=qs[0]; locked=false;
+  document.getElementById('qBox').style.display='block';
+  document.getElementById('qTxt').textContent=q.q;
+  document.getElementById('opts').innerHTML=q.o.map((t,i)=>
+    `<button class="opt" onclick="answer(${i},${q.a})">${String.fromCharCode(65+i)}. ${t}</button>`).join('');
+}
+function answer(i,correct){
+  if(locked) return; locked=true;
+  if(i===correct){ score+=20*nextMult; nextMult=1; }
+  else { score=Math.max(0,score-5); nextMult=1; }
+  document.getElementById('score').textContent=score;
+  setTimeout(()=>{ document.getElementById('qBox').style.display='none'; },800);
+}
+</script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
+</body>
+</html>
