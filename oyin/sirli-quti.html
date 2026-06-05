@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sirli Quti — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
+<script src="questions2.js"></script>
+<script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--gold:#eab308;--green:#22c55e;--red:#ef4444}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.tt{font-family:Outfit,sans-serif;font-weight:800}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:16px 0}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white)}
+.fan-card.sel{border-color:var(--gold);background:#fefce8}
+.fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}
+.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--gold);color:#422006;font-weight:800;cursor:pointer}
+#game{display:none}
+.hud{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:800}
+.box-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.box{aspect-ratio:1;border-radius:16px;border:2px solid var(--border);background:linear-gradient(135deg,#fde68a,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:.2s}
+.box:hover{transform:scale(1.03)}
+.box.opened{opacity:.35;pointer-events:none;background:var(--border);font-size:1rem}
+.q-panel{display:none;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px}
+.q-txt{font-weight:800;margin-bottom:12px;line-height:1.4}
+.opts{display:grid;gap:8px}
+.opt{padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">🎁 Sirli Quti</span></div>
+<div class="wrap">
+  <div id="setup">
+    <h2 style="font-family:Outfit,sans-serif;font-weight:800">Sirli qutilarni oching!</h2>
+    <p style="color:var(--muted);font-size:14px;margin:8px 0">Har bir qutida yashirin savol — to'g'ri javob = ball.</p>
+    <div class="fan-grid" id="fanGrid"></div>
+    <button class="start" onclick="startGame()">Boshlash ▶</button>
+  </div>
+  <div id="game">
+    <div class="hud"><span>⭐ <span id="score">0</span></span><span>📦 <span id="left">9</span> quti</span></div>
+    <div class="box-grid" id="boxGrid"></div>
+    <div class="q-panel" id="qPanel">
+      <div class="q-txt" id="qTxt"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+  </div>
+</div>
+<script>
+let fan='fizika', qs=[], score=0, opened=0, locked=false, boxMeta=[], mult=1;
+const BOX_TYPES=['quiz','quiz','quiz','bonus','bonus','trap','double','quiz','jackpot'];
+zyRenderFanGrid('fanGrid', id=>{ fan=id; }, fan);
+function startGame(){
+  qs=zyShuffle(window.QUIZ_QUESTIONS?.[fan]||[]).slice(0,9);
+  if(qs.length<6){ alert('Bu fanda yetarli savol yo\'q'); return; }
+  score=0; opened=0; mult=1;
+  boxMeta=BOX_TYPES.map((t,i)=>({type:t, qi:i}));
+  boxMeta=zyShuffle(boxMeta);
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('boxGrid').innerHTML=boxMeta.map((b,i)=>{
+    const icons={quiz:'🎁',bonus:'⭐',trap:'💣',double:'✨',jackpot:'👑'};
+    return `<div class="box" id="box${i}" onclick="openBox(${i})">${icons[b.type]||'🎁'}</div>`;
+  }).join('');
+  document.getElementById('left').textContent=boxMeta.length;
+}
+function openBox(i){
+  const box=document.getElementById('box'+i);
+  if(box.classList.contains('opened')||locked) return;
+  locked=true;
+  box.classList.add('opened');
+  const meta=boxMeta[i];
+  const panel=document.getElementById('qPanel');
+  if(meta.type==='bonus'){
+    score+=20; box.textContent='⭐'; finishBox(i, 'Bonus! +20 ball');
+    return;
+  }
+  if(meta.type==='trap'){
+    score=Math.max(0,score-10); box.textContent='💣'; finishBox(i, 'Tuzoq! -10 ball');
+    return;
+  }
+  if(meta.type==='double'){
+    mult=2; box.textContent='✨'; finishBox(i, 'Keyingi to\'g\'ri javob 2 barobar!');
+    return;
+  }
+  if(meta.type==='jackpot'){
+    score+=50; box.textContent='👑'; finishBox(i, 'Jackpot! +50 ball');
+    return;
+  }
+  box.textContent='✓';
+  const q=qs[meta.qi%qs.length];
+  panel.style.display='block';
+  document.getElementById('qTxt').textContent=q.q;
+  document.getElementById('opts').innerHTML=q.o.map((t,j)=>
+    `<button class="opt" onclick="ans(${j},${q.a},${i})">${String.fromCharCode(65+j)}. ${t}</button>`).join('');
+}
+function finishBox(i,msg){
+  opened++;
+  document.getElementById('left').textContent=boxMeta.length-opened;
+  document.getElementById('qPanel').style.display='none';
+  if(msg){ const t=document.createElement('div'); t.style.cssText='text-align:center;font-weight:800;margin:8px 0;color:var(--gold)'; t.textContent=msg; document.getElementById('game').insertBefore(t,document.getElementById('boxGrid')); setTimeout(()=>t.remove(),1200); }
+  locked=false;
+  if(opened>=boxMeta.length) endGame();
+}
+function ans(i,correct,boxIdx){
+  if(i===correct){ const pts=15*mult; score+=pts; mult=1; document.getElementById('score').textContent=score; }
+  else mult=1;
+  finishBox(boxIdx);
+}
+function endGame(){
+  zyAddPoints(score); zySaveGameScore('sirli-quti', score, { fan });
+  alert('Barcha qutilar ochildi! Jami ball: '+score);
+  location.reload();
+}
+</script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
+</body>
+</html>
