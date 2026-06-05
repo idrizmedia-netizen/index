@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Arqon Tortish — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
+<script src="questions2.js"></script>
+<script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#2563eb;--red:#ef4444;--green:#22c55e}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.tt{font-family:Outfit,sans-serif;font-weight:800;font-size:1.1rem;margin-left:8px}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:16px 0}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white)}
+.fan-card.sel{border-color:var(--blue);background:#eff6ff}
+.fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}.fan-cnt{font-size:10px;color:var(--muted)}
+.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--blue);color:#fff;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px}
+#game{display:none}
+.rope-area{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px 16px;margin-bottom:16px;text-align:center}
+.teams{display:flex;justify-content:space-between;font-weight:800;margin-bottom:12px}
+.team-blue{color:var(--blue)}.team-red{color:var(--red)}
+.rope-track{height:12px;background:linear-gradient(90deg,var(--blue),#94a3b8,var(--red));border-radius:6px;position:relative;margin:20px 0}
+.rope-knot{width:28px;height:28px;background:#fff;border:3px solid #334155;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transition:left .4s ease;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.score-row{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.q-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px}
+.q-txt{font-weight:800;margin-bottom:14px;line-height:1.4}
+.opts{display:grid;gap:8px}
+.opt{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
+.opt:hover{border-color:var(--blue)}
+.opt.ok{border-color:var(--green);background:#f0fdf4}
+.opt.no{border-color:var(--red);background:#fef2f2}
+.lbl{font-size:13px;font-weight:800;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html">← Orqaga</a>
+  <span class="tt">🪢 Arqon Tortish</span>
+</div>
+<div class="wrap">
+  <div id="setup">
+    <h2 style="font-family:Outfit,sans-serif;font-weight:800;margin-bottom:6px">Jamoaviy musobaqa</h2>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Ko'k va Qizil jamoa — to'g'ri javob arqonni siz tomonga tortadi!</p>
+    <div class="lbl">Fan tanlang</div>
+    <div class="fan-grid" id="fanGrid"></div>
+    <button class="start" onclick="startGame()">Boshlash ▶</button>
+  </div>
+  <div id="game">
+    <div class="rope-area">
+      <div class="teams"><span class="team-blue">🔵 Ko'k jamoa</span><span class="team-red">🔴 Qizil jamoa</span></div>
+      <div class="score-row"><span id="scBlue">0</span><span id="qNum">1/10</span><span id="scRed">0</span></div>
+      <div class="rope-track"><div class="rope-knot" id="knot"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-txt" id="qTxt"></div>
+      <div class="opts" id="opts"></div>
+    </div>
+  </div>
+</div>
+<script>
+let fan='fizika', qs=[], qi=0, blue=0, red=0, pos=50, locked=false;
+zyRenderFanGrid('fanGrid', (id)=>{ fan=id; }, fan);
+function startGame(){
+  qs=zyPickQuestions(fan,'all',10);
+  if(!qs.length){ alert('Bu fanda savollar yo\'q'); return; }
+  qi=0; blue=0; red=0; pos=50;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  showQ();
+}
+function showQ(){
+  locked=false;
+  const q=qs[qi];
+  document.getElementById('qNum').textContent=(qi+1)+'/'+qs.length;
+  document.getElementById('qTxt').textContent=q.q;
+  document.getElementById('scBlue').textContent=blue;
+  document.getElementById('scRed').textContent=red;
+  document.getElementById('knot').style.left=pos+'%';
+  const opts=document.getElementById('opts');
+  opts.innerHTML=q.o.map((t,i)=>`<button class="opt" onclick="pick(${i},${q.a})">${String.fromCharCode(65+i)}. ${t}</button>`).join('');
+}
+function pick(i,correct){
+  if(locked) return;
+  locked=true;
+  const btns=document.querySelectorAll('.opt');
+  btns.forEach((b,j)=>{ b.disabled=true; if(j===correct) b.classList.add('ok'); if(j===i&&i!==correct) b.classList.add('no'); });
+  const isBlue=qi%2===0;
+  if(i===correct){
+    if(isBlue){ blue++; pos=Math.min(92,pos+10); }
+    else { red++; pos=Math.max(8,pos-10); }
+  } else {
+    if(isBlue) pos=Math.max(8,pos-6);
+    else pos=Math.min(92,pos+6);
+  }
+  document.getElementById('scBlue').textContent=blue;
+  document.getElementById('scRed').textContent=red;
+  document.getElementById('knot').style.left=pos+'%';
+  setTimeout(()=>{
+    qi++;
+    if(qi>=qs.length||pos<=5||pos>=95){
+      const win=pos>=95?'🔵 Ko\'k jamoa g\'alaba!':pos<=5?'🔴 Qizil jamoa g\'alaba!':'Durang!';
+      zyAddPoints(blue*10);
+      zySaveGameScore('arqon', blue*10, { fan });
+      alert('O\'yin tugadi!\n'+win+'\nKo\'k: '+blue+' | Qizil: '+red);
+      location.reload();
+      return;
+    }
+    showQ();
+  },900);
+}
+</script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
+</body>
+</html>
