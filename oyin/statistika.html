@@ -21,7 +21,11 @@
 body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;transition: background 0.3s, color 0.3s;}
 
 /* SIDEBAR */
-.sidebar{width:240px;min-height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;transition: background 0.3s, border-color 0.3s;}
+.sidebar{width:240px;height:100vh;background:var(--white);border-right:1px solid var(--border);padding:20px 14px;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;overflow:hidden;transition: background 0.3s, border-color 0.3s;}
+.sidebar-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;margin:0 -4px 8px;padding:0 4px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.sidebar-scroll::-webkit-scrollbar{width:6px}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.sidebar-scroll::-webkit-scrollbar-track{background:transparent}
 .logo{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:20px}
 .logo-icon{width:38px;height:38px;border-radius:11px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px}
 .logo-txt{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:800}
@@ -85,8 +89,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 /* LEADERBOARD COMBINED */
 .lb-panel{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:24px;transition: background 0.3s, border-color 0.3s;}
-.lb-tabs{display:flex;gap:6px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;transition: background 0.3s;}
-.lb-tab{flex:1;padding:8px;border-radius:8px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s}
+.lb-tabs{display:flex;gap:6px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.lb-tabs::-webkit-scrollbar{display:none}
+.lb-tab{flex:0 0 auto;padding:8px 14px;border-radius:8px;border:none;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);transition:all .15s;white-space:nowrap}
 .lb-tab.active{background:var(--white);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .lb-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;margin-bottom:6px;transition:all .15s}
 .lb-item:nth-child(1){background:#fffbeb}
@@ -143,6 +148,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     <div class="logo-icon">🎓</div>
     <div class="logo-txt">Ziyomap <span>Games</span></div>
   </div>
+  <div class="sidebar-scroll">
   <a class="nav-a" href="index.html"><span class="nav-icon">🏠</span>Bosh sahifa</a>
   <a class="nav-a" href="quiz.html"><span class="nav-icon">❓</span>Quiz</a>
   <a class="nav-a" href="flashcard.html"><span class="nav-icon">🃏</span>Flashcard</a>
@@ -156,6 +162,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <a class="nav-a" href="sirli-quti.html"><span class="nav-icon">🎁</span>Sirli Quti</a>
   <div class="nav-divider"></div>
   <a class="nav-a active" href="statistika.html"><span class="nav-icon">📊</span>Statistika</a>
+  </div>
   <div class="sidebar-bottom">
     <div class="user-box">
       <div class="av" id="sideAv">?</div>
@@ -194,7 +201,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
     </div>
     <div class="stat-card">
       <div class="s-icon" style="background:#f0fdf4">✅</div>
-      <div><div class="s-val" id="st2">0%</div><div class="s-key">O'rtacha natija</div></div>
+      <div><div class="s-val" id="st2">0/9</div><div class="s-key">O'yin turlari</div></div>
     </div>
     <div class="stat-card">
       <div class="s-icon" style="background:#fff7ed">🔥</div>
@@ -221,12 +228,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
     <div class="lb-panel">
     <div class="panel-title">🏆 Umumiy reyting jadvali</div>
-    <div class="lb-tabs">
-      <button class="lb-tab active" onclick="showLB(this,'quiz')">❓ Quiz</button>
-      <button class="lb-tab" onclick="showLB(this,'tezkor')">⚡ Tezkor</button>
-      <button class="lb-tab" onclick="showLB(this,'puzzle')">🔤 So'z</button>
-      <button class="lb-tab" onclick="showLB(this,'memory')">🧠 Xotira</button>
-    </div>
+    <div class="lb-tabs" id="lbTabs"></div>
     <div id="lbContent"></div>
   </div>
 
@@ -241,160 +243,182 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 
 </main>
 
+<script src="../js/ziyomap-usage.js"></script>
 <script>
 // ── 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH ──────────────────
 (function() {
   const savedTheme = localStorage.getItem("zy_theme") || "light";
   document.documentElement.setAttribute("data-theme", savedTheme);
+  const u = window.ZiyomapUsage?.getUser?.();
+  if (u) {
+    const name = u.displayName || u.name || (u.email ? u.email.split('@')[0] : '') || 'O\'yinchi';
+    localStorage.setItem('zy_user', name);
+  }
 })();
 
-// ── helpers ──────────────────────────────────────────
-function lsGet(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}/* */}
-function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function lsGet(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
 
 const GAME_META=[
-  {id:"quiz",   name:"Quiz",       icon:"❓", color:"#4f7cff", bg:"#eff3ff", lsKey:"zy_quiz_lb"},
-  {id:"tezkor", name:"Tezkor",     icon:"⚡", color:"#f97316", bg:"#fff7ed", lsKey:"zy_tezkor_lb"},
-  {id:"puzzle", name:"So'z Topish",icon:"🔤", color:"#a855f7", bg:"#faf5ff", lsKey:"zy_puzzle_lb"},
-  {id:"memory", name:"Xotira",     icon:"🧠", color:"#ec4899", bg:"#fdf2f8", lsKey:"zy_mem_lb"},
-  {id:"flash",  name:"Flashcard",  icon:"🃏", color:"#22c55e", bg:"#f0fdf4", lsKey:null},
+  {id:"quiz",       name:"Quiz",        icon:"❓", color:"#4f7cff", bg:"#eff3ff", lsKey:"zy_quiz_lb",       label:"eng yaxshi natija"},
+  {id:"tezkor",     name:"Tezkor",      icon:"⚡", color:"#f97316", bg:"#fff7ed", lsKey:"zy_tezkor_lb",     label:"eng ko'p ball"},
+  {id:"puzzle",     name:"So'z Topish", icon:"🔤", color:"#a855f7", bg:"#faf5ff", lsKey:"zy_puzzle_lb",     label:"eng yaxshi natija"},
+  {id:"memory",     name:"Xotira",      icon:"🧠", color:"#ec4899", bg:"#fdf2f8", lsKey:"zy_mem_lb",        label:"eng ko'p ball"},
+  {id:"arqon",      name:"Arqon",       icon:"🪢", color:"#2563eb", bg:"#eff6ff", lsKey:"zy_lb_arqon",      label:"eng yaxshi natija"},
+  {id:"charx",      name:"Omad Charxi", icon:"🎡", color:"#a855f7", bg:"#faf5ff", lsKey:"zy_lb_charx",       label:"eng ko'p ball"},
+  {id:"tartib",     name:"Tartiblash",  icon:"📋", color:"#6366f1", bg:"#eef2ff", lsKey:"zy_lb_tartib",     label:"eng yaxshi natija"},
+  {id:"ha-yo",      name:"Ha / Yo'q",   icon:"✅", color:"#3b82f6", bg:"#eff6ff", lsKey:"zy_lb_ha-yo",      label:"eng ko'p ball"},
+  {id:"sirli-quti", name:"Sirli Quti",  icon:"🎁", color:"#eab308", bg:"#fefce8", lsKey:"zy_lb_sirli-quti", label:"eng ko'p ball"},
 ];
 
-const ACHIEVEMENTS=[
-  {id:"first",   icon:"🌟", name:"Birinchi o'yin",   desc:"Birinchi marta o'ynadi",          cond:s=>s.totalGames>=1},
-  {id:"ten",     icon:"🎮", name:"10 ta o'yin",       desc:"10 ta o'yin o'ynadi",              cond:s=>s.totalGames>=10},
-  {id:"score100",icon:"💯", name:"100 ball",          desc:"100 ball to'pladi",                cond:s=>s.totalScore>=100},
-  {id:"score500",icon:"🏆", name:"500 ball",          desc:"500 ball to'pladi",                cond:s=>s.totalScore>=500},
-  {id:"score1k", icon:"👑", name:"1000 ball",         desc:"1000 ball to'pladi",               cond:s=>s.totalScore>=1000},
-  {id:"allgames",icon:"🎯", name:"Har bir o'yin",     desc:"Barcha 4 o'yinda o'ynadi",         cond:s=>s.gamesPlayed.size>=4},
-  {id:"streak5", icon:"🔥", name:"5x Combo",          desc:"Tezkor o'yinida 5 ketma-ket",      cond:s=>s.maxStreak>=5},
-  {id:"perfect", icon:"✨", name:"Mukammal natija",   desc:"Quiz da 100% natija",              cond:s=>s.maxPct>=100},
-  {id:"memory12",icon:"🧠", name:"Xotira ustasi",     desc:"12 juftni topdingiz",              cond:s=>s.memPairs>=12},
-  {id:"speedster",icon:"⚡",name:"Tezkor rekord",     desc:"60 baldan oshdi (Tezkor)",         cond:s=>s.tezkorRec>=60},
-  {id:"scholar", icon:"📚", name:"Olim",              desc:"5 xil fanda o'ynadi",              cond:s=>s.uniqueFans>=5},
-  {id:"daily",   icon:"📅", name:"Muntazam",          desc:"Bugun o'ynadi",                    cond:s=>s.playedToday},
-];
+const FANS_META_MAP={
+  fizika:{name:"Fizika",color:"#4f7cff"},matematika:{name:"Matematika",color:"#22c55e"},
+  informatika:{name:"Informatika",color:"#14b8a6"},biologiya:{name:"Biologiya",color:"#ec4899"},
+  kimyo:{name:"Kimyo",color:"#eab308"},tarix:{name:"Tarix",color:"#a855f7"},
+  ingliz:{name:"Ingliz",color:"#f97316"},geografiya:{name:"Geografiya",color:"#06b6d4"},
+};
 
-// ── collect stats ─────────────────────────────────────
+function entryWhen(e){
+  const raw=e.at||e.date;
+  if(!raw) return null;
+  return new Date(typeof raw==="number"?raw:raw);
+}
+
+function myEntries(key,user){
+  if(!key) return [];
+  return lsGet(key,[]).filter(e=>e.name===user);
+}
+
 function collectStats(){
   const user=localStorage.getItem("zy_user")||"O'yinchi";
-  const totalScore=parseInt(localStorage.getItem("zy_total")||0);
-  const tezkorRec=parseInt(localStorage.getItem("zy_tezkor_rec")||0);
+  const totalScore=parseInt(localStorage.getItem("zy_total")||0,10);
+  const tezkorRec=parseInt(localStorage.getItem("zy_tezkor_rec")||0,10);
 
-  const quizLb=lsGet("zy_quiz_lb",[]);
-  const tezkorLb=lsGet("zy_tezkor_lb",[]);
-  const puzzleLb=lsGet("zy_puzzle_lb",[]);
-  const memLb=lsGet("zy_mem_lb",[]);
+  const byGame={};
+  GAME_META.forEach(g=>{
+    byGame[g.id]={ meta:g, mine:myEntries(g.lsKey,user), lb:lsGet(g.lsKey,[]) };
+  });
 
-  // my entries
-  const myQuiz   = quizLb.filter(e=>e.name===user);
-  const myTezkor = tezkorLb.filter(e=>e.name===user);
-  const myPuzzle = puzzleLb.filter(e=>e.name===user);
-  const myMem    = memLb.filter(e=>e.name===user);
+  let totalGames=0;
+  const gamesPlayed=new Set();
+  GAME_META.forEach(g=>{
+    const n=byGame[g.id].mine.length;
+    if(n){ totalGames+=n; gamesPlayed.add(g.id); }
+  });
 
-  const totalGames = myQuiz.length+myTezkor.length+myPuzzle.length+myMem.length;
-  const gamesPlayed = new Set();
-  if(myQuiz.length)gamesPlayed.add("quiz");
-  if(myTezkor.length)gamesPlayed.add("tezkor");
-  if(myPuzzle.length)gamesPlayed.add("puzzle");
-  if(myMem.length)gamesPlayed.add("memory");
+  const myQuiz=byGame.quiz.mine;
+  const myTezkor=byGame.tezkor.mine;
+  const myMem=byGame.memory.mine;
 
-  const maxStreak=tezkorRec>=60?8:tezkorRec>=30?5:0;
-  const maxPct = myQuiz.length? Math.max(...myQuiz.map(e=>e.pct||0)) : 0;
-  const memPairs = myMem.length? Math.max(...myMem.map(e=>e.pairs||0),0) : 0;
+  const maxPct=myQuiz.length?Math.max(...myQuiz.map(e=>e.pct||0)):0;
+  const memPairs=myMem.length?Math.max(...myMem.map(e=>e.pairs||0),0):0;
+  const avgPct=myQuiz.length?Math.round(myQuiz.reduce((s,e)=>s+(e.pct||0),0)/myQuiz.length):0;
 
-  // today
   const today=new Date().toDateString();
-  const allEntries=[...myQuiz,...myTezkor,...myPuzzle,...myMem];
-  const playedToday=allEntries.some(e=>new Date(e.date).toDateString()===today);
+  let playedToday=false;
+  GAME_META.forEach(g=>{
+    if(byGame[g.id].mine.some(e=>{ const d=entryWhen(e); return d&&d.toDateString()===today; })) playedToday=true;
+  });
 
-  // unique fans from quiz
-  const fanSet=new Set(myQuiz.flatMap(e=>e.fans||[]));
-  const uniqueFans=fanSet.size||0;
+  const fanSet=new Set();
+  GAME_META.forEach(g=>{
+    byGame[g.id].mine.forEach(e=>{
+      if(e.fan) fanSet.add(e.fan);
+      if(e.fans) e.fans.forEach(f=>fanSet.add(f));
+    });
+  });
 
-  // avg pct from quiz
-  const avgPct=myQuiz.length? Math.round(myQuiz.reduce((s,e)=>s+(e.pct||0),0)/myQuiz.length) : 0;
+  const records={};
+  GAME_META.forEach(g=>{
+    const m=byGame[g.id].mine;
+    records[g.id]=m.length?Math.max(...m.map(e=>e.score||0)):0;
+  });
 
-  // records
-  const quizRec  = myQuiz.length?  Math.max(...myQuiz.map(e=>e.score)):0;
-  const tezRec   = myTezkor.length? Math.max(...myTezkor.map(e=>e.score)):0;
-  const puzRec   = myPuzzle.length? Math.max(...myPuzzle.map(e=>e.score)):0;
-  const memRec   = myMem.length?   Math.max(...myMem.map(e=>e.score)):0;
+  const maxStreak=tezkorRec>=60?8:tezkorRec>=40?6:tezkorRec>=20?4:0;
 
   return {
-    user, totalScore, totalGames, gamesPlayed, avgPct,
-    maxStreak, maxPct, memPairs, tezkorRec, uniqueFans, playedToday,
-    quizRec, tezRec, puzRec, memRec,
-    myQuiz, myTezkor, myPuzzle, myMem,
-    quizLb, tezkorLb, puzzleLb, memLb,
+    user, totalScore, totalGames, gamesPlayed, avgPct, maxStreak, maxPct, memPairs,
+    tezkorRec, uniqueFans:fanSet.size, playedToday, byGame, records,
   };
 }
 
-// ── render ────────────────────────────────────────────
+const ACHIEVEMENTS=[
+  {id:"first",    icon:"🌟", name:"Birinchi o'yin",    desc:"Birinchi marta o'ynadi",           cond:s=>s.totalGames>=1},
+  {id:"ten",      icon:"🎮", name:"10 ta o'yin",        desc:"10 ta o'yin o'ynadi",               cond:s=>s.totalGames>=10},
+  {id:"score100", icon:"💯", name:"100 ball",           desc:"100 ball to'pladi",                 cond:s=>s.totalScore>=100},
+  {id:"score500", icon:"🏆", name:"500 ball",           desc:"500 ball to'pladi",                 cond:s=>s.totalScore>=500},
+  {id:"score1k",  icon:"👑", name:"1000 ball",          desc:"1000 ball to'pladi",                cond:s=>s.totalScore>=1000},
+  {id:"allgames", icon:"🎯", name:"Ko'p o'yinchi",      desc:"5 xil o'yin turi",                  cond:s=>s.gamesPlayed.size>=5},
+  {id:"master",   icon:"🏅", name:"Usta o'yinchi",      desc:"8 xil o'yin turi",                  cond:s=>s.gamesPlayed.size>=8},
+  {id:"streak5",  icon:"🔥", name:"Tezkor rekord",      desc:"Tezkor o'yinda 40+ ball",           cond:s=>s.tezkorRec>=40},
+  {id:"perfect",  icon:"✨", name:"Mukammal Quiz",      desc:"Quiz da 100% natija",               cond:s=>s.maxPct>=100},
+  {id:"memory12", icon:"🧠", name:"Xotira ustasi",      desc:"12 juft xotira o'yini",             cond:s=>s.memPairs>=12},
+  {id:"arqon",    icon:"🪢", name:"Arqon chempioni",    desc:"Arqon o'yinida o'ynadi",            cond:s=>s.gamesPlayed.has("arqon")},
+  {id:"charx",    icon:"🎡", name:"Charx usta",         desc:"Omad charxida o'ynadi",             cond:s=>s.gamesPlayed.has("charx")},
+  {id:"tartib",   icon:"📋", name:"Tartiblash usta",    desc:"Tartiblash o'yinida o'ynadi",       cond:s=>s.gamesPlayed.has("tartib")},
+  {id:"hayo",     icon:"✅", name:"Ha/Yo'q master",     desc:"Ha/Yo'q o'yinida o'ynadi",          cond:s=>s.gamesPlayed.has("ha-yo")},
+  {id:"quti",     icon:"🎁", name:"Sirli quti ochuvchi",desc:"Sirli qutida o'ynadi",              cond:s=>s.gamesPlayed.has("sirli-quti")},
+  {id:"scholar",  icon:"📚", name:"Olim",               desc:"5 xil fanda o'ynadi",                 cond:s=>s.uniqueFans>=5},
+  {id:"daily",    icon:"📅", name:"Muntazam",           desc:"Bugun o'ynadi",                     cond:s=>s.playedToday},
+];
+
+let currentLBGame="quiz";
+
 function render(){
   const S=collectStats();
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const isDark=document.documentElement.getAttribute("data-theme")==="dark";
 
-  // sidebar
   document.getElementById("sideAv").textContent=S.user[0].toUpperCase();
   document.getElementById("sideName").textContent=S.user;
   document.getElementById("sidePts").textContent=S.totalScore+" ball";
-
-  // profile
   document.getElementById("profileAv").textContent=S.user[0].toUpperCase();
   document.getElementById("profileName").textContent=S.user;
-  document.getElementById("profileSub").textContent=`${S.totalGames} ta o'yin o'ynaldi`;
+  document.getElementById("profileSub").textContent=`${S.totalGames} ta o'yin · ${S.gamesPlayed.size} tur`;
   document.getElementById("totalBall").textContent=S.totalScore;
 
-  // badges
   const badges=[];
-  if(S.totalScore>=1000)badges.push("👑 Grand Master");
-  else if(S.totalScore>=500)badges.push("🏆 Champion");
-  else if(S.totalScore>=100)badges.push("⭐ O'yinchi");
+  if(S.totalScore>=1000) badges.push("👑 Grand Master");
+  else if(S.totalScore>=500) badges.push("🏆 Champion");
+  else if(S.totalScore>=100) badges.push("⭐ O'yinchi");
   else badges.push("🌱 Yangi boshlovchi");
-  if(S.gamesPlayed.size>=4)badges.push("🎯 Har tomonlama");
-  if(S.totalGames>=10)badges.push("🎮 Faol");
+  if(S.gamesPlayed.size>=8) badges.push("🏅 Usta");
+  else if(S.gamesPlayed.size>=5) badges.push("🎯 Ko'p qirrali");
+  if(S.totalGames>=10) badges.push("🎮 Faol");
   document.getElementById("profileBadges").innerHTML=badges.map(b=>`<span class="badge">${b}</span>`).join("");
 
-  // top stats
   document.getElementById("st1").textContent=S.totalGames;
-  document.getElementById("st2").textContent=S.avgPct+"%";
+  document.getElementById("st2").textContent=S.gamesPlayed.size+"/"+GAME_META.length;
   document.getElementById("st3").textContent=S.maxStreak||"—";
   const achCount=ACHIEVEMENTS.filter(a=>a.cond(S)).length;
   document.getElementById("st4").textContent=achCount+"/"+ACHIEVEMENTS.length;
 
-  // game stats
-  const gameStats=[
-    {meta:GAME_META[0], rec:S.quizRec,  cnt:S.myQuiz.length,   label:"eng yaxshi natija"},
-    {meta:GAME_META[1], rec:S.tezRec,   cnt:S.myTezkor.length, label:"eng ko'p ball"},
-    {meta:GAME_META[2], rec:S.puzRec,   cnt:S.myPuzzle.length, label:"eng yaxshi natija"},
-    {meta:GAME_META[3], rec:S.memRec,   cnt:S.myMem.length,    label:"eng ko'p ball"},
-  ];
-  const maxRec=Math.max(...gameStats.map(g=>g.rec),1);
-  document.getElementById("gameStatsEl").innerHTML=gameStats.map(g=>`
-    <div class="game-stat-row">
-      <div class="g-icon" style="background:${isDark ? '#26293b' : g.meta.bg}">${g.meta.icon}</div>
+  const maxRec=Math.max(...Object.values(S.records),1);
+  const linkMap={quiz:"quiz.html",tezkor:"tezkor.html",puzzle:"puzzle.html",memory:"memory.html",arqon:"arqon.html",charx:"charx.html",tartib:"tartib.html","ha-yo":"ha-yo.html","sirli-quti":"sirli-quti.html"};
+  document.getElementById("gameStatsEl").innerHTML=GAME_META.map(g=>{
+    const cnt=S.byGame[g.id].mine.length;
+    const rec=S.records[g.id];
+    return `<a class="game-stat-row" href="${linkMap[g.id]}">
+      <div class="g-icon" style="background:${isDark?'#26293b':g.bg}">${g.icon}</div>
       <div style="flex:1">
-        <div class="g-name">${g.meta.name}</div>
-        <div class="g-sub">${g.cnt} o'yin · ${g.label}</div>
-        <div class="g-bar"><div class="g-bar-fill" style="width:${Math.round((g.rec/maxRec)*100)}%;background:${g.meta.color}"></div></div>
+        <div class="g-name">${g.name}</div>
+        <div class="g-sub">${cnt} o'yin · ${g.label}</div>
+        <div class="g-bar"><div class="g-bar-fill" style="width:${rec?Math.round((rec/maxRec)*100):0}%;background:${g.color}"></div></div>
       </div>
-      <div class="g-score" style="color:${g.meta.color}">${g.rec}</div>
-    </div>`).join("");
+      <div class="g-score" style="color:${g.color}">${rec||"—"}</div>
+    </a>`;
+  }).join("");
 
-  // fan chart (from quiz entries)
   const fanScores={};
-  S.myQuiz.forEach(e=>{if(e.fans)e.fans.forEach(f=>{fanScores[f]=(fanScores[f]||0)+e.score;});});
-  const FANS_META_MAP={
-    fizika:{name:"Fizika",color:"#4f7cff"},matematika:{name:"Matematika",color:"#22c55e"},
-    informatika:{name:"Informatika",color:"#14b8a6"},biologiya:{name:"Biologiya",color:"#ec4899"},
-    kimyo:{name:"Kimyo",color:"#eab308"},tarix:{name:"Tarix",color:"#a855f7"},
-    ingliz:{name:"Ingliz",color:"#f97316"},geografiya:{name:"Geografiya",color:"#06b6d4"},
-  };
+  GAME_META.forEach(gm=>{
+    S.byGame[gm.id].mine.forEach(e=>{
+      const sc=e.score||0;
+      if(e.fan) fanScores[e.fan]=(fanScores[e.fan]||0)+sc;
+      if(e.fans) e.fans.forEach(f=>{ fanScores[f]=(fanScores[f]||0)+sc; });
+    });
+  });
   const fanEntries=Object.entries(fanScores).sort((a,b)=>b[1]-a[1]);
   const maxFan=fanEntries.length?fanEntries[0][1]:1;
   if(!fanEntries.length){
-    document.getElementById("fanChartEl").innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Hali Quiz o\'ynamagansiz</p>';
+    document.getElementById("fanChartEl").innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Hali fan bo\'yicha ma\'lumot yo\'q</p>';
   }else{
     document.getElementById("fanChartEl").innerHTML=fanEntries.map(([f,sc])=>{
       const m=FANS_META_MAP[f]||{name:f,color:"#4f7cff"};
@@ -407,17 +431,17 @@ function render(){
     }).join("");
   }
 
-  // leaderboard default
+  document.getElementById("lbTabs").innerHTML=GAME_META.map(g=>
+    `<button class="lb-tab${g.id===currentLBGame?' active':''}" onclick="showLB(this,'${g.id}')">${g.icon} ${g.name.split(' ')[0]}</button>`
+  ).join("");
   showLBData(currentLBGame,S);
 
-  // achievements
   document.getElementById("achGrid").innerHTML=ACHIEVEMENTS.map(a=>{
     const unlocked=a.cond(S);
-    let badgeBg = unlocked ? "#fef9c3" : "#f3f4f6";
-    let badgeText = unlocked ? "#854d0e" : "#6b7280";
-    if(isDark && unlocked) { badgeBg = "#453214"; badgeText = "#fef08a"; }
-    else if(isDark && !unlocked) { badgeBg = "#1e293b"; badgeText = "#9ca3af"; }
-
+    let badgeBg=unlocked?"#fef9c3":"#f3f4f6";
+    let badgeText=unlocked?"#854d0e":"#6b7280";
+    if(isDark&&unlocked){ badgeBg="#453214"; badgeText="#fef08a"; }
+    else if(isDark&&!unlocked){ badgeBg="#1e293b"; badgeText="#9ca3af"; }
     return `<div class="ach-card ${unlocked?"unlocked":"locked"}">
       <div class="ach-icon">${a.icon}</div>
       <div class="ach-name">${a.name}</div>
@@ -427,39 +451,46 @@ function render(){
   }).join("");
 }
 
-let currentLBGame="quiz";
 function showLB(btn,game){
   document.querySelectorAll(".lb-tab").forEach(b=>b.classList.remove("active"));
   btn.classList.add("active");
   currentLBGame=game;
-  const S=collectStats();
-  showLBData(game,S);
+  showLBData(game,collectStats());
 }
 
 function showLBData(game,S){
-  const keyMap={quiz:"quizLb",tezkor:"tezkorLb",puzzle:"puzzleLb",memory:"memLb"};
-  const lb=S[keyMap[game]]||[];
+  const lb=S.byGame[game]?.lb||[];
+  const meta=GAME_META.find(g=>g.id===game);
   const el=document.getElementById("lbContent");
   if(!lb.length){
-    el.innerHTML='<p style="color:var(--muted);text-align:center;padding:20px">Bu o\'yinda hali hech kim o\'ynamagan!</p>';
+    el.innerHTML=`<p style="color:var(--muted);text-align:center;padding:20px">${meta?.name||game} o'yini bo'yicha hali reyting yo'q</p>`;
     return;
   }
   const colors=["#4f7cff","#22c55e","#ec4899","#eab308","#a855f7","#f97316","#14b8a6","#ef4444"];
-  el.innerHTML=lb.slice(0,10).map((e,i)=>`
-    <div class="lb-item${e.name===S.user?" my-row":""}">
+  el.innerHTML=lb.slice(0,10).map((e,i)=>{
+    const when=entryWhen(e);
+    const detail=when?when.toLocaleDateString("uz-UZ"):"—";
+    let extra="";
+    if(e.pct!=null) extra=` · ${e.pct}%`;
+    else if(e.fan) extra=` · ${FANS_META_MAP[e.fan]?.name||e.fan}`;
+    else if(e.sec!=null) extra=` · ${e.sec}s`;
+    return `<div class="lb-item${e.name===S.user?" my-row":""}">
       <div class="lb-rank">${["🥇","🥈","🥉"][i]||i+1}</div>
       <div class="lb-av-sm" style="background:${colors[i%colors.length]}">${e.name[0].toUpperCase()}</div>
       <div class="lb-info">
         <div class="lb-nm">${e.name}${e.name===S.user?' <span style="color:#4f7cff;font-size:11px">(Men)</span>':""}</div>
-        <div class="lb-detail">${new Date(e.date).toLocaleDateString("uz-UZ")}</div>
+        <div class="lb-detail">${detail}${extra}</div>
       </div>
       <div class="lb-sc">${e.score}</div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 }
 
 function resetAll(){
-  if(!confirm("Hamma statistikani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi!"))return;
-  ["zy_total","zy_quiz_lb","zy_tezkor_lb","zy_puzzle_lb","zy_mem_lb","zy_tezkor_rec","zy_mem_rec"].forEach(k=>localStorage.removeItem(k));
+  if(!confirm("Hamma statistikani o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi!")) return;
+  const keys=["zy_total","zy_tezkor_rec","zy_mem_rec"];
+  GAME_META.forEach(g=>{ if(g.lsKey) keys.push(g.lsKey); });
+  keys.forEach(k=>localStorage.removeItem(k));
   alert("Statistika tozalandi!");
   render();
 }
