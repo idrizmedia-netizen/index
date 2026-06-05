@@ -50,6 +50,7 @@
                 let prov = '';
                 if (user.provider === 'phone') prov = user.phoneNumber || '';
                 else if (user.provider === 'telegram') prov = '@' + (user.username || 'telegram');
+                else if (user.provider === 'local') prov = 'Login: ' + (user.localLogin || '—');
                 else if (user.provider === 'guest') prov = 'Mehmon (ism bilan)';
                 else prov = user.email || '';
                 userEmail.innerText = prov || '';
