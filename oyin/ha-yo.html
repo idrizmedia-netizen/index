@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ha / Yo'q — Ziyomap Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+<script src="questions.js"></script>
+<script src="questions2.js"></script>
+<script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--green:#22c55e;--red:#ef4444;--blue:#3b82f6}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.tt{font-family:Outfit,sans-serif;font-weight:800}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:16px 0}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white)}
+.fan-card.sel{border-color:var(--blue);background:#eff6ff}
+.fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}
+.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--blue);color:#fff;font-weight:800;cursor:pointer}
+#game{display:none}
+.hud{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:800}
+.stmt{background:var(--white);border:2px solid var(--border);border-radius:20px;padding:28px 24px;font-size:1.15rem;font-weight:800;line-height:1.5;text-align:center;margin-bottom:20px;min-height:120px;display:flex;align-items:center;justify-content:center}
+.tf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf{padding:20px;border:none;border-radius:16px;font-size:1.2rem;font-weight:900;cursor:pointer;font-family:inherit;transition:.15s}
+.tf-ha{background:#dcfce7;color:#166534}
+.tf-yo{background:#fee2e2;color:#991b1b}
+.tf:disabled{opacity:.5;cursor:default}
+.tf-ha.ok{background:var(--green);color:#fff}
+.tf-yo.ok{background:var(--green);color:#fff}
+.tf.no{background:var(--red)!important;color:#fff!important}
+.explain{display:none;margin-top:14px;padding:14px;border-radius:12px;background:#eff6ff;font-size:14px;line-height:1.5;color:#1e40af}
+[data-theme="dark"] .explain{background:#1e293b;color:#93c5fd}
+.timer-bar{height:6px;background:var(--border);border-radius:3px;margin-bottom:16px;overflow:hidden}
+.timer-fill{height:100%;background:var(--blue);transition:width .1s linear}
+</style>
+</head>
+<body>
+<div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">✅ Ha / Yo'q</span></div>
+<div class="wrap">
+  <div id="setup">
+    <h2 style="font-family:Outfit,sans-serif;font-weight:800">To'g'rimi, noto'g'rimi?</h2>
+    <p style="color:var(--muted);font-size:14px;margin:8px 0">Tez javob bering — har savolga 8 soniya!</p>
+    <div class="fan-grid" id="fanGrid"></div>
+    <button class="start" onclick="startGame()">Boshlash ▶</button>
+  </div>
+  <div id="game">
+    <div class="hud"><span id="prog">1/12</span><span>⭐ <span id="score">0</span></span><span>🔥 <span id="streak">0</span></span></div>
+    <div class="timer-bar"><div class="timer-fill" id="tFill" style="width:100%"></div></div>
+    <div class="stmt" id="stmt"></div>
+    <div class="tf-row">
+      <button class="tf tf-ha" id="btnHa" onclick="answer(true)">✅ HA</button>
+      <button class="tf tf-yo" id="btnYo" onclick="answer(false)">❌ YO'Q</button>
+    </div>
+    <div class="explain" id="explain"></div>
+  </div>
+</div>
+<script>
+let fan='fizika', qs=[], qi=0, score=0, streak=0, locked=false, tInt=null, tLeft=8;
+zyRenderFanGrid('fanGrid', id=>{ fan=id; }, fan);
+function startGame(){
+  qs=zyShuffle(window.TRUE_FALSE?.[fan]||[]).slice(0,12);
+  if(qs.length<5){ alert('Bu fanda yetarli savol yo\'q'); return; }
+  qi=0; score=0; streak=0;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  showQ();
+}
+function showQ(){
+  locked=false;
+  const q=qs[qi];
+  document.getElementById('prog').textContent=(qi+1)+'/'+qs.length;
+  document.getElementById('score').textContent=score;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('stmt').textContent=q.s;
+  document.getElementById('explain').style.display='none';
+  document.getElementById('btnHa').disabled=false;
+  document.getElementById('btnYo').disabled=false;
+  document.getElementById('btnHa').className='tf tf-ha';
+  document.getElementById('btnYo').className='tf tf-yo';
+  tLeft=8; clearInterval(tInt);
+  tInt=setInterval(()=>{
+    tLeft-=0.1;
+    document.getElementById('tFill').style.width=Math.max(0,tLeft/8*100)+'%';
+    if(tLeft<=0){ clearInterval(tInt); answer(null); }
+  },100);
+}
+function answer(val){
+  if(locked) return;
+  locked=true; clearInterval(tInt);
+  const q=qs[qi];
+  const correct=val===q.a;
+  const ha=document.getElementById('btnHa');
+  const yo=document.getElementById('btnYo');
+  ha.disabled=yo.disabled=true;
+  if(q.a){ ha.classList.add('ok'); if(val===false) yo.classList.add('no'); }
+  else { yo.classList.add('ok'); if(val===true) ha.classList.add('no'); }
+  if(correct){ score+=10+streak*2; streak++; }
+  else { streak=0; }
+  document.getElementById('score').textContent=score;
+  document.getElementById('streak').textContent=streak;
+  const ex=document.getElementById('explain');
+  ex.textContent=q.e; ex.style.display='block';
+  setTimeout(()=>{
+    qi++;
+    if(qi>=qs.length){
+      zyAddPoints(score); zySaveGameScore('ha-yo', score, { fan });
+      alert('Tugadi! Ball: '+score);
+      location.reload();
+      return;
+    }
+    showQ();
+  }, correct?700:1400);
+}
+</script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
+</body>
+</html>
