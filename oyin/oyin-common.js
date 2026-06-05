@@ -24,7 +24,15 @@ function zyToggleTheme() {
     zyApplyTheme(cur === 'light' ? 'dark' : 'light');
 }
 
+function zySyncUserFromAuth() {
+    const u = window.ZiyomapUsage?.getUser?.();
+    if (!u) return;
+    const name = u.displayName || u.name || (u.email ? u.email.split('@')[0] : '') || 'O\'yinchi';
+    localStorage.setItem('zy_user', name);
+}
+
 function zyGetUser() {
+    zySyncUserFromAuth();
     return localStorage.getItem('zy_user') || 'O\'yinchi';
 }
 
