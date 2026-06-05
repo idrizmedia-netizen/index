@@ -1,8 +1,7 @@
 /**
  * ============================================================
- *  ZIYOMAP GAMES — SAVOLLAR FAYLI (YANGILANGAN)
- *  Xatolar tuzatildi. Takrorlanuvchi savollar olib tashlandi.
- *  Har bir bo'limga yangi savollar qo'shildi.
+ *  ZIYOMAP GAMES — SAVOLLAR FAYLI (1-fayl)
+ *  Yangi savollar: questions2.js (loader avtomatik birlashtiradi)
  * ============================================================
  */
 
