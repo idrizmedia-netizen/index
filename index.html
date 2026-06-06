@@ -584,6 +584,7 @@
     </style>
     <link rel="stylesheet" href="css/mobile.css">
     <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="css/search-modal.css">
 
 </head>
 <body>
@@ -616,13 +617,12 @@
             </a>
            <div class="profile-dropdown">
     <div class="zy-bell-wrap">
-      <button class="zy-bell-btn" id="zyBellBtn" title="Bildirishnomalar">
+      <button class="zy-bell-btn" id="zyBellBtn" title="Sayt yangiliklari">
         <i class="fas fa-bell"></i>
         <span class="zy-bell-badge" id="zyBellBadge">0</span>
       </button>
       <div class="zy-bell-dropdown" id="zyBellDropdown">
-        <div class="zy-bell-dd-header"><span>Bildirishnomalar</span><button class="zy-bell-dd-clear" id="zyBellClear">Tozalash</button></div>
-        <div id="zyBellList"><div class="zy-bell-dd-empty">Hali bildirishnoma yo'q</div></div>
+        <div id="zyBellList"></div>
       </div>
     </div>
     <i class="fas fa-search" id="search-toggle" style="cursor:pointer; font-size: 1.2rem; margin-right: 10px;" onclick="ZiyomapSearch.open()" title="Qidirish (Ctrl+K)"></i>
@@ -1002,6 +1002,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </script>
 <script src="js/notifications.js"></script>
+<script src="js/search-modal.js"></script>
 <script>
 document.addEventListener('keydown', function(e){
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
