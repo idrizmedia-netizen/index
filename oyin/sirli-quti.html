@@ -25,7 +25,7 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 .start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--gold);color:#422006;font-weight:800;cursor:pointer}
 #game{display:none}
 .hud{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:800}
-.box-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.box-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin-bottom:16px}
 .box{aspect-ratio:1;border-radius:16px;border:2px solid var(--border);background:linear-gradient(135deg,#fde68a,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:.2s}
 .box:hover{transform:scale(1.03)}
 .box.opened{opacity:.35;pointer-events:none;background:var(--border);font-size:1rem}
@@ -33,6 +33,8 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 .q-txt{font-weight:800;margin-bottom:12px;line-height:1.4}
 .opts{display:grid;gap:8px}
 .opt{padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
+.opt.ok{border-color:var(--green);background:#f0fdf4}
+.opt.no{border-color:var(--red);background:#fef2f2}
 </style>
 </head>
 <body>
@@ -42,6 +44,15 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
     <h2 style="font-family:Outfit,sans-serif;font-weight:800">Sirli qutilarni oching!</h2>
     <p style="color:var(--muted);font-size:14px;margin:8px 0">Har bir qutida yashirin savol — to'g'ri javob = ball.</p>
     <div class="fan-grid" id="fanGrid"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
+      <label style="font-weight:700;font-size:13px">Savollar soni:</label>
+      <select id="qCount" style="padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-weight:700;background:var(--white);color:var(--text);font-family:inherit">
+        <option value="6">6</option>
+        <option value="9">9</option>
+        <option value="12">12</option>
+        <option value="15">15</option>
+      </select>
+    </div>
     <button class="start" onclick="startGame()">Boshlash ▶</button>
   </div>
   <div id="game">
@@ -55,14 +66,22 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 </div>
 <script>
 let fan='fizika', qs=[], score=0, opened=0, locked=false, boxMeta=[], mult=1;
-const BOX_TYPES=['quiz','quiz','quiz','bonus','bonus','trap','double','quiz','jackpot'];
 zyRenderFanGrid('fanGrid', id=>{ fan=id; }, fan);
 function startGame(){
-  qs=zyShuffle(window.QUIZ_QUESTIONS?.[fan]||[]).slice(0,9);
-  if(qs.length<6){ alert('Bu fanda yetarli savol yo\'q'); return; }
+  const cnt=parseInt(document.getElementById('qCount').value);
+  qs=zyShuffle(window.QUIZ_QUESTIONS?.[fan]||[]).slice(0,cnt);
+  if(qs.length<Math.min(4,cnt)){ alert('Bu fanda yetarli savol yo\'q'); return; }
+  if(qs.length<cnt) console.log('Mavjud: '+qs.length);
   score=0; opened=0; mult=1;
-  boxMeta=BOX_TYPES.map((t,i)=>({type:t, qi:i}));
-  boxMeta=zyShuffle(boxMeta);
+  const types=[];
+  for(let i=0;i<qs.length;i++){
+    if(i%4===0) types.push('bonus');
+    else if(i%7===0) types.push('trap');
+    else if(i%5===0) types.push('double');
+    else if(i===qs.length-1&&qs.length>5) types.push('jackpot');
+    else types.push('quiz');
+  }
+  boxMeta=zyShuffle(types.map((t,i)=>({type:t, qi:i})));
   document.getElementById('setup').style.display='none';
   document.getElementById('game').style.display='block';
   document.getElementById('boxGrid').innerHTML=boxMeta.map((b,i)=>{
@@ -110,9 +129,11 @@ function finishBox(i,msg){
   if(opened>=boxMeta.length) endGame();
 }
 function ans(i,correct,boxIdx){
+  const btns=document.querySelectorAll('#opts .opt');
+  btns.forEach((b,j)=>{ b.disabled=true; if(j===correct) b.classList.add('ok'); if(j===i&&i!==correct) b.classList.add('no'); });
   if(i===correct){ const pts=15*mult; score+=pts; mult=1; document.getElementById('score').textContent=score; }
   else mult=1;
-  finishBox(boxIdx);
+  setTimeout(()=>{ finishBox(boxIdx); },600);
 }
 function endGame(){
   zyAddPoints(score); zySaveGameScore('sirli-quti', score, { fan });
