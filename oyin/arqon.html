@@ -11,9 +11,9 @@
 <script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#2563eb;--red:#ef4444;--green:#22c55e}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#2563eb;--red:#ef4444;--green:#22c55e;--gold:#eab308}
 [data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
-body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
 .back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
 .tt{font-family:Outfit,sans-serif;font-weight:800;font-size:1.1rem;margin-left:8px}
@@ -24,20 +24,65 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 .fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}.fan-cnt{font-size:10px;color:var(--muted)}
 .start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--blue);color:#fff;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px}
 #game{display:none}
-.rope-area{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:24px 16px;margin-bottom:16px;text-align:center}
-.teams{display:flex;justify-content:space-between;font-weight:800;margin-bottom:12px}
+
+.arena{background:var(--white);border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.timer-section{text-align:center;margin-bottom:8px}
+.timer-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold),var(--green));transition:width .5s linear;border-radius:3px}
+.timer-text{font-weight:800;font-size:1.2rem;font-family:Outfit,sans-serif;margin-bottom:4px}
+
+.teams{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;padding:0 8px}
+.team{text-align:center;font-weight:800;font-size:13px}
 .team-blue{color:var(--blue)}.team-red{color:var(--red)}
-.rope-track{height:12px;background:linear-gradient(90deg,var(--blue),#94a3b8,var(--red));border-radius:6px;position:relative;margin:20px 0}
-.rope-knot{width:28px;height:28px;background:#fff;border:3px solid #334155;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transition:left .4s ease;box-shadow:0 4px 12px rgba(0,0,0,.2)}
-.score-row{display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
-.q-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px}
-.q-txt{font-weight:800;margin-bottom:14px;line-height:1.4}
+.team-score{font-family:Outfit,sans-serif;font-size:1.4rem;font-weight:800}
+.team-turn{display:inline-block;font-size:10px;background:var(--gold);color:#422006;padding:2px 8px;border-radius:8px;font-weight:800}
+
+.rope-area{position:relative;height:120px;margin:4px 0}
+.rope-track{position:absolute;top:50%;left:5%;right:5%;height:10px;background:linear-gradient(90deg,var(--blue),#94a3b8,var(--red));border-radius:5px;transform:translateY(-50%)}
+.rope-knot{width:30px;height:30px;background:#fff;border:3px solid #334155;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transition:left .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:2;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#334155}
+
+.child{position:absolute;bottom:5px;width:60px;height:100px;transition:left .5s cubic-bezier(.34,1.56,.64,1)}
+.child-blue{left:2%}.child-red{right:2%}
+.child .head{width:36px;height:36px;border-radius:50%;margin:0 auto;position:relative}
+.child-blue .head{background:#f5d6b5;border:2px solid var(--blue)}
+.child-red .head{background:#f5d6b5;border:2px solid var(--red)}
+.child .eye{width:4px;height:5px;background:#334155;border-radius:50%;position:absolute;top:14px}
+.child .eye-l{left:9px}.child .eye-r{right:9px}
+.child .smile{width:12px;height:6px;border-bottom:2px solid #334155;border-radius:0 0 12px 12px;position:absolute;bottom:6px;left:50%;transform:translateX(-50%)}
+.child .body{width:28px;height:32px;border-radius:10px 10px 6px 6px;margin:2px auto 0;position:relative}
+.child-blue .body{background:var(--blue)}
+.child-red .body{background:var(--red)}
+.child .arm{width:8px;height:28px;border-radius:4px;position:absolute;top:0}
+.child-blue .arm{background:#1d4ed8}
+.child-red .arm{background:#dc2626}
+.child .arm-l{left:-6px;transform:rotate(20deg);transform-origin:top center}
+.child .arm-r{right:-6px;transform:rotate(-20deg);transform-origin:top center}
+.child .leg{width:10px;height:22px;border-radius:4px;position:absolute;bottom:0}
+.child-blue .leg{background:#1e40af}
+.child-red .leg{background:#b91c1c}
+.child .leg-l{left:6px;transform:rotate(10deg)}
+.child .leg-r{right:6px;transform:rotate(-10deg)}
+
+.q-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:8px}
+.q-turn{text-align:center;font-size:13px;font-weight:800;margin-bottom:8px;padding:4px 12px;border-radius:8px;display:inline-block;width:100%}
+.q-turn-blue{background:#eff6ff;color:var(--blue)}
+.q-turn-red{background:#fef2f2;color:var(--red)}
+.q-txt{font-weight:800;margin-bottom:14px;line-height:1.4;font-size:1.05rem}
 .opts{display:grid;gap:8px}
-.opt{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
+.opt{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text);transition:.1s}
 .opt:hover{border-color:var(--blue)}
 .opt.ok{border-color:var(--green);background:#f0fdf4}
 .opt.no{border-color:var(--red);background:#fef2f2}
 .lbl{font-size:13px;font-weight:800;margin-bottom:8px}
+
+.result-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center;padding:20px}
+.result-box{background:var(--white);border-radius:24px;padding:32px;max-width:380px;width:100%;text-align:center}
+.result-title{font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:8px}
+.result-sub{color:var(--muted);margin-bottom:16px;font-size:14px}
+.result-scores{display:flex;justify-content:space-around;margin-bottom:20px}
+.result-team{font-weight:800;font-size:1.1rem}
+.result-score{font-family:Outfit,sans-serif;font-size:2rem;font-weight:800}
+.result-btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--blue);color:#fff;font-weight:800;font-size:1rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -48,73 +93,152 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 <div class="wrap">
   <div id="setup">
     <h2 style="font-family:Outfit,sans-serif;font-weight:800;margin-bottom:6px">Jamoaviy musobaqa</h2>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:12px">Ko'k va Qizil jamoa — to'g'ri javob arqonni siz tomonga tortadi!</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:12px">2 jamoa 3 daqiqa davomida bellashadi — eng ko'p tortgan jamoa g'alaba qozonadi!</p>
     <div class="lbl">Fan tanlang</div>
     <div class="fan-grid" id="fanGrid"></div>
     <button class="start" onclick="startGame()">Boshlash ▶</button>
   </div>
   <div id="game">
-    <div class="rope-area">
-      <div class="teams"><span class="team-blue">🔵 Ko'k jamoa</span><span class="team-red">🔴 Qizil jamoa</span></div>
-      <div class="score-row"><span id="scBlue">0</span><span id="qNum">1/10</span><span id="scRed">0</span></div>
-      <div class="rope-track"><div class="rope-knot" id="knot"></div></div>
+    <div class="arena">
+      <div class="timer-section">
+        <div class="timer-text" id="timerText">⏱ 3:00</div>
+        <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+      </div>
+      <div class="teams">
+        <div class="team team-blue" id="teamBlueInfo"><div class="team-score" id="blueScore">0</div><span id="blueTurn" class="team-turn" style="display:none">Javob beradi</span></div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:700" id="qNumLabel">1/10</div>
+        <div class="team team-red" id="teamRedInfo"><div class="team-score" id="redScore">0</div><span id="redTurn" class="team-turn" style="display:none">Javob beradi</span></div>
+      </div>
+      <div class="rope-area">
+        <div class="child child-blue" id="childBlue">
+          <div class="head"><div class="eye eye-l"></div><div class="eye eye-r"></div><div class="smile"></div></div>
+          <div class="body"><div class="arm arm-l"></div><div class="arm arm-r"></div></div>
+          <div class="leg leg-l"></div><div class="leg leg-r"></div>
+        </div>
+        <div class="child child-red" id="childRed">
+          <div class="head"><div class="eye eye-l"></div><div class="eye eye-r"></div><div class="smile"></div></div>
+          <div class="body"><div class="arm arm-l"></div><div class="arm arm-r"></div></div>
+          <div class="leg leg-l"></div><div class="leg leg-r"></div>
+        </div>
+        <div class="rope-track"><div class="rope-knot" id="knot">⚡</div></div>
+      </div>
     </div>
     <div class="q-card">
+      <div class="q-turn" id="turnLabel">🔵 Ko'k jamoa savoli</div>
       <div class="q-txt" id="qTxt"></div>
       <div class="opts" id="opts"></div>
     </div>
   </div>
 </div>
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-box">
+    <div class="result-title" id="resultTitle">🏆 G'alaba!</div>
+    <div class="result-sub" id="resultSub">O'yin natijasi</div>
+    <div class="result-scores">
+      <div><div class="result-team team-blue">🔵 Ko'k</div><div class="result-score team-blue" id="resultBlue">0</div></div>
+      <div><div class="result-team team-red">🔴 Qizil</div><div class="result-score team-red" id="resultRed">0</div></div>
+    </div>
+    <button class="result-btn" onclick="location.reload()">Qayta o'ynash 🔄</button>
+  </div>
+</div>
 <script>
-let fan='fizika', qs=[], qi=0, blue=0, red=0, pos=50, locked=false;
+let fan='fizika', qs=[], qi=0, blue=0, red=0, pos=50, locked=false, timer=180, timerInt=null, totalQs=10, gameOver=false;
+
 zyRenderFanGrid('fanGrid', (id)=>{ fan=id; }, fan);
+
 function startGame(){
-  qs=zyPickQuestions(fan,'all',10);
+  totalQs=12;
+  qs=zyPickQuestions(fan,'all',totalQs);
   if(!qs.length){ alert('Bu fanda savollar yo\'q'); return; }
-  qi=0; blue=0; red=0; pos=50;
+  qi=0; blue=0; red=0; pos=50; timer=180; gameOver=false;
   document.getElementById('setup').style.display='none';
   document.getElementById('game').style.display='block';
+  updateArena();
   showQ();
+  startTimer();
 }
+
+function startTimer(){
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    timer--;
+    const m=Math.floor(timer/60), s=timer%60;
+    document.getElementById('timerText').textContent='⏱ '+m+':'+(s<10?'0':'')+s;
+    document.getElementById('timerFill').style.width=(timer/180*100)+'%';
+    if(timer<=0){ clearInterval(timerInt); endGame(); }
+  },1000);
+}
+
+function updateArena(){
+  document.getElementById('blueScore').textContent=blue;
+  document.getElementById('redScore').textContent=red;
+  document.getElementById('knot').style.left=pos+'%';
+  document.getElementById('qNumLabel').textContent=(qi+1)+'/'+qs.length;
+  const bl=document.getElementById('childBlue');
+  const rd=document.getElementById('childRed');
+  const blP=Math.max(2,Math.min(40,2+pos*0.38));
+  const rdP=Math.max(2,Math.min(40,2+(100-pos)*0.38));
+  bl.style.left=blP+'%';
+  rd.style.right=rdP+'%';
+}
+
 function showQ(){
+  if(gameOver) return;
   locked=false;
   const q=qs[qi];
-  document.getElementById('qNum').textContent=(qi+1)+'/'+qs.length;
+  const isBlue=qi%2===0;
+  document.getElementById('turnLabel').className='q-turn '+(isBlue?'q-turn-blue':'q-turn-red');
+  document.getElementById('turnLabel').textContent=(isBlue?'🔵 Ko\'k jamoa':'🔴 Qizil jamoa')+' savoli';
   document.getElementById('qTxt').textContent=q.q;
-  document.getElementById('scBlue').textContent=blue;
-  document.getElementById('scRed').textContent=red;
-  document.getElementById('knot').style.left=pos+'%';
-  const opts=document.getElementById('opts');
-  opts.innerHTML=q.o.map((t,i)=>`<button class="opt" onclick="pick(${i},${q.a})">${String.fromCharCode(65+i)}. ${t}</button>`).join('');
+  document.getElementById('opts').innerHTML=q.o.map((t,i)=>`<button class="opt" onclick="pick(${i},${q.a})">${String.fromCharCode(65+i)}. ${t}</button>`).join('');
+  document.getElementById('blueTurn').style.display=isBlue?'inline-block':'none';
+  document.getElementById('redTurn').style.display=isBlue?'none':'inline-block';
+  updateArena();
 }
+
 function pick(i,correct){
-  if(locked) return;
+  if(locked||gameOver) return;
   locked=true;
   const btns=document.querySelectorAll('.opt');
   btns.forEach((b,j)=>{ b.disabled=true; if(j===correct) b.classList.add('ok'); if(j===i&&i!==correct) b.classList.add('no'); });
   const isBlue=qi%2===0;
   if(i===correct){
-    if(isBlue){ blue++; pos=Math.min(92,pos+10); }
-    else { red++; pos=Math.max(8,pos-10); }
+    if(isBlue){ blue++; pos=Math.min(92,pos+12); }
+    else { red++; pos=Math.max(8,pos-12); }
   } else {
-    if(isBlue) pos=Math.max(8,pos-6);
-    else pos=Math.min(92,pos+6);
+    if(isBlue) pos=Math.max(8,pos-8);
+    else pos=Math.min(92,pos+8);
   }
-  document.getElementById('scBlue').textContent=blue;
-  document.getElementById('scRed').textContent=red;
-  document.getElementById('knot').style.left=pos+'%';
+  updateArena();
   setTimeout(()=>{
+    if(gameOver) return;
     qi++;
     if(qi>=qs.length||pos<=5||pos>=95){
-      const win=pos>=95?'🔵 Ko\'k jamoa g\'alaba!':pos<=5?'🔴 Qizil jamoa g\'alaba!':'Durang!';
-      zyAddPoints(blue*10);
-      zySaveGameScore('arqon', blue*10, { fan });
-      alert('O\'yin tugadi!\n'+win+'\nKo\'k: '+blue+' | Qizil: '+red);
-      location.reload();
+      endGame();
       return;
     }
     showQ();
-  },900);
+  },800);
+}
+
+function endGame(){
+  if(gameOver) return;
+  gameOver=true;
+  clearInterval(timerInt);
+  const overlay=document.getElementById('resultOverlay');
+  let winText,subText;
+  if(pos>=90){ winText='🔵 Ko\'k jamoa g\'alaba qozondi!'; subText='Ko\'k jamoa arqonni tortib oldi!'; }
+  else if(pos<=10){ winText='🔴 Qizil jamoa g\'alaba qozondi!'; subText='Qizil jamoa arqonni tortib oldi!'; }
+  else if(blue>red){ winText='🔵 Ko\'k jamoa g\'alaba qozondi!'; subText='Ko\'k jamoa ko\'proq ball to\'pladi!'; }
+  else if(red>blue){ winText='🔴 Qizil jamoa g\'alaba qozondi!'; subText='Qizil jamoa ko\'proq ball to\'pladi!'; }
+  else{ winText='🤝 Durang!'; subText='Ikkala jamoa ham teng kuchli!'; }
+  document.getElementById('resultTitle').textContent=winText;
+  document.getElementById('resultSub').textContent=subText;
+  document.getElementById('resultBlue').textContent=blue;
+  document.getElementById('resultRed').textContent=red;
+  overlay.style.display='flex';
+  zyAddPoints(Math.max(blue,red)*10);
+  zySaveGameScore('arqon', Math.max(blue,red)*10, { fan });
 }
 </script>
 <script src="../js/ziyomap-usage.js"></script>
