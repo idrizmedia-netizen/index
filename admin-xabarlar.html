@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin — Xabarlar | Ziyomap</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--indigo:#6366f1;--orange:#f97316}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.tt{font-family:Outfit,sans-serif;font-weight:800}
+.wrap{max-width:600px;margin:0 auto;padding:30px 16px}
+h2{font-size:1.5rem;margin-bottom:8px}
+p{color:var(--muted);font-size:14px;margin-bottom:20px}
+label{font-weight:700;font-size:13px;display:block;margin-bottom:6px}
+textarea{width:100%;padding:14px;border:2px solid var(--border);border-radius:14px;font-size:14px;background:var(--white);color:var(--text);font-family:inherit;resize:vertical;min-height:120px;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--orange)}
+.btn{padding:12px 24px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-family:inherit;font-size:14px}
+.btn-primary{background:var(--orange);color:#fff}
+.btn-primary:hover{opacity:.9}
+.btn-secondary{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.msg-list{margin-top:30px;display:flex;flex-direction:column;gap:10px}
+.msg-item{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px}
+.msg-item.active{border-color:var(--orange);box-shadow:0 0 20px rgba(249,115,22,.15)}
+.msg-text{flex:1;font-weight:700;font-size:14px}
+.msg-actions{display:flex;gap:6px}
+.btn-sm{padding:6px 12px;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px;font-family:inherit}
+.btn-del{background:#fef2f2;color:#ef4444}
+.btn-del:hover{background:#fee2e2}
+.empty{text-align:center;color:var(--muted);padding:30px;font-size:14px}
+.info-box{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:14px;font-size:13px;color:#9a3412;margin-bottom:20px;line-height:1.6}
+.info-box i{margin-right:8px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="back" href="index.html">← Orqaga</a>
+  <span class="tt">📢 Admin xabarlari</span>
+</div>
+<div class="wrap">
+  <h2>Broadcast xabar yuborish</h2>
+  <p>Yozgan xabaringiz saytning barcha foydalanuvchilariga neon bildirishnoma sifatida chiqadi.</p>
+
+  <div class="info-box">
+    <i class="fa-solid fa-info-circle"></i>
+    Hozircha xabarlar localStorage orqali ishlaydi (mock rejim).
+    Keyinchalik Supabase yoki Vercel KV ga ulash mumkin.
+  </div>
+
+  <label for="msgText">Xabar matni:</label>
+  <textarea id="msgText" placeholder="Masalan: Ziyomap platformasiga yangi interaktiv virtual laboratoriya qo'shildi!"></textarea>
+
+  <div style="display:flex;gap:10px;margin-top:14px">
+    <button class="btn btn-primary" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i> Yuborish</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('msgText').value=''">Tozalash</button>
+  </div>
+
+  <div class="msg-list" id="msgList">
+    <div class="empty">Hali xabar yuborilmagan</div>
+  </div>
+</div>
+
+<script>
+function loadMessages(){
+  try{ return JSON.parse(localStorage.getItem('zy_admin_msgs') || '[]'); }catch{ return []; }
+}
+function saveMessages(msgs){
+  localStorage.setItem('zy_admin_msgs', JSON.stringify(msgs));
+}
+
+function renderMessages(){
+  const list=document.getElementById('msgList');
+  const msgs=loadMessages();
+  if(!msgs.length){
+    list.innerHTML='<div class="empty">Hali xabar yuborilmagan</div>';
+    return;
+  }
+  list.innerHTML=msgs.map(m=>
+    '<div class="msg-item '+(m.active?'active':'')+'">'+
+      '<span class="msg-text">'+m.text.replace(/</g,'&lt;')+'</span>'+
+      '<div class="msg-actions">'+
+        '<button class="btn-sm btn-del" onclick="deleteMessage(\''+m.id+'\')"><i class="fa-solid fa-trash"></i></button>'+
+      '</div>'+
+    '</div>'
+  ).join('');
+}
+
+function sendMessage(){
+  const text=document.getElementById('msgText').value.trim();
+  if(!text) return alert('Xabar matnini kiriting!');
+  const msgs=loadMessages();
+  msgs.push({ id: Date.now().toString(), text, active: true, date: new Date().toISOString() });
+  saveMessages(msgs);
+  document.getElementById('msgText').value='';
+  renderMessages();
+}
+
+function deleteMessage(id){
+  const msgs=loadMessages().filter(m=>m.id!==id);
+  saveMessages(msgs);
+  renderMessages();
+}
+
+renderMessages();
+</script>
+</body>
+</html>
