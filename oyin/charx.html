@@ -11,50 +11,91 @@
 <script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--red:#ef4444}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--purple:#a855f7;--green:#22c55e;--red:#ef4444;--gold:#eab308;--blue:#3b82f6}
 [data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
 body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
 .back{text-decoration:none;color:var(--muted);font-weight:700;font-size:14px;padding:6px 12px;border:1px solid var(--border);border-radius:8px}
 .tt{font-family:Outfit,sans-serif;font-weight:800;font-size:1.1rem}
 .wrap{max-width:640px;margin:0 auto;padding:20px 16px;text-align:center}
+.fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:16px 0}
+.fan-card{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white)}
+.fan-card.sel{border-color:var(--purple);background:#f3e8ff}
+.fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}
+#setup{text-align:left}
+.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:1rem;cursor:pointer;margin-top:8px}
+#game{display:none}
 .wheel-wrap{position:relative;width:min(300px,90vw);height:min(300px,90vw);margin:20px auto}
 canvas{border-radius:50%;box-shadow:0 12px 40px rgba(168,85,247,.25);max-width:100%}
 .spin-btn{margin-top:16px;padding:14px 32px;border:none;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:1rem;cursor:pointer}
 .spin-btn:disabled{opacity:.5;cursor:not-allowed}
 .stats{display:flex;justify-content:center;gap:20px;margin:16px 0;font-weight:800}
-.q-box{display:none;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px}
+.result-display{background:var(--white);border:2px solid var(--border);border-radius:16px;padding:16px;margin:12px 0;font-weight:800;font-size:1.2rem;min-height:56px;display:flex;align-items:center;justify-content:center;gap:8px}
+.result-display.bonus{background:#fefce8;border-color:var(--gold);color:#854d0e}
+.result-display.bomb{background:#fef2f2;border-color:var(--red);color:#991b1b}
+.result-display.double{background:#f0fdf4;border-color:var(--green);color:#166534}
+.result-display.fan{background:#f3e8ff;border-color:var(--purple);color:#6b21a8}
+.q-box{display:none;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:12px}
 .q-txt{font-weight:800;margin-bottom:12px}
 .opts{display:grid;gap:8px}
 .opt{padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
 .opt:hover{border-color:var(--purple)}
-.seg-label{font-size:13px;color:var(--muted);margin-top:8px;font-weight:700}
+.opt.ok{border-color:var(--green);background:#f0fdf4}
+.opt.no{border-color:var(--red);background:#fef2f2}
 </style>
 </head>
 <body>
 <div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">🎡 Omad Charxi</span></div>
 <div class="wrap">
-  <p style="color:var(--muted);font-size:14px">Charxni aylantiring — tushgan fan bo'yicha savol javob bering!</p>
-  <div class="stats"><span>⭐ <span id="score">0</span></span><span>🎯 <span id="spins">5</span> aylanish</span></div>
-  <div class="wheel-wrap"><canvas id="wheel" width="300" height="300"></canvas></div>
-  <div class="seg-label" id="segLabel">Charxni aylantiring</div>
-  <button class="spin-btn" id="spinBtn" onclick="spin()">Charxni aylantirish 🎡</button>
-  <div class="q-box" id="qBox">
-    <div class="q-txt" id="qTxt"></div>
-    <div class="opts" id="opts"></div>
+  <div id="setup">
+    <h2 style="font-family:Outfit,sans-serif;font-weight:800">Omad charxini aylantiring!</h2>
+    <p style="color:var(--muted);font-size:14px;margin:8px 0">Fan tanlang va charxni aylantiring — tushgan segmentga qarab savol olasiz!</p>
+    <div class="fan-grid" id="fanGrid"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
+      <label style="font-weight:700;font-size:13px">Aylanishlar soni:</label>
+      <select id="spinCount" style="padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-weight:700;background:var(--white);color:var(--text);font-family:inherit">
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="8">8</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+    <button class="start" onclick="startGame()">Boshlash 🎡</button>
+  </div>
+  <div id="game">
+    <div class="stats"><span>⭐ <span id="score">0</span></span><span>🎯 <span id="spins">5</span> aylanish</span></div>
+    <div class="wheel-wrap"><canvas id="wheel" width="300" height="300"></canvas></div>
+    <div class="result-display" id="resultDisplay">🎯 Charxni aylantiring!</div>
+    <button class="spin-btn" id="spinBtn" onclick="spin()">Charxni aylantirish 🎡</button>
+    <div class="q-box" id="qBox">
+      <div class="q-txt" id="qTxt"></div>
+      <div class="opts" id="opts"></div>
+    </div>
   </div>
 </div>
 <script>
-const segments=[
-  ...ZY_FANS.map(f=>({...f,label:f.name,type:'fan'})),
-  { id:'bonus', name:'Bonus +25', icon:'⭐', label:'Bonus', type:'bonus' },
-  { id:'bomb', name:'Tuzoq -10', icon:'💣', label:'Tuzoq', type:'bomb' },
-  { id:'x2', name:'2× Ball', icon:'✨', label:'2×', type:'double' },
-];
-let angle=0, spinning=false, score=0, spinsLeft=5, currentFan=null, locked=false, nextMult=1;
+let fan='fizika', segments=[], angle=0, spinning=false, score=0, spinsLeft=5, currentFan=null, locked=false, nextMult=1;
 const canvas=document.getElementById('wheel');
 const ctx=canvas.getContext('2d');
 const colors=['#4f7cff','#22c55e','#a855f7','#ec4899','#f97316','#eab308','#14b8a6','#3b82f6','#fbbf24','#ef4444','#6366f1'];
+
+zyRenderFanGrid('fanGrid', (id)=>{ fan=id; }, fan);
+
+function buildSegments(){
+  segments=[
+    { id:fan, name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:fan+'_2', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:fan+'_3', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:'bonus', name:'Bonus +25', icon:'⭐', label:'Bonus', type:'bonus' },
+    { id:fan+'_4', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:fan+'_5', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:'bomb', name:'Tuzoq -10', icon:'💣', label:'Tuzoq', type:'bomb' },
+    { id:'double', name:'2× Ball', icon:'✨', label:'2×', type:'double' },
+    { id:fan+'_6', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:fan+'_7', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+    { id:fan+'_8', name:'Savol', icon:'📝', label: ZY_FANS.find(f=>f.id===fan)?.name||'Savol', type:'fan' },
+  ];
+}
 
 function drawWheel(rot){
   const cx=150,cy=150,r=140,n=segments.length,slice=2*Math.PI/n;
@@ -64,24 +105,44 @@ function drawWheel(rot){
     ctx.arc(cx,cy,r,i*slice+rot,(i+1)*slice+rot);
     ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
     ctx.save();ctx.translate(cx,cy);ctx.rotate(i*slice+slice/2+rot);
-    ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 13px Nunito';
-    ctx.fillText(s.icon+' '+s.label.slice(0,8),r-10,5);ctx.restore();
+    ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 12px Nunito';
+    ctx.fillText(s.icon+' '+s.label.slice(0,7),r-10,5);ctx.restore();
   });
-  ctx.beginPath();ctx.moveTo(150,0);ctx.lineTo(142,24);ctx.lineTo(158,24);ctx.closePath();
+  ctx.beginPath();ctx.moveTo(150,0);ctx.lineTo(143,22);ctx.lineTo(157,22);ctx.closePath();
   ctx.fillStyle='#334155';ctx.fill();
+  ctx.beginPath();ctx.arc(150,0,6,0,2*Math.PI);ctx.fillStyle='#334155';ctx.fill();
 }
-drawWheel(0);
+
+function startGame(){
+  const fc=ZY_FANS.find(f=>f.id===fan);
+  if(!fc||!window.QUIZ_QUESTIONS?.[fan]||!window.QUIZ_QUESTIONS[fan].length){
+    alert('Bu fanda savollar yo\'q'); return;
+  }
+  const cnt=parseInt(document.getElementById('spinCount').value);
+  score=0; spinsLeft=cnt; locked=false; nextMult=1;
+  buildSegments();
+  angle=0;
+  document.getElementById('setup').style.display='none';
+  document.getElementById('game').style.display='block';
+  document.getElementById('spins').textContent=spinsLeft;
+  document.getElementById('score').textContent=0;
+  document.getElementById('resultDisplay').className='result-display';
+  document.getElementById('resultDisplay').innerHTML='🎯 Aylantirish uchun tugmani bosing!';
+  drawWheel(0);
+}
 
 function spin(){
   if(spinning||spinsLeft<=0) return;
   spinning=true;
   document.getElementById('spinBtn').disabled=true;
   document.getElementById('qBox').style.display='none';
-  const extra=360*4+Math.random()*360;
+  document.getElementById('resultDisplay').className='result-display';
+  document.getElementById('resultDisplay').innerHTML='🔄 Aylanmoqda...';
+  const extra=360*5+Math.random()*360;
   const start=angle; const end=angle+extra; const t0=performance.now();
   function anim(t){
-    const p=Math.min(1,(t-t0)/3500);
-    const ease=1-Math.pow(1-p,3);
+    const p=Math.min(1,(t-t0)/4000);
+    const ease=1-Math.pow(1-p,3.5);
     angle=start+(end-start)*ease;
     drawWheel(angle*Math.PI/180);
     if(p<1) requestAnimationFrame(anim);
@@ -89,6 +150,7 @@ function spin(){
   }
   requestAnimationFrame(anim);
 }
+
 function finishSpin(){
   spinning=false;
   spinsLeft--;
@@ -96,45 +158,59 @@ function finishSpin(){
   const n=segments.length;
   const norm=((360-(angle%360))+360)%360;
   const idx=Math.floor(((norm+360/n/2)%360)/(360/n))%n;
-  currentFan=segments[idx].id;
   const seg=segments[idx];
+  document.getElementById('resultDisplay').className='result-display';
+  const rd=document.getElementById('resultDisplay');
   if(seg.type==='bonus'){
     score+=25; document.getElementById('score').textContent=score;
-    document.getElementById('segLabel').textContent='⭐ Bonus! +25 ball';
+    rd.classList.add('bonus'); rd.innerHTML='⭐ Bonus! +25 ball';
     document.getElementById('qBox').style.display='none';
   } else if(seg.type==='bomb'){
     score=Math.max(0,score-10); document.getElementById('score').textContent=score;
-    document.getElementById('segLabel').textContent='💣 Tuzoq! -10 ball';
+    rd.classList.add('bomb'); rd.innerHTML='💣 Tuzoq! -10 ball';
     document.getElementById('qBox').style.display='none';
   } else if(seg.type==='double'){
     nextMult=2;
-    document.getElementById('segLabel').textContent='✨ Keyingi to\'g\'ri javob 2 barobar!';
+    rd.classList.add('double'); rd.innerHTML='✨ 2× Ball! Keyingi to\'g\'ri javob 2 barobar!';
     document.getElementById('qBox').style.display='none';
   } else {
-    document.getElementById('segLabel').textContent='Fan: '+seg.name+' — savol!';
+    currentFan=fan;
+    const fn=ZY_FANS.find(f=>f.id===fan)?.name||fan;
+    rd.classList.add('fan'); rd.innerHTML='📝 Fan: '+fn+' — savol!';
     showQuestion();
   }
   document.getElementById('spinBtn').disabled=spinsLeft<=0;
   if(spinsLeft<=0) setTimeout(()=>{
     zyAddPoints(score); zySaveGameScore('charx',score,{});
-    alert('O\'yin tugadi! Ball: '+score);
-  },500);
+    alert('O\'yin tugadi! Jami ball: '+score);
+    location.reload();
+  },800);
 }
+
 function showQuestion(){
   const qs=zyPickQuestions(currentFan,'all',1);
-  if(!qs.length){ document.getElementById('segLabel').textContent='Savol topilmadi'; return; }
+  if(!qs.length){ document.getElementById('resultDisplay').innerHTML='⚠️ Savol topilmadi'; return; }
   const q=qs[0]; locked=false;
   document.getElementById('qBox').style.display='block';
   document.getElementById('qTxt').textContent=q.q;
   document.getElementById('opts').innerHTML=q.o.map((t,i)=>
     `<button class="opt" onclick="answer(${i},${q.a})">${String.fromCharCode(65+i)}. ${t}</button>`).join('');
 }
+
 function answer(i,correct){
   if(locked) return; locked=true;
-  if(i===correct){ score+=20*nextMult; nextMult=1; }
-  else { score=Math.max(0,score-5); nextMult=1; }
+  const btns=document.querySelectorAll('#opts .opt');
+  btns.forEach((b,j)=>{ b.disabled=true; if(j===correct) b.classList.add('ok'); if(j===i&&i!==correct) b.classList.add('no'); });
+  const rd=document.getElementById('resultDisplay');
+  if(i===correct){
+    const pts=20*nextMult; score+=pts; nextMult=1;
+    rd.classList.add('double'); rd.innerHTML='✅ To\'g\'ri! +'+pts+' ball';
+  } else {
+    score=Math.max(0,score-5); nextMult=1;
+    rd.classList.add('bomb'); rd.innerHTML='❌ Noto\'g\'ri! -5 ball';
+  }
   document.getElementById('score').textContent=score;
-  setTimeout(()=>{ document.getElementById('qBox').style.display='none'; },800);
+  setTimeout(()=>{ document.getElementById('qBox').style.display='none'; },1000);
 }
 </script>
 <script src="../js/ziyomap-usage.js"></script>
