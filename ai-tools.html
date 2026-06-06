@@ -8,6 +8,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="css/notifications.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <script>
@@ -241,22 +242,28 @@
         
         let topic = "";
         let resArea, btns, prompt;
+        let label = '';
 
         if (isLesson) {
             topic = document.getElementById('topic').value;
             resArea = document.getElementById('res-lesson');
             btns = document.getElementById('btns-lesson');
+            label = 'dars rejasi';
         } else if (isInfo) {
             topic = document.getElementById('info-topic').value;
             resArea = document.getElementById('res-info');
             btns = document.getElementById('btns-info');
+            label = 'ma\'lumot';
         } else if (isQuiz) {
             topic = document.getElementById('quiz-topic').value;
             resArea = document.getElementById('res-quiz');
             btns = document.getElementById('btns-quiz');
+            label = 'testlar';
         }
 
         if(!topic) return alert("Iltimos, mavzuni kiriting!");
+
+        const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI ' + label + ' tayyorlashni boshladi...') : null;
 
         const oldHTML = btn.innerHTML;
         btn.disabled = true;
@@ -293,8 +300,10 @@
             resArea.innerHTML = marked.parse(data.reply);
             if(window.MathJax) await MathJax.typesetPromise([resArea]);
             btns.style.display = "flex";
+            if (notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, '✅ ' + (isLesson?'Dars rejasi':isInfo?'Ma\'lumot':'Testlar') + ' muvaffaqiyatli tayyorlandi!', 'success');
         } catch (e) { 
-            resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi! Qayta urinib ko'ring.</span>"; 
+            resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi! Qayta urinib ko'ring.</span>";
+            if (notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi. Qayta urinib ko\'ring.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = oldHTML;
@@ -367,6 +376,15 @@
 </script>
 <script src="js/ziyomap-usage.js"></script>
 <script src="js/auth-guard.js"></script>
+<script src="js/notifications.js"></script>
 <script>ZiyomapAuthGuard.protectPage();</script>
+<script>
+document.addEventListener('keydown', function(e){
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    if (window.ZiyomapSearch) ZiyomapSearch.open();
+  }
+});
+</script>
 </body>
 </html>
