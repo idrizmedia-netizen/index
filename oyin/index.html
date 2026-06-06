@@ -663,14 +663,25 @@ function actionQuest() {
 
 initDailyQuest();
 </script>
+<link rel="stylesheet" href="../css/notifications.css">
 <script src="../js/ziyomap-usage.js"></script>
 <script src="../js/auth-guard.js"></script>
+<script src="../js/notifications.js"></script>
 <script>
 (function(){
   const u=window.ZiyomapUsage?.getUser?.();
   if(u){ localStorage.setItem('zy_user', u.displayName||u.name||(u.email?u.email.split('@')[0]:'')||'O\'yinchi'); }
 })();
 ZiyomapAuthGuard.protectPage();
+setTimeout(function(){ ZiyomapNotify.show('🎮 O\'yinlar dunyosiga xush kelibsiz! Yangi sarguzashtlar sizni kutmoqda', 'info', 5000); }, 3000);
+</script>
+<script>
+document.addEventListener('keydown', function(e){
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    if (window.ZiyomapSearch) ZiyomapSearch.open();
+  }
+});
 </script>
 </body>
 </html>
