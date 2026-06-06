@@ -1,0 +1,256 @@
+/* ===== Ziyomap Neon Notification / Toast Tizimi ===== */
+.zy-notif-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 380px;
+  width: calc(100% - 40px);
+}
+.zy-notif {
+  pointer-events: auto;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.5;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: zyNotifIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  border: 1px solid rgba(255,255,255,0.15);
+  position: relative;
+  overflow: hidden;
+}
+.zy-notif::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  opacity: 0.08;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.4) 100%);
+}
+.zy-notif-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.zy-notif-text { flex: 1; }
+.zy-notif-close {
+  flex-shrink: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+  font-size: 16px;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 2px;
+}
+.zy-notif-close:hover { opacity: 1; }
+
+/* Neon ranglar */
+.zy-notif--info {
+  background: rgba(59,130,246,0.92);
+  color: #fff;
+  box-shadow: 0 0 30px rgba(59,130,246,0.35), inset 0 0 60px rgba(59,130,246,0.08);
+  border-color: rgba(96,165,250,0.4);
+}
+.zy-notif--success {
+  background: rgba(34,197,94,0.92);
+  color: #fff;
+  box-shadow: 0 0 30px rgba(34,197,94,0.35), inset 0 0 60px rgba(34,197,94,0.08);
+  border-color: rgba(74,222,128,0.4);
+}
+.zy-notif--error {
+  background: rgba(239,68,68,0.92);
+  color: #fff;
+  box-shadow: 0 0 30px rgba(239,68,68,0.35), inset 0 0 60px rgba(239,68,68,0.08);
+  border-color: rgba(248,113,113,0.4);
+}
+.zy-notif--loading {
+  background: rgba(168,85,247,0.92);
+  color: #fff;
+  box-shadow: 0 0 30px rgba(168,85,247,0.35), inset 0 0 60px rgba(168,85,247,0.08);
+  border-color: rgba(192,132,252,0.4);
+}
+.zy-notif--admin {
+  background: rgba(251,146,60,0.95);
+  color: #fff;
+  box-shadow: 0 0 30px rgba(251,146,60,0.4), inset 0 0 60px rgba(251,146,60,0.08);
+  border-color: rgba(251,191,36,0.4);
+}
+.zy-notif--admin .zy-notif-icon { animation: zyPulse 2s infinite; }
+
+.zy-notif--removing {
+  animation: zyNotifOut 0.35s ease forwards;
+}
+
+@keyframes zyNotifIn {
+  from { transform: translateX(120%) scale(0.85); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+@keyframes zyNotifOut {
+  from { transform: translateX(0) scale(1); opacity: 1; }
+  to { transform: translateX(120%) scale(0.85); opacity: 0; }
+}
+@keyframes zyPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.zy-notif--loading .zy-notif-icon {
+  animation: zySpin 1s linear infinite;
+}
+@keyframes zySpin {
+  to { transform: rotate(360deg); }
+}
+
+.zy-notif-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 0 0 0 14px;
+  animation: zyShrink linear forwards;
+}
+@keyframes zyShrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ===== Global qidiruv (Search Overlay) ===== */
+.zy-search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.zy-search-overlay.open { display: flex; }
+.zy-search-box {
+  background: var(--card-bg, #fff);
+  border-radius: 24px;
+  padding: 24px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
+  position: relative;
+  animation: zySearchIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes zySearchIn {
+  from { transform: scale(0.9) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.zy-search-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.zy-search-header i {
+  font-size: 1.4rem;
+  color: var(--primary-color, #2563eb);
+}
+.zy-search-header h3 {
+  flex: 1;
+  font-family: Outfit, sans-serif;
+  font-weight: 800;
+  margin: 0;
+  font-size: 1.2rem;
+}
+.zy-search-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--muted, #6b7280);
+  padding: 4px;
+  line-height: 1;
+}
+.zy-search-close:hover { color: var(--text, #1a1d2e); }
+.zy-search-input-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.zy-search-input-wrap i {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted, #6b7280);
+  font-size: 1rem;
+}
+.zy-search-input {
+  width: 100%;
+  padding: 14px 14px 14px 44px;
+  border: 2px solid var(--border, #e5e7eb);
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--bg, #f7f8fc);
+  color: var(--text, #1a1d2e);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.zy-search-input:focus {
+  border-color: var(--primary-color, #2563eb);
+}
+.zy-search-results {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.zy-search-empty {
+  text-align: center;
+  color: var(--muted, #6b7280);
+  padding: 20px;
+  font-size: 14px;
+}
+.zy-search-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text, #1a1d2e);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.zy-search-result:hover { background: var(--bg, #f7f8fc); }
+.zy-search-result i {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.zy-search-result-info { flex: 1; min-width: 0; }
+.zy-search-result-title { font-weight: 700; font-size: 14px; }
+.zy-search-result-desc { font-size: 12px; color: var(--muted, #6b7280); margin-top: 2px; }
+.zy-search-result-badge {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
