@@ -168,6 +168,7 @@ async function sendAiMessage() {
     cancelImage();
 
     const loadingId = appendAiMessage('ai', 'Ziyomap AI tahlil qilmoqda...');
+    const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI fikrlayapti...') : null;
 
     try {
         const response = await fetch('/api/chat', {
@@ -189,11 +190,14 @@ async function sendAiMessage() {
         chatHistory.push({ role: 'user', parts: [{ text }] });
         chatHistory.push({ role: 'model', parts: [{ text: aiReply }] });
 
+        if (window.ZiyomapNotify) ZiyomapNotify.update(notif, '✅ AI javob berdi', 'success');
+
         if (window.ZiyomapUsage) {
             ZiyomapUsage.logUsage('ai-xabar', 'AI ga savol yuborildi');
         }
     } catch {
         updateAiMessage(loadingId, 'Xatolik yuz berdi. Internet yoki serverni tekshiring.');
+        if (window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi', 'error');
     }
 }
 
