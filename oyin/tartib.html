@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sirli Quti — Ziyomap Games</title>
+<title>Tartiblash — Ziyomap Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Outfit:wght@800&display=swap" rel="stylesheet">
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
@@ -11,7 +11,7 @@
 <script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--gold:#eab308;--green:#22c55e;--red:#ef4444}
+:root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--indigo:#6366f1;--green:#22c55e;--red:#ef4444}
 [data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
 body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px}
@@ -20,125 +20,129 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 .wrap{max-width:640px;margin:0 auto;padding:20px 16px}
 .fan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin:16px 0}
 .fan-card{border:2px solid var(--border);border-radius:14px;padding:12px 8px;text-align:center;cursor:pointer;background:var(--white)}
-.fan-card.sel{border-color:var(--gold);background:#fefce8}
+.fan-card.sel{border-color:var(--indigo);background:#eef2ff}
 .fan-icon{font-size:1.6rem}.fan-name{font-size:12px;font-weight:800}
-.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--gold);color:#422006;font-weight:800;cursor:pointer}
+.start{width:100%;padding:14px;border:none;border-radius:14px;background:var(--indigo);color:#fff;font-weight:800;cursor:pointer}
 #game{display:none}
-.hud{display:flex;justify-content:space-between;margin-bottom:16px;font-weight:800}
-.box-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin-bottom:16px}
-.box{aspect-ratio:1;border-radius:16px;border:2px solid var(--border);background:linear-gradient(135deg,#fde68a,#fbbf24);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition:.2s}
-.box:hover{transform:scale(1.03)}
-.box.opened{opacity:.35;pointer-events:none;background:var(--border);font-size:1rem}
-.q-panel{display:none;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:20px}
-.q-txt{font-weight:800;margin-bottom:12px;line-height:1.4}
-.opts{display:grid;gap:8px}
-.opt{padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--white);cursor:pointer;font-weight:700;text-align:left;font-family:inherit;color:var(--text)}
-.opt.ok{border-color:var(--green);background:#f0fdf4}
-.opt.no{border-color:var(--red);background:#fef2f2}
+.hud{display:flex;justify-content:space-between;margin-bottom:12px;font-weight:800;font-size:14px}
+.prompt{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;font-weight:700;line-height:1.5}
+.pool,.picked{min-height:60px}
+.lbl{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;margin:12px 0 8px;letter-spacing:.04em}
+.item{padding:12px 14px;border:2px solid var(--border);border-radius:12px;background:var(--white);margin-bottom:8px;cursor:pointer;font-weight:700;transition:.15s;color:var(--text)}
+.item:hover{border-color:var(--indigo)}
+.item.in-pick{border-color:var(--indigo);background:#eef2ff;opacity:.85}
+.item.bad{border-color:var(--red);background:#fef2f2}
+.item.good{border-color:var(--green);background:#f0fdf4}
+.actions{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-go{background:var(--indigo);color:#fff}
+.btn-reset{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
 </style>
 </head>
 <body>
-<div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">🎁 Sirli Quti</span></div>
+<div class="topbar"><a class="back" href="index.html">← Orqaga</a><span class="tt">📋 Tartiblash</span></div>
 <div class="wrap">
   <div id="setup">
-    <h2 style="font-family:Outfit,sans-serif;font-weight:800">Sirli qutilarni oching!</h2>
-    <p style="color:var(--muted);font-size:14px;margin:8px 0">Har bir qutida yashirin savol — to'g'ri javob = ball.</p>
+    <h2 style="font-family:Outfit,sans-serif;font-weight:800">Voqealarni tartiblang</h2>
+    <p style="color:var(--muted);font-size:14px;margin:8px 0">Elementlarni to'g'ri ketma-ketlikda bosing (1-chi, 2-chi, 3-chi...)</p>
     <div class="fan-grid" id="fanGrid"></div>
     <div style="display:flex;align-items:center;gap:10px;margin:12px 0">
       <label style="font-weight:700;font-size:13px">Savollar soni:</label>
       <select id="qCount" style="padding:8px 12px;border:2px solid var(--border);border-radius:10px;font-weight:700;background:var(--white);color:var(--text);font-family:inherit">
-        <option value="6">6</option>
-        <option value="9">9</option>
-        <option value="12">12</option>
-        <option value="15">15</option>
+        <option value="3">3</option>
+        <option value="5">5</option>
+        <option value="7">7</option>
+        <option value="10">10</option>
       </select>
     </div>
     <button class="start" onclick="startGame()">Boshlash ▶</button>
   </div>
   <div id="game">
-    <div class="hud"><span>⭐ <span id="score">0</span></span><span>📦 <span id="left">9</span> quti</span></div>
-    <div class="box-grid" id="boxGrid"></div>
-    <div class="q-panel" id="qPanel">
-      <div class="q-txt" id="qTxt"></div>
-      <div class="opts" id="opts"></div>
+    <div class="hud"><span>📋 <span id="round">1</span>/<span id="totalR">3</span></span><span>⭐ <span id="score">0</span></span></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="lbl">Sizning tartibingiz</div>
+    <div class="picked" id="picked"></div>
+    <div class="lbl">Variantlar — ketma-ket bosing</div>
+    <div class="pool" id="pool"></div>
+    <div id="resultMsg" style="display:none;text-align:center;padding:10px;border-radius:12px;font-weight:800;margin:10px 0"></div>
+    <div class="actions">
+      <button class="btn btn-reset" onclick="resetPick()">↺ Qayta</button>
+      <button class="btn btn-go" onclick="submitOrder()">✓ Tekshirish</button>
     </div>
   </div>
 </div>
 <script>
-let fan='fizika', qs=[], score=0, opened=0, locked=false, boxMeta=[], mult=1;
+let fan='tarix', rounds=[], ri=0, score=0, pickOrder=[], locked=false;
 zyRenderFanGrid('fanGrid', id=>{ fan=id; }, fan);
 function startGame(){
   const cnt=parseInt(document.getElementById('qCount').value);
-  qs=zyShuffle(window.QUIZ_QUESTIONS?.[fan]||[]).slice(0,cnt);
-  if(qs.length<Math.min(4,cnt)){ alert('Bu fanda yetarli savol yo\'q'); return; }
-  if(qs.length<cnt) console.log('Mavjud: '+qs.length);
-  score=0; opened=0; mult=1;
-  const types=[];
-  for(let i=0;i<qs.length;i++){
-    if(i%4===0) types.push('bonus');
-    else if(i%7===0) types.push('trap');
-    else if(i%5===0) types.push('double');
-    else if(i===qs.length-1&&qs.length>5) types.push('jackpot');
-    else types.push('quiz');
-  }
-  boxMeta=zyShuffle(types.map((t,i)=>({type:t, qi:i})));
+  rounds=zyShuffle(window.ORDER_QUESTIONS?.[fan]||[]).slice(0,cnt);
+  if(!rounds.length){ alert('Bu fanda tartiblash savollari yo\'q'); return; }
+  if(rounds.length<cnt) alert('Mavjud savollar soni: '+rounds.length);
+  ri=0; score=0;
   document.getElementById('setup').style.display='none';
   document.getElementById('game').style.display='block';
-  document.getElementById('boxGrid').innerHTML=boxMeta.map((b,i)=>{
-    const icons={quiz:'🎁',bonus:'⭐',trap:'💣',double:'✨',jackpot:'👑'};
-    return `<div class="box" id="box${i}" onclick="openBox(${i})">${icons[b.type]||'🎁'}</div>`;
-  }).join('');
-  document.getElementById('left').textContent=boxMeta.length;
+  document.getElementById('totalR').textContent=rounds.length;
+  showRound();
 }
-function openBox(i){
-  const box=document.getElementById('box'+i);
-  if(box.classList.contains('opened')||locked) return;
+function showRound(){
+  locked=false; pickOrder=[];
+  const r=rounds[ri];
+  document.getElementById('round').textContent=ri+1;
+  document.getElementById('score').textContent=score;
+  document.getElementById('prompt').textContent=r.prompt;
+  const shuffled=zyShuffle(r.items.map((t,i)=>({t,i})));
+  document.getElementById('pool').innerHTML=shuffled.map(x=>
+    `<div class="item" data-i="${x.i}" onclick="tapItem(this,${x.i})">${x.t}</div>`).join('');
+  document.getElementById('picked').innerHTML='';
+}
+function tapItem(el,idx){
+  if(locked||el.classList.contains('in-pick')) return;
+  el.classList.add('in-pick');
+  pickOrder.push(idx);
+  const n=document.createElement('div');
+  n.className='item in-pick'; n.textContent=(pickOrder.length)+'. '+el.textContent;
+  document.getElementById('picked').appendChild(n);
+}
+function resetPick(){
+  if(locked) return;
+  pickOrder=[];
+  document.querySelectorAll('#pool .item').forEach(x=>x.classList.remove('in-pick'));
+  document.getElementById('picked').innerHTML='';
+}
+function submitOrder(){
+  if(locked||!pickOrder.length) return;
   locked=true;
-  box.classList.add('opened');
-  const meta=boxMeta[i];
-  const panel=document.getElementById('qPanel');
-  if(meta.type==='bonus'){
-    score+=20; box.textContent='⭐'; finishBox(i, 'Bonus! +20 ball');
-    return;
+  const correct=rounds[ri].order;
+  const ok=correct.length===pickOrder.length&&correct.every((v,i)=>v===pickOrder[i]);
+  const poolItems=document.querySelectorAll('#pool .item');
+  const msg=document.getElementById('resultMsg');
+  if(ok){
+    score+=30;
+    document.getElementById('score').textContent=score;
+    document.getElementById('picked').querySelectorAll('.item').forEach(x=>x.classList.add('good'));
+    msg.style.display='block'; msg.style.background='#f0fdf4'; msg.style.color='#166534';
+    msg.textContent='✅ To\'g\'ri! +30 ball';
+  } else {
+    document.getElementById('picked').querySelectorAll('.item').forEach(x=>x.classList.add('bad'));
+    poolItems.forEach(el=>{
+      const idx=+el.dataset.i;
+      if(correct.includes(idx)) el.classList.add('good');
+    });
+    msg.style.display='block'; msg.style.background='#fef2f2'; msg.style.color='#991b1b';
+    msg.textContent='❌ Noto\'g\'ri! To\'g\'ri tartib: '+(correct.map(i=>rounds[ri].items[i]).join(' → '));
   }
-  if(meta.type==='trap'){
-    score=Math.max(0,score-10); box.textContent='💣'; finishBox(i, 'Tuzoq! -10 ball');
-    return;
-  }
-  if(meta.type==='double'){
-    mult=2; box.textContent='✨'; finishBox(i, 'Keyingi to\'g\'ri javob 2 barobar!');
-    return;
-  }
-  if(meta.type==='jackpot'){
-    score+=50; box.textContent='👑'; finishBox(i, 'Jackpot! +50 ball');
-    return;
-  }
-  box.textContent='✓';
-  const q=qs[meta.qi%qs.length];
-  panel.style.display='block';
-  document.getElementById('qTxt').textContent=q.q;
-  document.getElementById('opts').innerHTML=q.o.map((t,j)=>
-    `<button class="opt" onclick="ans(${j},${q.a},${i})">${String.fromCharCode(65+j)}. ${t}</button>`).join('');
-}
-function finishBox(i,msg){
-  opened++;
-  document.getElementById('left').textContent=boxMeta.length-opened;
-  document.getElementById('qPanel').style.display='none';
-  if(msg){ const t=document.createElement('div'); t.style.cssText='text-align:center;font-weight:800;margin:8px 0;color:var(--gold)'; t.textContent=msg; document.getElementById('game').insertBefore(t,document.getElementById('boxGrid')); setTimeout(()=>t.remove(),1200); }
-  locked=false;
-  if(opened>=boxMeta.length) endGame();
-}
-function ans(i,correct,boxIdx){
-  const btns=document.querySelectorAll('#opts .opt');
-  btns.forEach((b,j)=>{ b.disabled=true; if(j===correct) b.classList.add('ok'); if(j===i&&i!==correct) b.classList.add('no'); });
-  if(i===correct){ const pts=15*mult; score+=pts; mult=1; document.getElementById('score').textContent=score; }
-  else mult=1;
-  setTimeout(()=>{ finishBox(boxIdx); },600);
-}
-function endGame(){
-  zyAddPoints(score); zySaveGameScore('sirli-quti', score, { fan });
-  alert('Barcha qutilar ochildi! Jami ball: '+score);
-  location.reload();
+  setTimeout(()=>{
+    msg.style.display='none';
+    ri++;
+    if(ri>=rounds.length){
+      zyAddPoints(score); zySaveGameScore('tartib', score, { fan });
+      alert((ok?'Tabriklaymiz! ':'')+'O\'yin tugadi. Ball: '+score);
+      location.reload();
+      return;
+    }
+    showRound();
+  }, ok?1200:2500);
 }
 </script>
 <script src="../js/ziyomap-usage.js"></script>
