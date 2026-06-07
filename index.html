@@ -268,13 +268,14 @@
             gap: 4px;
             width: 100%;
         }
-        .mobile-top .logo-brand { margin-right: 4px; }
+        .mobile-top .logo-brand { margin-right: 2px; }
         .mobile-nav-scroll { display: none; }
 
         @media (max-width: 768px) {
-            .nav-inner { padding: 0 4px 0 10px; height: 52px; }
+            .nav-inner { padding: 0 2px 0 8px; height: 52px; }
             .nav-inner.desktop { display: none; }
-            .nav-inner.mobile-top { display: flex; gap: 5px; }
+            .nav-inner.mobile-top { display: flex; gap: 2px; }
+            .mobile-top .nav-icon-btn { width: 32px; height: 32px; font-size: 0.9rem; }
 
             .mobile-nav-scroll {
                 display: flex;
@@ -740,7 +741,7 @@
         </div>
         <button class="nav-icon-btn" onclick="ZiyomapSearch.open()" title="Qidirish"><i class="fas fa-search"></i></button>
         <button class="nav-icon-btn" id="theme-toggle-m" title="Tun/Kun"><i class="fas fa-moon"></i></button>
-        <a href="kirish.html" id="login-btn-m" class="user-btn" style="padding:3px 10px 3px 3px;font-size:0;height:34px"><img id="btn-user-avatar-m" src="https://www.w3schools.com/howto/img_avatar.png" alt="" style="width:28px;height:28px"></a>
+        <a href="kirish.html" id="login-btn-m" class="user-btn" style="padding:2px 8px 2px 2px;height:32px"><img id="btn-user-avatar-m" src="https://www.w3schools.com/howto/img_avatar.png" alt="" style="width:28px;height:28px"><span style="font-size:0.75rem;font-weight:600">Kirish</span></a>
       </div>
 
       <!-- ===== MOBIL — pastki scrollable menyu ===== -->
@@ -907,18 +908,6 @@
                 el.classList.replace('fa-moon', 'fa-sun');
             });
         }
-
-        /* Sync mobile login button */
-        setInterval(function(){
-          const srcImg = document.getElementById('btn-user-avatar');
-          const dstImg = document.getElementById('btn-user-avatar-m');
-          const dstLink = document.getElementById('login-btn-m');
-          if (srcImg && dstImg && srcImg.src !== dstImg.src) dstImg.src = srcImg.src;
-          if (dstLink) {
-            const desktopLink = document.getElementById('login-btn');
-            if (desktopLink) dstLink.href = desktopLink.href;
-          }
-        }, 500);
 
         const hour = new Date().getHours();
         const greeting = document.getElementById('greeting');
