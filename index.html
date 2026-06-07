@@ -226,13 +226,13 @@
             transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
             color: #fff !important;
-            background: linear-gradient(135deg,#94a3b8,#64748b);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: linear-gradient(135deg,#6366f1,#0ea5e9);
+            box-shadow: 0 2px 8px rgba(99,102,241,0.2);
             position: relative;
         }
-        .nav-icon-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        body.dark-theme .nav-icon-btn { background: linear-gradient(135deg,#475569,#334155); }
-        body.dark-theme .nav-icon-btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .nav-icon-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(99,102,241,0.3); }
+        body.dark-theme .nav-icon-btn { background: linear-gradient(135deg,#818cf8,#38bdf8); }
+        body.dark-theme .nav-icon-btn:hover { box-shadow: 0 4px 14px rgba(129,140,248,0.3); }
 
         .nav-icon-btn .zy-bell-badge {
             top: -2px; right: -2px;
@@ -596,9 +596,11 @@
                 left: 50% !important;
                 right: auto !important;
                 transform: translateX(-50%);
-                top: 72px !important;
+                top: 100px !important;
                 margin-top: 0 !important;
                 width: min(320px, 92vw);
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
             }
 
             .nav-menu a, .game-menu-btn, .doska-menu-btn {
