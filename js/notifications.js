@@ -1,32 +1,33 @@
-/* ===== Ziyomap Notifications & Search ===== */
+/* ===== Ziyomap Bildirishnoma Tizimi & Qo'ng'iroqcha ===== */
 (function(){
   'use strict';
 
-  // --- Notification System ---
   const container = document.createElement('div');
   container.className = 'zy-notif-container';
   document.body.appendChild(container);
 
   const icons = {
-    info: 'fa-solid fa-circle-info',
-    success: 'fa-solid fa-circle-check',
-    error: 'fa-solid fa-circle-exclamation',
-    loading: 'fa-solid fa-spinner',
-    admin: 'fa-solid fa-bullhorn'
+    info: 'fas fa-info-circle', success: 'fas fa-check-circle',
+    error: 'fas fa-exclamation-circle', loading: 'fas fa-spinner',
+    admin: 'fas fa-bullhorn'
   };
+
+  let notifHistory = [];
 
   function showToast(text, type, duration) {
     type = type || 'info';
     duration = duration || 4000;
     if (type === 'loading') duration = 0;
-
     const el = document.createElement('div');
     el.className = 'zy-notif zy-notif--' + type;
     el.innerHTML =
       '<span class="zy-notif-icon"><i class="' + (icons[type] || icons.info) + '"></i></span>' +
       '<span class="zy-notif-text">' + text.replace(/</g,'&lt;') + '</span>' +
-      '<button class="zy-notif-close" onclick="this.parentElement.classList.add(\'zy-notif--removing\');setTimeout(()=>this.parentElement.remove(),350)">&times;</button>';
-
+      '<button class="zy-notif-close">&times;</button>';
+    el.querySelector('.zy-notif-close').onclick = function(){
+      el.classList.add('zy-notif--removing');
+      setTimeout(() => el.remove(), 350);
+    };
     if (duration > 0) {
       const bar = document.createElement('div');
       bar.className = 'zy-notif-progress';
@@ -39,8 +40,10 @@
         }
       }, duration);
     }
-
     container.appendChild(el);
+    notifHistory.unshift({ text, type, date: Date.now() });
+    if (notifHistory.length > 20) notifHistory.length = 20;
+    updateBellBadge();
     return el;
   }
 
@@ -61,166 +64,120 @@
         el.appendChild(bar);
       }
       setTimeout(() => {
-        if (el.parentNode) {
-          el.classList.add('zy-notif--removing');
-          setTimeout(() => el.remove(), 350);
-        }
+        if (el.parentNode) { el.classList.add('zy-notif--removing'); setTimeout(() => el.remove(), 350); }
       }, 3000);
     }
+    if (text) notifHistory.unshift({ text, type: type||'info', date: Date.now() });
+    updateBellBadge();
   }
 
-  // --- Admin Broadcast (localStorage mock) ---
+  // --- Bell ---
+  function initBell() {
+    const pairs = [
+      { btn: 'zyBellBtn', dd: 'zyBellDropdown', list: 'zyBellList', badge: 'zyBellBadge' },
+      { btn: 'zyBellBtnM', dd: 'zyBellDropdownM', list: 'zyBellListM', badge: 'zyBellBadgeM' },
+    ];
+
+    const siteNews = [
+      { icon: 'fas fa-flask', text: 'Yangi virtual laboratoriya: Optika' },
+      { icon: 'fas fa-gamepad', text: 'Arqon tortish o\'yini yangilandi' },
+      { icon: 'fas fa-wand-magic-sparkles', text: 'AI Studio da yangi imkoniyatlar' },
+      { icon: 'fas fa-book', text: 'Metodlar bo\'limiga 10+ yangi metod' },
+      { icon: 'fas fa-brain', text: 'Memory o\'yiniga yangi darajalar' },
+    ];
+
+    pairs.forEach(p => {
+      const btn = document.getElementById(p.btn);
+      const dd = document.getElementById(p.dd);
+      const list = document.getElementById(p.list);
+      if (!btn || !dd || !list) return;
+      const wrap = btn.closest('.zy-bell-wrap');
+
+      list.innerHTML = siteNews.map(n =>
+        '<div class="zy-bell-dd-item"><span class="zy-notif-icon"><i class="' + n.icon + '"></i></span><span>' + n.text + '</span></div>'
+      ).join('');
+
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dd.classList.toggle('open');
+      });
+      document.addEventListener('click', function(e) {
+        if (dd && wrap && !wrap.contains(e.target)) dd.classList.remove('open');
+      });
+    });
+  }
+
+  function updateBellBadge() {
+    const ids = ['zyBellBadge','zyBellBadgeM'];
+    ids.forEach(id => {
+      const badge = document.getElementById(id);
+      if (!badge) return;
+      const unseen = notifHistory.length;
+      if (unseen > 0) {
+        badge.textContent = unseen > 99 ? '99+' : unseen;
+        badge.classList.add('show');
+      } else {
+        badge.classList.remove('show');
+      }
+    });
+  }
+
+  // --- Admin ---
   function loadAdminMessages() {
-    try {
-      return JSON.parse(localStorage.getItem('zy_admin_msgs') || '[]');
-    } catch { return []; }
+    try { return JSON.parse(localStorage.getItem('zy_admin_msgs') || '[]'); } catch { return []; }
   }
-
   function checkAdminMessages() {
     const msgs = loadAdminMessages();
     const seen = JSON.parse(localStorage.getItem('zy_admin_seen') || '[]');
+    let ns = false;
     msgs.forEach(msg => {
-      if (!seen.includes(msg.id)) {
-        showToast(msg.text, 'admin', 0);
-        seen.push(msg.id);
-      }
+      if (!seen.includes(msg.id)) { showToast(msg.text, 'admin', 0); seen.push(msg.id); ns = true; }
     });
-    localStorage.setItem('zy_admin_seen', JSON.stringify(seen));
+    if (ns) localStorage.setItem('zy_admin_seen', JSON.stringify(seen));
   }
 
-  // --- Search System ---
-  const searchIndex = [
-    { title: 'Bosh sahifa', desc: 'Ziyomap portfolio — asosiy sahifa', url: '/', icon: 'fa-solid fa-house', iconBg: '#6366f1' },
-    { title: 'Ziyo AI Studio', desc: 'AI yordamida dars rejalari, testlar, ma\'lumot topish', url: 'ai-tools.html', icon: 'fa-solid fa-wand-magic-sparkles', iconBg: '#0ea5e9' },
-    { title: 'AI Chat', desc: 'Ziyomap AI bilan suhbat', url: 'ai-chat.html', icon: 'fa-solid fa-robot', iconBg: '#2563eb' },
-    { title: 'Onlayn Doska', desc: 'Interaktiv doska — chizish, yozish, saqlash', url: 'doska.html', icon: 'fa-solid fa-pencil-alt', iconBg: '#3b82f6' },
-    { title: 'O\'yinlar', desc: 'Testmasters — interaktiv o\'quv o\'yinlari', url: 'oyin/index.html', icon: 'fa-solid fa-gamepad', iconBg: '#10b981' },
-    { title: 'Quiz', desc: '4 variantli testlar', url: 'oyin/quiz.html', icon: 'fa-solid fa-question-circle', iconBg: '#10b981' },
-    { title: 'Flashcard', desc: 'Flashcard orqali o\'rganish', url: 'oyin/flashcard.html', icon: 'fa-solid fa-layer-group', iconBg: '#10b981' },
-    { title: 'Tezkor', desc: '60 soniyada tezkor savol-javob', url: 'oyin/tezkor.html', icon: 'fa-solid fa-bolt', iconBg: '#10b981' },
-    { title: 'Puzzle', desc: 'So\'zlar va harflardan puzzle yechish', url: 'oyin/puzzle.html', icon: 'fa-solid fa-puzzle-piece', iconBg: '#10b981' },
-    { title: 'Memory', desc: 'Xotira o\'yini — juftliklarni toping', url: 'oyin/memory.html', icon: 'fa-solid fa-brain', iconBg: '#10b981' },
-    { title: 'Arqon tortish', desc: '2 jamoa bilan arqon tortish o\'yini', url: 'oyin/arqon.html', icon: 'fa-solid fa-people-arrows', iconBg: '#10b981' },
-    { title: 'Charx', desc: 'Charxni aylantirib savol olish', url: 'oyin/charx.html', icon: 'fa-solid fa-circle-notch', iconBg: '#10b981' },
-    { title: 'Tartiblash', desc: 'Voqealarni to\'g\'ri tartibda joylashtiring', url: 'oyin/tartib.html', icon: 'fa-solid fa-list', iconBg: '#10b981' },
-    { title: 'Ha/Yo\'q', desc: 'To\'g\'ri yoki noto\'g\'ri — tezkor test', url: 'oyin/ha-yo.html', icon: 'fa-solid fa-check-circle', iconBg: '#10b981' },
-    { title: 'Sirli quti', desc: 'Sirli qutilardan savol va bonus yig\'ing', url: 'oyin/sirli-quti.html', icon: 'fa-solid fa-gift', iconBg: '#10b981' },
-    { title: 'Virtual laboratoriya', desc: 'Fizika va kimyo virtual laboratoriyalari', url: 'labs/index.html', icon: 'fa-solid fa-flask', iconBg: '#f59e0b' },
-    { title: 'Mayatnik', desc: 'Matematik mayatnik simulyatsiyasi', url: 'labs/lab-mayatnik.html', icon: 'fa-solid fa-clock', iconBg: '#f59e0b' },
-    { title: 'Erkin tushish', desc: 'Erkin tushish simulyatsiyasi', url: 'labs/lab-erkin-tushish.html', icon: 'fa-solid fa-arrow-down', iconBg: '#f59e0b' },
-    { title: 'Optika', desc: 'Yorug\'lik sinishi simulyatsiyasi', url: 'labs/lab-optika.html', icon: 'fa-solid fa-lightbulb', iconBg: '#f59e0b' },
-    { title: 'Kimyo molekulalar', desc: 'Molekulyar harakat simulyatsiyasi', url: 'labs/lab-kimyo-molekulalar.html', icon: 'fa-solid fa-atom', iconBg: '#f59e0b' },
-    { title: 'Metodlar', desc: 'O\'qitish metodlari to\'plami', url: 'metodlar/index.html', icon: 'fa-solid fa-book', iconBg: '#ec4899' },
-    { title: 'Blog', desc: 'Ilmiy maqolalar va yangiliklar', url: '/#blog', icon: 'fa-solid fa-newspaper', iconBg: '#6366f1' },
-    { title: 'Statistika', desc: 'O\'yin statistikasi va yutuqlar', url: 'oyin/statistika.html', icon: 'fa-solid fa-chart-simple', iconBg: '#10b981' },
+  const tips = [
+    "Ziyo AI Studio da dars rejalarini tayyorlang!",
+    "O'yinlar bo'limida bilimingizni sinang!",
+    "Virtual laboratoriyalarda tajriba o'tkazing!",
+    "AI Chat orqali istalgan savolga javob oling!",
   ];
+  let tipIndex = 0;
+  function showRandomTip() { showToast(tips[tipIndex++ % tips.length], 'info', 6000); }
 
-  let searchOverlay = null;
-
-  function createSearchOverlay() {
-    if (searchOverlay) return;
-    searchOverlay = document.createElement('div');
-    searchOverlay.className = 'zy-search-overlay';
-    searchOverlay.id = 'zySearchOverlay';
-    searchOverlay.innerHTML =
-      '<div class="zy-search-box">' +
-        '<div class="zy-search-header">' +
-          '<i class="fa-solid fa-magnifying-glass"></i>' +
-          '<h3>Saytdan qidirish</h3>' +
-          '<button class="zy-search-close" id="zySearchClose">&times;</button>' +
-        '</div>' +
-        '<div class="zy-search-input-wrap">' +
-          '<i class="fa-solid fa-search"></i>' +
-          '<input type="text" class="zy-search-input" id="zySearchInput" placeholder="Qidirish... Laboratoriya, o\'yin, metod..." autofocus>' +
-        '</div>' +
-        '<div class="zy-search-results" id="zySearchResults">' +
-          '<div class="zy-search-empty">Qidirishni boshlash uchun matn kiriting</div>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(searchOverlay);
-
-    const input = document.getElementById('zySearchInput');
-    const results = document.getElementById('zySearchResults');
-    const closeBtn = document.getElementById('zySearchClose');
-
-    function doSearch(q) {
-      q = q.toLowerCase().trim();
-      if (!q) {
-        results.innerHTML = '<div class="zy-search-empty">Qidirishni boshlash uchun matn kiriting</div>';
-        return;
-      }
-      const matches = searchIndex.filter(item =>
-        item.title.toLowerCase().includes(q) ||
-        item.desc.toLowerCase().includes(q)
-      );
-      if (!matches.length) {
-        results.innerHTML = '<div class="zy-search-empty">Hech narsa topilmadi</div>';
-        return;
-      }
-      results.innerHTML = matches.map(m =>
-        '<a class="zy-search-result" href="' + m.url + '" onclick="document.getElementById(\'zySearchOverlay\').classList.remove(\'open\')">' +
-          '<i class="' + m.icon + '" style="background:' + m.iconBg + ';color:#fff"></i>' +
-          '<div class="zy-search-result-info">' +
-            '<div class="zy-search-result-title">' + m.title + '</div>' +
-            '<div class="zy-search-result-desc">' + m.desc + '</div>' +
-          '</div>' +
-        '</a>'
-      ).join('');
-    }
-
-    input.addEventListener('input', function(){ doSearch(this.value); });
-    input.addEventListener('keydown', function(e){ if(e.key==='Escape') closeSearch(); });
-    closeBtn.addEventListener('click', closeSearch);
-    searchOverlay.addEventListener('click', function(e){ if(e.target===this) closeSearch(); });
+  function isMainPage() {
+    const p = window.location.pathname.replace(/\/+$/, '');
+    return p === '' || p === '/index.html';
   }
 
-  function openSearch() {
-    createSearchOverlay();
-    searchOverlay.classList.add('open');
-    setTimeout(() => document.getElementById('zySearchInput').focus(), 100);
-  }
-
-  function closeSearch() {
-    if (searchOverlay) {
-      searchOverlay.classList.remove('open');
-      const input = document.getElementById('zySearchInput');
-      if (input) input.value = '';
-      const results = document.getElementById('zySearchResults');
-      if (results) results.innerHTML = '<div class="zy-search-empty">Qidirishni boshlash uchun matn kiriting</div>';
-    }
-  }
-
-  // --- Global API ---
   window.ZiyomapNotify = {
-    show: showToast,
-    info: (text, dur) => showToast(text, 'info', dur),
-    success: (text, dur) => showToast(text, 'success', dur),
-    error: (text, dur) => showToast(text, 'error', dur),
-    loading: (text) => showToast(text, 'loading', 0),
-    update: updateToast,
-    admin: (text) => showToast(text, 'admin', 0),
-    checkAdmin: checkAdminMessages
+    show: showToast, info: (t,d) => showToast(t,'info',d),
+    success: (t,d) => showToast(t,'success',d), error: (t,d) => showToast(t,'error',d),
+    loading: (t) => showToast(t,'loading',0), update: updateToast,
+    admin: (t) => showToast(t,'admin',0), checkAdmin: checkAdminMessages,
   };
 
-  window.ZiyomapSearch = {
-    open: openSearch,
-    close: closeSearch
-  };
-
-  // --- Auto check admin messages on load ---
   document.addEventListener('DOMContentLoaded', function(){
+    initBell();
     setTimeout(checkAdminMessages, 2000);
+    if (isMainPage()) {
+      const h = new Date().getHours();
+      let g = 'Xayrli kun!';
+      if (h < 12) g = 'Xayrli tong!';
+      else if (h >= 18) g = 'Xayrli kech!';
+      const seen = sessionStorage.getItem('zy_welcome_seen');
+      if (!seen) {
+        setTimeout(function(){ showToast(g + ' Ziyomapga xush kelibsiz 👋', 'info', 5000); }, 3000);
+        sessionStorage.setItem('zy_welcome_seen', '1');
+      } else {
+        try {
+          const ref = document.referrer ? new URL(document.referrer) : null;
+          if (ref && ref.origin === window.location.origin) {
+            setTimeout(function(){ showToast(g + ' Asosiy sahifaga qaytdingiz', 'info', 4000); }, 2000);
+          }
+        } catch(e) {}
+      }
+    }
+    setTimeout(showRandomTip, 14000);
   });
-
-  // --- Demo: show welcome notification after page load ---
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(function(){
-      const hour = new Date().getHours();
-      let greeting = 'Xayrli kun!';
-      if (hour < 12) greeting = 'Xayrli tong!';
-      else if (hour >= 18) greeting = 'Xayrli kech!';
-      showToast(greeting + ' Ziyomapga xush kelibsiz \u{1F44B}', 'info', 4000);
-    }, 3000);
-  });
-
 })();
