@@ -34,15 +34,24 @@
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
         const userEmail = document.getElementById('user-email');
+        const btnAvatarM = document.getElementById('btn-user-avatar-m');
+        const btnNameM = document.getElementById('login-btn-m');
 
         if (user) {
             const name = user.displayName ? user.displayName.split(' ')[0] : 'Profil';
             if (btnAvatar) btnAvatar.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
+            if (btnAvatarM) btnAvatarM.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
             if (btnName) btnName.innerText = name;
+            if (btnNameM) { const s = btnNameM.querySelector('span'); if (s) s.innerText = name; }
             if (loginBtn) {
                 loginBtn.style.background = '#10b981';
                 loginBtn.href = '#';
                 loginBtn.title = 'Profil va foydalanish tarixi';
+            }
+            if (mobileLoginBtn) {
+                mobileLoginBtn.style.background = '#10b981';
+                mobileLoginBtn.href = '#';
+                mobileLoginBtn.title = 'Profil va foydalanish tarixi';
             }
             if (userPhoto) userPhoto.src = user.photoURL || 'https://www.w3schools.com/howto/img_avatar.png';
             if (userName) userName.innerText = user.displayName || 'Foydalanuvchi';
@@ -57,11 +66,18 @@
             }
         } else {
             if (btnAvatar) btnAvatar.src = 'https://www.w3schools.com/howto/img_avatar.png';
+            if (btnAvatarM) btnAvatarM.src = 'https://www.w3schools.com/howto/img_avatar.png';
             if (btnName) btnName.innerText = 'Kirish';
+            if (btnNameM) { const s = btnNameM.querySelector('span'); if (s) s.innerText = 'Kirish'; }
             if (loginBtn) {
                 loginBtn.style.background = '';
                 loginBtn.href = 'kirish.html';
                 loginBtn.title = 'Google orqali kirish';
+            }
+            if (mobileLoginBtn) {
+                mobileLoginBtn.style.background = '';
+                mobileLoginBtn.href = 'kirish.html';
+                mobileLoginBtn.title = 'Google orqali kirish';
             }
             if (userPhoto) userPhoto.src = '';
             if (userName) userName.innerText = 'Mehmon';
@@ -71,16 +87,18 @@
         }
     }
 
-    if (loginBtn) {
-        loginBtn.addEventListener('click', (e) => {
-            if (!U.getUser()) return;
-            e.preventDefault();
-            if (dropdown) {
-                dropdown.classList.toggle('show');
-                if (dropdown.classList.contains('show')) renderUsageHistory();
-            }
-        });
+    function handleLoginClick(e) {
+        if (!U.getUser()) return;
+        e.preventDefault();
+        if (dropdown) {
+            dropdown.classList.toggle('show');
+            if (dropdown.classList.contains('show')) renderUsageHistory();
+        }
     }
+
+    if (loginBtn) loginBtn.addEventListener('click', handleLoginClick);
+    const mobileLoginBtn = document.getElementById('login-btn-m');
+    if (mobileLoginBtn) mobileLoginBtn.addEventListener('click', handleLoginClick);
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
