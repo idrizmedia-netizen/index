@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Shaxsiy Kabinet | Ziyomap</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/notifications.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4ff;
+  --white:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --primary:#2563eb;
+  --primary-light:#eff6ff;
+  --green:#059669;
+  --orange:#d97706;
+  --purple:#7c3aed;
+  --teal:#0d9488;
+  --red:#dc2626;
+  --card:#ffffff;
+  --gradient:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+}
+body.dark-theme{
+  --bg:#0f111a;
+  --white:#161925;
+  --text:#f1f5f9;
+  --muted:#94a3b8;
+  --border:#26293b;
+  --primary:#38bdf8;
+  --primary-light:#0c1a2e;
+  --card:#1e2538;
+}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  transition:background .3s,color .3s;
+}
+
+/* ── NAV ── */
+.dash-nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+  height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(12px);
+  transition:background .3s,border-color .3s;
+}
+.nav-logo{
+  font-size:1.25rem;font-weight:800;
+  background:linear-gradient(135deg,#6366f1,#0ea5e9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;text-decoration:none;
+}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-icon-btn{
+  width:36px;height:36px;border-radius:10px;border:none;
+  font-size:.95rem;cursor:pointer;transition:.2s;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#6366f1,#0ea5e9);color:#fff;
+  text-decoration:none;
+}
+.nav-icon-btn:hover{transform:translateY(-1px);opacity:.9}
+
+/* ── LAYOUT ── */
+.dash-wrap{
+  max-width:1100px;margin:0 auto;
+  padding:32px 20px 60px;
+}
+
+/* ── HERO CARD ── */
+.hero-card{
+  background:var(--gradient);
+  border-radius:24px;
+  padding:32px;
+  color:#fff;
+  display:flex;align-items:center;gap:24px;
+  margin-bottom:28px;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 60px rgba(37,99,235,.25);
+}
+.hero-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;border-radius:50%;
+  background:rgba(255,255,255,.07);pointer-events:none;
+}
+.hero-card::after{
+  content:'';position:absolute;bottom:-60px;right:80px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,.05);pointer-events:none;
+}
+.hero-avatar{
+  width:80px;height:80px;border-radius:20px;
+  border:3px solid rgba(255,255,255,.4);
+  object-fit:cover;flex-shrink:0;
+  background:rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;font-weight:800;color:#fff;
+}
+.hero-avatar img{width:100%;height:100%;border-radius:17px;object-fit:cover}
+.hero-info h1{font-size:1.6rem;font-weight:800;margin-bottom:4px}
+.hero-info p{opacity:.85;font-size:.9rem;margin-bottom:12px}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap}
+.hero-badge{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
+}
+.hero-right{margin-left:auto;text-align:right;flex-shrink:0}
+.hero-pts{font-size:2.8rem;font-weight:800;line-height:1}
+.hero-pts-lbl{opacity:.8;font-size:.8rem;margin-top:2px}
+.logout-btn{
+  margin-top:12px;padding:8px 18px;border-radius:10px;
+  border:1.5px solid rgba(255,255,255,.4);background:transparent;
+  color:#fff;font-size:13px;font-weight:700;cursor:pointer;
+  transition:.2s;display:flex;align-items:center;gap:6px;
+  margin-left:auto;
+}
+.logout-btn:hover{background:rgba(255,255,255,.15)}
+
+/* ── STATS GRID ── */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;margin-bottom:28px;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:20px;
+  display:flex;align-items:center;gap:14px;
+  transition:transform .2s,box-shadow .2s,background .3s,border-color .3s;
+}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.stat-icon{
+  width:46px;height:46px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  flex-shrink:0;
+}
+.stat-val{font-size:1.7rem;font-weight:800;font-family:'Outfit',sans-serif;line-height:1}
+.stat-key{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+
+/* ── PANEL ── */
+.panel{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:22px;
+  transition:background .3s,border-color .3s;
+}
+.panel-title{
+  font-size:1rem;font-weight:800;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ── ACTIVITY ROW ── */
+.activity-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px;border-radius:10px;margin-bottom:6px;
+  transition:background .2s;
+}
+.activity-row:hover{background:var(--bg)}
+.act-icon{
+  width:36px;height:36px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.act-label{font-size:14px;font-weight:600;flex:1}
+.act-time{font-size:11px;color:var(--muted)}
+
+/* ── QUICK LINKS ── */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quick-btn{
+  padding:14px 12px;border-radius:12px;border:none;
+  font-size:13px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  text-decoration:none;color:#fff;transition:.2s;
+}
+.quick-btn:hover{transform:translateY(-2px);opacity:.92}
+
+/* ── PROGRESS BAR ── */
+.prog-row{margin-bottom:14px}
+.prog-head{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px}
+.prog-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .6s ease}
+
+/* ── ACHIEVEMENTS ── */
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.ach-card{
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px 10px;text-align:center;
+  transition:.2s;
+}
+.ach-card.unlocked{border-color:var(--orange);background:#fffbeb}
+body.dark-theme .ach-card.unlocked{background:#2e251a}
+.ach-card.locked{opacity:.45}
+.ach-emoji{font-size:1.8rem;margin-bottom:6px}
+.ach-name{font-size:11px;font-weight:800}
+.ach-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4}
+
+/* ── LOADING ── */
+.skeleton{
+  background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);
+  background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;
+}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .hero-card{flex-direction:column;text-align:center}
+  .hero-right{margin-left:0}
+  .logout-btn{margin:12px auto 0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<nav class="dash-nav">
+  <a href="index.html" class="nav-logo">Ziyomap</a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-icon-btn" title="Bosh sahifa"><i class="fas fa-home"></i></a>
+    <a href="ai-chat.html" class="nav-icon-btn" title="AI Chat"><i class="fas fa-robot"></i></a>
+    <button class="nav-icon-btn" id="theme-btn" title="Tema"><i class="fas fa-moon"></i></button>
+  </div>
+</nav>
+
+<div class="dash-wrap">
+
+  <!-- HERO -->
+  <div class="hero-card">
+    <div class="hero-avatar" id="heroAvatar">?</div>
+    <div class="hero-info">
+      <h1 id="heroName">Yuklanmoqda...</h1>
+      <p id="heroEmail">—</p>
+      <div class="hero-badges" id="heroBadges"></div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-pts" id="heroPts">0</div>
+      <div class="hero-pts-lbl">umumiy ball</div>
+      <button class="logout-btn" onclick="doLogout()">
+        <i class="fas fa-sign-out-alt"></i> Chiqish
+      </button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#eff3ff"><span>🧪</span></div>
+      <div><div class="stat-val" id="statLab">0</div><div class="stat-key">Laboratoriyalar</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f0fdf4"><span>🎮</span></div>
+      <div><div class="stat-val" id="statGames">0</div><div class="stat-key">O'yinlar</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#faf5ff"><span>📝</span></div>
+      <div><div class="stat-val" id="statTests">0</div><div class="stat-key">Testlar</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fff7ed"><span>🤖</span></div>
+      <div><div class="stat-val" id="statAI">0</div><div class="stat-key">AI so'rovlar</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#f0fdfa"><span>🔥</span></div>
+      <div><div class="stat-val" id="statStreak">0</div><div class="stat-key">Streak (kun)</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fdf2f8"><span>⭐</span></div>
+      <div><div class="stat-val" id="statTotal">0</div><div class="stat-key">Jami ball</div></div>
+    </div>
+  </div>
+
+  <!-- TWO COL -->
+  <div class="two-col">
+
+    <!-- FAOLLIK -->
+    <div class="panel">
+      <div class="panel-title">📅 So'nggi faollik</div>
+      <div id="activityList">
+        <div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">
+          Hali faollik yo'q
+        </div>
+      </div>
+    </div>
+
+    <!-- TEZKOR HAVOLALAR -->
+    <div class="panel">
+      <div class="panel-title">⚡ Tezkor havolalar</div>
+      <div class="quick-grid">
+        <a href="labs/index.html" class="quick-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+          <i class="fas fa-flask"></i> Laboratoriya
+        </a>
+        <a href="ai-chat.html" class="quick-btn" style="background:linear-gradient(135deg,#2563eb,#3b82f6)">
+          <i class="fas fa-robot"></i> AI Chat
+        </a>
+        <a href="oyin/index.html" class="quick-btn" style="background:linear-gradient(135deg,#10b981,#059669)">
+          <i class="fas fa-gamepad"></i> O'yinlar
+        </a>
+        <a href="ai-chat.html?tab=tutor" class="quick-btn" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+          <i class="fas fa-graduation-cap"></i> AI Tutor
+        </a>
+        <a href="metodlar/index.html" class="quick-btn" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+          <i class="fas fa-book"></i> Metodlar
+        </a>
+        <a href="ai-chat.html?tab=essay" class="quick-btn" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
+          <i class="fas fa-pen-nib"></i> Essay AI
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="panel" style="margin-bottom:28px">
+    <div class="panel-title">📊 Faollik darajasi</div>
+    <div id="progressBars">
+      <div class="prog-row">
+        <div class="prog-head"><span>🧪 Laboratoriyalar</span><span id="pr-lab">0/20</span></div>
+        <div class="prog-track"><div class="prog-fill" id="pf-lab" style="width:0%;background:#f59e0b"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-head"><span>🎮 O'yinlar</span><span id="pr-games">0</span></div>
+        <div class="prog-track"><div class="prog-fill" id="pf-games" style="width:0%;background:#10b981"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-head"><span>🤖 AI xizmatlari</span><span id="pr-ai">0</span></div>
+        <div class="prog-track"><div class="prog-fill" id="pf-ai" style="width:0%;background:#2563eb"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YUTUQLAR -->
+  <div class="panel">
+    <div class="panel-title">🏅 Yutuqlar</div>
+    <div class="ach-grid" id="achGrid"></div>
+  </div>
+
+</div>
+
+<script src="js/ziyomap-usage.js"></script>
+<script src="js/auth-guard.js"></script>
+<script src="js/notifications.js"></script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
+
+const firebaseConfig = {
+  apiKey:'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
+  authDomain:'ziyomap.firebaseapp.com',
+  projectId:'ziyomap',
+  storageBucket:'ziyomap.firebasestorage.app',
+  messagingSenderId:'982123868162',
+  appId:'1:982123868162:web:6845723988c030fcd1f71b'
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// ── LOGOUT ──
+window.doLogout = async function() {
+  if (!confirm('Chiqmoqchimisiz?')) return;
+  try { await signOut(auth); } catch(e) {}
+  if (window.ZiyomapUsage) ZiyomapUsage.clearSession();
+  else localStorage.removeItem('user');
+  window.location.href = 'kirish.html?logout=1';
+};
+
+// ── AUTH STATE ──
+onAuthStateChanged(auth, user => {
+  const stored = window.ZiyomapUsage?.getUser?.();
+  if (!stored && !user) {
+    window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
+    return;
+  }
+  loadDashboard(stored || {
+    displayName: user?.displayName || 'Foydalanuvchi',
+    email: user?.email || '',
+    photoURL: user?.photoURL || null,
+  });
+});
+</script>
+
+<script>
+// ── THEME ──
+(function(){
+  const t = localStorage.getItem('theme');
+  if (t === 'dark') document.body.classList.add('dark-theme');
+})();
+
+document.getElementById('theme-btn').addEventListener('click', function(){
+  document.body.classList.toggle('dark-theme');
+  const isDark = document.body.classList.contains('dark-theme');
+  this.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+});
+
+if (localStorage.getItem('theme') === 'dark') {
+  document.getElementById('theme-btn').innerHTML = '<i class="fas fa-sun"></i>';
+}
+
+// ── ACHIEVEMENTS DEF ──
+const ACHIEVEMENTS = [
+  {id:'first',   icon:'🌟', name:'Birinchi qadam',  desc:'Birinchi marta kirdi',           cond:s=>s.totalVisits>=1},
+  {id:'lab1',    icon:'🧪', name:'Laborant',         desc:'1 ta lab oʻtdi',                 cond:s=>s.labCount>=1},
+  {id:'lab5',    icon:'⚗️', name:'Kimyogar',         desc:'5 ta laboratoriya',              cond:s=>s.labCount>=5},
+  {id:'game1',   icon:'🎮', name:'Oʻyinchi',         desc:'Birinchi oʻyinni oʻynadi',       cond:s=>s.gameCount>=1},
+  {id:'game10',  icon:'🏆', name:'Chempion',         desc:'10 ta oʻyin',                    cond:s=>s.gameCount>=10},
+  {id:'ai1',     icon:'🤖', name:'AI Doʻst',         desc:'AI bilan suhbat qildi',          cond:s=>s.aiCount>=1},
+  {id:'ai10',    icon:'🧠', name:'AI Mutaxassis',    desc:'10 ta AI soʻrov',                cond:s=>s.aiCount>=10},
+  {id:'pts100',  icon:'💯', name:'Yuz ball',          desc:'100 ball toʻpladi',              cond:s=>s.totalPts>=100},
+  {id:'pts500',  icon:'👑', name:'Besh yuz ball',    desc:'500 ball toʻpladi',              cond:s=>s.totalPts>=500},
+  {id:'streak3', icon:'🔥', name:'Doimiy',           desc:'3 kun ketma-ket kirdi',          cond:s=>s.streak>=3},
+];
+
+// ── STATS COLLECTOR ──
+function collectStats(user) {
+  const U = window.ZiyomapUsage;
+  const history = U ? U.getUsageHistory() : [];
+  const totalPts = parseInt(localStorage.getItem('zy_total') || 0);
+
+  const labCount  = history.filter(h => h.id && h.id.includes('lab')).length;
+  const gameCount = history.filter(h => ['quiz','tezkor','puzzle','memory','arqon','charx','tartib','ha-yo','sirli-quti']
+                                         .some(g => h.id?.includes(g))).length;
+  const aiCount   = history.filter(h => ['ai-chat','ai-xabar','ai-tools'].some(a => h.id?.includes(a))).length;
+  const testCount = history.filter(h => h.id && h.id.includes('test')).length;
+
+  // Streak hisoblash (ketma-ket kunlar)
+  const days = [...new Set(history.map(h => h.at ? new Date(h.at).toDateString() : null).filter(Boolean))];
+  let streak = 0;
+  const today = new Date();
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    if (days.includes(d.toDateString())) streak++;
+    else break;
+  }
+
+  const totalVisits = history.length;
+
+  return { labCount, gameCount, aiCount, testCount, streak, totalPts, totalVisits, history };
+}
+
+// ── LOAD DASHBOARD ──
+function loadDashboard(user) {
+  // Profil
+  const av = document.getElementById('heroAvatar');
+  if (user.photoURL) {
+    av.innerHTML = `<img src="${user.photoURL}" alt="">`;
+  } else {
+    av.textContent = (user.displayName || '?')[0].toUpperCase();
+  }
+  document.getElementById('heroName').textContent = user.displayName || 'Foydalanuvchi';
+  document.getElementById('heroEmail').textContent =
+    user.provider === 'local' ? 'Login: ' + (user.localLogin || '—') : (user.email || '');
+
+  const S = collectStats(user);
+
+  // Balllar
+  const pts = S.totalPts;
+  document.getElementById('heroPts').textContent = pts;
+  document.getElementById('statTotal').textContent = pts;
+
+  // Badges
+  const badges = [];
+  if (pts >= 500) badges.push('👑 Grand Master');
+  else if (pts >= 100) badges.push('⭐ O\'yinchi');
+  else badges.push('🌱 Yangi');
+  if (S.labCount >= 5) badges.push('🧪 Laborant');
+  if (S.aiCount >= 5) badges.push('🤖 AI Fan');
+  document.getElementById('heroBadges').innerHTML =
+    badges.map(b => `<span class="hero-badge">${b}</span>`).join('');
+
+  // Stats
+  document.getElementById('statLab').textContent    = S.labCount;
+  document.getElementById('statGames').textContent  = S.gameCount;
+  document.getElementById('statTests').textContent  = S.testCount;
+  document.getElementById('statAI').textContent     = S.aiCount;
+  document.getElementById('statStreak').textContent = S.streak;
+
+  // Progress bars
+  document.getElementById('pr-lab').textContent    = S.labCount + '/20';
+  document.getElementById('pf-lab').style.width    = Math.min(100, S.labCount / 20 * 100) + '%';
+  document.getElementById('pr-games').textContent  = S.gameCount;
+  document.getElementById('pf-games').style.width  = Math.min(100, S.gameCount / 20 * 100) + '%';
+  document.getElementById('pr-ai').textContent     = S.aiCount;
+  document.getElementById('pf-ai').style.width     = Math.min(100, S.aiCount / 20 * 100) + '%';
+
+  // Faollik tarixi
+  const actList = document.getElementById('activityList');
+  const recentHistory = S.history.slice(0, 8);
+  const ICONS = {
+    'lab': {icon:'🧪', bg:'#fff7ed'},
+    'ai-chat': {icon:'🤖', bg:'#eff3ff'},
+    'ai-xabar': {icon:'🤖', bg:'#eff3ff'},
+    'quiz': {icon:'❓', bg:'#f0fdf4'},
+    'doska': {icon:'✏️', bg:'#eff6ff'},
+    'kirish': {icon:'👤', bg:'#fdf2f8'},
+    'default': {icon:'📌', bg:'#f8fafc'},
+  };
+
+  if (recentHistory.length) {
+    actList.innerHTML = recentHistory.map(h => {
+      const meta = Object.entries(ICONS).find(([k]) => h.id?.includes(k))?.[1] || ICONS.default;
+      const when = h.at ? new Date(h.at).toLocaleString('uz-UZ',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+      return `<div class="activity-row">
+        <div class="act-icon" style="background:${meta.bg}">${meta.icon}</div>
+        <div class="act-label">${h.label || h.id}</div>
+        <div class="act-time">${when}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Achievements
+  const achGrid = document.getElementById('achGrid');
+  achGrid.innerHTML = ACHIEVEMENTS.map(a => {
+    const ok = a.cond(S);
+    return `<div class="ach-card ${ok ? 'unlocked' : 'locked'}">
+      <div class="ach-emoji">${a.icon}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+    </div>`;
+  }).join('');
+}
+
+// Guard - agar login bo'lmasa
+window.addEventListener('load', () => {
+  const U = window.ZiyomapUsage;
+  if (!U?.getUser?.()) {
+    // Firebase module ishlaydi, kutamiz
+    setTimeout(() => {
+      if (!U?.getUser?.()) {
+        window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
+      }
+    }, 1500);
+  }
+});
+</script>
+</body>
+</html>
