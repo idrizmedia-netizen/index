@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Ziyomap AI Chat</title>
+    <title>Ziyomap AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/ai-chat.css">
     <link rel="stylesheet" href="css/mobile.css">
@@ -12,49 +12,418 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+    /* ── TAB BAR ── */
+    .ai-tab-bar {
+        display: flex;
+        gap: 4px;
+        padding: 10px 16px 0;
+        background: var(--card-bg);
+        border-bottom: 1px solid rgba(56,189,248,.15);
+        overflow-x: auto;
+        scrollbar-width: none;
+        flex-shrink: 0;
+    }
+    .ai-tab-bar::-webkit-scrollbar { display: none; }
+
+    .ai-tab {
+        padding: 8px 16px;
+        border-radius: 10px 10px 0 0;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        opacity: .55;
+        font-size: .82rem;
+        font-weight: 700;
+        cursor: pointer;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: .2s;
+        font-family: inherit;
+        border-bottom: 2px solid transparent;
+    }
+    .ai-tab:hover { opacity: .8; }
+    .ai-tab.active {
+        opacity: 1;
+        border-bottom: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        background: rgba(37,99,235,.07);
+    }
+
+    /* ── TAB PANELS ── */
+    .tab-panel { display: none; flex-direction: column; flex: 1; min-height: 0; }
+    .tab-panel.active { display: flex; }
+
+    /* ── TUTOR PANEL ── */
+    .tutor-shell {
+        display: flex; flex-direction: column;
+        flex: 1; min-height: 0;
+    }
+    .tutor-subjects {
+        padding: 10px 14px;
+        display: flex; gap: 6px; flex-wrap: wrap;
+        border-bottom: 1px solid rgba(56,189,248,.1);
+        flex-shrink: 0;
+    }
+    .subj-chip {
+        padding: 5px 12px;
+        border-radius: 20px;
+        border: 1.5px solid rgba(56,189,248,.3);
+        background: transparent;
+        color: var(--text-color);
+        font-size: .75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .15s;
+        font-family: inherit;
+    }
+    .subj-chip:hover, .subj-chip.active {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+    }
+    .tutor-mode-bar {
+        padding: 8px 14px;
+        display: flex; gap: 8px; align-items: center;
+        font-size: .78rem; font-weight: 700;
+        border-bottom: 1px solid rgba(56,189,248,.1);
+        flex-shrink: 0; flex-wrap: wrap;
+    }
+    .mode-lbl { color: var(--text-color); opacity: .7; }
+    .mode-btn {
+        padding: 4px 12px; border-radius: 8px;
+        border: 1.5px solid rgba(56,189,248,.3);
+        background: transparent; color: var(--text-color);
+        font-size: .75rem; font-weight: 700; cursor: pointer;
+        font-family: inherit; transition: .15s;
+    }
+    .mode-btn:hover, .mode-btn.active {
+        background: rgba(37,99,235,.15);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    /* ── ESSAY PANEL ── */
+    .essay-shell {
+        flex: 1; overflow-y: auto;
+        padding: 16px;
+        display: flex; flex-direction: column; gap: 14px;
+    }
+    .essay-box {
+        background: var(--card-bg);
+        border: 1px solid rgba(56,189,248,.2);
+        border-radius: 14px;
+        padding: 16px;
+    }
+    .essay-box label {
+        display: block; font-size: .78rem; font-weight: 700;
+        margin-bottom: 7px; opacity: .7;
+    }
+    .essay-textarea {
+        width: 100%; min-height: 160px;
+        padding: 12px; border-radius: 10px;
+        border: 1.5px solid rgba(56,189,248,.25);
+        background: var(--light-bg);
+        color: var(--text-color);
+        font-size: .9rem; font-family: inherit;
+        resize: vertical; outline: none;
+        transition: border-color .2s;
+    }
+    .essay-textarea:focus { border-color: var(--primary-color); }
+    .essay-lang-row {
+        display: flex; gap: 8px; align-items: center;
+        flex-wrap: wrap; margin-bottom: 4px;
+    }
+    .essay-lang-btn {
+        padding: 5px 12px; border-radius: 8px;
+        border: 1.5px solid rgba(56,189,248,.25);
+        background: transparent; color: var(--text-color);
+        font-size: .75rem; font-weight: 700; cursor: pointer;
+        font-family: inherit; transition: .15s;
+    }
+    .essay-lang-btn.active {
+        background: var(--primary-color); color: #fff;
+        border-color: var(--primary-color);
+    }
+    .essay-check-btn {
+        width: 100%; padding: 13px;
+        border-radius: 12px; border: none;
+        background: linear-gradient(135deg, #0ea5e9, #2563eb);
+        color: #fff; font-size: .95rem; font-weight: 800;
+        cursor: pointer; font-family: inherit;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: .2s;
+    }
+    .essay-check-btn:hover { opacity: .9; transform: translateY(-1px); }
+    .essay-check-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .essay-result {
+        background: var(--card-bg);
+        border: 1px solid rgba(56,189,248,.2);
+        border-radius: 14px; padding: 18px;
+        font-size: .88rem; line-height: 1.7;
+        display: none;
+    }
+    .essay-result.show { display: block; }
+    .essay-score {
+        font-size: 1.8rem; font-weight: 800;
+        color: var(--primary-color);
+        text-align: center; margin-bottom: 12px;
+    }
+    .essay-section {
+        padding: 10px 14px; border-radius: 10px;
+        margin-bottom: 8px;
+        border-left: 3px solid var(--primary-color);
+        background: rgba(37,99,235,.06);
+    }
+    .essay-section-title {
+        font-size: .75rem; font-weight: 800;
+        text-transform: uppercase; letter-spacing: .04em;
+        margin-bottom: 5px; opacity: .7;
+    }
+
+    /* ── TEST GENERATOR (from ai-tools) ── */
+    .gen-shell {
+        flex: 1; overflow-y: auto; padding: 16px;
+        display: flex; flex-direction: column; gap: 14px;
+    }
+    .gen-box {
+        background: var(--card-bg);
+        border: 1px solid rgba(56,189,248,.2);
+        border-radius: 14px; padding: 16px;
+    }
+    .gen-box label {
+        display: block; font-size: .78rem; font-weight: 700;
+        margin-bottom: 7px; opacity: .7;
+    }
+    .gen-select, .gen-input {
+        width: 100%; padding: 10px 12px;
+        border-radius: 10px;
+        border: 1.5px solid rgba(56,189,248,.25);
+        background: var(--light-bg); color: var(--text-color);
+        font-size: .9rem; font-family: inherit; outline: none;
+        transition: border-color .2s;
+    }
+    .gen-select:focus, .gen-input:focus { border-color: var(--primary-color); }
+    .gen-btn {
+        width: 100%; padding: 13px; border-radius: 12px; border: none;
+        color: #fff; font-size: .95rem; font-weight: 800;
+        cursor: pointer; font-family: inherit;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        transition: .2s;
+    }
+    .gen-btn:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+    .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .gen-result {
+        background: var(--card-bg);
+        border: 1px solid rgba(56,189,248,.2);
+        border-radius: 14px; padding: 16px;
+        font-size: .88rem; line-height: 1.8;
+        display: none;
+    }
+    .gen-result.show { display: block; }
+
+    @media (max-width: 768px) {
+        .ai-tab { padding: 7px 11px; font-size: .75rem; }
+    }
+    </style>
 </head>
 <body>
     <div class="chat-page-wrap">
+        <!-- TOP BAR -->
         <div class="chat-top-bar">
             <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
             <h1 class="chat-page-title"><i class="fas fa-brain"></i> Ziyomap AI</h1>
-            <a href="ai-tools.html" style="color:var(--primary-color);font-weight:600;font-size:0.9rem;">Ziyo AI Studio</a>
+            <a href="dashboard.html" style="color:var(--primary-color);font-weight:600;font-size:0.9rem;">
+                <i class="fas fa-user-circle"></i> Kabinet
+            </a>
         </div>
 
+        <!-- AUTH NOTICE -->
         <div id="auth-notice" class="auth-notice">
-            Chatdan foydalanish uchun avval <a href="kirish.html">tizimga kiring</a> (Google yoki ism bilan).
+            Chatdan foydalanish uchun avval <a href="kirish.html">tizimga kiring</a>.
         </div>
 
-        <div class="chat-shell">
-            <div class="chat-header">
-                <span><i class="fas fa-robot"></i> Sun'iy intellekt yordamchisi</span>
-            </div>
+        <!-- TAB BAR -->
+        <div class="ai-tab-bar">
+            <button class="ai-tab active" data-tab="chat" onclick="switchTab('chat',this)">
+                <i class="fas fa-comments"></i> AI Chat
+            </button>
+            <button class="ai-tab" data-tab="tutor" onclick="switchTab('tutor',this)">
+                <i class="fas fa-graduation-cap"></i> AI Tutor
+            </button>
+            <button class="ai-tab" data-tab="essay" onclick="switchTab('essay',this)">
+                <i class="fas fa-pen-nib"></i> Essay Checker
+            </button>
+            <button class="ai-tab" data-tab="gen" onclick="switchTab('gen',this)">
+                <i class="fas fa-layer-group"></i> Test Generator
+            </button>
+        </div>
 
-            <div id="chat-messages">
-                <div class="welcome-bubble">
-                    Assalomu alaykum! Savol bering, rasm yoki fayl (PDF, matn) yuklashingiz mumkin.
+        <!-- ══════════════════════════════════
+             TAB 1 — AI CHAT
+        ══════════════════════════════════ -->
+        <div class="tab-panel active" id="tab-chat">
+            <div class="chat-shell">
+                <div class="chat-header">
+                    <span><i class="fas fa-robot"></i> Sun'iy intellekt yordamchisi</span>
                 </div>
-            </div>
-
-            <div id="image-preview-box">
-                <img id="preview-img" src="" alt="Ko‘rinish">
-                <button type="button" class="preview-remove" onclick="cancelImage()" title="O‘chirish">×</button>
-            </div>
-
-            <div class="chat-input-area">
-                <div class="chat-input-row">
-                    <label for="file-upload" class="file-label" title="Fayl biriktirish">
-                        <i class="fas fa-paperclip"></i>
-                    </label>
-                    <input type="file" id="file-upload" accept="image/*,application/pdf,text/plain" hidden>
-                    <input type="text" id="user-input-ai" placeholder="Savol yozing...">
-                    <button type="button" id="send-btn-ai" title="Yuborish">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                <div id="chat-messages">
+                    <div class="welcome-bubble">
+                        Assalomu alaykum! Savol bering, rasm yoki fayl (PDF, matn) yuklashingiz mumkin.
+                    </div>
+                </div>
+                <div id="image-preview-box">
+                    <img id="preview-img" src="" alt="Ko'rinish">
+                    <button type="button" class="preview-remove" onclick="cancelImage()" title="O'chirish">×</button>
+                </div>
+                <div class="chat-input-area">
+                    <div class="chat-input-row">
+                        <label for="file-upload" class="file-label" title="Fayl biriktirish">
+                            <i class="fas fa-paperclip"></i>
+                        </label>
+                        <input type="file" id="file-upload" accept="image/*,application/pdf,text/plain" hidden>
+                        <input type="text" id="user-input-ai" placeholder="Savol yozing...">
+                        <button type="button" id="send-btn-ai" title="Yuborish">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+
+        <!-- ══════════════════════════════════
+             TAB 2 — AI TUTOR
+        ══════════════════════════════════ -->
+        <div class="tab-panel" id="tab-tutor">
+            <div class="tutor-shell">
+                <!-- Fan tanlash -->
+                <div class="tutor-subjects" id="tutorSubjects">
+                    <button class="subj-chip active" data-subj="fizika"     onclick="selectSubject(this)">⚛️ Fizika</button>
+                    <button class="subj-chip"         data-subj="matematika" onclick="selectSubject(this)">📐 Matematika</button>
+                    <button class="subj-chip"         data-subj="kimyo"      onclick="selectSubject(this)">🧪 Kimyo</button>
+                    <button class="subj-chip"         data-subj="biologiya"  onclick="selectSubject(this)">🧬 Biologiya</button>
+                    <button class="subj-chip"         data-subj="informatika"onclick="selectSubject(this)">💻 Informatika</button>
+                    <button class="subj-chip"         data-subj="tarix"      onclick="selectSubject(this)">📜 Tarix</button>
+                    <button class="subj-chip"         data-subj="ingliz"     onclick="selectSubject(this)">🇬🇧 Ingliz tili</button>
+                    <button class="subj-chip"         data-subj="umumiy"     onclick="selectSubject(this)">🌐 Umumiy</button>
+                </div>
+                <!-- Rejim -->
+                <div class="tutor-mode-bar">
+                    <span class="mode-lbl">Rejim:</span>
+                    <button class="mode-btn active" data-mode="explain" onclick="selectMode(this)">📖 Tushuntirish</button>
+                    <button class="mode-btn"        data-mode="exam"    onclick="selectMode(this)">📝 Imtihon</button>
+                    <button class="mode-btn"        data-mode="qa"      onclick="selectMode(this)">❓ Savol-Javob</button>
+                    <button class="mode-btn"        data-mode="step"    onclick="selectMode(this)">🪜 Bosqichma</button>
+                </div>
+                <!-- Chat area -->
+                <div class="chat-shell" style="border-radius:0 0 16px 16px">
+                    <div id="tutor-messages" style="flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;font-size:.92rem;min-height:0">
+                        <div class="welcome-bubble">
+                            🎓 AI Tutor — mavzuni bosqichma-bosqich o'rgatadi, savollar beradi va xatolaringizni tushuntiradi.<br><br>
+                            <strong>Misol:</strong> "Menga Nyuton qonunlarini o'rgat" yoki "8-sinf kvadrat tenglamalar"
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-row">
+                            <input type="text" id="tutor-input" placeholder="Mavzu yoki savol yozing...">
+                            <button type="button" id="tutor-send-btn" onclick="sendTutorMessage()" title="Yuborish">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════
+             TAB 3 — ESSAY CHECKER
+        ══════════════════════════════════ -->
+        <div class="tab-panel" id="tab-essay">
+            <div class="essay-shell">
+                <div class="essay-box">
+                    <label>📝 Matn tilini tanlang:</label>
+                    <div class="essay-lang-row">
+                        <button class="essay-lang-btn active" data-lang="uz" onclick="selectEssayLang(this)">🇺🇿 O'zbekcha</button>
+                        <button class="essay-lang-btn"        data-lang="ru" onclick="selectEssayLang(this)">🇷🇺 Ruscha</button>
+                        <button class="essay-lang-btn"        data-lang="en" onclick="selectEssayLang(this)">🇬🇧 Inglizcha</button>
+                    </div>
+                </div>
+
+                <div class="essay-box">
+                    <label>✏️ Insho yoki matnni kiriting:</label>
+                    <textarea class="essay-textarea" id="essayText"
+                        placeholder="Matningizni shu yerga yoping yoki yozing...&#10;&#10;AI quyidagilarni tekshiradi:&#10;• Imlo xatolari&#10;• Grammatik xatolar&#10;• Uslub va tuzilish&#10;• Kuchli va zaif tomonlar"></textarea>
+                </div>
+
+                <div class="essay-box">
+                    <label>🎯 Tekshirish darajasi:</label>
+                    <div class="essay-lang-row">
+                        <button class="essay-lang-btn active" data-level="standard" onclick="selectEssayLevel(this)">📗 Standart</button>
+                        <button class="essay-lang-btn"        data-level="academic" onclick="selectEssayLevel(this)">📘 Akademik</button>
+                        <button class="essay-lang-btn"        data-level="school"   onclick="selectEssayLevel(this)">📙 Maktab</button>
+                    </div>
+                </div>
+
+                <button class="essay-check-btn" id="essayCheckBtn" onclick="checkEssay()">
+                    <i class="fas fa-search"></i> Matnni tekshirish
+                </button>
+
+                <div class="essay-result" id="essayResult">
+                    <div class="essay-score" id="essayScore"></div>
+                    <div id="essayResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════
+             TAB 4 — TEST GENERATOR
+        ══════════════════════════════════ -->
+        <div class="tab-panel" id="tab-gen">
+            <div class="gen-shell">
+                <div class="gen-box">
+                    <label>📚 Fan:</label>
+                    <select class="gen-select" id="genSubject">
+                        <option value="Matematika">Matematika</option>
+                        <option value="Fizika">Fizika</option>
+                        <option value="Kimyo">Kimyo</option>
+                        <option value="Biologiya">Biologiya</option>
+                        <option value="Informatika">Informatika</option>
+                        <option value="O'zbek tili">O'zbek tili</option>
+                        <option value="Adabiyot">Adabiyot</option>
+                        <option value="Ingliz tili">Ingliz tili</option>
+                        <option value="Tarix">Tarix</option>
+                        <option value="Geografiya">Geografiya</option>
+                    </select>
+                </div>
+                <div class="gen-box">
+                    <label>🔢 Savollar soni:</label>
+                    <select class="gen-select" id="genCount">
+                        <option value="5">5 ta</option>
+                        <option value="10" selected>10 ta</option>
+                        <option value="15">15 ta</option>
+                        <option value="20">20 ta</option>
+                        <option value="25">25 ta</option>
+                        <option value="30">30 ta</option>
+                    </select>
+                </div>
+                <div class="gen-box">
+                    <label>📝 Mavzu:</label>
+                    <input class="gen-input" type="text" id="genTopic"
+                        placeholder="Mavzuni yozing (bir yoki bir necha, vergul bilan)">
+                </div>
+                <button class="gen-btn" id="genBtn"
+                    style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"
+                    onclick="generateTests()">
+                    <i class="fas fa-layer-group"></i> Testlarni yaratish
+                </button>
+                <div class="gen-result" id="genResult"></div>
+            </div>
+        </div>
+
+    </div><!-- /chat-page-wrap -->
 
     <script src="js/ziyomap-usage.js"></script>
     <script src="js/auth-guard.js"></script>
@@ -62,13 +431,75 @@
     <script src="js/search-modal.js"></script>
     <script>ZiyomapAuthGuard.protectPage();</script>
     <script src="js/ai-chat.js"></script>
-<script>
-document.addEventListener('keydown', function(e){
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    if (window.ZiyomapSearch) ZiyomapSearch.open();
-  }
-});
-</script>
+    <script src="js/ai-tutor.js"></script>
+    <script src="js/ai-essay.js"></script>
+
+    <script>
+    /* ═══════════════════════════════════
+       TAB SWITCHING
+    ═══════════════════════════════════ */
+    function switchTab(id, btn) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.ai-tab').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + id).classList.add('active');
+        if (btn) btn.classList.add('active');
+
+        // URL param
+        const url = new URL(window.location);
+        url.searchParams.set('tab', id);
+        history.replaceState({}, '', url);
+    }
+
+    /* URL dan tab ochish */
+    (function(){
+        const p = new URLSearchParams(window.location.search).get('tab');
+        if (p) {
+            const btn = document.querySelector(`.ai-tab[data-tab="${p}"]`);
+            if (btn) switchTab(p, btn);
+        }
+    })();
+
+    /* ═══════════════════════════════════
+       TUTOR — fan & rejim tanlash
+    ═══════════════════════════════════ */
+    let tutorSubject = 'fizika';
+    let tutorMode    = 'explain';
+
+    function selectSubject(el) {
+        document.querySelectorAll('.subj-chip').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        tutorSubject = el.dataset.subj;
+    }
+    function selectMode(el) {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        tutorMode = el.dataset.mode;
+    }
+
+    /* ═══════════════════════════════════
+       ESSAY — til & daraja
+    ═══════════════════════════════════ */
+    let essayLang  = 'uz';
+    let essayLevel = 'standard';
+
+    function selectEssayLang(el) {
+        document.querySelectorAll('.essay-lang-btn[data-lang]').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        essayLang = el.dataset.lang;
+    }
+    function selectEssayLevel(el) {
+        document.querySelectorAll('.essay-lang-btn[data-level]').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        essayLevel = el.dataset.level;
+    }
+
+    /* Ctrl+K qidiruv */
+    document.addEventListener('keydown', function(e){
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            if (window.ZiyomapSearch) ZiyomapSearch.open();
+        }
+    });
+    </script>
 </body>
 </html>
