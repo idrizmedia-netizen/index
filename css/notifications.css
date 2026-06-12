@@ -28,31 +28,11 @@
 }
 .zy-notif-close:hover { opacity: 1; background: rgba(255,255,255,0.25); }
 
-.zy-notif--info {
-  background: linear-gradient(135deg,#2563eb,#1d4ed8);
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(37,99,235,0.45);
-}
-.zy-notif--success {
-  background: linear-gradient(135deg,#16a34a,#15803d);
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(22,163,74,0.45);
-}
-.zy-notif--error {
-  background: linear-gradient(135deg,#dc2626,#b91c1c);
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(220,38,38,0.45);
-}
-.zy-notif--loading {
-  background: linear-gradient(135deg,#9333ea,#7c3aed);
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(147,51,234,0.45);
-}
-.zy-notif--admin {
-  background: linear-gradient(135deg,#f97316,#ea580c);
-  color: #fff;
-  box-shadow: 0 4px 24px rgba(249,115,22,0.45);
-}
+.zy-notif--info    { background: linear-gradient(135deg,#2563eb,#1d4ed8); color: #fff; box-shadow: 0 4px 24px rgba(37,99,235,0.45); }
+.zy-notif--success { background: linear-gradient(135deg,#16a34a,#15803d); color: #fff; box-shadow: 0 4px 24px rgba(22,163,74,0.45); }
+.zy-notif--error   { background: linear-gradient(135deg,#dc2626,#b91c1c); color: #fff; box-shadow: 0 4px 24px rgba(220,38,38,0.45); }
+.zy-notif--loading { background: linear-gradient(135deg,#9333ea,#7c3aed); color: #fff; box-shadow: 0 4px 24px rgba(147,51,234,0.45); }
+.zy-notif--admin   { background: linear-gradient(135deg,#f97316,#ea580c); color: #fff; box-shadow: 0 4px 24px rgba(249,115,22,0.45); }
 .zy-notif--admin .zy-notif-icon { animation: zyPulse 1.5s infinite; }
 .zy-notif--removing { animation: zyNotifOut 0.35s ease forwards; }
 .zy-notif--loading .zy-notif-icon { animation: zySpin 1s linear infinite; }
@@ -64,17 +44,11 @@
   animation: zyShrink linear forwards;
 }
 
-@keyframes zyNotifIn {
-  from { transform: translateX(120%) scale(0.85); opacity: 0; }
-  to { transform: translateX(0) scale(1); opacity: 1; }
-}
-@keyframes zyNotifOut {
-  from { transform: translateX(0) scale(1); opacity: 1; }
-  to { transform: translateX(120%) scale(0.85); opacity: 0; }
-}
-@keyframes zyPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-@keyframes zySpin { to{transform:rotate(360deg)} }
-@keyframes zyShrink { from{width:100%} to{width:0%} }
+@keyframes zyNotifIn  { from { transform: translateX(120%) scale(0.85); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+@keyframes zyNotifOut { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(120%) scale(0.85); opacity: 0; } }
+@keyframes zyPulse    { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes zySpin     { to{transform:rotate(360deg)} }
+@keyframes zyShrink   { from{width:100%} to{width:0%} }
 
 /* ===== Qo'ng'iroqcha (Bell) ===== */
 .zy-bell-wrap { position: relative; display: inline-flex; align-items: center; }
@@ -94,34 +68,127 @@ body.dark-theme .zy-bell-btn { color: #f1f5f9; }
 }
 .zy-bell-badge.show { display: flex; }
 
+/* ===== Bell Dropdown ===== */
 .zy-bell-dropdown {
-  position: absolute; top: calc(100% + 8px); right: -8px;
-  width: 320px; max-height: 400px; overflow-y: auto;
-  background: #fff; border-radius: 16px;
+  position: fixed;       /* mobilda fixed ishlatamiz */
+  z-index: 1200;
+  background: #fff;
+  border-radius: 16px;
   box-shadow: 0 15px 50px rgba(0,0,0,0.2);
-  display: none; z-index: 1200;
+  display: none;
   padding: 8px;
+  overflow-y: auto;
+  /* o'lchamlar JS tomonidan o'rnatiladi */
 }
 body.dark-theme .zy-bell-dropdown { background: #1e293b; }
 .zy-bell-dropdown.open { display: block; animation: zyBellDrop 0.25s ease; }
 @keyframes zyBellDrop { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
+/* Dropdown desktop holati */
+@media (min-width: 769px) {
+  .zy-bell-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: -8px;
+    width: 320px;
+    max-height: 400px;
+    left: auto;
+    bottom: auto;
+  }
+}
+
+/* Dropdown mobil holati — to'liq ekran kengligi, pastga yopishgan */
+@media (max-width: 768px) {
+  .zy-bell-dropdown {
+    position: fixed;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-height: 70vh;
+    border-radius: 20px 20px 0 0;
+    padding: 12px 8px 24px;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.2);
+  }
+  .zy-bell-dropdown::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 0 auto 12px;
+  }
+  body.dark-theme .zy-bell-dropdown::before { background: #475569; }
+
+  /* Mobilda dropdown orqa fonini qoraytirish */
+  .zy-bell-dropdown.open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: -1;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+/* Bell dropdown item */
 .zy-bell-dd-item {
   padding: 12px 14px; font-size: 13px; font-weight: 600;
   display: flex; align-items: flex-start; gap: 10px; line-height: 1.4;
   border-radius: 10px; color: #374151;
   transition: background 0.2s;
+  position: relative;
 }
 .zy-bell-dd-item:hover { background: #f3f4f6; }
 body.dark-theme .zy-bell-dd-item { color: #e2e8f0; }
 body.dark-theme .zy-bell-dd-item:hover { background: #334155; }
-.zy-bell-dd-item .zy-notif-icon { font-size: 1rem; margin-top: 1px; color: #2563eb; }
 
+/* O'qilmagan holat — qalin va nuqtali */
+.zy-bell-dd-item:not(.zy-bell-dd-read) {
+  font-weight: 700;
+}
+/* O'qilgan holat — ochroq */
+.zy-bell-dd-item.zy-bell-dd-read {
+  opacity: 0.6;
+  font-weight: 500;
+}
+
+/* O'qilmagan nuqtachasi */
+.zy-bell-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 3px;
+  margin-left: auto;
+}
+
+/* Admin icon rangi */
+.zy-bell-dd-item .zy-notif-icon { font-size: 1rem; margin-top: 1px; color: #2563eb; }
+.zy-bell-dd-item .zy-admin-icon { color: #f97316; }
+
+/* "Barchasini o'qish" tugmasi */
 .zy-bell-clear {
   padding: 10px 14px; font-size: 12px; font-weight: 700; text-align: center;
-  cursor: pointer; color: #ef4444; border-top: 1px solid #e5e7eb;
+  cursor: pointer; color: #2563eb; border-top: 1px solid #e5e7eb;
   margin-top: 4px; border-radius: 0 0 10px 10px; transition: background 0.2s;
 }
-.zy-bell-clear:hover { background: #fef2f2; }
-body.dark-theme .zy-bell-clear { border-top-color: #374151; }
-body.dark-theme .zy-bell-clear:hover { background: #2d1b1b; }
+.zy-bell-clear:hover { background: #eff6ff; }
+body.dark-theme .zy-bell-clear { border-top-color: #374151; color: #60a5fa; }
+body.dark-theme .zy-bell-clear:hover { background: #1e3a5f; }
+
+/* Bell dropdown sarlavhasi */
+.zy-bell-dd-header {
+  padding: 8px 14px 4px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9ca3af;
+}
