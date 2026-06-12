@@ -6,6 +6,11 @@
   container.className = 'zy-notif-container';
   document.body.appendChild(container);
 
+  // Mobil overlay element
+  const overlay = document.createElement('div');
+  overlay.className = 'zy-bell-overlay';
+  document.body.appendChild(overlay);
+
   const icons = {
     info: 'fas fa-info-circle',
     success: 'fas fa-check-circle',
@@ -76,7 +81,7 @@
     updateAllBadges();
   }
 
-  // ===== SAYT YANGILIKLARI (statik + admin xabarlari birlashtirilgan) =====
+  // ===== SAYT YANGILIKLARI =====
   const siteNews = [
     { icon: 'fas fa-flask', text: 'Yangi virtual laboratoriya: Optika' },
     { icon: 'fas fa-gamepad', text: 'Arqon tortish o\'yini yangilandi' },
@@ -90,7 +95,6 @@
     catch { return []; }
   }
 
-  // O'qilgan xabarlar idlarini saqlash
   function getReadIds() {
     try { return JSON.parse(localStorage.getItem('zy_bell_read_ids') || '[]'); }
     catch { return []; }
@@ -99,11 +103,9 @@
     localStorage.setItem('zy_bell_read_ids', JSON.stringify(ids));
   }
 
-  // Barcha bildirishnomalarni (statik + admin) birlashtirish
   function getAllBellItems() {
     const adminMsgs = loadAdminMessages();
     const readIds = getReadIds();
-
     const adminItems = adminMsgs.map(m => ({
       id: 'admin_' + m.id,
       icon: 'fas fa-bullhorn',
@@ -111,7 +113,6 @@
       isAdmin: true,
       read: readIds.includes('admin_' + m.id)
     }));
-
     const staticItems = siteNews.map((n, i) => ({
       id: 'static_' + i,
       icon: n.icon,
@@ -119,8 +120,6 @@
       isAdmin: false,
       read: readIds.includes('static_' + i)
     }));
-
-    // Admin xabarlar tepada
     return [...adminItems, ...staticItems];
   }
 
@@ -162,23 +161,21 @@
       <div class="zy-bell-clear" id="markAllRead_${listEl.id}">✓ Barchasini o'qilgan deb belgilash</div>
     `;
 
-    // Har bir item bosilganda o'qilgan qilish
     listEl.querySelectorAll('.zy-bell-dd-item').forEach(el => {
       el.addEventListener('click', () => {
         const id = el.dataset.id;
-        if (!readIds.includes(id)) {
-          readIds.push(id);
-          saveReadIds(readIds);
+        const rids = getReadIds();
+        if (!rids.includes(id)) {
+          rids.push(id);
+          saveReadIds(rids);
           el.classList.add('zy-bell-dd-read');
           el.querySelector('.zy-bell-unread-dot')?.remove();
           updateAllBadges();
-          // Barcha dropdown larni yangilash
           refreshAllDropdowns();
         }
       });
     });
 
-    // "Barchasini o'qish" tugmasi
     const markAllBtn = listEl.querySelector(`#markAllRead_${listEl.id}`);
     if (markAllBtn) {
       markAllBtn.addEventListener('click', () => {
@@ -191,21 +188,12 @@
   }
 
   function refreshAllDropdowns() {
-    const pairs = [
-      { list: 'zyBellList' },
-      { list: 'zyBellListM' },
-    ];
-    pairs.forEach(p => {
-      const listEl = document.getElementById(p.list);
-      if (listEl) {
-        listEl.id = p.list; // ensure id is set for mark-all
-        renderBellList(listEl);
-      }
+    ['zyBellList', 'zyBellListM'].forEach(id => {
+      const listEl = document.getElementById(id);
+      if (listEl) renderBellList(listEl);
     });
   }
 
-  // ===== REAL-TIME SINXRONLASH =====
-  // localStorage o'zgarishlarini boshqa tablar bilan sinxronlash
   window.addEventListener('storage', (e) => {
     if (e.key === 'zy_admin_msgs' || e.key === 'zy_bell_read_ids') {
       updateAllBadges();
@@ -213,11 +201,18 @@
     }
   });
 
-  // Har 10 soniyada admin xabarlarni tekshirish (real-time effekt)
   setInterval(() => {
     updateAllBadges();
     refreshAllDropdowns();
   }, 10000);
+
+  // ===== OVERLAY YOPISH =====
+  function closeAllDropdowns() {
+    document.querySelectorAll('.zy-bell-dropdown').forEach(d => d.classList.remove('open'));
+    overlay.classList.remove('open');
+  }
+
+  overlay.addEventListener('click', closeAllDropdowns);
 
   // ===== BELL INIT =====
   function initBell() {
@@ -232,33 +227,30 @@
       const list = document.getElementById(p.list);
       if (!btn || !dd || !list) return;
 
-      const wrap = btn.closest('.zy-bell-wrap');
-
-      // List ID ni o'rnatish (mark-all uchun)
       list.id = p.list;
-
-      // Dastlab ro'yxatni render qilish
       renderBellList(list);
 
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isOpen = dd.classList.contains('open');
-        // Boshqa dropdownlarni yopish
-        document.querySelectorAll('.zy-bell-dropdown').forEach(d => d.classList.remove('open'));
+        closeAllDropdowns();
         if (!isOpen) {
           dd.classList.add('open');
-          renderBellList(list); // ochilganda yangilab ko'rsatish
+          overlay.classList.add('open'); // mobil overlay
+          renderBellList(list);
         }
       });
 
+      // Desktop: tashqariga bosilsa yopilsin
       document.addEventListener('click', (e) => {
+        const wrap = btn.closest('.zy-bell-wrap');
         if (dd && wrap && !wrap.contains(e.target)) {
           dd.classList.remove('open');
+          overlay.classList.remove('open');
         }
       });
     });
 
-    // Dastlabki badge yangilash
     updateAllBadges();
   }
 
