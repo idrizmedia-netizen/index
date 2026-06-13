@@ -99,25 +99,7 @@ body.dark-theme .zy-bell-dropdown { background: #1e293b; }
 }
 .zy-bell-overlay.open { display: block; }
 
-/* Mobil — EKRANDAN CHIQMAYDIGAN pastki sheet */
-@media (max-width: 768px) {
-  .zy-bell-dropdown {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    top: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 60vh !important;
-    border-radius: 20px 20px 0 0 !important;
-    box-shadow: 0 -6px 30px rgba(0,0,0,0.25) !important;
-    border: none !important;
-    padding: 0 8px !important;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
-    box-sizing: border-box !important;
-    animation: zyDdMobile 0.3s cubic-bezier(0.32,0.72,0,1) !important;
-  }
+
   @keyframes zyDdMobile { from{transform:translateY(100%)} to{transform:translateY(0)} }
 
   .zy-bell-dropdown::before {
@@ -165,3 +147,71 @@ body.dark-theme .zy-bell-dd-item:hover { background: #334155; }
 .zy-bell-clear:hover { background: #eff6ff; }
 body.dark-theme .zy-bell-clear { border-top-color: #374151; color: #60a5fa; }
 body.dark-theme .zy-bell-clear:hover { background: #1e3a5f; }
+/* =======================================================
+   FAYLNING ENG OXIRI — YANGI MOBIL KODNI SHU YERGA QO'YASIZ:
+   ======================================================= */
+
+/* Mobil — EKRANDAN CHIQMAYDIGAN VA CHUQLASHTIRILGAN Bottom Sheet */
+@media (max-width: 768px) {
+  .zy-bell-dropdown {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 60dvh !important; 
+    height: auto !important;
+    border-radius: 24px 24px 0 0 !important;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.32) !important;
+    border: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 0 16px !important;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 16px)) !important;
+    box-sizing: border-box !important;
+    animation: zyDdMobile 0.35s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    transform: translateY(0);
+  }
+
+  @keyframes zyDdMobile { 
+    from { transform: translateY(100%); } 
+    to { transform: translateY(0); } 
+  }
+
+  .zy-bell-dropdown::before {
+    content: '';
+    display: block;
+    width: 48px; height: 5px;
+    background: rgba(0,0,0,0.18) !important;
+    border-radius: 3px !important;
+    margin: 10px auto 14px !important;
+    flex-shrink: 0;
+  }
+  body.dark-theme .zy-bell-dropdown::before { 
+    background: rgba(255,255,255,0.25) !important; 
+  }
+
+  .zy-bell-list, #zyBellList, #zyBellListM {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex: 1 !important;
+    padding-bottom: 10px !important;
+  }
+
+  .zy-notif-container {
+    top: max(12px, env(safe-area-inset-top, 12px)) !important; 
+    right: 12px !important; 
+    left: 12px !important;
+    width: auto !important; 
+    max-width: none !important;
+    gap: 8px !important;
+  }
+  
+  .zy-notif {
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    border-radius: 14px !important;
+  }
+}
