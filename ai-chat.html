@@ -4,13 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ziyomap AI</title>
+
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- KaTeX — eng tez matematik formula kutubxonasi -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- highlight.js — kod bloklari -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css" id="hljs-theme">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+
+    <!-- Marked.js — markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+
+    <!-- Chart.js — grafiklar -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Existing CSS -->
     <link rel="stylesheet" href="css/ai-chat.css">
     <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="css/notifications.css">
     <link rel="stylesheet" href="css/search-modal.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
     /* ── CSS VARIABLES ── */
     :root {
@@ -25,6 +43,7 @@
         --light-bg: #020617;
         --card-bg: rgba(30,41,59,0.95);
     }
+    body.dark-theme #hljs-theme { disabled: true; }
 
     /* ── TAB BAR ── */
     .ai-tab-bar {
@@ -76,186 +95,167 @@
     .essay-section{padding:10px 14px;border-radius:10px;margin-bottom:8px;border-left:3px solid var(--primary-color);background:rgba(37,99,235,.06)}
     .essay-section-title{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;opacity:.7}
 
-    /* ── NOTIFICATIONS ── */
-    .zy-notif-container{position:fixed;top:70px;right:16px;z-index:10000;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:340px;width:calc(100% - 32px)}
-    .zy-notif{pointer-events:auto;padding:12px 16px;border-radius:14px;font-weight:700;font-size:13px;line-height:1.5;box-shadow:0 8px 32px rgba(0,0,0,0.25);display:flex;align-items:center;gap:10px;animation:zyIn .35s ease;position:relative;overflow:hidden;border:none}
-    .zy-notif-icon{font-size:1.1rem;flex-shrink:0;width:22px;text-align:center}
-    .zy-notif-text{flex:1;min-width:0}
-    .zy-notif-close{flex-shrink:0;cursor:pointer;opacity:.7;font-size:16px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:1px 5px;line-height:1;border-radius:5px}
-    .zy-notif--info{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff}
-    .zy-notif--success{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff}
-    .zy-notif--error{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
-    .zy-notif--loading{background:linear-gradient(135deg,#9333ea,#7c3aed);color:#fff}
-    .zy-notif--admin{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff}
-    .zy-notif--removing{animation:zyOut .3s ease forwards}
-    .zy-notif--loading .zy-notif-icon{animation:zySpin 1s linear infinite}
-    .zy-notif-progress{position:absolute;bottom:0;left:0;height:3px;background:rgba(255,255,255,.4);border-radius:0 0 14px 14px;animation:zyShrink linear forwards}
-    @keyframes zyIn{from{transform:translateX(110%) scale(.9);opacity:0}to{transform:none;opacity:1}}
-    @keyframes zyOut{from{transform:none;opacity:1}to{transform:translateX(110%) scale(.9);opacity:0}}
-    @keyframes zySpin{to{transform:rotate(360deg)}}
-    @keyframes zyShrink{from{width:100%}to{width:0}}
+    /* ══════════════════════════════════════
+       FORMULA VA KOD STILLARI
+       KaTeX + highlight.js uchun
+    ══════════════════════════════════════ */
 
-    /* Bell button */
-    .zy-bell-wrap{position:relative;display:inline-flex;align-items:center}
-    .zy-bell-btn{background:none;border:none;cursor:pointer;font-size:1.2rem;color:var(--text-color);padding:4px;position:relative;line-height:1}
-    .zy-bell-badge{position:absolute;top:-3px;right:-5px;min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px}
-    .zy-bell-badge.show{display:flex}
-
-    /* Bell dropdown — MOBIL UCHUN TO'G'RILANGAN */
-    .zy-bell-dropdown{
-        position:fixed;
-        z-index:10001;
-        background:#fff;
-        display:none;
-        overflow-y:auto;
-        -webkit-overflow-scrolling:touch;
+    /* Inline formula */
+    .message-content .katex {
+        font-size: 1.05em;
+        color: var(--text-color);
     }
-    body.dark-theme .zy-bell-dropdown{background:#1e293b}
-    .zy-bell-dropdown.open{display:block}
+    /* Block formula — markazga */
+    .message-content .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 10px 4px;
+        margin: 8px 0;
+        background: rgba(37,99,235,.04);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary-color);
+    }
+    .message-content .katex-display > .katex {
+        font-size: 1.15em;
+    }
+    body.dark-theme .message-content .katex { color: #e2e8f0; }
 
-    /* Desktop */
-    @media(min-width:769px){
-        .zy-bell-dropdown{
-            position:absolute;
-            top:calc(100% + 8px);
-            right:-8px;
-            width:300px;
-            max-height:380px;
-            border-radius:14px;
-            box-shadow:0 15px 50px rgba(0,0,0,.18);
-            border:1px solid rgba(56,189,248,.15);
-            padding:6px;
-        }
+    /* Kod bloklari */
+    .message-content pre {
+        border-radius: 10px;
+        margin: 8px 0;
+        overflow-x: auto;
+        font-size: .85rem;
+        line-height: 1.6;
+        position: relative;
+    }
+    body.dark-theme .message-content pre {
+        background: #0f172a !important;
+        border: 1px solid rgba(56,189,248,.15);
+    }
+    body.dark-theme .message-content pre code {
+        background: transparent !important;
+        color: #e2e8f0 !important;
+    }
+    .message-content pre .copy-code-btn {
+        position: absolute; top: 8px; right: 8px;
+        background: rgba(37,99,235,.15);
+        border: 1px solid rgba(37,99,235,.3);
+        color: var(--primary-color);
+        border-radius: 6px; padding: 3px 9px;
+        font-size: .72rem; font-weight: 700;
+        cursor: pointer; font-family: inherit;
+        transition: .15s;
+    }
+    .message-content pre .copy-code-btn:hover {
+        background: var(--primary-color); color: #fff;
+    }
+    .message-content code:not(pre code) {
+        background: rgba(37,99,235,.1);
+        color: var(--primary-color);
+        padding: 2px 6px; border-radius: 5px;
+        font-size: .88em;
+    }
+    body.dark-theme .message-content code:not(pre code) {
+        background: rgba(56,189,248,.15);
+        color: #38bdf8;
     }
 
-    /* Mobil — pastdan chiqadigan sheet */
+    /* Jadval stillari */
+    .message-content table {
+        width: 100%; border-collapse: collapse;
+        margin: 10px 0; font-size: .88rem;
+        border-radius: 8px; overflow: hidden;
+    }
+    .message-content th {
+        background: var(--primary-color);
+        color: #fff; padding: 8px 12px;
+        text-align: left; font-weight: 700;
+    }
+    .message-content td {
+        padding: 7px 12px;
+        border-bottom: 1px solid rgba(56,189,248,.12);
+        color: var(--text-color);
+    }
+    .message-content tr:nth-child(even) td {
+        background: rgba(56,189,248,.04);
+    }
+
+    /* Grafik container */
+    .chart-container {
+        background: var(--card-bg);
+        border: 1px solid rgba(56,189,248,.2);
+        border-radius: 12px;
+        padding: 14px;
+        margin: 10px 0;
+        max-width: 100%;
+    }
+    .chart-container canvas {
+        max-width: 100% !important;
+        max-height: 280px !important;
+    }
+
+    /* Xabar umumiy stillari */
+    .message-content { line-height: 1.7; }
+    .message-content h1,.message-content h2,.message-content h3 {
+        color: var(--primary-color); margin: 10px 0 5px;
+    }
+    .message-content p { margin: 5px 0; }
+    .message-content ul,.message-content ol { padding-left: 20px; margin: 5px 0; }
+    .message-content blockquote {
+        border-left: 3px solid var(--primary-color);
+        margin: 8px 0; padding: 8px 12px;
+        background: rgba(37,99,235,.05);
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+    }
+    .message-content hr {
+        border: none; border-top: 1px solid rgba(56,189,248,.2); margin: 12px 0;
+    }
+
+    /* Nusxalash tugmasi (AI xabarlari) */
+    .msg-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .msg-action-btn{padding:5px 10px;font-size:.75rem;font-weight:600;cursor:pointer;border-radius:6px;border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);font-family:inherit;transition:.15s}
+    .msg-action-btn:hover{background:var(--primary-color);color:#fff}
+
+    /* ── MOBIL ── */
     @media(max-width:768px){
-        /* Overlay */
-        .zy-bell-overlay{
-            display:none;
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,.5);
-            z-index:10000;
-        }
-        .zy-bell-overlay.open{display:block}
-
-        .zy-bell-dropdown{
-            bottom:0 !important;
-            left:0 !important;
-            right:0 !important;
-            top:auto !important;
-            width:100% !important;
-            max-height:55vh !important;
-            border-radius:18px 18px 0 0 !important;
-            box-shadow:0 -6px 30px rgba(0,0,0,.2) !important;
-            padding:0 6px max(14px,env(safe-area-inset-bottom,14px)) !important;
-            z-index:10001 !important;
-            border:none !important;
-        }
-        .zy-bell-dropdown::before{
-            content:'';display:block;width:36px;height:4px;
-            background:rgba(0,0,0,.15);border-radius:2px;
-            margin:10px auto 8px;
-        }
-        body.dark-theme .zy-bell-dropdown::before{background:rgba(255,255,255,.2)}
-
-        /* Notif container mobilda ham ekrandan chiqmasin */
-        .zy-notif-container{
-            top:10px !important;
-            right:10px !important;
-            left:10px !important;
-            width:auto !important;
-            max-width:none !important;
-        }
-    }
-
-    .zy-bell-dd-item{padding:11px 12px;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:9px;line-height:1.4;border-radius:9px;color:#374151;cursor:pointer;transition:background .15s}
-    .zy-bell-dd-item:hover{background:#f3f4f6}
-    body.dark-theme .zy-bell-dd-item{color:#e2e8f0}
-    body.dark-theme .zy-bell-dd-item:hover{background:#334155}
-    .zy-bell-dd-item.zy-bell-dd-read{opacity:.55;font-weight:500}
-    .zy-bell-unread-dot{width:7px;height:7px;border-radius:50%;background:#3b82f6;flex-shrink:0;margin-top:4px;margin-left:auto}
-    .zy-bell-dd-icon{font-size:.95rem;margin-top:1px;color:#2563eb;flex-shrink:0}
-    .zy-bell-dd-icon.admin{color:#f97316}
-    .zy-bell-clear{padding:9px 12px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;color:#2563eb;border-top:1px solid #e5e7eb;border-radius:0 0 9px 9px;transition:background .15s}
-    .zy-bell-clear:hover{background:#eff6ff}
-    body.dark-theme .zy-bell-clear{border-top-color:#374151;color:#60a5fa}
-
-    /* ═══════════════════════════
-       MOBIL LAYOUT TUZATMALAR
-       Chat va Tutor input
-       ekrandan tushib ketmasin
-    ═══════════════════════════ */
-    @media(max-width:768px){
-        html,body{
-            height:100% !important;
-            overflow:hidden !important;
-        }
+        html,body{ height:100% !important; overflow:hidden !important; }
         .chat-page-wrap{
-            position:fixed !important;
-            inset:0 !important;
-            padding:6px 6px 0 !important;
-            box-sizing:border-box !important;
-            display:flex !important;
-            flex-direction:column !important;
-            overflow:hidden !important;
-            max-width:100% !important;
+            position:fixed !important; inset:0 !important;
+            padding:6px 6px 0 !important; box-sizing:border-box !important;
+            display:flex !important; flex-direction:column !important;
+            overflow:hidden !important; max-width:100% !important;
         }
-        .tab-panel{
-            flex:1 !important;
-            min-height:0 !important;
-            overflow:hidden !important;
-        }
-        /* AI Chat */
+        .tab-panel{ flex:1 !important; min-height:0 !important; overflow:hidden !important; }
         #tab-chat .chat-shell{
-            flex:1 !important;
-            min-height:0 !important;
-            display:flex !important;
-            flex-direction:column !important;
-            overflow:hidden !important;
-            border-radius:12px !important;
+            flex:1 !important; min-height:0 !important; display:flex !important;
+            flex-direction:column !important; overflow:hidden !important; border-radius:12px !important;
         }
-        #chat-messages{
-            flex:1 !important;
-            min-height:0 !important;
-            overflow-y:auto !important;
-        }
+        #chat-messages{ flex:1 !important; min-height:0 !important; overflow-y:auto !important; }
         #tab-chat .chat-input-area{
             flex-shrink:0 !important;
             padding-bottom:max(10px,env(safe-area-inset-bottom,10px)) !important;
         }
-        /* AI Tutor */
-        .tutor-shell{
-            flex:1 !important;
-            min-height:0 !important;
-            overflow:hidden !important;
-        }
+        .tutor-shell{ flex:1 !important; min-height:0 !important; overflow:hidden !important; }
         .tutor-shell .chat-shell{
-            flex:1 !important;
-            min-height:0 !important;
-            display:flex !important;
-            flex-direction:column !important;
-            overflow:hidden !important;
+            flex:1 !important; min-height:0 !important; display:flex !important;
+            flex-direction:column !important; overflow:hidden !important;
         }
-        #tutor-messages{
-            flex:1 !important;
-            min-height:0 !important;
-            overflow-y:auto !important;
-        }
+        #tutor-messages{ flex:1 !important; min-height:0 !important; overflow-y:auto !important; }
         .tutor-shell .chat-input-area{
             flex-shrink:0 !important;
             padding-bottom:max(10px,env(safe-area-inset-bottom,10px)) !important;
         }
-        .ai-tab{padding:7px 10px;font-size:.73rem}
-        .tutor-subjects{flex-wrap:nowrap;overflow-x:auto}
+        .ai-tab{ padding:7px 10px; font-size:.73rem; }
+        .tutor-subjects{ flex-wrap:nowrap; overflow-x:auto; }
+        /* Formulalar mobilida ham chiroyli */
+        .message-content .katex-display { font-size: .95em; }
+        .chart-container canvas { max-height: 200px !important; }
     }
     </style>
 </head>
 <body>
-    <!-- Bell overlay (mobil) -->
-    <div class="zy-bell-overlay" id="bellOverlay"></div>
-
     <div class="chat-page-wrap">
         <!-- TOP BAR -->
         <div class="chat-top-bar">
@@ -289,10 +289,14 @@
             <div class="chat-shell">
                 <div class="chat-header" style="background:var(--primary-color);padding:12px 16px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
                     <span><i class="fas fa-robot"></i> Sun'iy intellekt yordamchisi</span>
+                    <span style="font-size:.72rem;opacity:.8">KaTeX · Chart.js · hljs</span>
                 </div>
                 <div id="chat-messages" style="flex:1;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:10px;font-size:.92rem;min-height:0;">
-                    <div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:12px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:88%;">
-                        Assalomu alaykum! Savol bering, rasm yoki fayl (PDF, matn) yuklashingiz mumkin.
+                    <div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:14px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:92%;">
+                        <strong>Assalomu alaykum!</strong> Savol bering — formulalar, grafiklar va kodlar chiroyli ko'rinadi.<br><br>
+                        <span style="opacity:.7;font-size:.88em">
+                            ∫ Matematika · ⚛ Fizika · 🧪 Kimyo · 💻 Kod · 📊 Grafiklar
+                        </span>
                     </div>
                 </div>
                 <div id="image-preview-box" style="display:none;padding:8px 14px;border-top:1px solid rgba(56,189,248,.1);flex-shrink:0;">
@@ -306,7 +310,7 @@
                         </label>
                         <input type="file" id="file-upload" accept="image/*,application/pdf,text/plain" hidden>
                         <input type="text" id="user-input-ai" placeholder="Savol yozing..."
-                            style="flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);outline:none;font-size:16px;">
+                            style="flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);outline:none;font-size:16px;font-family:inherit;">
                         <button type="button" id="send-btn-ai" title="Yuborish"
                             style="background:var(--primary-color);color:#fff;border:none;padding:11px 15px;border-radius:10px;cursor:pointer;flex-shrink:0;">
                             <i class="fas fa-paper-plane"></i>
@@ -338,15 +342,15 @@
                 </div>
                 <div class="chat-shell" style="flex:1;min-height:0;border-radius:0 0 14px 14px;">
                     <div id="tutor-messages" style="flex:1;min-height:0;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:10px;font-size:.92rem;">
-                        <div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:12px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:88%;">
-                            🎓 AI Tutor — mavzuni bosqichma-bosqich o'rgatadi.<br><br>
-                            <strong>Misol:</strong> "Nyuton qonunlarini o'rgat"
+                        <div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:12px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:92%;">
+                            🎓 <strong>AI Tutor</strong> — formulalar, grafiklar va bosqichma-bosqich tushuntirish.<br><br>
+                            <span style="opacity:.7;font-size:.88em">Misol: "Nyuton qonunlarini tushuntir" · "Integral hisoblashni o'rgat"</span>
                         </div>
                     </div>
                     <div class="chat-input-area" style="padding:8px 12px;flex-shrink:0;border-top:1px solid rgba(56,189,248,.15);background:var(--card-bg);">
                         <div style="display:flex;gap:8px;align-items:center;">
                             <input type="text" id="tutor-input" placeholder="Mavzu yoki savol yozing..."
-                                style="flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);outline:none;font-size:16px;">
+                                style="flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);outline:none;font-size:16px;font-family:inherit;">
                             <button type="button" id="tutor-send-btn" onclick="sendTutorMessage()" title="Yuborish"
                                 style="background:var(--primary-color);color:#fff;border:none;padding:11px 15px;border-radius:10px;cursor:pointer;flex-shrink:0;">
                                 <i class="fas fa-paper-plane"></i>
@@ -394,140 +398,105 @@
 
     <script src="js/ziyomap-usage.js"></script>
     <script src="js/auth-guard.js"></script>
+    <script src="js/notifications.js"></script>
     <script src="js/search-modal.js"></script>
+
     <script>
     /* ── THEME ── */
-    if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark-theme');
-
-    /* ══════════════════════════
-       NOTIFICATIONS (inline)
-    ══════════════════════════ */
-    (function(){
-        const cont = document.createElement('div');
-        cont.className = 'zy-notif-container';
-        document.body.appendChild(cont);
-
-        const ICONS = {info:'fa-info-circle',success:'fa-check-circle',error:'fa-exclamation-circle',loading:'fa-spinner',admin:'fa-bullhorn'};
-
-        function showToast(txt, type, dur){
-            type = type||'info'; dur = (type==='loading')?0:(dur||4000);
-            const el = document.createElement('div');
-            el.className = 'zy-notif zy-notif--'+type;
-            el.innerHTML = '<span class="zy-notif-icon"><i class="fas '+(ICONS[type]||ICONS.info)+'"></i></span>'
-                +'<span class="zy-notif-text">'+txt.replace(/</g,'&lt;')+'</span>'
-                +'<button class="zy-notif-close">&times;</button>';
-            el.querySelector('.zy-notif-close').onclick = ()=>{ el.classList.add('zy-notif--removing'); setTimeout(()=>el.remove(),300); };
-            if(dur>0){
-                const b=document.createElement('div'); b.className='zy-notif-progress'; b.style.animationDuration=(dur/1000)+'s'; el.appendChild(b);
-                setTimeout(()=>{ if(el.parentNode){el.classList.add('zy-notif--removing');setTimeout(()=>el.remove(),300);} }, dur);
-            }
-            cont.appendChild(el);
-            return el;
-        }
-        function updateToast(el, txt, type){
-            if(!el||!el.parentNode) return;
-            if(type){ el.className='zy-notif zy-notif--'+type; const i=el.querySelector('.zy-notif-icon i'); if(i) i.className='fas '+(ICONS[type]||ICONS.info); }
-            const t=el.querySelector('.zy-notif-text'); if(t) t.textContent=txt;
-            if(type!=='loading'){
-                const b=document.createElement('div'); b.className='zy-notif-progress'; b.style.animationDuration='3s'; el.appendChild(b);
-                setTimeout(()=>{ if(el.parentNode){el.classList.add('zy-notif--removing');setTimeout(()=>el.remove(),300);} }, 3000);
-            }
-        }
-
-        /* Bell */
-        const NEWS = [
-            {icon:'fa-flask',text:'Yangi virtual laboratoriya: Optika'},
-            {icon:'fa-gamepad',text:'Arqon tortish o\'yini yangilandi'},
-            {icon:'fa-wand-magic-sparkles',text:'AI Studio da yangi imkoniyatlar'},
-            {icon:'fa-book',text:'Metodlar bo\'limiga 10+ yangi metod'},
-            {icon:'fa-brain',text:'Memory o\'yiniga yangi darajalar'},
-        ];
-        function getReadIds(){ try{return JSON.parse(localStorage.getItem('zy_bell_read')||'[]')}catch{return[]} }
-        function saveReadIds(a){ localStorage.setItem('zy_bell_read',JSON.stringify(a)) }
-        function getAllItems(){
-            const r=getReadIds();
-            let admin=[];
-            try{ admin=(JSON.parse(localStorage.getItem('zy_admin_msgs')||'[]')).map(m=>({id:'a_'+m.id,icon:'fa-bullhorn',text:m.text,isAdmin:true,read:r.includes('a_'+m.id)})); }catch{}
-            const static_=NEWS.map((n,i)=>({id:'s_'+i,icon:n.icon,text:n.text,isAdmin:false,read:r.includes('s_'+i)}));
-            return [...admin,...static_];
-        }
-        function unreadCount(){ return getAllItems().filter(x=>!x.read).length }
-        function updateBadges(){
-            const c=unreadCount();
-            document.querySelectorAll('.zy-bell-badge').forEach(b=>{
-                b.textContent=c>99?'99+':c; b.classList.toggle('show',c>0);
-            });
-        }
-        function renderList(el){
-            if(!el) return;
-            const items=getAllItems(), r=getReadIds();
-            if(!items.length){ el.innerHTML='<div style="padding:14px;text-align:center;color:#999;font-size:13px">Bildirishnoma yo\'q</div>'; return; }
-            el.innerHTML = items.map(it=>`
-              <div class="zy-bell-dd-item${it.read?' zy-bell-dd-read':''}" data-id="${it.id}">
-                <span class="zy-bell-dd-icon${it.isAdmin?' admin':''}"><i class="fas ${it.icon}"></i></span>
-                <span style="flex:1">${it.text}</span>
-                ${!it.read?'<span class="zy-bell-unread-dot"></span>':''}
-              </div>`).join('')
-              +'<div class="zy-bell-clear" id="markAll_'+el.id+'">✓ Barchasini o\'qilgan</div>';
-            el.querySelectorAll('.zy-bell-dd-item').forEach(row=>{
-                row.addEventListener('click',()=>{
-                    const rr=getReadIds(); if(!rr.includes(row.dataset.id)){rr.push(row.dataset.id);saveReadIds(rr);}
-                    updateBadges(); refreshAll();
-                });
-            });
-            const ma=document.getElementById('markAll_'+el.id);
-            if(ma) ma.addEventListener('click',()=>{ saveReadIds(getAllItems().map(x=>x.id)); updateBadges(); refreshAll(); });
-        }
-        function refreshAll(){ ['bellList','bellListM'].forEach(id=>{ const e=document.getElementById(id); if(e) renderList(e); }); }
-
-        function initBell(btnId, ddId, listId){
-            const btn=document.getElementById(btnId), dd=document.getElementById(ddId), list=document.getElementById(listId);
-            if(!btn||!dd||!list) return;
-            renderList(list);
-            btn.addEventListener('click',e=>{
-                e.stopPropagation();
-                const wasOpen=dd.classList.contains('open');
-                closeAll();
-                if(!wasOpen){
-                    dd.classList.add('open');
-                    document.getElementById('bellOverlay').classList.add('open');
-                    renderList(list);
-                }
-            });
-        }
-        function closeAll(){
-            document.querySelectorAll('.zy-bell-dropdown').forEach(d=>d.classList.remove('open'));
-            const ov=document.getElementById('bellOverlay'); if(ov) ov.classList.remove('open');
-        }
-        document.getElementById('bellOverlay').addEventListener('click', closeAll);
-        document.addEventListener('click', e=>{
-            if(!e.target.closest('.zy-bell-wrap')) closeAll();
-        });
-
-        window.ZiyomapNotify={
-            show:showToast, info:(t,d)=>showToast(t,'info',d), success:(t,d)=>showToast(t,'success',d),
-            error:(t,d)=>showToast(t,'error',d), loading:t=>showToast(t,'loading',0),
-            update:updateToast, admin:t=>showToast(t,'admin',0),
-        };
-
-        document.addEventListener('DOMContentLoaded',()=>{
-            initBell('bellBtn','bellDd','bellList');
-            updateBadges();
-            const h=new Date().getHours();
-            const g=h<12?'Xayrli tong!':h>=18?'Xayrli kech!':'Xayrli kun!';
-            if(!sessionStorage.getItem('zy_hi')){
-                setTimeout(()=>showToast(g+' Ziyomapga xush kelibsiz 👋','info',5000),2500);
-                sessionStorage.setItem('zy_hi','1');
-            }
-        });
-    })();
+    if(localStorage.getItem('theme')==='dark'){
+        document.body.classList.add('dark-theme');
+        const hl = document.getElementById('hljs-theme');
+        if(hl) hl.href = 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css';
+    }
     </script>
+
     <script>ZiyomapAuthGuard.protectPage();</script>
 
+    <!-- ══════════════════════════════════════════
+         RENDER ENGINE — KaTeX + marked + hljs
+         Barcha xabarlar shu orqali chiqadi
+    ══════════════════════════════════════════ -->
     <script>
-    /* ══════════════════════════════
-       TAB SWITCHING
-    ══════════════════════════════ */
+    /* marked sozlamalari */
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+        tables: true,
+    });
+
+    /* Kod blokini highlight qiluvchi renderer */
+    const renderer = new marked.Renderer();
+    renderer.code = function(code, lang) {
+        let highlighted = code;
+        if(lang && hljs.getLanguage(lang)){
+            try { highlighted = hljs.highlight(code,{language:lang}).value; } catch(e){}
+        } else {
+            try { highlighted = hljs.highlightAuto(code).value; } catch(e){}
+        }
+        return `<pre><button class="copy-code-btn" onclick="copyCode(this)">Nusxa</button><code class="hljs language-${lang||''}">${highlighted}</code></pre>`;
+    };
+    marked.use({ renderer });
+
+    /* KaTeX render — barcha \(...\) \[...\] $ $$ ni render qiladi */
+    function renderMath(el){
+        if(!window.renderMathInElement) return;
+        renderMathInElement(el, {
+            delimiters: [
+                {left:'$$', right:'$$', display:true},
+                {left:'$',  right:'$',  display:false},
+                {left:'\\[',right:'\\]',display:true},
+                {left:'\\(',right:'\\)',display:false},
+            ],
+            throwOnError: false,
+            errorColor: '#ef4444',
+            strict: false,
+        });
+    }
+
+    /* Asosiy render funksiyasi */
+    function renderContent(text){
+        const html = marked.parse(text);
+        const div = document.createElement('div');
+        div.className = 'message-content';
+        div.innerHTML = html;
+        renderMath(div);
+        /* Chart.js kod blokini grafik sifatida render qilish */
+        div.querySelectorAll('pre code.language-chart').forEach(el => {
+            try { renderChartFromCode(el); } catch(e){}
+        });
+        return div;
+    }
+
+    /* Kod nusxalash */
+    window.copyCode = function(btn){
+        const code = btn.nextElementSibling?.innerText || '';
+        navigator.clipboard.writeText(code).then(()=>{
+            btn.textContent = '✓ Nusxalandi';
+            btn.style.background = '#10b981';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#10b981';
+            setTimeout(()=>{ btn.textContent='Nusxa'; btn.style.cssText=''; }, 2000);
+        });
+    };
+
+    /* Chart.js grafik render (```chart ... ``` bloklari uchun) */
+    function renderChartFromCode(codeEl){
+        try {
+            const cfg = JSON.parse(codeEl.innerText);
+            const wrap = document.createElement('div');
+            wrap.className = 'chart-container';
+            const canvas = document.createElement('canvas');
+            wrap.appendChild(canvas);
+            codeEl.closest('pre').replaceWith(wrap);
+            new Chart(canvas, cfg);
+        } catch(e) { /* JSON xato bo'lsa oddiy kod ko'rsatiladi */ }
+    }
+    </script>
+
+    <!-- ══════════════════════════════
+         TAB SWITCHING + STATE
+    ══════════════════════════════ -->
+    <script>
     function switchTab(id,btn){
         document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
         document.querySelectorAll('.ai-tab').forEach(b=>b.classList.remove('active'));
@@ -552,22 +521,22 @@
     </script>
 
     <!-- ══════════════════════════════
-         AI CHAT (to'g'rilangan)
+         AI CHAT
     ══════════════════════════════ -->
     <script>
     let currentFileBase64=null, currentFileType=null, chatHistory=[];
-    const userInputAi=document.getElementById('user-input-ai');
-    const sendBtnAi=document.getElementById('send-btn-ai');
-    const chatMessages=document.getElementById('chat-messages');
-    const fileInput=document.getElementById('file-upload');
-    const previewBox=document.getElementById('image-preview-box');
-    const previewImg=document.getElementById('preview-img');
-    const authNotice=document.getElementById('auth-notice');
+    const userInputAi  = document.getElementById('user-input-ai');
+    const sendBtnAi    = document.getElementById('send-btn-ai');
+    const chatMessages = document.getElementById('chat-messages');
+    const fileInput    = document.getElementById('file-upload');
+    const previewBox   = document.getElementById('image-preview-box');
+    const previewImg   = document.getElementById('preview-img');
+    const authNotice   = document.getElementById('auth-notice');
 
-    function isLoggedIn(){ return window.ZiyomapUsage?!!ZiyomapUsage.getUser():false; }
+    function isLoggedIn(){ return window.ZiyomapUsage ? !!ZiyomapUsage.getUser() : false; }
     function updateAuthUI(){
-        const ok=isLoggedIn();
-        if(userInputAi){userInputAi.disabled=!ok; userInputAi.placeholder=ok?'Savol yozing...':'Avval tizimga kiring';}
+        const ok = isLoggedIn();
+        if(userInputAi){ userInputAi.disabled=!ok; userInputAi.placeholder=ok?'Savol yozing...':'Avval tizimga kiring'; }
         if(sendBtnAi) sendBtnAi.disabled=!ok;
         if(authNotice) authNotice.style.display=ok?'none':'block';
     }
@@ -585,25 +554,57 @@
         };
         r.readAsDataURL(f);
     });
-    window.cancelImage=function(){ currentFileBase64=null; currentFileType=null; if(previewBox) previewBox.style.display='none'; if(previewImg){previewImg.src='';previewImg.style.display=''} if(fileInput) fileInput.value=''; };
 
-    function appendMsg(sender, text){
-        const id='m'+Date.now()+Math.random().toString(36).substr(2,6);
-        const d=document.createElement('div');
-        d.id=id; d.className='chat-msg '+(sender==='user'?'user':'ai');
-        d.style.cssText=sender==='user'
-            ?'align-self:flex-end;background:var(--primary-color);color:#fff;padding:11px 14px;border-radius:15px 15px 0 15px;max-width:88%;'
-            :'align-self:flex-start;background:rgba(56,189,248,.1);color:var(--text-color);padding:11px 14px;border-radius:15px 15px 15px 0;max-width:88%;';
-        let html = sender==='user' ? text.replace(/\n/g,'<br>') : (typeof marked!=='undefined'&&text!=='Tahlil qilinmoqda...'?marked.parse(text):text.replace(/\n/g,'<br>'));
-        d.innerHTML='<div class="message-content">'+html+'</div>';
-        chatMessages.appendChild(d); chatMessages.scrollTop=chatMessages.scrollHeight;
+    window.cancelImage=function(){ currentFileBase64=null; currentFileType=null; if(previewBox) previewBox.style.display='none'; if(previewImg){previewImg.src='';previewImg.style.display='';} if(fileInput) fileInput.value=''; };
+
+    function appendMsg(sender, text, isLoading){
+        const id = 'm'+Date.now()+Math.random().toString(36).substr(2,5);
+        const wrap = document.createElement('div');
+        wrap.id = id;
+        wrap.style.cssText = sender==='user'
+            ? 'align-self:flex-end;background:var(--primary-color);color:#fff;padding:11px 14px;border-radius:15px 15px 0 15px;max-width:88%;'
+            : 'align-self:flex-start;background:rgba(56,189,248,.08);color:var(--text-color);padding:11px 14px;border-radius:15px 15px 15px 0;max-width:92%;border:1px solid rgba(56,189,248,.12);';
+
+        if(sender==='user'){
+            const d=document.createElement('div'); d.className='message-content';
+            d.innerHTML=text.replace(/\n/g,'<br>');
+            wrap.appendChild(d);
+        } else if(isLoading){
+            wrap.innerHTML='<div style="display:flex;gap:5px;align-items:center;padding:2px 0"><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .0s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .2s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .4s infinite"></span></div>';
+        } else {
+            wrap.appendChild(renderContent(text));
+        }
+        chatMessages.appendChild(wrap);
+        chatMessages.scrollTop=chatMessages.scrollHeight;
         return id;
     }
-    function updateMsg(id,text){
+
+    /* Yuklanish animatsiyasi */
+    if(!document.getElementById('dotPulseStyle')){
+        const s=document.createElement('style'); s.id='dotPulseStyle';
+        s.textContent='@keyframes dotPulse{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}';
+        document.head.appendChild(s);
+    }
+
+    function updateMsg(id, text){
         const el=document.getElementById(id); if(!el) return;
-        const c=el.querySelector('.message-content'); if(!c) return;
-        c.innerHTML=typeof marked!=='undefined'?marked.parse(text):text.replace(/\n/g,'<br>');
-        if(window.MathJax) MathJax.typesetPromise([c]).catch(()=>{});
+        el.innerHTML='';
+        const content = renderContent(text);
+        el.appendChild(content);
+        /* Nusxa va saqlash tugmalari */
+        const acts=document.createElement('div'); acts.className='msg-actions';
+        const copyBtn=document.createElement('button'); copyBtn.className='msg-action-btn';
+        copyBtn.innerHTML='<i class="fas fa-copy"></i> Nusxalash';
+        copyBtn.onclick=()=>{
+            const txt=content.innerText||text;
+            navigator.clipboard.writeText(txt).then(()=>{
+                copyBtn.innerHTML='<i class="fas fa-check"></i> Nusxalandi!';
+                copyBtn.style.cssText='background:var(--primary-color);color:#fff;border-color:var(--primary-color)';
+                setTimeout(()=>{ copyBtn.innerHTML='<i class="fas fa-copy"></i> Nusxalash'; copyBtn.style.cssText=''; },2000);
+            });
+        };
+        acts.appendChild(copyBtn);
+        el.appendChild(acts);
         chatMessages.scrollTop=chatMessages.scrollHeight;
     }
 
@@ -611,60 +612,78 @@
         if(!isLoggedIn()){ updateAuthUI(); return; }
         const text=userInputAi.value.trim();
         if(!text&&!currentFileBase64) return;
-        appendMsg('user', text+(currentFileBase64?' [Fayl yuborildi]':''));
+        appendMsg('user', text+(currentFileBase64?' 📎':''));
         const imgB64=currentFileBase64, imgType=currentFileType;
         userInputAi.value=''; cancelImage();
-        const lid=appendMsg('ai','Tahlil qilinmoqda...');
+        const lid=appendMsg('ai','',true);
         const notif=window.ZiyomapNotify?ZiyomapNotify.loading('AI fikrlayapti...'):null;
         try{
             const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({message:text, history:chatHistory, image:imgB64, mimeType:imgType})});
+                body:JSON.stringify({message:text,history:chatHistory,image:imgB64,mimeType:imgType})});
             const data=await res.json();
             const reply=data.reply||data.error||'Javob olinmadi.';
             updateMsg(lid,reply);
             chatHistory.push({role:'user',parts:[{text}]});
             chatHistory.push({role:'model',parts:[{text:reply}]});
             if(window.ZiyomapNotify) ZiyomapNotify.update(notif,'✅ Javob keldi','success');
-        }catch{
-            updateMsg(lid,'Xatolik yuz berdi. Internetni tekshiring.');
+            if(window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-xabar','AI savol');
+        }catch(e){
+            updateMsg(lid,'❌ Xatolik: '+e.message);
             if(window.ZiyomapNotify) ZiyomapNotify.update(notif,'❌ Xatolik','error');
         }
     }
+
     if(sendBtnAi) sendBtnAi.addEventListener('click',sendAiMessage);
     if(userInputAi) userInputAi.addEventListener('keypress',e=>{ if(e.key==='Enter') sendAiMessage(); });
     </script>
 
     <!-- ══════════════════════════════
-         AI TUTOR (400 xato tuzatildi)
-         /api/chat ga to'g'ri format
+         AI TUTOR
     ══════════════════════════════ -->
     <script>
     (function(){
         const tutorHistory=[];
-        const SUBJ={fizika:'Fizika',matematika:'Matematika',kimyo:'Kimyo',biologiya:'Biologiya',informatika:'Informatika',tarix:'Tarix',ingliz:'Ingliz tili',umumiy:'Umumiy fanlar'};
+        const SUBJ={
+            fizika:'Fizika',matematika:'Matematika',kimyo:'Kimyo',biologiya:'Biologiya',
+            informatika:'Informatika',tarix:'Tarix',ingliz:'Ingliz tili',umumiy:'Umumiy fanlar'
+        };
         const MODE={
             explain:'Murakkab tushunchalarni oddiy misollarda tushuntir. Har tushunchadan keyin "Savolingiz bormi?" de.',
             exam:'Avval mavzuni so\'ra, keyin 4 variantli mini-test tuz. Javoblarni alohida ber.',
-            qa:'Savolga aniq va qisqa javob ber. Noto\'g\'ri shaklda bo\'lsa to\'g\'irla.',
+            qa:'Savolga aniq va qisqa javob ber.',
             step:'Mavzuni kichik bo\'laklarga bo\'l: Nazariya → Misol → Mashq → Tekshirish.',
         };
 
         function buildSystem(){
             const s=SUBJ[window.tutorSubject||'umumiy']||'Umumiy';
             const m=MODE[window.tutorMode||'explain']||MODE.explain;
-            return `Sen Ziyomap AI Tutorisan. Fan: ${s}. ${m}\nO'zbek tilida yoz. Formulalarni LaTeX bilan yoz. Do'stona bo'l.`;
+            return `Sen Ziyomap AI Tutorisan. Fan: ${s}. ${m}
+O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $$E=mc^2$$. Kodlarni \`\`\`lang ... \`\`\` ichida yoz. Do'stona bo'l.`;
         }
 
-        function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
-        function md(t){ return window.marked?marked.parse(t):esc(t).replace(/\n/g,'<br>') }
+        function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        function addBubble(role,html){
+        function addBubble(role, contentEl){
             const wrap=document.getElementById('tutor-messages'); if(!wrap) return;
             const d=document.createElement('div');
-            d.style.cssText=role==='user'
-                ?'align-self:flex-end;background:var(--primary-color);color:#fff;padding:11px 14px;border-radius:15px 15px 0 15px;max-width:88%;font-size:.92rem;'
-                :'align-self:flex-start;background:rgba(56,189,248,.1);color:var(--text-color);padding:11px 14px;border-radius:15px 15px 15px 0;max-width:88%;font-size:.92rem;';
-            d.innerHTML=html;
+            d.style.cssText = role==='user'
+                ? 'align-self:flex-end;background:var(--primary-color);color:#fff;padding:11px 14px;border-radius:15px 15px 0 15px;max-width:88%;font-size:.92rem;'
+                : 'align-self:flex-start;background:rgba(56,189,248,.08);color:var(--text-color);padding:11px 14px;border-radius:15px 15px 15px 0;max-width:92%;border:1px solid rgba(56,189,248,.12);font-size:.92rem;';
+            if(typeof contentEl === 'string'){
+                const tmp=document.createElement('div'); tmp.className='message-content';
+                tmp.innerHTML=contentEl; d.appendChild(tmp);
+            } else {
+                d.appendChild(contentEl);
+            }
+            wrap.appendChild(d); wrap.scrollTop=wrap.scrollHeight;
+            return d;
+        }
+
+        function addThinking(){
+            const wrap=document.getElementById('tutor-messages'); if(!wrap) return null;
+            const d=document.createElement('div');
+            d.style.cssText='align-self:flex-start;background:rgba(56,189,248,.08);padding:14px 16px;border-radius:15px 15px 15px 0;border:1px solid rgba(56,189,248,.12);';
+            d.innerHTML='<div style="display:flex;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .0s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .2s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .4s infinite"></span></div>';
             wrap.appendChild(d); wrap.scrollTop=wrap.scrollHeight;
             return d;
         }
@@ -679,22 +698,16 @@
                 return;
             }
             inp.value=''; if(btn) btn.disabled=true;
-            addBubble('user', esc(text));
-            tutorHistory.push({role:'user', content:text});
-
-            const thinking=addBubble('bot','<span style="opacity:.6;font-size:.85rem">⏳ Fikrlanmoqda...</span>');
+            const uDiv=document.createElement('div'); uDiv.className='message-content'; uDiv.innerHTML=esc(text);
+            addBubble('user', uDiv);
+            tutorHistory.push({role:'user',content:text});
+            const thinking=addThinking();
             try{
-                /* /api/chat ga message + system formatida yuborish */
-                const res=await fetch('/api/chat',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
+                const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
                     body:JSON.stringify({
-                        message: text,
-                        history: tutorHistory.slice(0,-1).map(h=>({
-                            role: h.role==='assistant'?'model':'user',
-                            parts:[{text:h.content}]
-                        })),
-                        system: buildSystem(),
+                        message:text,
+                        history:tutorHistory.slice(0,-1).map(h=>({role:h.role==='assistant'?'model':'user',parts:[{text:h.content}]})),
+                        system:buildSystem(),
                     })
                 });
                 if(!res.ok) throw new Error('Server: '+res.status);
@@ -702,11 +715,13 @@
                 const reply=data.reply||data.text||data.content||'(Javob kelmadi)';
                 tutorHistory.push({role:'assistant',content:reply});
                 if(thinking) thinking.remove();
-                addBubble('bot', md(reply));
-                if(window.MathJax) MathJax.typesetPromise();
+                addBubble('bot', renderContent(reply));
+                if(window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-tutor','AI Tutor');
             }catch(err){
                 if(thinking) thinking.remove();
-                addBubble('bot','⚠️ Xatolik: '+esc(err.message));
+                const errDiv=document.createElement('div'); errDiv.className='message-content';
+                errDiv.innerHTML='⚠️ Xatolik: '+esc(err.message);
+                addBubble('bot',errDiv);
             }finally{
                 if(btn) btn.disabled=false; if(inp) inp.focus();
             }
@@ -720,10 +735,10 @@
     </script>
 
     <!-- ══════════════════════════════
-         ESSAY CHECKER (400 xato tuzatildi)
+         ESSAY CHECKER
     ══════════════════════════════ -->
     <script>
-    window.checkEssay = async function(){
+    window.checkEssay=async function(){
         const text=document.getElementById('essayText')?.value?.trim();
         if(!text||text.length<20){ if(window.ZiyomapNotify) ZiyomapNotify.error('Matn juda qisqa!'); return; }
         const btn=document.getElementById('essayCheckBtn');
@@ -732,47 +747,58 @@
         const contentEl=document.getElementById('essayResultContent');
         if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Tekshirilmoqda...';}
         if(result) result.classList.remove('show');
-        const langNames={uz:"O'zbek",ru:"Rus",en:"Ingliz"};
-        const levelNames={standard:"standart",academic:"akademik",school:"maktab"};
-        const prompt=`Sen professional matn tahlilchisisisan.
-Quyidagi ${langNames[essayLang]||"O'zbek"} tilidagi matnni ${levelNames[essayLevel]||"standart"} darajada tekshir.
+
+        const langN={uz:"O'zbek",ru:"Rus",en:"Ingliz"};
+        const levelN={standard:"standart",academic:"akademik",school:"maktab"};
+        const prompt=`Sen professional matn tahlilchisisisan. ${langN[essayLang]||"O'zbek"} tilidagi matnni ${levelN[essayLevel]||"standart"} darajada tekshir.
 
 MATN:
 ${text}
 
-Quyidagi formatda javob ber:
-BALL: [0-100 oralig'ida son]
-XULOSA: [2-3 gapda umumiy baho]
-IMLO_XATOLAR: [topilgan imlo xatolar yoki "Topilmadi"]
-GRAMMATIKA: [grammatik xatolar yoki "Topilmadi"]
-USLUB: [uslub va tuzilish haqida fikr]
-KUCHLI_TOMONLAR: [eng yaxshi jihatlar]
-TAVSIYALAR: [konkret yaxshilash tavsiyalari]`;
+Quyidagi formatda aniq javob ber:
+BALL: [0-100]
+XULOSA: [2-3 gap]
+IMLO: [xatolar yoki "Topilmadi"]
+GRAMMATIKA: [xatolar yoki "Topilmadi"]
+USLUB: [izoh]
+KUCHLI: [kuchli tomonlar]
+TAVSIYA: [yaxshilash tavsiyalari]`;
 
         try{
-            const res=await fetch('/api/chat',{
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({ message:prompt, history:[] })
-            });
+            const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({message:prompt,history:[]})});
             if(!res.ok) throw new Error('Server: '+res.status);
             const data=await res.json();
             const reply=data.reply||data.text||'';
 
-            /* Natijani parse qilish */
-            const get=(key)=>{ const m=reply.match(new RegExp(key+':\\s*([\\s\\S]*?)(?=\\n[A-Z_]+:|$)')); return m?m[1].trim():'—'; };
+            const get=key=>{ const m=reply.match(new RegExp(key+':\\s*([\\s\\S]*?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():'—'; };
             const ball=parseInt(reply.match(/BALL:\s*(\d+)/)?.[1])||0;
             const color=ball>=80?'#16a34a':ball>=60?'#d97706':'#dc2626';
 
-            if(scoreEl) scoreEl.innerHTML=`<span style="color:${color}">${ball}/100</span>`;
-            if(contentEl) contentEl.innerHTML=`
-                <div class="essay-section"><div class="essay-section-title">📝 Xulosa</div>${get('XULOSA')}</div>
-                <div class="essay-section"><div class="essay-section-title">🔤 Imlo xatolar</div>${get('IMLO_XATOLAR')}</div>
-                <div class="essay-section"><div class="essay-section-title">📐 Grammatika</div>${get('GRAMMATIKA')}</div>
-                <div class="essay-section"><div class="essay-section-title">✍️ Uslub</div>${get('USLUB')}</div>
-                <div class="essay-section"><div class="essay-section-title">💪 Kuchli tomonlar</div>${get('KUCHLI_TOMONLAR')}</div>
-                <div class="essay-section"><div class="essay-section-title">🎯 Tavsiyalar</div>${get('TAVSIYALAR')}</div>`;
+            if(scoreEl) scoreEl.innerHTML=`<span style="color:${color}">${ball}/100</span><div style="font-size:.9rem;font-weight:600;opacity:.6;margin-top:4px">${ball>=80?'Ajoyib!':ball>=60?'Yaxshi':'Yaxshilash kerak'}</div>`;
+
+            /* Progress bar */
+            const pct = ball;
+            const barColor = ball>=80?'#16a34a':ball>=60?'#d97706':'#dc2626';
+            const progressBar = `<div style="background:rgba(0,0,0,.08);border-radius:8px;height:8px;margin:0 0 16px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:8px;transition:width .6s ease"></div></div>`;
+
+            const sections=[
+                {key:'XULOSA', title:'📊 Umumiy baho', icon:''},
+                {key:'IMLO',   title:'🔤 Imlo xatolari', icon:''},
+                {key:'GRAMMATIKA',title:'📝 Grammatika', icon:''},
+                {key:'USLUB',  title:'✍️ Uslub', icon:''},
+                {key:'KUCHLI', title:'💪 Kuchli tomonlar', icon:''},
+                {key:'TAVSIYA',title:'💡 Tavsiyalar', icon:''},
+            ];
+            const sectHtml = sections.map(s=>`
+                <div class="essay-section">
+                    <div class="essay-section-title">${s.title}</div>
+                    <div>${get(s.key)}</div>
+                </div>`).join('');
+
+            if(contentEl) contentEl.innerHTML = progressBar + sectHtml;
             if(result) result.classList.add('show');
+            result.scrollIntoView({behavior:'smooth',block:'start'});
         }catch(err){
             if(window.ZiyomapNotify) ZiyomapNotify.error('Xatolik: '+err.message);
         }finally{
