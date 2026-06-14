@@ -685,7 +685,7 @@
             position: fixed;
             bottom: 8px;
             left: 50%;
-            transform: translateX(-50%);
+            tr11111ansform: translateX(-50%);
             font-size: 0.65rem;
             opacity: 0.45;
             z-index: 9989;
@@ -725,9 +725,15 @@
 
         <div class="nav-icons">
           <div class="zy-bell-wrap">
-            <button class="nav-icon-btn" id="zyBellBtn" title="Sayt yangiliklari"><i class="fas fa-bell"></i><span class="zy-bell-badge" id="zyBellBadge">0</span></button>
-            <div class="zy-bell-dropdown" id="zyBellDropdown"><div id="zyBellList"></div></div>
-          </div>
+  <button class="zy-bell-btn" aria-label="Bildirishnomalar">
+    🔔
+    <span class="zy-bell-badge" id="zyBellBadge"></span>
+  </button>
+  <div class="zy-bell-dropdown" id="zyBellDropdown">
+    <div class="zy-bell-dd-header">🔔 Bildirishnomalar</div>
+    <div class="zy-bell-dd-list" id="zyBellList"></div>
+  </div>
+</div>>
           <button class="nav-icon-btn" id="search-toggle" onclick="ZiyomapSearch.open()" title="Qidirish (Ctrl+K)"><i class="fas fa-search"></i></button>
           <button class="nav-icon-btn" id="theme-toggle" title="Tun/Kun"><i class="fas fa-moon"></i></button>
           <a href="kirish.html" id="login-btn" class="user-btn">
@@ -739,10 +745,16 @@
       <!-- ===== MOBIL — yuqori qator (logo + iconlar) ===== -->
       <div class="nav-inner mobile-top">
         <a href="#home" class="logo-brand" style="font-size:1.15rem;flex:1;min-width:0">Ziyomap</a>
-        <div class="zy-bell-wrap" style="display:inline-flex;align-items:center">
-          <button class="nav-icon-btn" id="zyBellBtnM" title="Yangiliklar"><i class="fas fa-bell"></i><span class="zy-bell-badge" id="zyBellBadgeM">0</span></button>
-          <div class="zy-bell-dropdown" id="zyBellDropdownM"><div id="zyBellListM"></div></div>
-        </div>
+       <div class="zy-bell-wrap">
+  <button class="zy-bell-btn" aria-label="Bildirishnomalar">
+    🔔
+    <span class="zy-bell-badge" id="zyBellBadgeM"></span>
+  </button>
+  <div class="zy-bell-dropdown" id="zyBellDropdownM">
+    <div class="zy-bell-dd-header">🔔 Bildirishnomalar</div>
+    <div class="zy-bell-dd-list" id="zyBellListM"></div>
+  </div>
+</div>
         <button class="nav-icon-btn" onclick="ZiyomapSearch.open()" title="Qidirish"><i class="fas fa-search"></i></button>
         <button class="nav-icon-btn" id="theme-toggle-m" title="Tun/Kun"><i class="fas fa-moon"></i></button>
         <a href="kirish.html" id="login-btn-m" class="user-btn" style="padding:2px 8px 2px 2px;height:32px"><img id="btn-user-avatar-m" src="https://www.w3schools.com/howto/img_avatar.png" alt="" style="width:28px;height:28px"><span style="font-size:0.75rem;font-weight:600">Kirish</span></a>
