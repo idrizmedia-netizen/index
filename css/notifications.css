@@ -1,168 +1,235 @@
-/* ===== Ziyomap Bildirishnoma Tizimi ===== */
+/* ===== Ziyomap Neon Bildirishnoma Tizimi ===== */
 .zy-notif-container {
-  position: fixed;
-  top: 80px; right: 20px;
-  z-index: 10000;
-  display: flex; flex-direction: column; gap: 10px;
-  pointer-events: none;
-  max-width: 380px;
-  width: calc(100% - 40px);
+  position: fixed; top: 80px; right: 20px;
+  z-index: 99999;
+  display: flex; flex-direction: column; gap: 10px;
+  pointer-events: none;
+  max-width: 380px; width: calc(100% - 40px);
 }
 .zy-notif {
-  pointer-events: auto;
-  padding: 14px 18px;
-  border-radius: 16px;
-  font-weight: 700; font-size: 14px; line-height: 1.5;
-  backdrop-filter: blur(14px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  display: flex; align-items: center; gap: 12px;
-  animation: zyNotifIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-  position: relative; overflow: hidden; border: none;
+  pointer-events: auto;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-weight: 700; font-size: 14px; line-height: 1.5;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  display: flex; align-items: center; gap: 12px;
+  animation: zyNotifIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  position: relative; overflow: hidden;
+  border: none;
 }
-.zy-notif-icon { font-size: 1.3rem; flex-shrink: 0; width: 26px; text-align: center; }
-.zy-notif-text { flex: 1; min-width: 0; }
+.zy-notif-icon { font-size: 1.3rem; flex-shrink: 0; width: 26px; text-align: center; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4)); }
+.zy-notif-text { flex: 1; min-width: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
 .zy-notif-close {
-  flex-shrink: 0; cursor: pointer; opacity: 0.7;
-  font-size: 18px; background: rgba(255,255,255,0.15); border: none;
-  color: #fff; padding: 2px 6px; line-height: 1; border-radius: 6px;
+  flex-shrink: 0; cursor: pointer; opacity: 0.7;
+  transition: opacity 0.2s; font-size: 18px;
+  background: rgba(255,255,255,0.15); border: none;
+  color: #fff; padding: 2px 6px; line-height: 1; border-radius: 6px;
 }
-.zy-notif-close:hover { opacity: 1; }
-.zy-notif--info    { background: linear-gradient(135deg,#2563eb,#1d4ed8); color:#fff; }
-.zy-notif--success { background: linear-gradient(135deg,#16a34a,#15803d); color:#fff; }
-.zy-notif--error   { background: linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; }
-.zy-notif--loading { background: linear-gradient(135deg,#9333ea,#7c3aed); color:#fff; }
-.zy-notif--admin   { background: linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
+.zy-notif-close:hover { opacity: 1; background: rgba(255,255,255,0.25); }
+
+.zy-notif--info    { background: linear-gradient(135deg,#2563eb,#1d4ed8); color: #fff; box-shadow: 0 4px 24px rgba(37,99,235,0.45); }
+.zy-notif--success { background: linear-gradient(135deg,#16a34a,#15803d); color: #fff; box-shadow: 0 4px 24px rgba(22,163,74,0.45); }
+.zy-notif--error   { background: linear-gradient(135deg,#dc2626,#b91c1c); color: #fff; box-shadow: 0 4px 24px rgba(220,38,38,0.45); }
+.zy-notif--loading { background: linear-gradient(135deg,#9333ea,#7c3aed); color: #fff; box-shadow: 0 4px 24px rgba(147,51,234,0.45); }
+.zy-notif--admin   { background: linear-gradient(135deg,#f97316,#ea580c); color: #fff; box-shadow: 0 4px 24px rgba(249,115,22,0.45); }
 .zy-notif--admin .zy-notif-icon { animation: zyPulse 1.5s infinite; }
 .zy-notif--removing { animation: zyNotifOut 0.35s ease forwards; }
 .zy-notif--loading .zy-notif-icon { animation: zySpin 1s linear infinite; }
-.zy-notif-progress {
-  position: absolute; bottom: 0; left: 0; height: 3px;
-  background: rgba(255,255,255,0.4); border-radius: 0 0 16px 16px;
-  animation: zyShrink linear forwards;
-}
-@keyframes zyNotifIn  { from{transform:translateX(120%) scale(0.85);opacity:0} to{transform:none;opacity:1} }
-@keyframes zyNotifOut { from{transform:none;opacity:1} to{transform:translateX(120%) scale(0.85);opacity:0} }
-@keyframes zyPulse    { 0%,100%{opacity:1} 50%{opacity:0.3} }
-@keyframes zySpin     { to{transform:rotate(360deg)} }
-@keyframes zyShrink   { from{width:100%} to{width:0%} }
 
-/* ===== Bell tugmasi ===== */
+.zy-notif-progress {
+  position: absolute; bottom: 0; left: 0; height: 3px;
+  background: rgba(255,255,255,0.4);
+  border-radius: 0 0 16px 16px;
+  animation: zyShrink linear forwards;
+}
+
+@keyframes zyNotifIn  { from { transform: translateX(120%) scale(0.85); opacity: 0; } to { transform: translateX(0) scale(1); opacity: 1; } }
+@keyframes zyNotifOut { from { transform: translateX(0) scale(1); opacity: 1; } to { transform: translateX(120%) scale(0.85); opacity: 0; } }
+@keyframes zyPulse    { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes zySpin     { to{transform:rotate(360deg)} }
+@keyframes zyShrink   { from{width:100%} to{width:0%} }
+
+/* ===== Qo'ng'iroqcha (Bell) ===== */
 .zy-bell-wrap { position: relative; display: inline-flex; align-items: center; }
 .zy-bell-btn {
-  background: none; border: none; cursor: pointer;
-  font-size: 1.2rem; color: var(--dark-color,#1e293b);
-  padding: 4px; position: relative; line-height: 1; transition: transform 0.2s;
+  background: none; border: none; cursor: pointer;
+  font-size: 1.2rem; color: var(--dark-color,#1e293b); padding: 4px;
+  transition: transform 0.2s; position: relative; line-height: 1;
 }
 body.dark-theme .zy-bell-btn { color: #f1f5f9; }
 .zy-bell-btn:hover { transform: scale(1.12); }
 .zy-bell-badge {
-  position: absolute; top: -3px; right: -5px;
-  min-width: 16px; height: 16px; border-radius: 8px;
-  background: #ef4444; color: #fff; font-size: 10px; font-weight: 800;
-  display: none; align-items: center; justify-content: center;
-  padding: 0 4px; line-height: 1;
+  position: absolute; top: -3px; right: -5px;
+  min-width: 16px; height: 16px; border-radius: 8px;
+  background: #ef4444; color: #fff; font-size: 10px; font-weight: 800;
+  display: none; align-items: center; justify-content: center;
+  padding: 0 4px; line-height: 1;
 }
 .zy-bell-badge.show { display: flex; }
 
-/* ===== Bell Dropdown ===== */
+/* ===== BACKDROP (orqa fon qoratish) ===== */
+.zy-bell-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99990;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: zyFadeIn 0.2s ease;
+}
+.zy-bell-backdrop.show { display: block; }
+@keyframes zyFadeIn { from{opacity:0} to{opacity:1} }
+
+/* ===== Bell Dropdown — DESKTOP ===== */
 .zy-bell-dropdown {
-  display: none;
-  background: #fff;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  z-index: 10002;
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: -8px;
+  width: 320px;
+  max-height: 420px;
+  z-index: 99995;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+  padding: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-body.dark-theme .zy-bell-dropdown { background: #1e293b; }
-.zy-bell-dropdown.open { display: block; }
+body.dark-theme .zy-bell-dropdown { background: #1e293b; box-shadow: 0 15px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08); }
+.zy-bell-dropdown.open { display: block; animation: zyBellDrop 0.25s cubic-bezier(0.175,0.885,0.32,1.275); }
+@keyframes zyBellDrop { from{opacity:0;transform:translateY(-10px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
 
-/* Desktop */
-@media (min-width: 769px) {
-  .zy-bell-dropdown {
-    position: absolute;
-    top: calc(100% + 8px); right: -8px;
-    width: 320px; max-height: 400px;
-    border-radius: 16px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
-    border: 1px solid rgba(56,189,248,0.15);
-    padding: 8px;
-    animation: zyDdDesktop 0.2s ease;
-  }
-  @keyframes zyDdDesktop { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
-}
-
-/* Mobil overlay */
-.zy-bell-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 10001;
-}
-.zy-bell-overlay.open { display: block; }
-
-/* Mobil — EKRANDAN CHIQMAYDIGAN pastki sheet */
+/* ===== Bell Dropdown — MOBIL (bottom sheet) ===== */
 @media (max-width: 768px) {
-  .zy-bell-dropdown {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    top: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    max-height: 60vh !important;
-    border-radius: 20px 20px 0 0 !important;
-    box-shadow: 0 -6px 30px rgba(0,0,0,0.25) !important;
-    border: none !important;
-    padding: 0 8px !important;
-    padding-bottom: max(16px, env(safe-area-inset-bottom, 16px)) !important;
-    box-sizing: border-box !important;
-    animation: zyDdMobile 0.3s cubic-bezier(0.32,0.72,0,1) !important;
-  }
-  @keyframes zyDdMobile { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .zy-bell-dropdown {
+    /* Barcha absolut pozitsiyalarni bekor qilish */
+    position: fixed !important;
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: -100% !important;     /* yopiq holatda ekran tashqarida */
+    width: 100% !important;
+    max-height: 75vh !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 0 0 env(safe-area-inset-bottom, 20px) 0 !important;
+    z-index: 99999 !important;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.25) !important;
+    overflow-y: auto;
+    /* Animatsiya transition orqali */
+    transition: bottom 0.35s cubic-bezier(0.32, 0.72, 0, 1) !important;
+    display: block !important;   /* har doim DOM da, lekin ekran tashqarida */
+    pointer-events: none;
+  }
 
-  .zy-bell-dropdown::before {
-    content: '';
-    display: block;
-    width: 40px; height: 4px;
-    background: rgba(0,0,0,0.15);
-    border-radius: 2px;
-    margin: 12px auto 8px;
-  }
-  body.dark-theme .zy-bell-dropdown::before { background: rgba(255,255,255,0.2); }
+  /* Handle bar (yuqori chiziqcha) */
+  .zy-bell-dropdown::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 14px auto 10px;
+  }
+  body.dark-theme .zy-bell-dropdown::before { background: #475569; }
 
-  .zy-notif-container {
-    top: 10px !important; right: 10px !important; left: 10px !important;
-    width: auto !important; max-width: none !important;
-  }
+  /* OCHIQ holat */
+  .zy-bell-dropdown.open {
+    bottom: 0 !important;
+    animation: none !important;
+    pointer-events: auto;
+  }
 }
 
-/* Dropdown ichidagi elementlar */
+/* ===== Bell list ichidagi elementlar ===== */
+.zy-bell-dd-list {
+  overflow-y: auto;
+  max-height: 300px;
+}
+@media (max-width: 768px) {
+  .zy-bell-dd-list {
+    max-height: calc(75vh - 120px);
+  }
+}
+
+/* Bell dropdown sarlavhasi */
 .zy-bell-dd-header {
-  padding: 8px 14px 4px; font-size: 11px; font-weight: 800;
-  text-transform: uppercase; letter-spacing: 0.06em; color: #9ca3af;
+  padding: 10px 16px 6px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
 }
+body.dark-theme .zy-bell-dd-header { background: #1e293b; color: #64748b; }
+
+/* Bell dropdown item */
 .zy-bell-dd-item {
-  padding: 12px 14px; font-size: 13px; font-weight: 600;
-  display: flex; align-items: flex-start; gap: 10px; line-height: 1.4;
-  border-radius: 10px; color: #374151; cursor: pointer; transition: background 0.15s;
+  padding: 12px 16px; font-size: 13px; font-weight: 600;
+  display: flex; align-items: flex-start; gap: 10px; line-height: 1.4;
+  border-radius: 10px; color: #374151;
+  transition: background 0.15s;
+  position: relative;
+  cursor: pointer;
+  margin: 2px 4px;
 }
 .zy-bell-dd-item:hover { background: #f3f4f6; }
 body.dark-theme .zy-bell-dd-item { color: #e2e8f0; }
 body.dark-theme .zy-bell-dd-item:hover { background: #334155; }
+
+/* O'qilmagan holat — qalin */
 .zy-bell-dd-item:not(.zy-bell-dd-read) { font-weight: 700; }
-.zy-bell-dd-item.zy-bell-dd-read { opacity: 0.6; font-weight: 500; }
+
+/* O'qilgan holat — ochroq */
+.zy-bell-dd-item.zy-bell-dd-read { opacity: 0.55; font-weight: 500; }
+
+/* O'qilmagan ko'k nuqtachasi */
 .zy-bell-unread-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #3b82f6; flex-shrink: 0; margin-top: 3px; margin-left: auto;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 4px;
+  margin-left: auto;
+  box-shadow: 0 0 6px rgba(59,130,246,0.5);
 }
-.zy-bell-dd-item .zy-notif-icon { font-size: 1rem; margin-top: 1px; color: #2563eb; }
+
+/* Icon ranglari */
+.zy-bell-dd-item .zy-notif-icon { font-size: 1rem; margin-top: 1px; color: #2563eb; flex-shrink: 0; }
 .zy-bell-dd-item .zy-admin-icon { color: #f97316; }
+
+/* \"Barchasini o'qish\" tugmasi */
 .zy-bell-clear {
-  padding: 10px 14px; font-size: 12px; font-weight: 700; text-align: center;
-  cursor: pointer; color: #2563eb; border-top: 1px solid #e5e7eb;
-  margin-top: 4px; transition: background 0.15s;
+  padding: 12px 16px;
+  font-size: 12px; font-weight: 700; text-align: center;
+  cursor: pointer; color: #2563eb;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 4px;
+  transition: background 0.15s;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
 }
-.zy-bell-clear:hover { background: #eff6ff; }
-body.dark-theme .zy-bell-clear { border-top-color: #374151; color: #60a5fa; }
-body.dark-theme .zy-bell-clear:hover { background: #1e3a5f; }
-buni  ham ichida  nimalar  borligini  eslab qol  bu  ukkkinchi  kod
+.zy-bell-clear:hover { background: #eff6ff; color: #1d4ed8; }
+body.dark-theme .zy-bell-clear {
+  border-top-color: #334155; color: #60a5fa;
+  background: #1e293b;
+}
+body.dark-theme .zy-bell-clear:hover { background: #0f2844; }
+
+/* Bo'sh holat */
+.zy-bell-empty {
+  padding: 28px 16px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.zy-bell-empty i { font-size: 2rem; opacity: 0.4; }
