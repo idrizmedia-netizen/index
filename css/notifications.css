@@ -1,5 +1,5 @@
 /* ===================================================
-   ZIYOMAP — Bildirishnoma CSS (v9 — Mukammal Final)
+   ZIYOMAP — Bildirishnoma CSS (v10)
    =================================================== */
 
 /* ===== TOAST ===== */
@@ -56,10 +56,8 @@
 }
 @keyframes zyBellRing {
   0%,100%{transform:rotate(0)}
-  20%{transform:rotate(-20deg)}
-  40%{transform:rotate(20deg)}
-  60%{transform:rotate(-12deg)}
-  80%{transform:rotate(12deg)}
+  20%{transform:rotate(-20deg)} 40%{transform:rotate(20deg)}
+  60%{transform:rotate(-12deg)} 80%{transform:rotate(12deg)}
 }
 .zy-bell-wrap button.ringing i { animation: zyBellRing 0.6s ease; }
 
@@ -71,8 +69,7 @@
   background: #ef4444; color: #fff;
   font-size: 10px; font-weight: 800;
   display: none; align-items: center; justify-content: center;
-  padding: 0 4px; line-height: 1;
-  border: 2px solid #fff;
+  padding: 0 4px; line-height: 1; border: 2px solid #fff;
   z-index: 2; pointer-events: none;
   animation: zyBadgePop 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
 }
@@ -90,7 +87,7 @@ body.dark-theme .zy-bell-badge { border-color: #0f172a; }
   top: calc(100% + 10px);
   right: 0;
   width: 360px;
-  max-height: 480px;
+  max-height: 500px;
   z-index: 2147483646;
   background: #fff;
   border-radius: 20px;
@@ -110,7 +107,7 @@ body.dark-theme .zy-bell-dropdown {
   to   { opacity:1; transform:none; }
 }
 
-/* Backdrop — faqat kompyuterda */
+/* Backdrop */
 .zy-bell-backdrop {
   display: none;
   position: fixed; inset: 0;
@@ -119,65 +116,189 @@ body.dark-theme .zy-bell-dropdown {
 }
 .zy-bell-backdrop.show { display: block; }
 
+/* ===== DROPDOWN SARLAVHA ===== */
+.zy-bell-dd-header {
+  padding: 14px 18px;
+  font-size: 14px; font-weight: 800; color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; background: #fff;
+}
+body.dark-theme .zy-bell-dd-header {
+  color: #f1f5f9; border-bottom-color: #334155; background: #1e293b;
+}
+
+/* ===== DROPDOWN RO'YXAT ===== */
+.zy-bell-dd-list {
+  flex: 1; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.zy-bell-dd-list::-webkit-scrollbar { width: 3px; }
+.zy-bell-dd-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+
+/* ===================================================
+   XABAR ELEMENTI — kompyuter dropdown ichida
+   =================================================== */
+.zy-bell-dd-list .zy-notif-item,
+.zy-mob-list .zy-notif-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 12px 13px !important;
+  border-radius: 14px !important;
+  cursor: pointer;
+  margin-bottom: 6px !important;
+  border-left: 3px solid #3b82f6 !important;
+  background: #eff6ff !important;
+  transition: background 0.15s, opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+}
+body.dark-theme .zy-bell-dd-list .zy-notif-item,
+body.dark-theme .zy-mob-list .zy-notif-item {
+  background: rgba(59,130,246,0.1) !important;
+  border-left-color: #60a5fa !important;
+}
+.zy-bell-dd-list .zy-notif-item:hover,
+.zy-mob-list .zy-notif-item:hover {
+  background: #dbeafe !important;
+}
+.zy-bell-dd-list .zy-notif-item.read,
+.zy-mob-list .zy-notif-item.read {
+  background: transparent !important;
+  border-left-color: transparent !important;
+  opacity: 0.45;
+}
+
+/* ===== IKONA DOIRA — gradient, rang to'g'ri ===== */
+.zy-bell-dd-list .zy-ni-icon,
+.zy-mob-list .zy-ni-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  /* GRADIENT FON — icon har doim oq rang */
+  background: linear-gradient(135deg, #6366f1, #3b82f6) !important;
+  color: #ffffff !important;
+  font-size: 0.88rem !important;
+}
+.zy-bell-dd-list .zy-ni-icon.admin,
+.zy-mob-list .zy-ni-icon.admin {
+  background: linear-gradient(135deg, #f97316, #ea580c) !important;
+}
+/* Ikona ichidagi <i> ham oq bo'lsin */
+.zy-bell-dd-list .zy-ni-icon i,
+.zy-mob-list .zy-ni-icon i {
+  color: #ffffff !important;
+  font-size: inherit !important;
+}
+
+/* Matn */
+.zy-bell-dd-list .zy-ni-body,
+.zy-mob-list .zy-ni-body {
+  flex: 1;
+  min-width: 0;
+}
+.zy-bell-dd-list .zy-ni-title,
+.zy-mob-list .zy-ni-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  line-height: 1.45;
+}
+body.dark-theme .zy-bell-dd-list .zy-ni-title,
+body.dark-theme .zy-mob-list .zy-ni-title {
+  color: #f1f5f9 !important;
+}
+
+/* O'qilmagan nuqta */
+.zy-bell-dd-list .zy-ni-dot,
+.zy-mob-list .zy-ni-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #3b82f6 !important;
+  flex-shrink: 0;
+  margin-top: 6px;
+  box-shadow: 0 0 6px rgba(59,130,246,0.5);
+}
+
+/* Bo'sh holat */
+.zy-bell-empty {
+  padding: 40px 16px; text-align: center;
+  color: #94a3b8; font-size: 13px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.zy-bell-empty i { font-size: 2rem; opacity: 0.2; }
+
+/* "Barchasini o'qish" */
+.zy-bell-clear {
+  padding: 12px 18px; font-size: 13px; font-weight: 700;
+  text-align: center; cursor: pointer; color: #4f46e5;
+  border-top: 1px solid #f1f5f9; background: #fff;
+  transition: background 0.15s; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.zy-bell-clear:hover { background: #eef2ff; }
+body.dark-theme .zy-bell-clear {
+  background: #1e293b; border-top-color: #334155; color: #818cf8;
+}
+
 /* ===================================================
    MOBIL — TO'LIQ EKRAN OVERLAY
-   z-index eng yuqori, nav ustida
    =================================================== */
 .zy-mob-overlay {
   display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647;
+  position: fixed !important;
+  top: 0 !important; left: 0 !important;
+  right: 0 !important; bottom: 0 !important;
+  z-index: 2147483647 !important;
   background: #f8fafc;
   flex-direction: column;
   overflow: hidden;
 }
-body.dark-theme .zy-mob-overlay {
-  background: #0f172a;
-}
+body.dark-theme .zy-mob-overlay { background: #0f172a; }
 .zy-mob-overlay.open {
-  display: flex;
+  display: flex !important;
   animation: zyMobIn 0.28s cubic-bezier(0.32,0.72,0,1);
 }
 @keyframes zyMobIn {
-  from { opacity:0; transform:translateY(20px); }
+  from { opacity:0; transform:translateY(16px); }
   to   { opacity:1; transform:none; }
 }
 
-/* Mobil overlay header */
+/* Mobil header */
 .zy-mob-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid #e2e8f0;
-  flex-shrink: 0;
-  background: #fff;
+  flex-shrink: 0; background: #fff;
+  position: sticky; top: 0; z-index: 10;
 }
-body.dark-theme .zy-mob-header {
-  background: #1e293b;
-  border-bottom-color: #334155;
-}
+body.dark-theme .zy-mob-header { background: #1e293b; border-bottom-color: #334155; }
 .zy-mob-title {
-  font-size: 17px; font-weight: 800;
-  color: #1e293b;
+  font-size: 17px; font-weight: 800; color: #1e293b;
   display: flex; align-items: center; gap: 10px;
 }
 body.dark-theme .zy-mob-title { color: #f1f5f9; }
 .zy-mob-title i { color: #6366f1; }
-
 .zy-mob-close {
   width: 34px; height: 34px; border-radius: 50%;
   background: #f1f5f9; border: none;
   display: flex; align-items: center; justify-content: center;
   font-size: 15px; color: #64748b; cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent; transition: background 0.15s;
 }
-.zy-mob-close:hover, .zy-mob-close:active { background: #e2e8f0; }
+.zy-mob-close:active { background: #e2e8f0; }
 body.dark-theme .zy-mob-close { background: #334155; color: #94a3b8; }
 
-/* Mobil overlay list */
+/* Mobil list */
 .zy-mob-list {
   flex: 1; min-height: 0;
   overflow-y: auto; overflow-x: hidden;
@@ -192,117 +313,20 @@ body.dark-theme .zy-mob-close { background: #334155; color: #94a3b8; }
   text-align: center; cursor: pointer; color: #4f46e5;
   border-top: 1px solid #e2e8f0; background: #fff;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  flex-shrink: 0;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s;
+  flex-shrink: 0; -webkit-tap-highlight-color: transparent; transition: background 0.15s;
 }
 .zy-mob-clear:active { background: #eef2ff; }
 body.dark-theme .zy-mob-clear {
   background: #1e293b; border-top-color: #334155; color: #818cf8;
 }
 
-/* ===================================================
-   UMUMIY — XABAR ELEMENTI (kompyuter + mobil)
-   =================================================== */
-.zy-bell-dd-header {
-  padding: 14px 18px;
-  font-size: 14px; font-weight: 800; color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex; align-items: center; gap: 8px;
-  flex-shrink: 0; background: #fff;
-}
-body.dark-theme .zy-bell-dd-header {
-  color: #f1f5f9; border-bottom-color: #334155; background: #1e293b;
-}
-
-.zy-bell-dd-list {
-  flex: 1; min-height: 0;
-  overflow-y: auto; overflow-x: hidden;
-  padding: 8px;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-.zy-bell-dd-list::-webkit-scrollbar { width: 3px; }
-.zy-bell-dd-list::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
-
-/* Xabar kartochkasi */
-.zy-notif-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 13px 14px; border-radius: 14px;
-  cursor: pointer; margin-bottom: 6px;
-  border-left: 3px solid #3b82f6;
-  background: #eff6ff;
-  transition: background 0.15s, opacity 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.zy-notif-item:active { background: #dbeafe; }
-body.dark-theme .zy-notif-item {
-  background: rgba(59,130,246,0.1);
-  border-left-color: #60a5fa;
-}
-.zy-notif-item.read {
-  background: transparent;
-  border-left-color: transparent;
-  opacity: 0.5;
-}
-body.dark-theme .zy-notif-item.read { background: transparent; }
-
-/* Ikona doira */
-.zy-ni-icon {
-  width: 40px; height: 40px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; color: #fff; font-size: 0.9rem;
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
-}
-.zy-ni-icon.admin {
-  background: linear-gradient(135deg, #f97316, #ea580c);
-}
-
-/* Matn bloki */
-.zy-ni-body { flex: 1; min-width: 0; }
-.zy-ni-title {
-  font-size: 13.5px; font-weight: 700; color: #1e293b;
-  line-height: 1.4; margin-bottom: 2px;
-}
-body.dark-theme .zy-ni-title { color: #f1f5f9; }
-
-/* O'qilmagan nuqta */
-.zy-ni-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #3b82f6; flex-shrink: 0; margin-top: 6px;
-  box-shadow: 0 0 6px rgba(59,130,246,0.5);
-}
-
-/* Bo'sh holat */
-.zy-bell-empty {
-  padding: 48px 16px; text-align: center;
-  color: #94a3b8; font-size: 14px;
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-}
-.zy-bell-empty i { font-size: 2.5rem; opacity: 0.2; }
-
-/* "Barchasini o'qish" kompyuter */
-.zy-bell-clear {
-  padding: 13px 18px; font-size: 13px; font-weight: 700;
-  text-align: center; cursor: pointer; color: #4f46e5;
-  border-top: 1px solid #f1f5f9; background: #fff;
-  transition: background 0.15s; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  -webkit-tap-highlight-color: transparent;
-}
-.zy-bell-clear:hover { background: #eef2ff; }
-body.dark-theme .zy-bell-clear {
-  background: #1e293b; border-top-color: #334155; color: #818cf8;
-}
-body.dark-theme .zy-bell-clear:hover { background: #1e2a5e; }
-
-/* Mobilda kattaroq */
+/* Mobilda elementlar kattaroq */
 @media (max-width: 768px) {
   .zy-notif-container {
     top: 56px !important; right: 8px !important;
     left: 8px !important; width: auto !important; max-width: none !important;
   }
-  .zy-notif-item { padding: 15px 16px; }
-  .zy-ni-icon { width: 46px; height: 46px; font-size: 1.05rem; }
-  .zy-ni-title { font-size: 14.5px; }
+  .zy-mob-list .zy-notif-item { padding: 14px 16px !important; }
+  .zy-mob-list .zy-ni-icon { width: 44px !important; height: 44px !important; font-size: 1rem !important; }
+  .zy-mob-list .zy-ni-title { font-size: 14.5px !important; }
 }
