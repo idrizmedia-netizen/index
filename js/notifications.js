@@ -1,5 +1,5 @@
 /* ===================================================
-   ZIYOMAP — Bildirishnoma JS (v6 — Final Fix)
+   ZIYOMAP — Bildirishnoma JS (v7 — To'liq tuzatish)
    =================================================== */
 (function(){
   'use strict';
@@ -21,14 +21,14 @@
     var el = document.createElement('div');
     el.className = 'zy-notif zy-notif--' + type;
     el.innerHTML =
-      '<span class="zy-notif-icon"><i class="' + (ICO[type]||ICO.info) + '"></i></span>' +
-      '<span class="zy-notif-text">' + String(txt).replace(/</g,'&lt;') + '</span>' +
+      '<span class="zy-notif-icon"><i class="'+(ICO[type]||ICO.info)+'"></i></span>' +
+      '<span class="zy-notif-text">'+String(txt).replace(/</g,'&lt;')+'</span>' +
       '<button class="zy-notif-close" aria-label="Yopish">&times;</button>';
     el.querySelector('.zy-notif-close').onclick = function(){ removeToast(el); };
     if (ms > 0) {
       var bar = document.createElement('div');
       bar.className = 'zy-notif-progress';
-      bar.style.animationDuration = (ms/1000) + 's';
+      bar.style.animationDuration = (ms/1000)+'s';
       el.appendChild(bar);
       setTimeout(function(){ removeToast(el); }, ms);
     }
@@ -45,7 +45,7 @@
   function updateToast(el, txt, type) {
     if (!el || !el.parentNode) return;
     if (type) {
-      el.className = 'zy-notif zy-notif--' + type;
+      el.className = 'zy-notif zy-notif--'+type;
       var ico = el.querySelector('.zy-notif-icon i');
       if (ico) ico.className = ICO[type] || ICO.info;
     }
@@ -84,7 +84,7 @@
   function updateBadges(){
     var n = getUnread();
     document.querySelectorAll('.zy-bell-badge').forEach(function(b){
-      if(n > 0){ b.textContent = n > 99 ? '99+' : n; b.classList.add('show'); }
+      if(n>0){ b.textContent=n>99?'99+':n; b.classList.add('show'); }
       else { b.classList.remove('show'); b.textContent=''; }
     });
   }
@@ -100,24 +100,20 @@
     var html = '';
     items.forEach(function(item){
       html +=
-        '<div class="zy-bell-dd-item' + (item.read?' zy-bell-dd-read':'') + '" data-id="' + item.id + '">' +
-          '<i class="zy-dd-icon ' + item.icon + (item.isAdmin?' admin':'') + '" aria-hidden="true"></i>' +
-          '<span class="zy-dd-text">' + String(item.txt).replace(/</g,'&lt;') + '</span>' +
-          (!item.read ? '<span class="zy-bell-unread-dot"></span>' : '') +
+        '<div class="zy-bell-dd-item'+(item.read?' zy-bell-dd-read':'')+'" data-nid="'+item.id+'">'+
+          '<i class="zy-dd-icon '+item.icon+(item.isAdmin?' admin':'')+'" aria-hidden="true"></i>'+
+          '<span class="zy-dd-text">'+String(item.txt).replace(/</g,'&lt;')+'</span>'+
+          (!item.read?'<span class="zy-bell-unread-dot"></span>':'')+
         '</div>';
     });
-    html +=
-      '<div class="zy-bell-clear">' +
-        '<i class="fas fa-check-double" aria-hidden="true"></i> Barchasini o\'qilgan belgilash' +
-      '</div>';
+    html += '<div class="zy-bell-clear"><i class="fas fa-check-double" aria-hidden="true"></i> Barchasini o\'qilgan belgilash</div>';
     listEl.innerHTML = html;
 
-    /* Click eventlar */
     listEl.querySelectorAll('.zy-bell-dd-item').forEach(function(el){
       el.addEventListener('click', function(){
-        var id = el.dataset.id;
+        var id = el.dataset.nid;
         var ids = getReadIds();
-        if(ids.indexOf(id) < 0){ ids.push(id); saveReadIds(ids); }
+        if(ids.indexOf(id)<0){ ids.push(id); saveReadIds(ids); }
         el.classList.add('zy-bell-dd-read');
         var dot = el.querySelector('.zy-bell-unread-dot');
         if(dot) dot.remove();
@@ -125,9 +121,9 @@
       });
     });
 
-    var clrBtn = listEl.querySelector('.zy-bell-clear');
-    if(clrBtn){
-      clrBtn.addEventListener('click', function(e){
+    var clr = listEl.querySelector('.zy-bell-clear');
+    if(clr){
+      clr.addEventListener('click', function(e){
         e.stopPropagation();
         saveReadIds(getAllItems().map(function(i){return i.id;}));
         updateBadges();
@@ -151,6 +147,9 @@
   function isMob(){ return window.innerWidth <= 768; }
 
   /* ─── OPEN / CLOSE ─────────────────────────────── */
+  /* Muhim: faqat .open class qo'shib/olib ketamiz
+     CSS da display:none/flex va animatsiya avtomatik ishlaydi */
+
   function openDd(dd){
     /* Boshqa ochiqlarni yopish */
     document.querySelectorAll('.zy-bell-dropdown.open').forEach(function(other){
@@ -164,56 +163,58 @@
     /* Backdrop */
     getBd().classList.add('show');
 
-    /* Mobilda scroll o'chirish */
+    /* Mobilda body scrollni o'chirish */
     if(isMob()) document.body.style.overflow = 'hidden';
 
-    /* Ochish */
+    /* OCHISH — faqat class qo'shamiz */
     dd.classList.add('open');
 
     /* Bell silkinishi */
     var wrap = dd.closest('.zy-bell-wrap');
-    var btn = wrap ? wrap.querySelector('.zy-bell-btn, .nav-icon-btn') : null;
-    if(btn){
-      btn.classList.add('ringing');
-      setTimeout(function(){ btn.classList.remove('ringing'); }, 700);
+    if(wrap){
+      var btn = wrap.querySelector('.nav-icon-btn') || wrap.querySelector('.zy-bell-btn');
+      if(btn){
+        btn.classList.add('ringing');
+        setTimeout(function(){ btn.classList.remove('ringing'); }, 700);
+      }
     }
   }
 
   function closeDd(dd){
-    if(!dd) return;
+    if(!dd || !dd.classList.contains('open')) return;
     dd.classList.remove('open');
-    if(bdEl) bdEl.classList.remove('show');
+    getBd().classList.remove('show');
     document.body.style.overflow = '';
   }
 
   function closeAll(){
-    document.querySelectorAll('.zy-bell-dropdown').forEach(closeDd);
+    document.querySelectorAll('.zy-bell-dropdown.open').forEach(closeDd);
   }
 
   /* ─── SWIPE DOWN (mobil) ────────────────────────── */
   function addSwipe(dd){
-    var startY = 0, listScrollTop = 0;
+    var startY = 0, listScroll = 0;
     dd.addEventListener('touchstart', function(e){
       startY = e.touches[0].clientY;
-      var list = dd.querySelector('.zy-bell-dd-list');
-      listScrollTop = list ? list.scrollTop : 0;
+      var l = dd.querySelector('.zy-bell-dd-list');
+      listScroll = l ? l.scrollTop : 0;
     }, {passive:true});
     dd.addEventListener('touchend', function(e){
       var dy = e.changedTouches[0].clientY - startY;
-      if(dy > 80 && listScrollTop <= 2) closeDd(dd);
+      if(dy > 80 && listScroll <= 2) closeDd(dd);
     }, {passive:true});
   }
 
   /* ─── BELL INIT ─────────────────────────────────── */
   function initBells(){
     document.querySelectorAll('.zy-bell-wrap').forEach(function(wrap){
-      /* MUHIM: zy-bell-btn YO nav-icon-btn — ikkalasini ham qidirish */
-      var btn = wrap.querySelector('.zy-bell-btn') || wrap.querySelector('.nav-icon-btn');
+      /* nav-icon-btn YOKI zy-bell-btn — ikkalasini qidirish */
+      var btn = wrap.querySelector('.nav-icon-btn') || wrap.querySelector('.zy-bell-btn');
       var dd  = wrap.querySelector('.zy-bell-dropdown');
       var list = wrap.querySelector('.zy-bell-dd-list');
       if(!btn || !dd || !list) return;
 
-      /* Handle chiziqchasini qo'shish */
+      /* Handle chiziqchasini qo'shish (mobil uchun) */
       if(!dd.querySelector('.zy-bell-handle')){
         var h = document.createElement('div');
         h.className = 'zy-bell-handle';
@@ -227,7 +228,7 @@
       /* Swipe */
       addSwipe(dd);
 
-      /* BELL TUGMA CLICK — bu asosiy muammo hal qilindi */
+      /* CLICK — preventDefault muhim! */
       btn.addEventListener('click', function(e){
         e.preventDefault();
         e.stopPropagation();
@@ -238,18 +239,18 @@
         }
       });
 
-      /* Dropdown ichini bossam yopilmasin */
+      /* Dropdown ichida bosish — yopilmasin */
       dd.addEventListener('click', function(e){ e.stopPropagation(); });
     });
 
-    /* Tashqarida bosish */
+    /* Tashqarida bosish — kompyuterda yopilsin */
     document.addEventListener('click', function(){
       if(!isMob()) closeAll();
     });
 
     /* Escape */
     document.addEventListener('keydown', function(e){
-      if(e.key==='Escape') closeAll();
+      if(e.key === 'Escape') closeAll();
     });
 
     updateBadges();
@@ -293,7 +294,7 @@
     close: closeAll, checkAdmin: checkAdmin,
     refresh: function(){ document.querySelectorAll('.zy-bell-dd-list').forEach(renderList); },
     ring: function(){
-      document.querySelectorAll('.zy-bell-btn, .zy-bell-wrap .nav-icon-btn').forEach(function(b){
+      document.querySelectorAll('.zy-bell-wrap .nav-icon-btn, .zy-bell-btn').forEach(function(b){
         b.classList.add('ringing');
         setTimeout(function(){b.classList.remove('ringing');},700);
       });
@@ -301,18 +302,24 @@
   };
 
   /* ─── TIPS ──────────────────────────────────────── */
-  var TIPS=['Ziyo AI Studio da dars rejalarini tayyorlang! 🤖',"O'yinlar bo'limida bilimingizni sinang! 🎮","Virtual laboratoriyalarda tajriba o'tkazing! 🔬",'AI Chat orqali istalgan savolga javob oling! 💬'];
-  var tipIdx=0;
+  var TIPS = [
+    'Ziyo AI Studio da dars rejalarini tayyorlang! 🤖',
+    "O'yinlar bo'limida bilimingizni sinang! 🎮",
+    "Virtual laboratoriyalarda tajriba o'tkazing! 🔬",
+    'AI Chat orqali istalgan savolga javob oling! 💬'
+  ];
+  var tipIdx = 0;
 
   /* ─── DOM READY ─────────────────────────────────── */
   function onReady(){
     initBells();
-    setTimeout(checkAdmin,1500);
-    var path=location.pathname.replace(/\/+$/,'');
-    var isHome=path===''||path==='/index.html'||path==='/index';
+    setTimeout(checkAdmin, 1500);
+
+    var path = location.pathname.replace(/\/+$/,'');
+    var isHome = path===''||path==='/index.html'||path==='/index';
     if(isHome){
-      var h=new Date().getHours();
-      var g=h<12?'Xayrli tong! ☀️':h<18?'Xayrli kun! 👋':'Xayrli kech! 🌙';
+      var h = new Date().getHours();
+      var g = h<12?'Xayrli tong! ☀️':h<18?'Xayrli kun! 👋':'Xayrli kech! 🌙';
       if(!sessionStorage.getItem('zy_ws')){
         setTimeout(function(){showToast(g+' Ziyomapga xush kelibsiz!','info',5000);},3000);
         sessionStorage.setItem('zy_ws','1');
@@ -328,7 +335,7 @@
   }
 
   if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',onReady);
+    document.addEventListener('DOMContentLoaded', onReady);
   } else {
     onReady();
   }
