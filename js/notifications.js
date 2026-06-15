@@ -1,6 +1,6 @@
 /* ===================================================
-   ZIYOMAP — Bildirishnoma JS (v8 — Final)
-   Kompyuter: dropdown | Mobil: to'liq ekran panel
+   ZIYOMAP — Bildirishnoma JS (v9 — Mukammal Final)
+   Kompyuter: dropdown | Mobil: alohida overlay element
    =================================================== */
 (function(){
   'use strict';
@@ -23,7 +23,7 @@
     el.className='zy-notif zy-notif--'+type;
     el.innerHTML=
       '<span class="zy-notif-icon"><i class="'+(ICO[type]||ICO.info)+'"></i></span>'+
-      '<span class="zy-notif-text">'+String(txt).replace(/</g,'&lt;')+'</span>'+
+      '<span class="zy-notif-text">'+esc(txt)+'</span>'+
       '<button class="zy-notif-close">&times;</button>';
     el.querySelector('.zy-notif-close').onclick=function(){removeToast(el);};
     if(ms>0){
@@ -53,6 +53,12 @@
     if(type&&type!=='loading') setTimeout(function(){removeToast(el);},3000);
   }
 
+  /* ─── YORDAMCHI ──────────────────────────────────── */
+  function esc(str){
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function isMob(){ return window.innerWidth<=768; }
+
   /* ─── MA'LUMOTLAR ───────────────────────────────── */
   var NEWS=[
     {icon:'fas fa-flask',               txt:'Yangi virtual laboratoriya: Optika'},
@@ -61,11 +67,9 @@
     {icon:'fas fa-book',                txt:"Metodlar bo'limiga 10+ yangi metod"},
     {icon:'fas fa-brain',               txt:"Memory o'yiniga yangi darajalar"},
   ];
-
   function getAdminMsgs(){try{return JSON.parse(localStorage.getItem('zy_admin_msgs')||'[]')}catch{return[]}}
   function getReadIds(){try{return JSON.parse(localStorage.getItem('zy_bell_read_ids')||'[]')}catch{return[]}}
   function saveReadIds(ids){try{localStorage.setItem('zy_bell_read_ids',JSON.stringify(ids))}catch{}}
-
   function getAllItems(){
     var rids=getReadIds();
     var admin=getAdminMsgs().map(function(m){
@@ -87,183 +91,180 @@
     });
   }
 
-  /* ─── RO'YXAT RENDER ────────────────────────────── */
-  function renderList(listEl){
-    if(!listEl)return;
+  /* ─── XABAR HTML RENDER ─────────────────────────── */
+  function buildItemsHTML(){
     var items=getAllItems();
     if(!items.length){
-      listEl.innerHTML='<div class="zy-bell-empty"><i class="fas fa-bell-slash"></i><span>Bildirishnomalar yo\'q</span></div>';
-      return;
+      return '<div class="zy-bell-empty"><i class="fas fa-bell-slash"></i><span>Bildirishnomalar yo\'q</span></div>';
     }
     var html='';
     items.forEach(function(item){
       html+=
-        '<div class="zy-bell-dd-item'+(item.read?' zy-bell-dd-read':'')+'" data-nid="'+item.id+'">'+
-          '<div class="zy-dd-icon-wrap'+(item.isAdmin?' admin':'')+'">'+
-            '<i class="'+item.icon+'" aria-hidden="true"></i>'+
+        '<div class="zy-notif-item'+(item.read?' read':'')+'" data-nid="'+item.id+'">'+
+          '<div class="zy-ni-icon'+(item.isAdmin?' admin':'')+'">'+
+            '<i class="'+item.icon+'"></i>'+
           '</div>'+
-          '<div class="zy-dd-content">'+
-            '<div class="zy-dd-title">'+escHtml(item.txt)+'</div>'+
+          '<div class="zy-ni-body">'+
+            '<div class="zy-ni-title">'+esc(item.txt)+'</div>'+
           '</div>'+
-          (!item.read?'<span class="zy-bell-unread-dot"></span>':'')+
+          (!item.read?'<span class="zy-ni-dot"></span>':'')+
         '</div>';
     });
-    html+='<div class="zy-bell-clear"><i class="fas fa-check-double"></i> Barchasini o\'qilgan belgilash</div>';
-    listEl.innerHTML=html;
+    return html;
+  }
 
-    listEl.querySelectorAll('.zy-bell-dd-item').forEach(function(el){
+  function attachItemClicks(container){
+    container.querySelectorAll('.zy-notif-item').forEach(function(el){
       el.addEventListener('click',function(){
         var id=el.dataset.nid;
         var ids=getReadIds();
         if(ids.indexOf(id)<0){ids.push(id);saveReadIds(ids);}
-        el.classList.add('zy-bell-dd-read');
+        el.classList.add('read');
         el.style.borderLeftColor='transparent';
-        el.style.background='';
-        var dot=el.querySelector('.zy-bell-unread-dot');
+        el.style.background='transparent';
+        var dot=el.querySelector('.zy-ni-dot');
         if(dot)dot.remove();
         updateBadges();
       });
     });
-
-    var clr=listEl.querySelector('.zy-bell-clear');
-    if(clr){
-      clr.addEventListener('click',function(e){
-        e.stopPropagation();
-        saveReadIds(getAllItems().map(function(i){return i.id;}));
-        updateBadges();
-        document.querySelectorAll('.zy-bell-dd-list').forEach(renderList);
-      });
-    }
   }
 
-  function escHtml(str){
-    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  function markAll(){
+    saveReadIds(getAllItems().map(function(i){return i.id;}));
+    updateBadges();
+    /* Kompyuter dropdown yangilash */
+    document.querySelectorAll('.zy-bell-dd-list').forEach(function(l){
+      l.innerHTML=buildItemsHTML();
+      attachItemClicks(l);
+    });
+    /* Mobil overlay yangilash */
+    if(mobList) { mobList.innerHTML=buildItemsHTML(); attachItemClicks(mobList); }
   }
 
-  /* ─── BACKDROP (faqat kompyuter) ───────────────── */
+  /* ─── KOMPYUTER — DROPDOWN ──────────────────────── */
   var bdEl=null;
   function getBd(){
     if(!bdEl){
       bdEl=document.createElement('div');
       bdEl.className='zy-bell-backdrop';
-      bdEl.addEventListener('click',closeAll);
+      bdEl.addEventListener('click',closeDd);
       document.body.appendChild(bdEl);
     }
     return bdEl;
   }
 
-  function isMob(){return window.innerWidth<=768;}
+  var openedDd=null;
 
-  /* ─── OPEN / CLOSE ─────────────────────────────── */
   function openDd(dd){
-    /* Boshqalarni yopish */
-    document.querySelectorAll('.zy-bell-dropdown.open').forEach(function(o){
-      if(o!==dd)closeDd(o);
-    });
-
-    /* Ro'yxat yangilash */
+    if(openedDd&&openedDd!==dd) closeDd();
     var list=dd.querySelector('.zy-bell-dd-list');
-    if(list)renderList(list);
-
-    if(isMob()){
-      /* MOBIL: to'liq ekran panel */
-      document.body.style.overflow='hidden';
-      document.body.style.position='fixed';
-      document.body.style.width='100%';
-    } else {
-      /* KOMPYUTER: backdrop */
-      getBd().classList.add('show');
-    }
-
+    if(list){list.innerHTML=buildItemsHTML();attachItemClicks(list);}
+    var clr=dd.querySelector('.zy-bell-clear');
+    if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
+    getBd().classList.add('show');
     dd.classList.add('open');
-
-    /* Bell silkinishi */
-    var wrap=dd.closest('.zy-bell-wrap');
-    if(wrap){
-      var btn=wrap.querySelector('button');
-      if(btn){btn.classList.add('ringing');setTimeout(function(){btn.classList.remove('ringing');},700);}
-    }
+    openedDd=dd;
+    /* Bell */
+    var btn=dd.closest('.zy-bell-wrap').querySelector('button');
+    if(btn){btn.classList.add('ringing');setTimeout(function(){btn.classList.remove('ringing');},700);}
   }
 
-  function closeDd(dd){
-    if(!dd||!dd.classList.contains('open'))return;
-    dd.classList.remove('open');
-    if(bdEl)bdEl.classList.remove('show');
-    document.body.style.overflow='';
-    document.body.style.position='';
-    document.body.style.width='';
+  function closeDd(){
+    if(openedDd) openedDd.classList.remove('open');
+    openedDd=null;
+    if(bdEl) bdEl.classList.remove('show');
   }
 
-  function closeAll(){
-    document.querySelectorAll('.zy-bell-dropdown.open').forEach(closeDd);
-  }
+  /* ─── MOBIL — ALOHIDA OVERLAY ───────────────────── */
+  /* Overlay body ga bir marta qo'shiladi, har doim tayyor */
+  var mobOverlay=null, mobList=null;
 
-  /* ─── MOBIL YOPISH TUGMASI ─────────────────────── */
-  function addMobileCloseBtn(dd){
-    /* Avval mavjudligini tekshirish */
-    if(dd.querySelector('.zy-bell-mobile-header'))return;
+  function buildMobOverlay(){
+    if(mobOverlay) return;
+
+    mobOverlay=document.createElement('div');
+    mobOverlay.className='zy-mob-overlay';
+    /* z-index inline - CSS dan ustun bo'lishi uchun */
+    mobOverlay.style.cssText='position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:0!important;z-index:2147483647!important;';
+
+    /* Header */
     var hdr=document.createElement('div');
-    hdr.className='zy-bell-mobile-header';
+    hdr.className='zy-mob-header';
     hdr.innerHTML=
-      '<div class="zy-bell-mobile-title"><i class="fas fa-bell" style="color:#6366f1"></i> Bildirishnomalar</div>'+
-      '<button class="zy-bell-mobile-close" aria-label="Yopish"><i class="fas fa-times"></i></button>';
-    hdr.querySelector('.zy-bell-mobile-close').addEventListener('click',function(e){
-      e.stopPropagation();
-      closeDd(dd);
-    });
-    /* Sarlavhadan oldin qo'shish */
-    var existingHeader=dd.querySelector('.zy-bell-dd-header');
-    if(existingHeader){
-      dd.insertBefore(hdr,existingHeader);
-      /* Kompyuter sarlavhasini mobilda yashirish */
-      existingHeader.style.cssText='display:none';
-    } else {
-      dd.insertBefore(hdr,dd.firstChild);
-    }
+      '<div class="zy-mob-title"><i class="fas fa-bell"></i> Bildirishnomalar</div>'+
+      '<button class="zy-mob-close" aria-label="Yopish"><i class="fas fa-times"></i></button>';
+    hdr.querySelector('.zy-mob-close').addEventListener('click',closeMob);
+    mobOverlay.appendChild(hdr);
+
+    /* List */
+    mobList=document.createElement('div');
+    mobList.className='zy-mob-list';
+    mobOverlay.appendChild(mobList);
+
+    /* "Barchasini o'qish" */
+    var clr=document.createElement('div');
+    clr.className='zy-mob-clear';
+    clr.innerHTML='<i class="fas fa-check-double"></i> Barchasini o\'qilgan belgilash';
+    clr.addEventListener('click',function(){markAll();});
+    mobOverlay.appendChild(clr);
+
+    /* Overlay ichida bosish — fon bilan yopilmasin */
+    mobOverlay.addEventListener('click',function(e){e.stopPropagation();});
+
+    document.body.appendChild(mobOverlay);
+  }
+
+  function openMob(){
+    buildMobOverlay();
+    mobList.innerHTML=buildItemsHTML();
+    attachItemClicks(mobList);
+    document.body.style.overflow='hidden';
+    mobOverlay.classList.add('open');
+  }
+
+  function closeMob(){
+    if(mobOverlay) mobOverlay.classList.remove('open');
+    document.body.style.overflow='';
   }
 
   /* ─── BELL INIT ─────────────────────────────────── */
   function initBells(){
     document.querySelectorAll('.zy-bell-wrap').forEach(function(wrap){
-      var btn=wrap.querySelector('button')||wrap.querySelector('.nav-icon-btn')||wrap.querySelector('.zy-bell-btn');
+      var btn=wrap.querySelector('button')||wrap.querySelector('.nav-icon-btn');
       var dd=wrap.querySelector('.zy-bell-dropdown');
-      var list=wrap.querySelector('.zy-bell-dd-list');
-      if(!btn||!dd||!list)return;
+      if(!btn||!dd) return;
 
-      /* Mobil yopish tugmasini qo'shish */
-      addMobileCloseBtn(dd);
-
-      /* Boshlang'ich render */
-      renderList(list);
-
-      /* BELL CLICK */
       btn.addEventListener('click',function(e){
         e.preventDefault();
         e.stopPropagation();
-        if(dd.classList.contains('open')){
-          closeDd(dd);
+        if(isMob()){
+          /* MOBIL: alohida overlay */
+          if(mobOverlay&&mobOverlay.classList.contains('open')){
+            closeMob();
+          } else {
+            openMob();
+          }
         } else {
-          openDd(dd);
+          /* KOMPYUTER: dropdown */
+          if(dd.classList.contains('open')){
+            closeDd();
+          } else {
+            openDd(dd);
+          }
         }
       });
 
-      /* Dropdown ichida bosish — yopilmasin */
       dd.addEventListener('click',function(e){e.stopPropagation();});
     });
 
     /* Tashqarida bosish — kompyuterda */
     document.addEventListener('click',function(){
-      if(!isMob())closeAll();
+      if(!isMob()) closeDd();
     });
 
     /* Escape */
     document.addEventListener('keydown',function(e){
-      if(e.key==='Escape')closeAll();
-    });
-
-    /* Back button (Android) */
-    window.addEventListener('popstate',function(){
-      closeAll();
+      if(e.key==='Escape'){closeDd();closeMob();}
     });
 
     updateBadges();
@@ -280,30 +281,27 @@
     if(changed){
       try{localStorage.setItem('zy_admin_seen',JSON.stringify(seen))}catch{}
       updateBadges();
-      document.querySelectorAll('.zy-bell-dd-list').forEach(renderList);
     }
   }
 
   /* ─── REAL-TIME ─────────────────────────────────── */
   window.addEventListener('storage',function(e){
-    if(e.key==='zy_admin_msgs'||e.key==='zy_bell_read_ids'){
-      updateBadges();
-      document.querySelectorAll('.zy-bell-dd-list').forEach(renderList);
-    }
+    if(e.key==='zy_admin_msgs'||e.key==='zy_bell_read_ids') updateBadges();
   });
   setInterval(function(){updateBadges();checkAdmin();},10000);
 
   /* ─── GLOBAL API ────────────────────────────────── */
   window.ZiyomapNotify={
-    show:showToast,update:updateToast,
+    show:showToast, update:updateToast,
     info:    function(t,d){return showToast(t,'info',d);},
     success: function(t,d){return showToast(t,'success',d);},
     error:   function(t,d){return showToast(t,'error',d);},
     loading: function(t)  {return showToast(t,'loading',0);},
     admin:   function(t)  {return showToast(t,'admin',0);},
-    close:closeAll,checkAdmin:checkAdmin,
-    refresh:function(){document.querySelectorAll('.zy-bell-dd-list').forEach(renderList);},
-    ring:function(){
+    close: function(){closeDd();closeMob();},
+    checkAdmin: checkAdmin,
+    refresh: function(){ updateBadges(); },
+    ring: function(){
       document.querySelectorAll('.zy-bell-wrap button').forEach(function(b){
         b.classList.add('ringing');
         setTimeout(function(){b.classList.remove('ringing');},700);
@@ -311,7 +309,7 @@
     }
   };
 
-  /* ─── TIPS & GREETING ───────────────────────────── */
+  /* ─── DOM READY ─────────────────────────────────── */
   var TIPS=['Ziyo AI Studio da dars rejalarini tayyorlang! 🤖',"O'yinlar bo'limida bilimingizni sinang! 🎮","Virtual laboratoriyalarda tajriba o'tkazing! 🔬",'AI Chat orqali istalgan savolga javob oling! 💬'];
   var tipIdx=0;
 
