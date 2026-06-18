@@ -741,6 +741,73 @@
         .card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
         .card i { font-size: 3rem; color: var(--primary-color); margin-bottom: 20px; display: block; }
 
+        /* ===== BO'LIMLAR UCHUN RASMLI ORQA FON (Loyihalar / Blog / Aloqa) ===== */
+        .photo-section {
+            position: relative;
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .photo-section .section-bg-layer {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .photo-section .section-bg-layer::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(180deg, rgba(2,6,23,0.55) 0%, rgba(2,6,23,0.72) 55%, rgba(2,6,23,0.92) 100%);
+        }
+        .photo-section .section-inner {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px;
+        }
+        .photo-section h2 {
+            color: #ffffff !important;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.65);
+        }
+        .photo-section .grid { margin-top: 40px; }
+        .photo-section .card {
+            background: rgba(8, 14, 28, 0.62);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+        }
+        .photo-section .card h3,
+        .photo-section .card p { color: #f1f5f9; }
+        .photo-section .card i { color: #38bdf8; }
+        .photo-section .card:hover { border-color: #38bdf8; }
+
+        #projects.photo-section .section-bg-layer { background-image: url('images/projects-bg.jpg'); }
+        #blog.photo-section .section-bg-layer { background-image: url('images/blog-bg.jpg'); }
+        #contact.photo-section .section-bg-layer { background-image: url('images/contact-bg.jpg'); }
+
+        #contact.photo-section .contact-form-box {
+            background: rgba(8, 14, 28, 0.68) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
+        }
+        #contact.photo-section .contact-form-box .lab-input {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #f1f5f9;
+        }
+        #contact.photo-section .contact-form-box .lab-input::placeholder { color: rgba(241,245,249,0.55); }
+
+        @media (max-width: 768px) {
+            .photo-section .section-inner { padding: 70px 16px; }
+        }
+
         .lab-input {
             width: 100%;
             padding: 14px; margin: 10px 0; border-radius: 12px;
@@ -917,48 +984,57 @@
         </div>
     </section>
 
-    <section class="section" id="projects">
-        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
-        <div class="grid">
-            <div class="card" data-aos="flip-left">
-                <i class="fas fa-atom"></i>
-                <h3>Fizika va Ta'lim</h3>
-                <p>O'quvchilar uchun interaktiv darslar va fizik jarayonlarning raqamli modellarini yarataman.</p>
-            </div>
-            <div class="card" data-aos="flip-left" data-aos-delay="200">
-                <i class="fas fa-code"></i>
-                <h3>Dasturlash</h3>
-                <p>Python (Streamlit), Flutter va Web texnologiyalar yordamida foydali ilovalar ishlab chiqaman.</p>
-            </div>
-            <div class="card" data-aos="flip-left" data-aos-delay="400">
-                <i class="fas fa-chart-line"></i>
-                <h3>Tadbirkorlik</h3>
-                <p>Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
+    <section class="section photo-section" id="projects">
+        <div class="section-bg-layer"></div>
+        <div class="section-inner">
+            <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
+            <div class="grid">
+                <div class="card" data-aos="flip-left">
+                    <i class="fas fa-atom"></i>
+                    <h3>Fizika va Ta'lim</h3>
+                    <p>O'quvchilar uchun interaktiv darslar va fizik jarayonlarning raqamli modellarini yarataman.</p>
+                </div>
+                <div class="card" data-aos="flip-left" data-aos-delay="200">
+                    <i class="fas fa-code"></i>
+                    <h3>Dasturlash</h3>
+                    <p>Python (Streamlit), Flutter va Web texnologiyalar yordamida foydali ilovalar ishlab chiqaman.</p>
+                </div>
+                <div class="card" data-aos="flip-left" data-aos-delay="400">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Tadbirkorlik</h3>
+                    <p>Biznes jarayonlarini avtomatlashtirish va ijtimoiy tarmoqlar orqali tajriba almashish.</p>
+                </div>
             </div>
         </div>
     </section>
 
 
 
-   <section class="section" id="blog">
-        <h2 class="section-title" style="text-align: center; font-size: 2.2rem;" data-aos="fade-up">Ilmiy Maqolalar va Yangiliklar</h2>
-        
-        <div id="posts-container" class="grid">
-            <p style="text-align: center; grid-column: 1 / -1;">Maqolalar yuklanmoqda...</p>
+   <section class="section photo-section" id="blog">
+        <div class="section-bg-layer"></div>
+        <div class="section-inner">
+            <h2 class="section-title" style="text-align: center; font-size: 2.2rem;" data-aos="fade-up">Ilmiy Maqolalar va Yangiliklar</h2>
+
+            <div id="posts-container" class="grid">
+                <p style="text-align: center; grid-column: 1 / -1; color:#f1f5f9;">Maqolalar yuklanmoqda...</p>
+            </div>
         </div>
     </section>
 
-    
 
-    <section class="section" id="contact">
-        <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Men bilan bog'laning</h2>
-        <div style="max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);" data-aos="zoom-in">
-            <form action="mailto:ishingiz@example.com" method="post">
-                <input type="text" placeholder="Ismingiz" required class="lab-input">
-                <input type="email" placeholder="Email manzilingiz" required class="lab-input">
-                <textarea rows="5" placeholder="Xabaringizni yozing..." required class="lab-input"></textarea>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Yuborish</button>
-            </form>
+
+    <section class="section photo-section" id="contact">
+        <div class="section-bg-layer"></div>
+        <div class="section-inner">
+            <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Men bilan bog'laning</h2>
+            <div class="contact-form-box" style="max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);" data-aos="zoom-in">
+                <form action="mailto:ishingiz@example.com" method="post">
+                    <input type="text" placeholder="Ismingiz" required class="lab-input">
+                    <input type="email" placeholder="Email manzilingiz" required class="lab-input">
+                    <textarea rows="5" placeholder="Xabaringizni yozing..." required class="lab-input"></textarea>
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Yuborish</button>
+                </form>
+            </div>
         </div>
     </section>
 
