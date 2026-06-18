@@ -436,17 +436,74 @@
         .usage-time { font-size: 0.75rem; opacity: 0.65; }
         #usage-history-empty { font-size: 0.85rem; opacity: 0.6; text-align: center; padding: 8px 0; }
 
+        /* ===== HERO — RASM BILAN ===== */
         .hero {
+            position: relative;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            text-align: center;
-            padding: 100px 20px 60px;
+            padding: 110px 20px 60px;
+            overflow: hidden;
         }
-        .hero h1 { font-size: clamp(2rem, 8vw, 4rem); font-weight: 800; margin-bottom: 16px; }
-        .hero p { font-size: clamp(1rem, 3.5vw, 1.2rem); max-width: 700px; line-height: 1.6; padding: 0 8px; }
+
+        .hero-photo-layer {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: 0;
+        }
+
+        .hero-photo-layer img {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 62%;
+            object-fit: cover;
+            object-position: top center;
+        }
+
+        /* Matn o'qilishi uchun chap tomondan tushuvchi qora parda */
+        .hero-photo-layer::before {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(2, 6, 23, 0.96) 0%,
+                rgba(2, 6, 23, 0.88) 28%,
+                rgba(2, 6, 23, 0.55) 46%,
+                rgba(2, 6, 23, 0.05) 64%,
+                rgba(2, 6, 23, 0) 100%
+            );
+            z-index: 1;
+        }
+        body:not(.dark-theme) .hero-photo-layer::before {
+            background: linear-gradient(
+                90deg,
+                rgba(15, 23, 42, 0.92) 0%,
+                rgba(30, 41, 59, 0.78) 28%,
+                rgba(30, 41, 59, 0.4) 46%,
+                rgba(30, 41, 59, 0.04) 64%,
+                rgba(30, 41, 59, 0) 100%
+            );
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 720px;
+            text-align: left;
+            color: #f8fafc;
+        }
+
+        .hero h1 { font-size: clamp(2rem, 6vw, 3.6rem); font-weight: 800; margin: 0 0 16px; color: #ffffff; }
+        .hero-content p.hero-sub {
+            font-size: clamp(1rem, 2vw, 1.15rem);
+            max-width: 560px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            margin: 0;
+        }
 
         .hero-actions {
             display: grid;
@@ -454,8 +511,7 @@
             gap: 16px;
             width: 100%;
             max-width: 640px;
-            margin-top: 24px;
-            padding: 0 12px;
+            margin-top: 28px;
         }
 
         .hero-card {
@@ -468,7 +524,7 @@
             text-decoration: none;
             color: white !important;
             transition: transform 0.25s, box-shadow 0.25s;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
             min-height: 130px;
         }
 
@@ -562,16 +618,38 @@
         .fab-robot { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
         .fab-doska { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
 
+        @media (max-width: 900px) {
+            .hero-photo-layer img { width: 78%; }
+        }
+
         @media (max-width: 768px) {
             .hero {
                 min-height: auto;
-                padding: 110px 16px 40px;
+                padding: 96px 16px 40px;
+                align-items: flex-end;
             }
+
+            .hero-photo-layer img { width: 100%; object-position: top center; }
+
+            .hero-photo-layer::before {
+                background: linear-gradient(
+                    180deg,
+                    rgba(2, 6, 23, 0.05) 0%,
+                    rgba(2, 6, 23, 0.35) 45%,
+                    rgba(2, 6, 23, 0.92) 78%,
+                    rgba(2, 6, 23, 0.98) 100%
+                ) !important;
+            }
+
+            .hero-content { text-align: center; max-width: 100%; }
+            .hero h1 { text-align: center; }
+            .hero-content p.hero-sub { text-align: center; max-width: 100%; margin: 0 auto; }
 
             .hero-actions {
                 grid-template-columns: 1fr;
                 max-width: 360px;
                 gap: 14px;
+                margin: 24px auto 0;
             }
 
             .hero-card {
@@ -610,7 +688,7 @@
             }
 
             .clock-section {
-                margin: 20px auto;
+                margin: 20px auto 0;
                 padding: 8px;
             }
 
@@ -685,7 +763,7 @@
             position: fixed;
             bottom: 8px;
             left: 50%;
-            tr11111ansform: translateX(-50%);
+            transform: translateX(-50%);
             font-size: 0.65rem;
             opacity: 0.45;
             z-index: 9989;
@@ -799,38 +877,45 @@
     </a>
 </div>
     <section class="hero" id="home">
-    <h1 id="greeting" data-aos="fade-up">Assalomu alaykum!</h1>
-    <p data-aos="fade-up" data-aos-delay="200">
-        Fizika o'qituvchisi, Dasturchi va IT tadbirkor. 
-        Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
-    </p>
+        <div class="hero-photo-layer">
+            <img src="images/profile.jpg" alt="IdrizMedia — Fizika o'qituvchisi va dasturchi">
+        </div>
 
-    <div class="clock-section" data-aos="fade-up" data-aos-delay="300">
-        <div id="ziyo-clock" class="clock-card style-1" onclick="changeClockStyle()" title="Dizaynni o'zgartirish uchun bosing!">
-            <div class="clock-display">
-                <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+        <div class="hero-content">
+            <h1 id="greeting" data-aos="fade-up">Assalomu alaykum!</h1>
+            <p class="hero-sub" data-aos="fade-up" data-aos-delay="200">
+                Fizika o'qituvchisi, Dasturchi va IT tadbirkor.
+                Bilim va texnologiyani birlashtirib, yangi imkoniyatlar yarataman.
+            </p>
+
+            <div class="clock-section" data-aos="fade-up" data-aos-delay="300">
+                <div id="ziyo-clock" class="clock-card style-1" onclick="changeClockStyle()" title="Dizaynni o'zgartirish uchun bosing!">
+                    <div class="clock-display">
+                        <span id="hours">00</span>:<span id="minutes">00</span>:<span id="seconds">00</span>
+                    </div>
+                    <div id="clock-date" class="clock-date">23-May, 2026</div>
+                </div>
+
+                <div class="quote-container">
+                    <p id="time-quote">"Vaqt — bu daryo, uni ortga qaytarib bo'lmaydi. Har bir soniyadan unumli foydalaning."</p>
+                    <span class="quote-author">— Ziyomap Ma'rifat Kengashi</span>
+                </div>
             </div>
-            <div id="clock-date" class="clock-date">23-May, 2026</div>
-        </div>
 
-        <div class="quote-container">
-            <p id="time-quote">"Vaqt — bu daryo, uni ortga qaytarib bo'lmaydi. Har bir soniyadan unumli foydalaning."</p>
-            <span class="quote-author">— Ziyomap Ma'rifat Kengashi</span>
+            <div class="hero-actions" data-aos="zoom-in" data-aos-delay="400">
+                <a href="https://ziyomap.streamlit.app/" target="_blank" rel="noopener" class="hero-card ziyomap-card" data-require-auth data-auth-return="https://ziyomap.streamlit.app/">
+                    <i class="fas fa-graduation-cap"></i>
+                    <h3>Ziyomap</h3>
+                    <p>Butun maktab fanlari uchun interaktiv darslar, testlar va o'quv materiallari.</p>
+                </a>
+                <a href="ai-tools.html" class="hero-card ai-card" data-require-auth>
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <h3>Ziyo AI Studio</h3>
+                    <p>Dars rejalari, savol-javob va tahlil — sun'iy intellekt yordamida tez tayyorlang.</p>
+                </a>
+            </div>
         </div>
-    </div>
-    <div class="hero-actions" data-aos="zoom-in" data-aos-delay="400">
-        <a href="https://ziyomap.streamlit.app/" target="_blank" rel="noopener" class="hero-card ziyomap-card" data-require-auth data-auth-return="https://ziyomap.streamlit.app/">
-            <i class="fas fa-graduation-cap"></i>
-            <h3>Ziyomap</h3>
-            <p>Butun maktab fanlari uchun interaktiv darslar, testlar va o'quv materiallari.</p>
-        </a>
-        <a href="ai-tools.html" class="hero-card ai-card" data-require-auth>
-            <i class="fas fa-wand-magic-sparkles"></i>
-            <h3>Ziyo AI Studio</h3>
-            <p>Dars rejalari, savol-javob va tahlil — sun'iy intellekt yordamida tez tayyorlang.</p>
-        </a>
-    </div>
-</section>
+    </section>
 
     <section class="section" id="projects">
         <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
@@ -950,10 +1035,10 @@
 .clock-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    margin: 30px auto;
-    padding: 15px;
+    margin: 30px 0;
+    padding: 0;
     max-width: 500px;
     font-family: 'Poppins', sans-serif;
 }
@@ -1030,13 +1115,13 @@
 
 /* --- Iqtiboslar paneli --- */
 .quote-container {
-    text-align: center;
-    padding: 0 15px;
+    text-align: left;
+    padding: 0;
 }
 #time-quote {
     font-style: italic;
     font-size: 15px;
-    color: #8b949e;
+    color: #cbd5e1;
     line-height: 1.6;
     margin: 0 0 5px 0;
     transition: opacity 0.5s ease;
@@ -1050,6 +1135,11 @@
 /* Sayt yorug' rejimga o'tganda matn rangi */
 body.light-mode #time-quote {
     color: #444d56;
+}
+
+@media (max-width: 768px) {
+    .clock-section { align-items: center; }
+    .quote-container { text-align: center; }
 }
 </style>
 
