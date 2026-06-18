@@ -85,20 +85,29 @@
             z-index: 9999;
             transition: opacity 0.8s ease;
         }
-        .preloader-content { text-align: center; }
-        .ziyomap-loader {
-            font-size: clamp(2rem, 10vw, 5rem);
-            font-weight: 900;
-            color: #38bdf8;
-            text-transform: uppercase;
-            letter-spacing: clamp(5px, 2vw, 15px);
-            margin: 0;
+        .preloader-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .preloader-icon {
+            width: clamp(70px, 15vw, 110px);
+            height: auto;
             animation: pulse-glow 2s infinite alternate;
-            text-shadow: 0 0 30px rgba(56, 189, 248, 0.6);
+            filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.6));
+        }
+        .preloader-logo {
+            width: clamp(180px, 40vw, 320px);
+            height: auto;
+            animation: pulse-glow 2s infinite alternate;
+            /* Logo oq fonli — tungi fon uchun aqlli filter */
+            filter: drop-shadow(0 0 10px rgba(56,189,248,0.35));
         }
         @keyframes pulse-glow {
-            from { transform: scale(1); opacity: 0.6; text-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
-            to { transform: scale(1.05); opacity: 1; text-shadow: 0 0 50px rgba(56, 189, 248, 0.9); }
+            from { transform: scale(1); opacity: 0.65; }
+            to { transform: scale(1.04); opacity: 1; }
         }
         .fade-out { opacity: 0; pointer-events: none; }
 
@@ -128,22 +137,22 @@
         }
 
         .logo-brand {
-            font-size: 1.35rem;
-            font-weight: 800;
-            background: linear-gradient(135deg,#6366f1,#0ea5e9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            display: inline-flex;
+            align-items: center;
             text-decoration: none;
-            letter-spacing: 1px;
             flex-shrink: 0;
             margin-right: 16px;
         }
-        body.dark-theme .logo-brand {
-            background: linear-gradient(135deg,#a78bfa,#38bdf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .logo-brand img {
+            height: 38px;
+            width: auto;
+            display: block;
+            /* tungi rejimda oq logoga o'tish */
+            transition: filter 0.4s ease;
+        }
+        body.dark-theme .logo-brand img {
+            /* tungi rejimda logoni oqish/yorqin qilish */
+            filter: brightness(0) invert(1);
         }
 
         .nav-links {
@@ -754,14 +763,32 @@
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
             z-index: 0;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            overflow: hidden;
         }
+        .photo-section .section-bg-layer .bg-img {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: opacity 0.8s ease;
+        }
+        /* Sukut bo'yicha (kun rejimi): kunduzgi rasm ko'rinadi, tungisi yashirin */
+        .photo-section .section-bg-layer .bg-day { opacity: 1; }
+        .photo-section .section-bg-layer .bg-night { opacity: 0; }
+        /* Tun rejimi yoqilganda: rasmlar almashadi */
+        body.dark-theme .photo-section .section-bg-layer .bg-day { opacity: 0; }
+        body.dark-theme .photo-section .section-bg-layer .bg-night { opacity: 1; }
+
         .photo-section .section-bg-layer::after {
             content: "";
             position: absolute;
             top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(180deg, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0.62) 55%, rgba(15,23,42,0.85) 100%);
+            transition: background 0.8s ease;
+        }
+        body.dark-theme .photo-section .section-bg-layer::after {
             background: linear-gradient(180deg, rgba(2,6,23,0.55) 0%, rgba(2,6,23,0.72) 55%, rgba(2,6,23,0.92) 100%);
         }
         .photo-section .section-inner {
@@ -787,9 +814,7 @@
         .photo-section .card i { color: #38bdf8; }
         .photo-section .card:hover { border-color: #38bdf8; }
 
-        #projects.photo-section .section-bg-layer { background-image: url('images/projects-bg.jpg'); }
-        #blog.photo-section .section-bg-layer { background-image: url('images/blog-bg.jpg'); }
-        #contact.photo-section .section-bg-layer { background-image: url('images/contact-bg.jpg'); }
+        /* Rasm manzillari endi HTML ichida <img class="bg-day"/"bg-night"> sifatida berilgan */
 
         #contact.photo-section .contact-form-box {
             background: rgba(8, 14, 28, 0.68) !important;
@@ -848,14 +873,15 @@
 <body>
     <div id="preloader">
         <div class="preloader-content">
-            <img src="images/logo-b.png" alt="Ziyomap" class="ziyomap-logo-img">
+            <img src="images/icon.png" class="preloader-icon" alt="Ziyomap icon">
+            <img src="images/logo.png" class="preloader-logo" alt="Ziyomap">
         </div>
     </div>
 
     <nav>
       <!-- ===== DESKTOP ===== -->
       <div class="nav-inner desktop">
-        <a href="#home" class="logo-brand">Ziyomap</a>
+        <a href="#home" class="logo-brand"><img src="images/logo.png" alt="Ziyomap"></a>
 
         <div class="nav-links">
           <a href="#home" class="nav-link" data-nav="asosiy">Asosiy</a>
@@ -892,7 +918,7 @@
 
       <!-- ===== MOBIL — yuqori qator (logo + iconlar) ===== -->
       <div class="nav-inner mobile-top">
-        <a href="#home" class="logo-brand" style="font-size:1.15rem;flex:1;min-width:0">Ziyomap</a>
+        <a href="#home" class="logo-brand" style="flex:1;min-width:0"><img src="images/logo.png" alt="Ziyomap" style="height:30px;"></a>
    <div class="zy-bell-wrap">
   <button class="nav-icon-btn zy-bell-btn" aria-label="Bildirishnomalar">
     <i class="fas fa-bell"></i>
@@ -985,7 +1011,10 @@
     </section>
 
     <section class="section photo-section" id="projects">
-        <div class="section-bg-layer"></div>
+        <div class="section-bg-layer">
+            <img src="images/loyihalar-day.jpg" class="bg-img bg-day" alt="">
+            <img src="images/loyihalar-night.jpg" class="bg-img bg-night" alt="">
+        </div>
         <div class="section-inner">
             <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
             <div class="grid">
@@ -1011,7 +1040,10 @@
 
 
    <section class="section photo-section" id="blog">
-        <div class="section-bg-layer"></div>
+        <div class="section-bg-layer">
+            <img src="images/blog-day.jpg" class="bg-img bg-day" alt="">
+            <img src="images/blog-night.jpg" class="bg-img bg-night" alt="">
+        </div>
         <div class="section-inner">
             <h2 class="section-title" style="text-align: center; font-size: 2.2rem;" data-aos="fade-up">Ilmiy Maqolalar va Yangiliklar</h2>
 
@@ -1024,7 +1056,10 @@
 
 
     <section class="section photo-section" id="contact">
-        <div class="section-bg-layer"></div>
+        <div class="section-bg-layer">
+            <img src="images/aloqa-day.jpg" class="bg-img bg-day" alt="">
+            <img src="images/aloqa-night.jpg" class="bg-img bg-night" alt="">
+        </div>
         <div class="section-inner">
             <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Men bilan bog'laning</h2>
             <div class="contact-form-box" style="max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);" data-aos="zoom-in">
