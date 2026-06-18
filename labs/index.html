@@ -9,56 +9,217 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--card:#141e30;--accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
 [data-theme="light"]{--bg:#f0f4ff;--bg2:#fff;--bg3:#e8edf8;--card:#fff;--accent:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
-[data-theme="light"] body{background:#f0f4ff;color:#0f172a;}
-[data-theme="light"] .top-nav{background:rgba(240,244,255,.96)!important;border-bottom-color:rgba(0,0,0,.08)!important;}
-[data-theme="light"] .lab-card{background:#fff!important;border-color:rgba(0,0,0,.08)!important;}
-[data-theme="light"] .lab-card:hover{border-color:var(--accent)!important;box-shadow:0 8px 24px rgba(37,99,235,.15)!important;}
-[data-theme="light"] .fan-tab{background:#e8edf8!important;color:#475569!important;}
-[data-theme="light"] .fan-tab.active{background:var(--accent)!important;color:#fff!important;}
-[data-theme="light"] .tag{background:rgba(0,0,0,.07)!important;color:#475569!important;}
-[data-theme="light"] .hero-sub{color:#475569!important;}
-[data-theme="light"] .stat-val{color:#0f172a!important;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;background:rgba(10,14,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+
+/* ===== ORQA FON RASIM QATLAMI ===== */
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:var(--text);
+  min-height:100vh;
+  background-color:var(--bg);
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* Sticky parallax background */
+.bg-layer{
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  z-index:0;
+  background-size:cover;
+  background-position:center top;
+  background-repeat:no-repeat;
+  transition:opacity 0.5s ease;
+}
+
+/* Tungi rejim rasimi (default) */
+[data-theme="dark"] .bg-layer{
+  background-image:url('../images/lab-bg-dark.png');
+}
+/* Kunduzgi rejim rasimi */
+[data-theme="light"] .bg-layer{
+  background-image:url('../images/lab-bg-light.png');
+}
+
+/* Overlay — matn o'qilishi uchun */
+.bg-overlay{
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  z-index:1;
+  transition:background 0.5s ease;
+}
+[data-theme="dark"] .bg-overlay{
+  background:linear-gradient(
+    180deg,
+    rgba(5,8,20,0.55) 0%,
+    rgba(5,8,20,0.45) 30%,
+    rgba(5,8,20,0.60) 65%,
+    rgba(5,8,20,0.82) 100%
+  );
+}
+[data-theme="light"] .bg-overlay{
+  background:linear-gradient(
+    180deg,
+    rgba(240,244,255,0.45) 0%,
+    rgba(240,244,255,0.35) 30%,
+    rgba(240,244,255,0.55) 65%,
+    rgba(240,244,255,0.80) 100%
+  );
+}
+
+/* Hamma kontent z-index:2 da */
+.top-nav,
+.page-content{
+  position:relative;
+  z-index:2;
+}
+
+/* ===== NAVIGATSIYA ===== */
+.top-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2rem;height:60px;
+  background:transparent;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  position:sticky;top:0;z-index:100;
+}
+[data-theme="dark"] .top-nav{background:rgba(5,8,20,0.55);}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,0.55); border-bottom-color:rgba(0,0,0,.08);}
+
 .nav-logo{font-size:1.3rem;font-weight:900;color:var(--accent);text-decoration:none;}
 .nav-right{display:flex;align-items:center;gap:12px;}
 .home-link{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);transition:.2s;}
+[data-theme="light"] .home-link{border-color:rgba(0,0,0,.12);color:#475569;}
 .home-link:hover{border-color:var(--accent);color:var(--accent);}
 .theme-btn{padding:7px 14px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2);font-size:.82rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
-.hero{text-align:center;padding:3rem 1rem 2rem;background:radial-gradient(ellipse at 50% 0%,rgba(59,130,246,.13) 0%,transparent 65%);}
-.hero-title{font-size:2.3rem;font-weight:900;background:linear-gradient(135deg,#60a5fa,#a78bfa 50%,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* ===== HERO ===== */
+.hero{
+  text-align:center;
+  padding:3.5rem 1rem 2rem;
+}
+.hero-title{
+  font-size:2.5rem;font-weight:900;
+  background:linear-gradient(135deg,#60a5fa,#a78bfa 50%,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-shadow:none;
+  filter:drop-shadow(0 2px 16px rgba(96,165,250,0.35));
+}
+[data-theme="light"] .hero-title{
+  filter:drop-shadow(0 2px 10px rgba(37,99,235,0.25));
+}
 .hero-sub{color:var(--text2);margin-top:.7rem;font-size:1rem;max-width:600px;margin-left:auto;margin-right:auto;}
+[data-theme="light"] .hero-sub{color:#475569;}
+
 .stats{display:flex;justify-content:center;gap:3rem;margin-top:2rem;}
 .stat{text-align:center;}
-.stat-val{font-size:2rem;font-weight:900;}
+.stat-val{
+  font-size:2rem;font-weight:900;
+  color:var(--text);
+}
+[data-theme="dark"] .stat-val{text-shadow:0 0 18px rgba(96,165,250,0.4);}
 .stat-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-top:3px;}
+
+/* ===== FAN TABLAR ===== */
 .fan-tabs-wrap{display:flex;justify-content:center;padding:1.5rem 1rem .5rem;}
 .fan-tabs{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-.fan-tab{display:flex;flex-direction:column;align-items:center;padding:14px 28px;border-radius:16px;border:2px solid rgba(255,255,255,.06);background:var(--bg3);cursor:pointer;transition:all .2s;gap:5px;min-width:130px;}
-.fan-tab:hover{border-color:rgba(255,255,255,.18);transform:translateY(-2px);}
-.fan-tab.active{border-color:var(--accent);background:rgba(59,130,246,.13);transform:translateY(-3px);}
+.fan-tab{
+  display:flex;flex-direction:column;align-items:center;
+  padding:14px 28px;border-radius:16px;
+  border:2px solid rgba(255,255,255,.08);
+  background:rgba(20,30,48,0.55);
+  backdrop-filter:blur(10px);
+  cursor:pointer;transition:all .2s;gap:5px;min-width:130px;
+}
+[data-theme="light"] .fan-tab{
+  background:rgba(255,255,255,0.55);
+  border-color:rgba(0,0,0,.08);
+  color:#475569;
+}
+.fan-tab:hover{border-color:rgba(255,255,255,.25);transform:translateY(-2px);}
+[data-theme="light"] .fan-tab:hover{border-color:rgba(37,99,235,.3);}
+.fan-tab.active{
+  border-color:var(--accent);
+  background:rgba(59,130,246,.18);
+  backdrop-filter:blur(12px);
+  transform:translateY(-3px);
+}
+[data-theme="light"] .fan-tab.active{background:rgba(37,99,235,.12);}
 .fan-icon{font-size:2rem;}
 .fan-name{font-size:.85rem;font-weight:800;color:var(--text2);}
+[data-theme="light"] .fan-name{color:#475569;}
 .fan-tab.active .fan-name{color:#60a5fa;}
 .fan-count{font-size:.65rem;color:var(--text3);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:10px;font-weight:600;}
+[data-theme="light"] .fan-count{background:rgba(0,0,0,.06);}
 .fan-tab.active .fan-count{background:rgba(59,130,246,.2);color:#93c5fd;}
-.section-title{text-align:center;font-size:.7rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);padding:.8rem 2rem .2rem;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(275px,1fr));gap:1.2rem;padding:.8rem 2rem 4rem;max-width:1400px;margin:0 auto;}
-.lab-card{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s;position:relative;}
-.lab-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 10px 36px rgba(59,130,246,.18);}
+
+/* ===== SECTION TITLE ===== */
+.section-title{
+  text-align:center;font-size:.7rem;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--text3);padding:.8rem 2rem .2rem;
+}
+
+/* ===== GRID ===== */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(275px,1fr));
+  gap:1.2rem;
+  padding:.8rem 2rem 4rem;
+  max-width:1400px;margin:0 auto;
+}
+
+/* ===== KARTOCHKALAR ===== */
+.lab-card{
+  background:rgba(14,22,40,0.62);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;overflow:hidden;
+  cursor:pointer;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+  position:relative;
+}
+[data-theme="light"] .lab-card{
+  background:rgba(255,255,255,0.65);
+  border-color:rgba(0,0,0,.08);
+}
+.lab-card:hover{
+  transform:translateY(-4px);
+  border-color:var(--accent);
+  box-shadow:0 10px 36px rgba(59,130,246,.22);
+}
+[data-theme="light"] .lab-card:hover{
+  box-shadow:0 8px 24px rgba(37,99,235,.18);
+}
 .lab-card.soon{cursor:default;opacity:.55;}
 .lab-card.soon:hover{transform:none;border-color:rgba(255,255,255,.07);box-shadow:none;}
+[data-theme="light"] .lab-card.soon:hover{border-color:rgba(0,0,0,.08);}
+
 .card-thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:3.2rem;position:relative;}
 .card-body{padding:.9rem 1rem;}
 .card-title{font-size:.93rem;font-weight:800;margin-bottom:.3rem;}
+[data-theme="light"] .card-title{color:#0f172a;}
 .card-desc{font-size:.75rem;color:var(--text2);line-height:1.55;margin-bottom:.7rem;}
+[data-theme="light"] .card-desc{color:#475569;}
 .card-tags{display:flex;flex-wrap:wrap;gap:5px;}
-.tag{padding:3px 8px;border-radius:7px;background:rgba(255,255,255,.07);font-size:.63rem;font-weight:600;color:var(--text3);}
+.tag{
+  padding:3px 8px;border-radius:7px;
+  background:rgba(255,255,255,.07);
+  font-size:.63rem;font-weight:600;color:var(--text3);
+}
+[data-theme="light"] .tag{background:rgba(0,0,0,.07);color:#64748b;}
 .new-badge{position:absolute;top:10px;right:10px;background:var(--green);color:#fff;font-size:.6rem;font-weight:800;padding:3px 8px;border-radius:10px;}
 .soon-badge{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.08);color:var(--text3);font-size:.6rem;padding:3px 8px;border-radius:10px;font-weight:700;}
 </style>
 </head>
 <body>
+
+<!-- Orqa fon rasim (fixed, parallax kabi) -->
+<div class="bg-layer"></div>
+<!-- Ustidagi yariqora/yaroq overlay -->
+<div class="bg-overlay"></div>
+
 <nav class="top-nav">
   <a href="../" class="nav-logo">Ziyomap</a>
   <div class="nav-right">
@@ -66,58 +227,68 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <button class="theme-btn" onclick="toggleTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
   </div>
 </nav>
-<div class="hero">
-  <h1 class="hero-title">🔬 Interaktiv Laboratoriyalar</h1>
-  <p class="hero-sub">Fizika, kimyo, matematika va biologiyani animatsiyali simulyatsiyalar orqali o'rganing</p>
-  <div class="stats">
-    <div class="stat"><div class="stat-val" id="stat-total">20</div><div class="stat-lbl">Laboratoriya</div></div>
-    <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Fan</div></div>
-    <div class="stat"><div class="stat-val">∞</div><div class="stat-lbl">Tajriba</div></div>
+
+<!-- Barcha kontent bitta wrapper ichida -->
+<div class="page-content">
+  <div class="hero">
+    <h1 class="hero-title">🔬 Interaktiv Laboratoriyalar</h1>
+    <p class="hero-sub">Fizika, kimyo, matematika va biologiyani animatsiyali simulyatsiyalar orqali o'rganing</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="stat-total">20</div><div class="stat-lbl">Laboratoriya</div></div>
+      <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Fan</div></div>
+      <div class="stat"><div class="stat-val">∞</div><div class="stat-lbl">Tajriba</div></div>
+    </div>
   </div>
+
+  <div class="fan-tabs-wrap"><div class="fan-tabs" id="fan-tabs"></div></div>
+  <div class="section-title" id="section-title">BARCHA LABORATORIYALAR</div>
+  <div class="grid" id="lab-grid"></div>
 </div>
-<div class="fan-tabs-wrap"><div class="fan-tabs" id="fan-tabs"></div></div>
-<div class="section-title" id="section-title">BARCHA LABORATORIYALAR</div>
-<div class="grid" id="lab-grid"></div>
+
 <script>
 const FANS=[
-  {id:'all',      icon:'🔬', name:'Hammasi',    count:20},
-  {id:'fizika',   icon:'⚡', name:'Fizika',     count:9},
-  {id:'kimyo',    icon:'🧪', name:'Kimyo',      count:4},
-  {id:'matematika',icon:'📐',name:'Matematika', count:4},
-  {id:'biologiya',icon:'🧬', name:'Biologiya',  count:3},
+  {id:'all',       icon:'🔬', name:'Hammasi',    count:20},
+  {id:'fizika',    icon:'⚡', name:'Fizika',     count:9},
+  {id:'kimyo',     icon:'🧪', name:'Kimyo',      count:4},
+  {id:'matematika',icon:'📐', name:'Matematika', count:4},
+  {id:'biologiya', icon:'🧬', name:'Biologiya',  count:3},
 ];
 const LABS=[
-  {title:'Matematik Mayatnik',    desc:'RK4 fizikasi, 6 sayyora, energiya grafigi, tezlik vektori va iz animatsiyasi.',    emoji:'🔴',bg:'linear-gradient(135deg,#1e3a5f,#0f2040)',file:'lab-mayatnik.html',      fans:['fizika'],    tags:['mexanika','rk4'],       isNew:false},
-  {title:'Erkin Tushish',         desc:"Balandlik, tezlik, havo qarshiligi. Ko'p jism, h(t) va v(t) grafiklar.",            emoji:'🟠',bg:'linear-gradient(135deg,#2d1b0f,#1a0f05)',file:'lab-erkin-tushish.html', fans:['fizika'],    tags:['mexanika','grafik'],    isNew:false},
-  {title:"Yorug'lik Sinishi",     desc:"Snell qonuni, 7 rang, 4 muhit, to'liq ichki qaytish, prizma dispersiyasi.",         emoji:'🌈',bg:'linear-gradient(135deg,#1a0f30,#0f1a30)',file:'lab-optika.html',        fans:['fizika'],    tags:['optika','snell'],       isNew:false},
-  {title:'Elektr Zanjiri',        desc:"Rezistor, batareya, chiroq, kalit — ketma-ket/parallel, elektron animatsiyasi.",    emoji:'⚡',bg:'linear-gradient(135deg,#0f1e3a,#060d1f)',file:'lab-elektr-zanjir.html',  fans:['fizika'],    tags:['elektr','ohm'],         isNew:true},
-  {title:'Kondensator RC',        desc:"Zaryadlanish va razryadlanish, τ=RC, energiya, dielektrik, elektron zarrachalar.",  emoji:'🔋',bg:'linear-gradient(135deg,#1a0f2d,#0a0515)',file:'lab-elektr-kondensator.html',fans:['fizika'], tags:['elektr','rc'],          isNew:true},
-  {title:"To'lqin Interferensiya",desc:"Ikki manba, pixel-level pattern, tovush va to'lqin rejimi, drag manba.",           emoji:'🌊',bg:'linear-gradient(135deg,#051a2d,#020d18)',file:'lab-tolqin-interferensiya.html',fans:['fizika'],tags:["to'lqin"],    isNew:true},
-  {title:'Quyosh Sistemasi',      desc:"8 sayyora, Kepler III jadvali, orbitalar, tezlik vektori, zoom, ma'lumotlar.",      emoji:'🪐',bg:'linear-gradient(135deg,#02030a,#010208)',file:'lab-quyosh-sistemasi.html',fans:['fizika'],   tags:['astronomiya','kepler'], isNew:true},
-  {title:'Gravitatsiya N-Jism',   desc:"N-jism simulyatsiya, to'qnashuv, energiya, binary/figure-8/solar presetlar.",      emoji:'🌌',bg:'linear-gradient(135deg,#000208,#000105)',file:'lab-gravitatsiya.html',    fans:['fizika'],    tags:['gravitatsiya','orbit'],  isNew:true},
-  {title:'Termodinamika P-V',     desc:"Izotermik, izobarik, izoxor, adiabatik. P-V diagramma, silindr animatsiyasi.",    emoji:'🌡️',bg:'linear-gradient(135deg,#1a0f0a,#0d0705)',file:'lab-termodinamika.html',   fans:['fizika'],    tags:['termo','pv'],           isNew:true},
-  {title:'Molekulyar Harakat',    desc:"Ideal gaz, 5 molekula turi, to'qnashuv, Maxwell taqsimoti, PV=nRT.",              emoji:'⚛️',bg:'linear-gradient(135deg,#0f301a,#051808)',file:'lab-kimyo-molekulalar.html',fans:['kimyo'],   tags:['gaz','molekula'],       isNew:false},
-  {title:'Kislota-Ishqor Titrlash',desc:'4 kislota x 4 ishqor, pH egri, burette animatsiyasi, ekvivalent nuqta.',         emoji:'🧪',bg:'linear-gradient(135deg,#1a0f05,#0d0802)',file:'lab-kimyo-titrimetria.html',fans:['kimyo'],   tags:['ph','titrimetria'],     isNew:true},
-  {title:'Reaksiya Kinetikasi',   desc:'Arrenius qonuni, katalizator, konsentrasiya grafigi, energiya diagrammasi.',       emoji:'⚗️',bg:'linear-gradient(135deg,#0a0515,#05020d)',file:'lab-kimyo-reaksiya.html',  fans:['kimyo'],    tags:['kinetika','katalizator'],isNew:true},
-  {title:'Radioaktiv Yemirilish', desc:'6 izotop (C-14, U-238...), stoxastik yemirilish, log-grafik, yarim davr.',         emoji:'☢️',bg:'linear-gradient(135deg,#1a0505,#0d0202)',file:'lab-yadro-yemirilish.html', fans:['kimyo'],    tags:['yadro','eksponensial'],  isNew:true},
-  {title:'Funksiya Grafigi',      desc:'8 funksiya, hosila va integral vizualizatsiya, pan va scroll zoom.',                emoji:'📈',bg:'linear-gradient(135deg,#071520,#03080f)',file:'lab-matematika-grafik.html',fans:['matematika'],tags:['hosila','integral'],    isNew:true},
-  {title:'Vektor Maydon',         desc:'8 maydon, divergensiya xaritasi, zarracha oqimi, 4 rang sxemasi, pan va zoom.',    emoji:'🧭',bg:'linear-gradient(135deg,#100818,#060410)',file:'lab-matematika-vektor.html',fans:['matematika'],tags:['div','curl','oqim'],    isNew:true},
-  {title:"Differentsial Tenglamalar",desc:"y'=f(x,y) vektor maydoni, Euler va RK4 yechim, fazoviy portret.",              emoji:'∫', bg:'linear-gradient(135deg,#0d1a10,#060d08)',file:'',                         fans:['matematika'],tags:['ode','rk4'],            soon:true},
-  {title:'Kompleks Sonlar',       desc:"Mandelbrot va Julia to'plamlari, iteratsiya, zoom, rang sxemasi.",                emoji:'🌀',bg:'linear-gradient(135deg,#100a20,#080514)',file:'',                         fans:['matematika'],tags:['kompleks','fraktal'],    soon:true},
-  {title:"Hujayra Bo'linishi",    desc:'Mitoz (6) va Meyoz (9) bosqich — xromosoma animatsiyasi, crossing-over.',         emoji:'🔬',bg:'linear-gradient(135deg,#020510,#010207)',file:'lab-biologiya-hujaira.html',fans:['biologiya'],tags:['mitoz','meyoz'],        isNew:true},
-  {title:'DNK Replikatsiyasi',    desc:'3D spiral, AT-GC juftliklari, replikatsiya jarayoni va helikaza animatsiyasi.',   emoji:'🧬',bg:'linear-gradient(135deg,#05021a,#020110)',file:'lab-biologiya-dna.html',    fans:['biologiya'],tags:['dna','replikatsiya'],    isNew:true},
-  {title:'Ekosistem Modeli',      desc:"Lotka-Volterra ov-yirtqich dinamikasi, populyatsiya grafigi, muvozanat nuqtasi.", emoji:'🌿',bg:'linear-gradient(135deg,#061408,#030a04)',file:'',                         fans:['biologiya'],tags:['ekologiya','populyatsiya'],soon:true},
+  {title:'Matematik Mayatnik',       desc:'RK4 fizikasi, 6 sayyora, energiya grafigi, tezlik vektori va iz animatsiyasi.',     emoji:'🔴',bg:'linear-gradient(135deg,#1e3a5f,#0f2040)',file:'lab-mayatnik.html',            fans:['fizika'],    tags:['mexanika','rk4'],            isNew:false},
+  {title:'Erkin Tushish',            desc:"Balandlik, tezlik, havo qarshiligi. Ko'p jism, h(t) va v(t) grafiklar.",             emoji:'🟠',bg:'linear-gradient(135deg,#2d1b0f,#1a0f05)',file:'lab-erkin-tushish.html',       fans:['fizika'],    tags:['mexanika','grafik'],         isNew:false},
+  {title:"Yorug'lik Sinishi",        desc:"Snell qonuni, 7 rang, 4 muhit, to'liq ichki qaytish, prizma dispersiyasi.",           emoji:'🌈',bg:'linear-gradient(135deg,#1a0f30,#0f1a30)',file:'lab-optika.html',              fans:['fizika'],    tags:['optika','snell'],            isNew:false},
+  {title:'Elektr Zanjiri',           desc:"Rezistor, batareya, chiroq, kalit — ketma-ket/parallel, elektron animatsiyasi.",      emoji:'⚡',bg:'linear-gradient(135deg,#0f1e3a,#060d1f)',file:'lab-elektr-zanjir.html',       fans:['fizika'],    tags:['elektr','ohm'],              isNew:true},
+  {title:'Kondensator RC',           desc:"Zaryadlanish va razryadlanish, τ=RC, energiya, dielektrik, elektron zarrachalar.",    emoji:'🔋',bg:'linear-gradient(135deg,#1a0f2d,#0a0515)',file:'lab-elektr-kondensator.html',  fans:['fizika'],    tags:['elektr','rc'],               isNew:true},
+  {title:"To'lqin Interferensiya",   desc:"Ikki manba, pixel-level pattern, tovush va to'lqin rejimi, drag manba.",              emoji:'🌊',bg:'linear-gradient(135deg,#051a2d,#020d18)',file:'lab-tolqin-interferensiya.html',fans:['fizika'],  tags:["to'lqin"],                   isNew:true},
+  {title:'Quyosh Sistemasi',         desc:"8 sayyora, Kepler III jadvali, orbitalar, tezlik vektori, zoom, ma'lumotlar.",         emoji:'🪐',bg:'linear-gradient(135deg,#02030a,#010208)',file:'lab-quyosh-sistemasi.html',    fans:['fizika'],    tags:['astronomiya','kepler'],      isNew:true},
+  {title:'Gravitatsiya N-Jism',      desc:"N-jism simulyatsiya, to'qnashuv, energiya, binary/figure-8/solar presetlar.",          emoji:'🌌',bg:'linear-gradient(135deg,#000208,#000105)',file:'lab-gravitatsiya.html',        fans:['fizika'],    tags:['gravitatsiya','orbit'],      isNew:true},
+  {title:'Termodinamika P-V',        desc:"Izotermik, izobarik, izoxor, adiabatik. P-V diagramma, silindr animatsiyasi.",        emoji:'🌡️',bg:'linear-gradient(135deg,#1a0f0a,#0d0705)',file:'lab-termodinamika.html',       fans:['fizika'],    tags:['termo','pv'],                isNew:true},
+  {title:'Molekulyar Harakat',       desc:"Ideal gaz, 5 molekula turi, to'qnashuv, Maxwell taqsimoti, PV=nRT.",                  emoji:'⚛️',bg:'linear-gradient(135deg,#0f301a,#051808)',file:'lab-kimyo-molekulalar.html',   fans:['kimyo'],     tags:['gaz','molekula'],            isNew:false},
+  {title:'Kislota-Ishqor Titrlash',  desc:'4 kislota x 4 ishqor, pH egri, burette animatsiyasi, ekvivalent nuqta.',               emoji:'🧪',bg:'linear-gradient(135deg,#1a0f05,#0d0802)',file:'lab-kimyo-titrimetria.html',   fans:['kimyo'],     tags:['ph','titrimetria'],          isNew:true},
+  {title:'Reaksiya Kinetikasi',      desc:'Arrenius qonuni, katalizator, konsentrasiya grafigi, energiya diagrammasi.',            emoji:'⚗️',bg:'linear-gradient(135deg,#0a0515,#05020d)',file:'lab-kimyo-reaksiya.html',      fans:['kimyo'],     tags:['kinetika','katalizator'],    isNew:true},
+  {title:'Radioaktiv Yemirilish',    desc:'6 izotop (C-14, U-238...), stoxastik yemirilish, log-grafik, yarim davr.',              emoji:'☢️',bg:'linear-gradient(135deg,#1a0505,#0d0202)',file:'lab-yadro-yemirilish.html',    fans:['kimyo'],     tags:['yadro','eksponensial'],      isNew:true},
+  {title:'Funksiya Grafigi',         desc:'8 funksiya, hosila va integral vizualizatsiya, pan va scroll zoom.',                     emoji:'📈',bg:'linear-gradient(135deg,#071520,#03080f)',file:'lab-matematika-grafik.html',   fans:['matematika'],tags:['hosila','integral'],         isNew:true},
+  {title:'Vektor Maydon',            desc:'8 maydon, divergensiya xaritasi, zarracha oqimi, 4 rang sxemasi, pan va zoom.',         emoji:'🧭',bg:'linear-gradient(135deg,#100818,#060410)',file:'lab-matematika-vektor.html',   fans:['matematika'],tags:['div','curl','oqim'],         isNew:true},
+  {title:"Differentsial Tenglamalar",desc:"y'=f(x,y) vektor maydoni, Euler va RK4 yechim, fazoviy portret.",                      emoji:'∫', bg:'linear-gradient(135deg,#0d1a10,#060d08)',file:'',                             fans:['matematika'],tags:['ode','rk4'],                 soon:true},
+  {title:'Kompleks Sonlar',          desc:"Mandelbrot va Julia to'plamlari, iteratsiya, zoom, rang sxemasi.",                      emoji:'🌀',bg:'linear-gradient(135deg,#100a20,#080514)',file:'',                             fans:['matematika'],tags:['kompleks','fraktal'],         soon:true},
+  {title:"Hujayra Bo'linishi",       desc:'Mitoz (6) va Meyoz (9) bosqich — xromosoma animatsiyasi, crossing-over.',              emoji:'🔬',bg:'linear-gradient(135deg,#020510,#010207)',file:'lab-biologiya-hujaira.html',   fans:['biologiya'],  tags:['mitoz','meyoz'],             isNew:true},
+  {title:'DNK Replikatsiyasi',       desc:'3D spiral, AT-GC juftliklari, replikatsiya jarayoni va helikaza animatsiyasi.',         emoji:'🧬',bg:'linear-gradient(135deg,#05021a,#020110)',file:'lab-biologiya-dna.html',       fans:['biologiya'],  tags:['dna','replikatsiya'],        isNew:true},
+  {title:'Ekosistem Modeli',         desc:"Lotka-Volterra ov-yirtqich dinamikasi, populyatsiya grafigi, muvozanat nuqtasi.",      emoji:'🌿',bg:'linear-gradient(135deg,#061408,#030a04)',file:'',                             fans:['biologiya'],  tags:['ekologiya','populyatsiya'],  soon:true},
 ];
+
 let activeFan='all';
+
 function buildFanTabs(){
   const w=document.getElementById('fan-tabs');w.innerHTML='';
   FANS.forEach(f=>{
-    const d=document.createElement('div');d.className='fan-tab'+(f.id===activeFan?' active':'');
+    const d=document.createElement('div');
+    d.className='fan-tab'+(f.id===activeFan?' active':'');
     d.innerHTML=`<span class="fan-icon">${f.icon}</span><span class="fan-name">${f.name}</span><span class="fan-count">${f.count} ta</span>`;
     d.onclick=()=>{activeFan=f.id;buildFanTabs();buildGrid();};
     w.appendChild(d);
   });
 }
+
 function buildGrid(){
   const grid=document.getElementById('lab-grid');
   const title=document.getElementById('section-title');
@@ -134,10 +305,33 @@ function buildGrid(){
   });
   document.getElementById('stat-total').textContent=filtered.length;
 }
-function openLab(file){const theme=document.documentElement.getAttribute('data-theme');window.location.href=file+'?theme='+theme;}
-function toggleTheme(){const h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('zy_theme',n);localStorage.setItem('theme',n);document.getElementById('t-icon').textContent=n==='dark'?'☀️':'🌙';document.getElementById('t-lbl').textContent=n==='dark'?'Kun':'Tun';}
-(function(){const t=document.documentElement.getAttribute('data-theme')||'dark';const i=document.getElementById('t-icon');const l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
-buildFanTabs();buildGrid();
+
+function openLab(file){
+  const theme=document.documentElement.getAttribute('data-theme');
+  window.location.href=file+'?theme='+theme;
+}
+
+function toggleTheme(){
+  const h=document.documentElement;
+  const c=h.getAttribute('data-theme');
+  const n=c==='dark'?'light':'dark';
+  h.setAttribute('data-theme',n);
+  localStorage.setItem('zy_theme',n);
+  localStorage.setItem('theme',n);
+  document.getElementById('t-icon').textContent=n==='dark'?'☀️':'🌙';
+  document.getElementById('t-lbl').textContent=n==='dark'?'Kun':'Tun';
+}
+
+(function(){
+  const t=document.documentElement.getAttribute('data-theme')||'dark';
+  const i=document.getElementById('t-icon');
+  const l=document.getElementById('t-lbl');
+  if(i)i.textContent=t==='dark'?'☀️':'🌙';
+  if(l)l.textContent=t==='dark'?'Kun':'Tun';
+})();
+
+buildFanTabs();
+buildGrid();
 </script>
 </body>
 </html>
