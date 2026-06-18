@@ -92,14 +92,15 @@
             align-items: center;
         }
         .preloader-logo {
-            width: clamp(260px, 55vw, 480px);
+            width: clamp(280px, 50vw, 460px);
             height: auto;
+            border-radius: 20px;
             animation: pulse-glow 2s infinite alternate;
-            filter: drop-shadow(0 0 18px rgba(0, 210, 255, 0.5));
+            box-shadow: 0 0 40px rgba(0, 210, 255, 0.5), 0 0 80px rgba(0, 210, 255, 0.2);
         }
         @keyframes pulse-glow {
-            from { transform: scale(1); opacity: 0.65; }
-            to { transform: scale(1.04); opacity: 1; }
+            from { transform: scale(1); opacity: 0.75; box-shadow: 0 0 25px rgba(0,210,255,0.35), 0 0 55px rgba(0,210,255,0.15); }
+            to   { transform: scale(1.03); opacity: 1;  box-shadow: 0 0 50px rgba(0,210,255,0.65), 0 0 100px rgba(0,210,255,0.3); }
         }
         .fade-out { opacity: 0; pointer-events: none; }
 
@@ -131,21 +132,41 @@
         .logo-brand {
             display: inline-flex;
             align-items: center;
+            gap: 10px;
             text-decoration: none;
             flex-shrink: 0;
             margin-right: 16px;
         }
-        .logo-brand img {
-            height: 56px;
-            width: auto;
+        .logo-brand .nav-logo-icon {
+            height: 48px;
+            width: 48px;
+            object-fit: contain;
             display: block;
-            transition: filter 0.4s ease, transform 0.2s ease;
+            flex-shrink: 0;
+            transition: transform 0.25s ease;
         }
-        .logo-brand:hover img {
-            transform: scale(1.05);
+        .logo-brand:hover .nav-logo-icon {
+            transform: scale(1.08) rotate(-3deg);
         }
-        body.dark-theme .logo-brand img {
-            filter: brightness(0) invert(1);
+        .logo-brand .nav-logo-text {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            /* kunduzgi rejim: to'q ko'k-qora */
+            color: #1e293b;
+            transition: color 0.4s ease;
+            white-space: nowrap;
+        }
+        .logo-brand .nav-logo-text span {
+            color: #00bcd4;   /* "Ziyo" ko'k cyan */
+        }
+        /* Tungi rejim */
+        body.dark-theme .logo-brand .nav-logo-text {
+            color: #f1f5f9;
+        }
+        body.dark-theme .logo-brand .nav-logo-text span {
+            color: #38bdf8;
         }
 
         .nav-links {
@@ -866,14 +887,17 @@
 <body>
     <div id="preloader">
         <div class="preloader-content">
-            <img src="images/logo.png" class="preloader-logo" alt="Ziyomap">
+            <img src="images/logo-preloader.png" class="preloader-logo" alt="Ziyomap">
         </div>
     </div>
 
     <nav>
       <!-- ===== DESKTOP ===== -->
       <div class="nav-inner desktop">
-        <a href="#home" class="logo-brand"><img src="images/logo.png" alt="Ziyomap"></a>
+        <a href="#home" class="logo-brand">
+          <img src="images/nav-icon.png" class="nav-logo-icon" alt="Ziyomap icon">
+          <span class="nav-logo-text"><span>Ziyo</span>map</span>
+        </a>
 
         <div class="nav-links">
           <a href="#home" class="nav-link" data-nav="asosiy">Asosiy</a>
@@ -910,7 +934,10 @@
 
       <!-- ===== MOBIL — yuqori qator (logo + iconlar) ===== -->
       <div class="nav-inner mobile-top">
-        <a href="#home" class="logo-brand" style="flex:1;min-width:0"><img src="images/logo.png" alt="Ziyomap" style="height:36px;"></a>
+        <a href="#home" class="logo-brand" style="flex:1;min-width:0">
+          <img src="images/nav-icon.png" class="nav-logo-icon" alt="" style="height:38px;width:38px;">
+          <span class="nav-logo-text" style="font-size:1.2rem"><span>Ziyo</span>map</span>
+        </a>
    <div class="zy-bell-wrap">
   <button class="nav-icon-btn zy-bell-btn" aria-label="Bildirishnomalar">
     <i class="fas fa-bell"></i>
