@@ -40,7 +40,7 @@ body{
   background-image:url('../images/lab-bg-light.png');
 }
 
-/* Overlay — matn o'qilishi uchun */
+/* Overlay — matn o'qilishi uchun — KUCHLI */
 .bg-overlay{
   position:fixed;
   top:0; left:0; right:0; bottom:0;
@@ -50,19 +50,21 @@ body{
 [data-theme="dark"] .bg-overlay{
   background:linear-gradient(
     180deg,
-    rgba(5,8,20,0.55) 0%,
-    rgba(5,8,20,0.45) 30%,
-    rgba(5,8,20,0.60) 65%,
-    rgba(5,8,20,0.82) 100%
+    rgba(5,8,20,0.72) 0%,
+    rgba(5,8,20,0.65) 25%,
+    rgba(5,8,20,0.75) 55%,
+    rgba(5,8,20,0.92) 80%,
+    rgba(5,8,20,0.97) 100%
   );
 }
 [data-theme="light"] .bg-overlay{
   background:linear-gradient(
     180deg,
-    rgba(240,244,255,0.45) 0%,
-    rgba(240,244,255,0.35) 30%,
-    rgba(240,244,255,0.55) 65%,
-    rgba(240,244,255,0.80) 100%
+    rgba(220,232,255,0.72) 0%,
+    rgba(220,232,255,0.62) 25%,
+    rgba(220,232,255,0.75) 55%,
+    rgba(220,232,255,0.90) 80%,
+    rgba(220,232,255,0.97) 100%
   );
 }
 
@@ -86,7 +88,27 @@ body{
 [data-theme="dark"] .top-nav{background:rgba(5,8,20,0.55);}
 [data-theme="light"] .top-nav{background:rgba(240,244,255,0.55); border-bottom-color:rgba(0,0,0,.08);}
 
-.nav-logo{font-size:1.3rem;font-weight:900;color:var(--accent);text-decoration:none;}
+.nav-logo{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:1.3rem;font-weight:900;
+  text-decoration:none;
+  transition:opacity .2s;
+}
+.nav-logo:hover{opacity:.85;}
+.nav-logo-img{
+  width:32px;height:32px;
+  object-fit:contain;
+  border-radius:6px;
+  flex-shrink:0;
+}
+.nav-logo-text{
+  background:linear-gradient(135deg,#60a5fa,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+[data-theme="light"] .nav-logo-text{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
 .nav-right{display:flex;align-items:center;gap:12px;}
 .home-link{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);transition:.2s;}
 [data-theme="light"] .home-link{border-color:rgba(0,0,0,.12);color:#475569;}
@@ -100,25 +122,50 @@ body{
 }
 .hero-title{
   font-size:2.5rem;font-weight:900;
-  background:linear-gradient(135deg,#60a5fa,#a78bfa 50%,#34d399);
+  background:linear-gradient(135deg,#93c5fd,#c4b5fd 50%,#6ee7b7);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  text-shadow:none;
-  filter:drop-shadow(0 2px 16px rgba(96,165,250,0.35));
+  filter:drop-shadow(0 2px 20px rgba(96,165,250,0.5));
 }
 [data-theme="light"] .hero-title{
-  filter:drop-shadow(0 2px 10px rgba(37,99,235,0.25));
+  background:linear-gradient(135deg,#1d4ed8,#6d28d9 50%,#065f46);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 2px 10px rgba(37,99,235,0.3));
 }
-.hero-sub{color:var(--text2);margin-top:.7rem;font-size:1rem;max-width:600px;margin-left:auto;margin-right:auto;}
-[data-theme="light"] .hero-sub{color:#475569;}
+.hero-sub{
+  margin-top:.7rem;font-size:1rem;max-width:600px;margin-left:auto;margin-right:auto;
+  color:#e2e8f0;
+  text-shadow:0 1px 8px rgba(0,0,0,0.6);
+}
+[data-theme="light"] .hero-sub{
+  color:#1e293b;
+  text-shadow:0 1px 4px rgba(255,255,255,0.8);
+}
 
 .stats{display:flex;justify-content:center;gap:3rem;margin-top:2rem;}
 .stat{text-align:center;}
 .stat-val{
   font-size:2rem;font-weight:900;
-  color:var(--text);
+  color:#ffffff;
+  text-shadow:0 2px 12px rgba(0,0,0,0.5);
 }
-[data-theme="dark"] .stat-val{text-shadow:0 0 18px rgba(96,165,250,0.4);}
-.stat-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-top:3px;}
+[data-theme="dark"] .stat-val{
+  color:#f1f5f9;
+  text-shadow:0 0 20px rgba(96,165,250,0.5),0 2px 8px rgba(0,0,0,0.6);
+}
+[data-theme="light"] .stat-val{
+  color:#0f172a;
+  text-shadow:0 1px 6px rgba(255,255,255,0.9);
+}
+.stat-lbl{
+  font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.12em;margin-top:3px;
+  color:#94a3b8;
+  text-shadow:0 1px 6px rgba(0,0,0,0.5);
+}
+[data-theme="light"] .stat-lbl{
+  color:#334155;
+  text-shadow:0 1px 4px rgba(255,255,255,0.7);
+}
 
 /* ===== FAN TABLAR ===== */
 .fan-tabs-wrap{display:flex;justify-content:center;padding:1.5rem 1rem .5rem;}
@@ -146,9 +193,13 @@ body{
 }
 [data-theme="light"] .fan-tab.active{background:rgba(37,99,235,.12);}
 .fan-icon{font-size:2rem;}
-.fan-name{font-size:.85rem;font-weight:800;color:var(--text2);}
-[data-theme="light"] .fan-name{color:#475569;}
-.fan-tab.active .fan-name{color:#60a5fa;}
+.fan-name{
+  font-size:.85rem;font-weight:800;
+  color:#e2e8f0;
+}
+[data-theme="light"] .fan-name{color:#1e293b;}
+.fan-tab.active .fan-name{color:#93c5fd;}
+[data-theme="light"] .fan-tab.active .fan-name{color:#1d4ed8;}
 .fan-count{font-size:.65rem;color:var(--text3);background:rgba(255,255,255,.07);padding:2px 8px;border-radius:10px;font-weight:600;}
 [data-theme="light"] .fan-count{background:rgba(0,0,0,.06);}
 .fan-tab.active .fan-count{background:rgba(59,130,246,.2);color:#93c5fd;}
@@ -157,7 +208,13 @@ body{
 .section-title{
   text-align:center;font-size:.7rem;font-weight:700;
   letter-spacing:.2em;text-transform:uppercase;
-  color:var(--text3);padding:.8rem 2rem .2rem;
+  padding:.8rem 2rem .2rem;
+  color:#94a3b8;
+  text-shadow:0 1px 6px rgba(0,0,0,0.5);
+}
+[data-theme="light"] .section-title{
+  color:#334155;
+  text-shadow:0 1px 4px rgba(255,255,255,0.8);
 }
 
 /* ===== GRID ===== */
@@ -198,10 +255,10 @@ body{
 
 .card-thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:3.2rem;position:relative;}
 .card-body{padding:.9rem 1rem;}
-.card-title{font-size:.93rem;font-weight:800;margin-bottom:.3rem;}
+.card-title{font-size:.93rem;font-weight:800;margin-bottom:.3rem;color:#f1f5f9;}
 [data-theme="light"] .card-title{color:#0f172a;}
-.card-desc{font-size:.75rem;color:var(--text2);line-height:1.55;margin-bottom:.7rem;}
-[data-theme="light"] .card-desc{color:#475569;}
+.card-desc{font-size:.75rem;line-height:1.55;margin-bottom:.7rem;color:#cbd5e1;}
+[data-theme="light"] .card-desc{color:#334155;}
 .card-tags{display:flex;flex-wrap:wrap;gap:5px;}
 .tag{
   padding:3px 8px;border-radius:7px;
@@ -221,7 +278,10 @@ body{
 <div class="bg-overlay"></div>
 
 <nav class="top-nav">
-  <a href="../" class="nav-logo">Ziyomap</a>
+  <a href="../" class="nav-logo">
+    <img src="../images/nav-icon.png" alt="Ziyomap" class="nav-logo-img">
+    <span class="nav-logo-text">Ziyomap</span>
+  </a>
   <div class="nav-right">
     <a href="../" class="home-link">← Bosh sahifa</a>
     <button class="theme-btn" onclick="toggleTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
