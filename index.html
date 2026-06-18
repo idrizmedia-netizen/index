@@ -78,7 +78,7 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #020617;
+            background: #f0f4f8;   /* oq-kulrang fon — logo foniga mos */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -92,15 +92,14 @@
             align-items: center;
         }
         .preloader-logo {
-            width: clamp(280px, 50vw, 460px);
+            width: clamp(260px, 45vw, 420px);
             height: auto;
-            border-radius: 20px;
-            animation: pulse-glow 2s infinite alternate;
-            box-shadow: 0 0 40px rgba(0, 210, 255, 0.5), 0 0 80px rgba(0, 210, 255, 0.2);
+            animation: pulse-scale 2s infinite alternate;
+            filter: drop-shadow(0 8px 24px rgba(0, 180, 216, 0.25));
         }
-        @keyframes pulse-glow {
-            from { transform: scale(1); opacity: 0.75; box-shadow: 0 0 25px rgba(0,210,255,0.35), 0 0 55px rgba(0,210,255,0.15); }
-            to   { transform: scale(1.03); opacity: 1;  box-shadow: 0 0 50px rgba(0,210,255,0.65), 0 0 100px rgba(0,210,255,0.3); }
+        @keyframes pulse-scale {
+            from { transform: scale(1);    opacity: 0.85; }
+            to   { transform: scale(1.04); opacity: 1; }
         }
         .fade-out { opacity: 0; pointer-events: none; }
 
@@ -121,25 +120,25 @@
         .nav-inner {
             display: flex;
             align-items: center;
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 16px;
             height: 72px;
-            gap: 16px;
+            gap: 8px;
             overflow: visible;
         }
 
         .logo-brand {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-decoration: none;
             flex-shrink: 0;
-            margin-right: 16px;
+            margin-right: 8px;
         }
         .logo-brand .nav-logo-icon {
-            height: 48px;
-            width: 48px;
+            height: 42px;
+            width: 42px;
             object-fit: contain;
             display: block;
             flex-shrink: 0;
@@ -172,7 +171,7 @@
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             flex: 1;
             min-width: 0;
             overflow: visible;
@@ -182,12 +181,12 @@
         .nav-link {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 7px 16px;
+            gap: 4px;
+            padding: 6px 11px;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 0.83rem;
-            letter-spacing: 0.3px;
+            font-size: 0.78rem;
+            letter-spacing: 0.2px;
             text-decoration: none;
             white-space: nowrap;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -209,12 +208,12 @@
         .nav-btn {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 7px 16px;
+            gap: 4px;
+            padding: 6px 11px;
             border-radius: 10px;
             font-weight: 700;
-            font-size: 0.83rem;
-            letter-spacing: 0.3px;
+            font-size: 0.78rem;
+            letter-spacing: 0.2px;
             text-decoration: none;
             white-space: nowrap;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -230,9 +229,9 @@
         .nav-icons {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             flex-shrink: 0;
-            margin-left: 16px;
+            margin-left: 6px;
             overflow: visible;
         }
 
@@ -240,11 +239,11 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 10px;
             border: none;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             text-decoration: none;
