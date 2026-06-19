@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<title>Prujina Tebranishi — Ziyomap</title>
+   <link rel="icon" type="image/png" href="icon-192x192.png">
+<script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--teal:#14b8a6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#fff;--bg3:#e8edf8;--accent:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--teal:#0d9488;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff!important;color:#0f172a!important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95)!important;}
+[data-theme="light"] .control-panel{background:#fff!important;border-left-color:rgba(0,0,0,.08)!important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.94)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important;}
+[data-theme="light"] .formula-card{background:#e8edf8!important;}
+[data-theme="light"] .formula-desc{color:#475569!important;}
+[data-theme="light"] .data-table th{background:#e8edf8!important;}
+[data-theme="light"] .data-table td{color:#0f172a!important;}
+[data-theme="light"] .slider-name{color:#475569!important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12)!important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07)!important;color:#475569!important;}
+[data-theme="light"] .tab-btn{color:#475569!important;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.theme-btn{padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.lab-wrap{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;}
+#spring-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,14,26,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.tool-btn{padding:8px 18px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+.tool-btn.play{background:var(--green);color:#fff;}
+.tool-btn.pause{background:var(--orange);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.tool-btn:hover{filter:brightness(1.12);}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.panel-section{margin-bottom:1.5rem;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:.95rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.mode-row{display:flex;gap:6px;margin-bottom:.8rem;}
+.mode-btn{flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:var(--bg3);color:var(--text2);font-size:.75rem;font-weight:700;cursor:pointer;text-align:center;transition:.15s;}
+.mode-btn.active{border-color:var(--accent);background:rgba(59,130,246,.15);color:#60a5fa;}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">🌀 Prujina Tebranishi (SHM)</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-btn" onclick="toggleLabTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
+    <a href="../" class="nav-logo">Ziyomap</a>
+  </div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area">
+    <canvas id="spring-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" style="color:var(--orange);">📍 x = <span id="hud-x">0.00</span> m</div>
+      <div class="hud-badge" style="color:var(--accent);">⚡ v = <span id="hud-v">0.00</span> m/s</div>
+      <div class="hud-badge" style="color:var(--green);">🔁 T = <span id="hud-t">1.00</span> s</div>
+      <div class="hud-badge" style="color:var(--purple);">⚡ F = <span id="hud-f">0.00</span> N</div>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn reset" onclick="resetSim()">↺ Qayta</button>
+      <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
+      <button class="tool-btn reset" onclick="toggleMode()" id="mode-btn">↕ Gorizontal</button>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('data',this)">Energiya</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Tebranish parametrlari</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Prujina konstantasi k</span><span class="slider-val"><span id="v-k">10</span> N/m</span></div>
+          <input type="range" min="1" max="100" step="1" value="10" oninput="setP('k',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Massa m</span><span class="slider-val"><span id="v-m">1.0</span> kg</span></div>
+          <input type="range" min="0.1" max="10" step="0.1" value="1.0" oninput="setP('m',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Amplituda A</span><span class="slider-val"><span id="v-a">0.5</span> m</span></div>
+          <input type="range" min="0.05" max="1.5" step="0.05" value="0.5" oninput="setP('A',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">So'nish β</span><span class="slider-val"><span id="v-b">0.00</span></span></div>
+          <input type="range" min="0" max="2" step="0.05" value="0" oninput="setP('b',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Majburiy tebranish F₀</span><span class="slider-val"><span id="v-f0">0</span> N</span></div>
+          <input type="range" min="0" max="5" step="0.1" value="0" oninput="setP('f0',this.value)">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Majburiy chastota ω_d</span><span class="slider-val"><span id="v-wd">1.0</span> rad/s</span></div>
+          <input type="range" min="0.1" max="10" step="0.1" value="1.0" oninput="setP('wd',this.value)">
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Davr va chastota</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>T = 2π√(m/k)</td><td id="d-T">—</td></tr>
+            <tr><td>f = 1/T</td><td id="d-f">—</td></tr>
+            <tr><td>ω = √(k/m)</td><td id="d-omega">—</td></tr>
+            <tr><td>Rezonans ω₀</td><td id="d-res">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-data" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Energiya grafigi</div>
+        <canvas id="energy-graph" width="260" height="120" style="border-radius:8px;width:100%;"></canvas>
+        <div style="display:flex;gap:10px;margin-top:6px;">
+          <span style="font-size:.65rem;color:#10b981;">— KE</span>
+          <span style="font-size:.65rem;color:#3b82f6;">— PE</span>
+          <span style="font-size:.65rem;color:#8b5cf6;">— ΣE</span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Hozirgi energiya</div>
+        <table class="data-table">
+          <thead><tr><th>Tur</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>KE = ½mv²</td><td id="d-ke">—</td></tr>
+            <tr><td>PE = ½kx²</td><td id="d-pe">—</td></tr>
+            <tr><td>ΣE</td><td id="d-te">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Formulalar</div>
+        <div class="formula-card"><div class="formula-eq">F = -kx</div><div class="formula-desc">Huk qonuni. k — prujina konstantasi, x — siljish. Qaytaruvchi kuch.</div></div>
+        <div class="formula-card"><div class="formula-eq">T = 2π√(m/k)</div><div class="formula-desc">Tebranish davri. Massaga va prujinaga bog'liq, amplitudaga emas!</div></div>
+        <div class="formula-card"><div class="formula-eq">x(t) = A·cos(ωt + φ)</div><div class="formula-desc">Koordinata — harmonik tebranish. ω = √(k/m) — burchak chastota.</div></div>
+        <div class="formula-card"><div class="formula-eq">E = ½kA² = const</div><div class="formula-desc">Jami energiya amplitudaning kvadratiga proporsional va o'zgarmas.</div></div>
+        <div class="formula-card"><div class="formula-eq">So'nish: x = Ae^(-βt)cos(ω't)</div><div class="formula-desc">So'nuvchi tebranish. β — so'nish koeffitsienti, ω' = √(ω²-β²).</div></div>
+        <div class="formula-card"><div class="formula-eq">Rezonans: ω_d = ω₀</div><div class="formula-desc">Majburiy chastota tabiiy chastotaga teng bo'lsa — amplituda maksimum.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('spring-canvas');
+const ctx=canvas.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+let p={k:10,m:1.0,A:0.5,b:0,f0:0,wd:1.0};
+let st={playing:false,t:0,x:0,v:0,mode:'horizontal',eHistory:[]};
+let animId,lastTime;
+
+function omega(){return Math.sqrt(p.k/p.m);}
+function period(){return 2*Math.PI/omega();}
+
+function initCanvas(){
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*DPR;canvas.height=h*DPR;
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  ctx.scale(DPR,DPR);resetSim();
+}
+
+function setP(key,val){
+  p[key]=parseFloat(val);
+  document.getElementById('v-'+key).textContent=parseFloat(val).toFixed(key==='b'||key==='wd'||key==='a'?2:1);
+  updateInfo();resetSim();
+}
+
+function updateInfo(){
+  const T=period(),w=omega();
+  document.getElementById('d-T').textContent=T.toFixed(3)+' s';
+  document.getElementById('d-f').textContent=(1/T).toFixed(3)+' Hz';
+  document.getElementById('d-omega').textContent=w.toFixed(3)+' rad/s';
+  document.getElementById('d-res').textContent=w.toFixed(3)+' rad/s';
+  document.getElementById('hud-t').textContent=T.toFixed(2);
+}
+
+function resetSim(){
+  st.playing=false;st.t=0;st.x=p.A;st.v=0;st.eHistory=[];
+  document.getElementById('play-btn').textContent='▶ Boshlash';
+  document.getElementById('play-btn').className='tool-btn play';
+  updateInfo();draw();
+}
+
+function step(dt){
+  // RK4
+  function deriv(x,v,t){
+    const F=-p.k*x - 2*p.b*Math.sqrt(p.k*p.m)*v + p.f0*Math.cos(p.wd*t);
+    return [v, F/p.m];
+  }
+  const [dx1,dv1]=deriv(st.x,st.v,st.t);
+  const [dx2,dv2]=deriv(st.x+dx1*dt/2,st.v+dv1*dt/2,st.t+dt/2);
+  const [dx3,dv3]=deriv(st.x+dx2*dt/2,st.v+dv2*dt/2,st.t+dt/2);
+  const [dx4,dv4]=deriv(st.x+dx3*dt,st.v+dv3*dt,st.t+dt);
+  st.x+=(dx1+2*dx2+2*dx3+dx4)/6*dt;
+  st.v+=(dv1+2*dv2+2*dv3+dv4)/6*dt;
+  st.t+=dt;
+  const ke=0.5*p.m*st.v*st.v,pe=0.5*p.k*st.x*st.x;
+  st.eHistory.push({ke,pe,te:ke+pe});
+  if(st.eHistory.length>200)st.eHistory.shift();
+  updateHUD();drawEnergyGraph();
+}
+
+function updateHUD(){
+  const ke=0.5*p.m*st.v*st.v,pe=0.5*p.k*st.x*st.x;
+  document.getElementById('hud-x').textContent=st.x.toFixed(3);
+  document.getElementById('hud-v').textContent=st.v.toFixed(3);
+  document.getElementById('hud-f').textContent=(-p.k*st.x).toFixed(2);
+  document.getElementById('d-ke').textContent=ke.toFixed(4)+' J';
+  document.getElementById('d-pe').textContent=pe.toFixed(4)+' J';
+  document.getElementById('d-te').textContent=(ke+pe).toFixed(4)+' J';
+}
+
+function drawSpring(ctx,x1,y1,x2,y2,coils,r,color,lw){
+  const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+  const nx=-dy/len,ny=dx/len;
+  ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=lw;
+  ctx.moveTo(x1,y1);
+  const segments=coils*2;
+  for(let i=0;i<=segments;i++){
+    const t=i/segments;
+    const mx=x1+dx*t+nx*r*(i%2===0?1:-1);
+    const my=y1+dy*t+ny*r*(i%2===0?1:-1);
+    ctx.lineTo(mx,my);
+  }
+  ctx.lineTo(x2,y2);ctx.stroke();
+}
+
+function draw(){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  ctx.clearRect(0,0,W,H);
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  ctx.fillStyle=isDark?'#06090f':'#dde8f5';ctx.fillRect(0,0,W,H);
+  // Grid
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.06)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  const sc=Math.min(W,H)*0.28;
+
+  if(st.mode==='horizontal'){
+    const cy=H/2,cx=W/2;
+    const wallX=cx-sc*1.4;
+    // Wall
+    ctx.fillStyle=isDark?'#334155':'#94a3b8';
+    ctx.fillRect(wallX-16,cy-80,16,160);
+    for(let i=-70;i<70;i+=18){
+      ctx.strokeStyle=isDark?'#475569':'#64748b';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(wallX,cy+i);ctx.lineTo(wallX-12,cy+i+14);ctx.stroke();
+    }
+    // Equilibrium line
+    ctx.strokeStyle=isDark?'rgba(255,255,255,.15)':'rgba(0,0,0,.15)';ctx.lineWidth=1;ctx.setLineDash([5,5]);
+    ctx.beginPath();ctx.moveTo(cx,cy-100);ctx.lineTo(cx,cy+100);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)';ctx.font='10px Segoe UI';ctx.textAlign='center';
+    ctx.fillText('Muvozanat',cx,cy-105);ctx.textAlign='left';
+    // Spring
+    const ballX=cx+st.x*sc,ballY=cy;
+    drawSpring(ctx,wallX,cy,ballX-20,cy,12,14,isDark?'#60a5fa':'#3b82f6',2.5);
+    // Ball
+    const kr=22;
+    const bg=ctx.createRadialGradient(ballX-6,ballY-6,2,ballX,ballY,kr);
+    const heat=Math.min(1,Math.abs(st.v)/3);
+    bg.addColorStop(0,`rgb(${100+Math.floor(155*heat)},${100+Math.floor(80*(1-heat))},${180})`);
+    bg.addColorStop(1,`rgb(${30+Math.floor(100*heat)},${30},${100+Math.floor(80*(1-heat))})`);
+    ctx.beginPath();ctx.arc(ballX,ballY,kr,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1.5;ctx.stroke();
+    // Force arrow
+    const F=-p.k*st.x;
+    if(Math.abs(F)>0.1){
+      const fScale=5,fx=ballX+F*fScale;
+      ctx.strokeStyle='#f59e0b';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(ballX,ballY);ctx.lineTo(fx,ballY);ctx.stroke();
+      ctx.fillStyle='#f59e0b';ctx.font='10px Segoe UI';ctx.textAlign='center';
+      ctx.fillText('F='+Math.abs(F).toFixed(1)+'N',fx,ballY+(F>0?-15:18));ctx.textAlign='left';
+    }
+    // Displacement label
+    if(Math.abs(st.x)>0.02){
+      ctx.strokeStyle='rgba(245,158,11,.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(cx,cy+60);ctx.lineTo(ballX,cy+60);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(245,158,11,.8)';ctx.font='11px Segoe UI';ctx.textAlign='center';
+      ctx.fillText('x='+st.x.toFixed(2)+'m',(cx+ballX)/2,cy+75);ctx.textAlign='left';
+    }
+    // Amplitude markers
+    [-1,1].forEach(s=>{
+      const ax=cx+p.A*sc*s;
+      ctx.strokeStyle=isDark?'rgba(239,68,68,.3)':'rgba(220,38,38,.4)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(ax,cy-90);ctx.lineTo(ax,cy+90);ctx.stroke();ctx.setLineDash([]);
+    });
+
+  } else {
+    // Vertical mode
+    const bx=W/2,ceilY=80;
+    // Ceiling
+    ctx.fillStyle=isDark?'#334155':'#94a3b8';
+    ctx.fillRect(bx-80,ceilY-16,160,16);
+    for(let i=-70;i<70;i+=18){
+      ctx.strokeStyle=isDark?'#475569':'#64748b';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(bx+i,ceilY);ctx.lineTo(bx+i+14,ceilY-12);ctx.stroke();
+    }
+    // Equilibrium
+    const eqY=ceilY+sc*0.8+p.m*9.8/p.k*sc;
+    ctx.strokeStyle=isDark?'rgba(255,255,255,.15)':'rgba(0,0,0,.15)';ctx.lineWidth=1;ctx.setLineDash([5,5]);
+    ctx.beginPath();ctx.moveTo(bx-100,eqY);ctx.lineTo(bx+100,eqY);ctx.stroke();ctx.setLineDash([]);
+    // Spring and ball
+    const ballY=eqY-st.x*sc;
+    drawSpring(ctx,bx,ceilY,bx,ballY-22,12,14,isDark?'#60a5fa':'#3b82f6',2.5);
+    const kr=22;
+    const bg=ctx.createRadialGradient(bx-6,ballY-6,2,bx,ballY,kr);
+    const heat=Math.min(1,Math.abs(st.v)/3);
+    bg.addColorStop(0,`rgb(${100+Math.floor(155*heat)},${100+Math.floor(80*(1-heat))},180)`);
+    bg.addColorStop(1,`rgb(${30+Math.floor(100*heat)},30,${100+Math.floor(80*(1-heat))})`);
+    ctx.beginPath();ctx.arc(bx,ballY,kr,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1.5;ctx.stroke();
+    // Gravity arrow
+    ctx.strokeStyle='#ef4444';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(bx+30,ballY);ctx.lineTo(bx+30,ballY+p.m*9.8*3);ctx.stroke();
+    ctx.fillStyle='#ef4444';ctx.font='10px Segoe UI';
+    ctx.fillText('mg',bx+34,ballY+p.m*9.8*1.5);
+  }
+
+  // x(t) mini graph
+  const gh=60,gw=W*0.4,gx=W-gw-20,gy=H-gh-20;
+  ctx.fillStyle=isDark?'rgba(17,24,39,.9)':'rgba(240,244,255,.9)';
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.1)';
+  ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(gx,gy,gw,gh,8);ctx.fill();ctx.stroke();
+  if(st.eHistory.length>2){
+    ctx.beginPath();ctx.strokeStyle='#60a5fa';ctx.lineWidth=1.5;
+    st.eHistory.forEach((e,i)=>{
+      const px=gx+i/st.eHistory.length*gw;
+      const maxE=0.5*p.k*p.A*p.A;
+      const py=gy+gh/2-(e.ke-maxE/2)/(maxE/2)*gh*0.45;
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+  }
+  ctx.fillStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)';ctx.font='9px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('KE(t)',gx+gw/2,gy-4);ctx.textAlign='left';
+}
+
+function drawEnergyGraph(){
+  const gc=document.getElementById('energy-graph');if(!gc)return;
+  const gctx=gc.getContext('2d');const W=gc.width,H=gc.height;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  gctx.clearRect(0,0,W,H);gctx.fillStyle=isDark?'#1a2235':'#e8edf8';gctx.fillRect(0,0,W,H);
+  if(st.eHistory.length<2)return;
+  const maxE=Math.max(...st.eHistory.map(e=>e.te),0.0001);
+  [['ke','#10b981'],['pe','#3b82f6'],['te','#8b5cf6']].forEach(([k,c])=>{
+    gctx.beginPath();gctx.strokeStyle=c;gctx.lineWidth=1.8;
+    st.eHistory.forEach((e,i)=>{
+      const px=(i/st.eHistory.length)*W;
+      const py=H-(e[k]/maxE)*(H-8)-4;
+      i===0?gctx.moveTo(px,py):gctx.lineTo(px,py);
+    });
+    gctx.stroke();
+  });
+}
+
+let animId2;
+function loop(ts){
+  if(!lastTime)lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,.033);lastTime=ts;
+  if(st.playing)step(dt);
+  draw();animId2=requestAnimationFrame(loop);
+}
+
+function togglePlay(){
+  st.playing=!st.playing;
+  const btn=document.getElementById('play-btn');
+  if(st.playing){btn.textContent='⏸ Pauza';btn.className='tool-btn pause';}
+  else{btn.textContent='▶ Davom';btn.className='tool-btn play';}
+}
+function toggleMode(){
+  st.mode=st.mode==='horizontal'?'vertical':'horizontal';
+  document.getElementById('mode-btn').textContent=st.mode==='horizontal'?'↕ Vertikal':'↔ Gorizontal';
+  resetSim();
+}
+function switchTab(t,btn){['params','data','theory'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('zy_theme',n);localStorage.setItem('theme',n);var i=document.getElementById('t-icon'),l=document.getElementById('t-lbl');if(i)i.textContent=n==='dark'?'☀️':'🌙';if(l)l.textContent=n==='dark'?'Kun':'Tun';draw();}
+(function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
+window.addEventListener('resize',initCanvas);
+initCanvas();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
