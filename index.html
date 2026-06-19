@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Izzatillo | Physics & Code</title>
-    <link rel="icon" type="image/png" href="icon-192x192.png">
+    <title>IdrizMedia | Portfolio</title>
     <!-- PWA Manifest faylini ulash -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1A73E8">
@@ -29,24 +28,22 @@
             --primary-color: #2563eb;
             --secondary-color: #3b82f6;
             --dark-color: #1e293b;
-            --light-bg: #f0f9ff; /* Kunda yumshoq havorang */
+            --light-bg: #f0f9ff;
             --text-color: #1e293b;
             --card-bg: rgba(255, 255, 255, 0.9);
             --gradient-bg: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
         }
 
-        /* TUN REJIMI - DINAMIK VA BOYITILGAN */
         body.dark-theme {
             --primary-color: #38bdf8;
             --secondary-color: #1d4ed8;
             --dark-color: #f1f5f9;
-            --light-bg: #020617; /* Chuqur kosmik ko'k */
+            --light-bg: #020617;
             --text-color: #f1f5f9;
             --card-bg: rgba(30, 41, 59, 0.7);
             --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
         }
 
-        /* UMUMIY STIL VA DINAMIK FON */
         body {
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -58,7 +55,6 @@
             overflow-x: hidden;
         }
 
-        /* Orqa fondagi harakatlanuvchi nurli dog'lar (Blobs) */
         body::before {
             content: "";
             position: fixed;
@@ -74,12 +70,11 @@
             to { transform: translate(100vw, 100vh); }
         }
 
-        /* PRELOADER STILI */
         #preloader {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #f0f4f8;   /* oq-kulrang fon — logo foniga mos */
+            background: #f0f4f8;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -104,7 +99,6 @@
         }
         .fade-out { opacity: 0; pointer-events: none; }
 
-        /* ===== NAVIGATSIYA ===== */
         nav {
             background: var(--card-bg);
             backdrop-filter: blur(15px);
@@ -153,15 +147,13 @@
             font-weight: 900;
             letter-spacing: 0.5px;
             line-height: 1;
-            /* kunduzgi rejim: to'q ko'k-qora */
             color: #1e293b;
             transition: color 0.4s ease;
             white-space: nowrap;
         }
         .logo-brand .nav-logo-text span {
-            color: #00bcd4;   /* "Ziyo" ko'k cyan */
+            color: #00bcd4;
         }
-        /* Tungi rejim */
         body.dark-theme .logo-brand .nav-logo-text {
             color: #f1f5f9;
         }
@@ -178,7 +170,6 @@
             overflow: visible;
         }
 
-        /* Nav link — gradient tugma */
         .nav-link {
             display: inline-flex;
             align-items: center;
@@ -198,7 +189,6 @@
         .nav-link:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
         .nav-link:active { transform: translateY(0); }
 
-        /* Individual gradients */
         .nav-link[data-nav="asosiy"] { background: linear-gradient(135deg,#6366f1,#4f46e5); }
         .nav-link[data-nav="loyihalar"] { background: linear-gradient(135deg,#0ea5e9,#2563eb); }
         .nav-link[data-nav="laboratoriya"] { background: linear-gradient(135deg,#06b6d4,#0891b2); }
@@ -226,7 +216,6 @@
         .nav-btn-green { background: linear-gradient(135deg,#10b981,#059669); }
         .nav-btn-blue { background: linear-gradient(135deg,#3b82f6,#1d4ed8); }
 
-        /* Icon buttons (bell, search, theme) */
         .nav-icons {
             display: flex;
             align-items: center;
@@ -284,7 +273,6 @@
             border: 1.5px solid rgba(255,255,255,0.5);
         }
 
-        /* ===== MOBIL ===== */
         .mobile-top {
             display: none;
             align-items: center;
@@ -325,20 +313,17 @@
             }
         }
 
-        /* ======================================================= */
-        /* YANGI IXCHAM PROFIL TUGMASI KODLARI SHU YERGA QO'YILDI:  */
-        /* ======================================================= */
         .user-profile-btn {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white !important;
-            height: 38px; /* Balandlikni qat'iy 38px qilib qulflaymiz (paneldan chiqmasligi uchun) */
-            padding: 0 14px 0 4px; /* Ichki bo'shliqlarni ixchamlashtirdik */
+            height: 38px;
+            padding: 0 14px 0 4px;
             border-radius: 20px;
             border: 2px solid rgba(255, 255, 255, 0.2);
             cursor: pointer;
-            font-size: 13px; /* Shriftni biroz kichraytirdik */
+            font-size: 13px;
             font-weight: 600;
-            display: inline-flex; /* To'g'ri tekislash uchun */
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -353,9 +338,8 @@
             box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
         }
 
-        /* Tugma ichidagi dumaloq rasmcha */
         .btn-avatar {
-            width: 28px; /* Ixcham o'lcham */
+            width: 28px;
             height: 28px;
             border-radius: 50%;
             object-fit: cover;
@@ -364,7 +348,6 @@
             display: block;
         }
 
-        /* Buni <style> ichiga, eng oxiriga qo'shing */
 .game-menu-btn {
     background: linear-gradient(135deg, #10b981, #059669);
     color: white !important;
@@ -459,7 +442,6 @@
         .usage-time { font-size: 0.75rem; opacity: 0.65; }
         #usage-history-empty { font-size: 0.85rem; opacity: 0.6; text-align: center; padding: 8px 0; }
 
-        /* ===== HERO — RASM BILAN ===== */
         .hero {
             position: relative;
             min-height: 100vh;
@@ -485,7 +467,6 @@
             object-position: top center;
         }
 
-        /* Matn o'qilishi uchun chap tomondan tushuvchi qora parda */
         .hero-photo-layer::before {
             content: "";
             position: absolute;
@@ -727,6 +708,12 @@
                 width: 56px;
                 height: 56px;
             }
+
+            /* Mobil uchun kontakt forma */
+            #contact .contact-form-box {
+                padding: 28px 20px !important;
+                margin: 28px 0 !important;
+            }
         }
 
         @media (max-width: 480px) {
@@ -753,6 +740,7 @@
         .section { padding: 100px 20px; max-width: 1200px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-top: 40px; }
         
+        /* DEFAULT KARTA (boshqa joylardagi) */
         .card {
             background: var(--card-bg);
             padding: 35px;
@@ -764,7 +752,7 @@
         .card:hover { transform: translateY(-10px); border-color: var(--primary-color); }
         .card i { font-size: 3rem; color: var(--primary-color); margin-bottom: 20px; display: block; }
 
-        /* ===== BO'LIMLAR UCHUN RASMLI ORQA FON (Loyihalar / Blog / Aloqa) ===== */
+        /* ===== PHOTO SECTION ===== */
         .photo-section {
             position: relative;
             max-width: none;
@@ -788,10 +776,8 @@
             object-position: center;
             transition: opacity 0.8s ease;
         }
-        /* Sukut bo'yicha (kun rejimi): kunduzgi rasm ko'rinadi, tungisi yashirin */
         .photo-section .section-bg-layer .bg-day { opacity: 1; }
         .photo-section .section-bg-layer .bg-night { opacity: 0; }
-        /* Tun rejimi yoqilganda: rasmlar almashadi */
         body.dark-theme .photo-section .section-bg-layer .bg-day { opacity: 0; }
         body.dark-theme .photo-section .section-bg-layer .bg-night { opacity: 1; }
 
@@ -817,31 +803,6 @@
             text-shadow: 0 2px 16px rgba(0,0,0,0.65);
         }
         .photo-section .grid { margin-top: 40px; }
-        .photo-section .card {
-            background: rgba(8, 14, 28, 0.62);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.35);
-        }
-        .photo-section .card h3,
-        .photo-section .card p { color: #f1f5f9; }
-        .photo-section .card i { color: #38bdf8; }
-        .photo-section .card:hover { border-color: #38bdf8; }
-
-        /* Rasm manzillari endi HTML ichida <img class="bg-day"/"bg-night"> sifatida berilgan */
-
-        #contact.photo-section .contact-form-box {
-            background: rgba(8, 14, 28, 0.68) !important;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4) !important;
-        }
-        #contact.photo-section .contact-form-box .lab-input {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            color: #f1f5f9;
-        }
-        #contact.photo-section .contact-form-box .lab-input::placeholder { color: rgba(241,245,249,0.55); }
 
         @media (max-width: 768px) {
             .photo-section .section-inner { padding: 70px 16px; }
@@ -851,6 +812,7 @@
             width: 100%;
             padding: 14px; margin: 10px 0; border-radius: 12px;
             border: 1px solid rgba(56, 189, 248, 0.3); background: var(--light-bg); color: var(--text-color);
+            box-sizing: border-box;
         }
 
         .test-btn {
@@ -875,6 +837,318 @@
             z-index: 9989;
             pointer-events: none;
             white-space: nowrap;
+        }
+
+        /* ============================================================
+           YANGI MUKAMMAL KARTOCHKA DIZAYNI — LOYIHALAR
+           ============================================================ */
+
+        /* KUNDUZ: Kristal yorqin kartochkalar */
+        body:not(.dark-theme) #projects .card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            border-radius: 28px;
+            padding: 38px 32px;
+            box-shadow:
+                0 4px 24px rgba(37, 99, 235, 0.08),
+                0 1px 4px rgba(255,255,255,0.9) inset;
+            transition: transform 0.35s cubic-bezier(.22,.68,0,1.4), box-shadow 0.35s ease, border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body:not(.dark-theme) #projects .card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            border-radius: 28px 28px 0 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        body:not(.dark-theme) #projects .card:nth-child(1)::before { background: linear-gradient(90deg, #6366f1, #818cf8); }
+        body:not(.dark-theme) #projects .card:nth-child(2)::before { background: linear-gradient(90deg, #0ea5e9, #38bdf8); }
+        body:not(.dark-theme) #projects .card:nth-child(3)::before { background: linear-gradient(90deg, #10b981, #34d399); }
+
+        body:not(.dark-theme) #projects .card:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: rgba(99, 102, 241, 0.35);
+            box-shadow: 0 24px 52px rgba(37, 99, 235, 0.14), 0 1px 4px rgba(255,255,255,0.9) inset;
+        }
+        body:not(.dark-theme) #projects .card:hover::before { opacity: 1; }
+
+        body:not(.dark-theme) #projects .card i {
+            font-size: 2.8rem;
+            margin-bottom: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            transition: transform 0.3s;
+        }
+        body:not(.dark-theme) #projects .card:nth-child(1) i {
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            color: #4f46e5;
+            box-shadow: 0 4px 14px rgba(79,70,229,0.18);
+        }
+        body:not(.dark-theme) #projects .card:nth-child(2) i {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            color: #0284c7;
+            box-shadow: 0 4px 14px rgba(2,132,199,0.18);
+        }
+        body:not(.dark-theme) #projects .card:nth-child(3) i {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #059669;
+            box-shadow: 0 4px 14px rgba(5,150,105,0.18);
+        }
+        body:not(.dark-theme) #projects .card:hover i { transform: scale(1.12) rotate(-5deg); }
+        body:not(.dark-theme) #projects .card h3 { color: #1e293b; font-size: 1.2rem; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.3px; }
+        body:not(.dark-theme) #projects .card p { color: #475569; font-size: 0.9rem; line-height: 1.65; margin: 0; }
+
+        /* TUN: Kosmik neon kartochkalar */
+        body.dark-theme #projects .card {
+            background: linear-gradient(145deg, rgba(15,23,42,0.88), rgba(30,41,59,0.72));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 28px;
+            padding: 38px 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45), 0 1px 0 rgba(148,163,184,0.06) inset;
+            transition: transform 0.35s cubic-bezier(.22,.68,0,1.4), box-shadow 0.35s ease, border-color 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Tun — chapdan neon chiziq */
+        body.dark-theme #projects .card::before {
+            content: "";
+            position: absolute;
+            left: 0; top: 25%; bottom: 25%;
+            width: 3px;
+            border-radius: 0 3px 3px 0;
+            opacity: 0.65;
+            transition: opacity 0.3s, top 0.3s, bottom 0.3s;
+        }
+        body.dark-theme #projects .card:nth-child(1)::before { background: linear-gradient(180deg, #6366f1, #818cf8, #6366f1); box-shadow: 0 0 12px rgba(99,102,241,0.8); }
+        body.dark-theme #projects .card:nth-child(2)::before { background: linear-gradient(180deg, #0ea5e9, #38bdf8, #0ea5e9); box-shadow: 0 0 12px rgba(14,165,233,0.8); }
+        body.dark-theme #projects .card:nth-child(3)::before { background: linear-gradient(180deg, #10b981, #34d399, #10b981); box-shadow: 0 0 12px rgba(16,185,129,0.8); }
+
+        /* Tun — glow effekti */
+        body.dark-theme #projects .card::after {
+            content: "";
+            position: absolute;
+            top: -60%; left: -60%;
+            width: 220%; height: 220%;
+            background: radial-gradient(ellipse at 60% 40%, rgba(99,102,241,0.05) 0%, transparent 65%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        body.dark-theme #projects .card:hover::after { opacity: 1; }
+
+        body.dark-theme #projects .card:hover {
+            transform: translateY(-12px);
+            border-color: rgba(99, 102, 241, 0.38);
+            box-shadow: 0 28px 60px rgba(0,0,0,0.6), 0 0 30px rgba(99,102,241,0.08), 0 1px 0 rgba(148,163,184,0.08) inset;
+        }
+        body.dark-theme #projects .card:hover::before { top: 12%; bottom: 12%; opacity: 1; }
+
+        body.dark-theme #projects .card i {
+            font-size: 2.8rem;
+            margin-bottom: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        body.dark-theme #projects .card:nth-child(1) i { background: rgba(99,102,241,0.14); color: #818cf8; border: 1px solid rgba(99,102,241,0.28); box-shadow: 0 0 20px rgba(99,102,241,0.12); }
+        body.dark-theme #projects .card:nth-child(2) i { background: rgba(14,165,233,0.14); color: #38bdf8; border: 1px solid rgba(14,165,233,0.28); box-shadow: 0 0 20px rgba(14,165,233,0.12); }
+        body.dark-theme #projects .card:nth-child(3) i { background: rgba(16,185,129,0.14); color: #34d399; border: 1px solid rgba(16,185,129,0.28); box-shadow: 0 0 20px rgba(16,185,129,0.12); }
+        body.dark-theme #projects .card:hover i { transform: scale(1.12) rotate(-5deg); box-shadow: 0 0 28px currentColor; }
+        body.dark-theme #projects .card h3 { color: #f1f5f9; font-size: 1.2rem; font-weight: 800; margin: 0 0 12px; letter-spacing: -0.3px; }
+        body.dark-theme #projects .card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.65; margin: 0; }
+
+        /* ============================================================
+           BLOG KARTOCHKALARI
+           ============================================================ */
+
+        /* KUNDUZ */
+        body:not(.dark-theme) #blog .card,
+        body:not(.dark-theme) #posts-container .card {
+            background: rgba(255,255,255,0.92) !important;
+            backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(226, 232, 240, 0.85) !important;
+            border-radius: 24px !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+            box-shadow: 0 4px 20px rgba(37,99,235,0.07), 0 1px 3px rgba(255,255,255,0.8) inset !important;
+            transition: transform 0.3s cubic-bezier(.22,.68,0,1.3), box-shadow 0.3s, border-color 0.3s !important;
+        }
+        body:not(.dark-theme) #blog .card:hover,
+        body:not(.dark-theme) #posts-container .card:hover {
+            transform: translateY(-10px) !important;
+            box-shadow: 0 24px 50px rgba(37,99,235,0.13), 0 4px 14px rgba(99,102,241,0.09) !important;
+            border-color: rgba(99,102,241,0.3) !important;
+        }
+
+        /* TUN */
+        body.dark-theme #blog .card,
+        body.dark-theme #posts-container .card {
+            background: linear-gradient(160deg, rgba(15,23,42,0.92), rgba(2,6,23,0.88)) !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(56,189,248,0.1) !important;
+            border-radius: 24px !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(56,189,248,0.04) inset !important;
+            transition: transform 0.3s cubic-bezier(.22,.68,0,1.3), box-shadow 0.3s, border-color 0.3s !important;
+        }
+        body.dark-theme #blog .card:hover,
+        body.dark-theme #posts-container .card:hover {
+            transform: translateY(-10px) !important;
+            border-color: rgba(56,189,248,0.28) !important;
+            box-shadow: 0 28px 60px rgba(0,0,0,0.6), 0 0 24px rgba(56,189,248,0.07) !important;
+        }
+
+        /* ============================================================
+           ALOQA FORMI
+           ============================================================ */
+
+        /* KUNDUZ: Kristal oq forma */
+        body:not(.dark-theme) #contact .contact-form-box {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+            border: 1px solid rgba(255,255,255,0.98) !important;
+            border-radius: 32px !important;
+            padding: 48px 44px !important;
+            box-shadow: 0 8px 40px rgba(37,99,235,0.1), 0 1px 0 rgba(255,255,255,1) inset !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body:not(.dark-theme) #contact .contact-form-box::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 40px; right: 40px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), rgba(14,165,233,0.5), transparent);
+            border-radius: 0 0 4px 4px;
+        }
+
+        body:not(.dark-theme) #contact .lab-input {
+            background: rgba(241, 245, 249, 0.75) !important;
+            border: 1.5px solid rgba(226,232,240,0.9) !important;
+            color: #1e293b !important;
+            border-radius: 14px !important;
+            padding: 15px 18px !important;
+            font-size: 0.92rem !important;
+            transition: border-color 0.25s, box-shadow 0.25s !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 8px 0 !important;
+        }
+        body:not(.dark-theme) #contact .lab-input:focus {
+            border-color: rgba(99,102,241,0.55) !important;
+            background: rgba(255,255,255,0.98) !important;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1) !important;
+            outline: none !important;
+        }
+        body:not(.dark-theme) #contact .lab-input::placeholder { color: #94a3b8 !important; }
+
+        body:not(.dark-theme) #contact .btn[type="submit"] {
+            background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 14px !important;
+            padding: 16px 30px !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            width: 100% !important;
+            margin: 10px 0 0 0 !important;
+            cursor: pointer !important;
+            transition: transform 0.25s, box-shadow 0.25s !important;
+            box-shadow: 0 8px 24px rgba(79,70,229,0.3) !important;
+            letter-spacing: 0.3px !important;
+        }
+        body:not(.dark-theme) #contact .btn[type="submit"]:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 14px 32px rgba(79,70,229,0.42) !important;
+        }
+
+        /* TUN: Chuqur kosmik forma */
+        body.dark-theme #contact .contact-form-box {
+            background: linear-gradient(160deg, rgba(15,23,42,0.93), rgba(2,6,23,0.9)) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+            border: 1px solid rgba(56,189,248,0.18) !important;
+            border-radius: 32px !important;
+            padding: 48px 44px !important;
+            box-shadow: 0 16px 60px rgba(0,0,0,0.65), 0 0 60px rgba(56,189,248,0.04), 0 1px 0 rgba(56,189,248,0.1) inset !important;
+            position: relative;
+            overflow: hidden;
+        }
+        body.dark-theme #contact .contact-form-box::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 40px; right: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(56,189,248,0.65), rgba(99,102,241,0.65), transparent);
+        }
+        body.dark-theme #contact .contact-form-box::after {
+            content: "";
+            position: absolute;
+            bottom: -80px; right: -60px;
+            width: 260px; height: 260px;
+            background: radial-gradient(circle, rgba(56,189,248,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        body.dark-theme #contact .lab-input {
+            background: rgba(30,41,59,0.65) !important;
+            border: 1px solid rgba(56,189,248,0.18) !important;
+            color: #f1f5f9 !important;
+            border-radius: 14px !important;
+            padding: 15px 18px !important;
+            font-size: 0.92rem !important;
+            transition: border-color 0.25s, box-shadow 0.25s !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 8px 0 !important;
+        }
+        body.dark-theme #contact .lab-input:focus {
+            border-color: rgba(56,189,248,0.5) !important;
+            background: rgba(30,41,59,0.85) !important;
+            box-shadow: 0 0 0 3px rgba(56,189,248,0.08), 0 0 20px rgba(56,189,248,0.06) !important;
+            outline: none !important;
+        }
+        body.dark-theme #contact .lab-input::placeholder { color: rgba(148,163,184,0.6) !important; }
+
+        body.dark-theme #contact .btn[type="submit"] {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 14px !important;
+            padding: 16px 30px !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            width: 100% !important;
+            margin: 10px 0 0 0 !important;
+            cursor: pointer !important;
+            transition: transform 0.25s, box-shadow 0.25s !important;
+            box-shadow: 0 8px 24px rgba(14,165,233,0.3), 0 0 30px rgba(14,165,233,0.1) !important;
+            letter-spacing: 0.3px !important;
+        }
+        body.dark-theme #contact .btn[type="submit"]:hover {
+            transform: translateY(-3px) !important;
+            box-shadow: 0 14px 32px rgba(14,165,233,0.48), 0 0 40px rgba(14,165,233,0.14) !important;
         }
 
     </style>
@@ -978,7 +1252,7 @@
     
     <div id="usage-history-section" style="display:none;">
         <p class="usage-history-title">Foydalanish tarixi</p>
-        <p id="usage-history-empty">Hali yozuv yo‘q</p>
+        <p id="usage-history-empty">Hali yozuv yo'q</p>
         <ul id="usage-history-list"></ul>
     </div>
 
@@ -1056,8 +1330,6 @@
         </div>
     </section>
 
-
-
    <section class="section photo-section" id="blog">
         <div class="section-bg-layer">
             <img src="images/blog-day.jpg" class="bg-img bg-day" alt="">
@@ -1072,8 +1344,6 @@
         </div>
     </section>
 
-
-
     <section class="section photo-section" id="contact">
         <div class="section-bg-layer">
             <img src="images/aloqa-day.jpg" class="bg-img bg-day" alt="">
@@ -1081,12 +1351,12 @@
         </div>
         <div class="section-inner">
             <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Men bilan bog'laning</h2>
-            <div class="contact-form-box" style="max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.05);" data-aos="zoom-in">
+            <div class="contact-form-box" style="max-width: 600px; margin: 40px auto;" data-aos="zoom-in">
                 <form action="mailto:ishingiz@example.com" method="post">
                     <input type="text" placeholder="Ismingiz" required class="lab-input">
                     <input type="email" placeholder="Email manzilingiz" required class="lab-input">
                     <textarea rows="5" placeholder="Xabaringizni yozing..." required class="lab-input"></textarea>
-                    <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Yuborish</button>
+                    <button type="submit" class="btn">Yuborish</button>
                 </form>
             </div>
         </div>
@@ -1152,8 +1422,6 @@
         else if (hour < 18) greeting.innerText = "Xayrli kun!";
         else greeting.innerText = "Xayrli kech!";
 
-        
-
         window.clearResults = function() {
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
@@ -1183,9 +1451,7 @@
     text-align: center;
     margin-bottom: 15px;
 }
-.clock-card:hover {
-    transform: scale(1.05);
-}
+.clock-card:hover { transform: scale(1.05); }
 
 .clock-display {
     font-size: 42px;
@@ -1201,71 +1467,15 @@
     letter-spacing: 1px;
 }
 
-/* --- 5 XIL USLUB (DIZAYNLAR) --- */
-/* Style 1: Cyber Neon (Tungi rejimga mos) */
-.clock-card.style-1 {
-    background: #161b22;
-    border: 2px solid #00d2ff;
-    color: #ffffff;
-    text-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
-    box-shadow: 0 0 20px rgba(0, 210, 255, 0.2);
-}
+.clock-card.style-1 { background: #161b22; border: 2px solid #00d2ff; color: #ffffff; text-shadow: 0 0 12px rgba(0, 210, 255, 0.6); box-shadow: 0 0 20px rgba(0, 210, 255, 0.2); }
+.clock-card.style-2 { background: linear-gradient(135deg, #1f1c2c, #928dab); border: 2px solid #f39c12; color: #f1c40f; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.clock-card.style-3 { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; }
+.clock-card.style-4 { background: #000000; border: 2px solid #2ecc71; color: #2ecc71; font-family: 'Courier New', monospace; text-shadow: 0 0 10px #2ecc71; }
+.clock-card.style-5 { background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white; border: none; }
 
-/* Style 2: Oltin Ma'rifat */
-.clock-card.style-2 {
-    background: linear-gradient(135deg, #1f1c2c, #928dab);
-    border: 2px solid #f39c12;
-    color: #f1c40f;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-/* Style 3: Shisha effekt (Glassmorphism) */
-.clock-card.style-3 {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
-}
-
-/* Style 4: Matritsa */
-.clock-card.style-4 {
-    background: #000000;
-    border: 2px solid #2ecc71;
-    color: #2ecc71;
-    font-family: 'Courier New', monospace;
-    text-shadow: 0 0 10px #2ecc71;
-}
-
-/* Style 5: Quyosh chiqishi */
-.clock-card.style-5 {
-    background: linear-gradient(45deg, #ff416c, #ff4b2b);
-    color: white;
-    border: none;
-}
-
-/* --- Iqtiboslar paneli --- */
-.quote-container {
-    text-align: left;
-    padding: 0;
-}
-#time-quote {
-    font-style: italic;
-    font-size: 15px;
-    color: #cbd5e1;
-    line-height: 1.6;
-    margin: 0 0 5px 0;
-    transition: opacity 0.5s ease;
-}
-.quote-author {
-    font-size: 12px;
-    color: #58a6ff;
-    font-weight: 500;
-}
-
-/* Sayt yorug' rejimga o'tganda matn rangi */
-body.light-mode #time-quote {
-    color: #444d56;
-}
+.quote-container { text-align: left; padding: 0; }
+#time-quote { font-style: italic; font-size: 15px; color: #cbd5e1; line-height: 1.6; margin: 0 0 5px 0; transition: opacity 0.5s ease; }
+.quote-author { font-size: 12px; color: #58a6ff; font-weight: 500; }
 
 @media (max-width: 768px) {
     .clock-section { align-items: center; }
@@ -1274,43 +1484,31 @@ body.light-mode #time-quote {
 </style>
 
 <script>
-// 1. Vaqtni real vaqtda yangilab turish
 function startZiyoClock() {
     const hoursEl = document.getElementById('hours');
     const minutesEl = document.getElementById('minutes');
     const secondsEl = document.getElementById('seconds');
     const dateEl = document.getElementById('clock-date');
-
-    if(!hoursEl) return; // Agar element topilmasa skript xato bermaydi
-
+    if(!hoursEl) return;
     setInterval(() => {
         const now = new Date();
-        
-        let h = now.getHours().toString().padStart(2, '0');
-        let m = now.getMinutes().toString().padStart(2, '0');
-        let s = now.getSeconds().toString().padStart(2, '0');
-        
-        hoursEl.innerText = h;
-        minutesEl.innerText = m;
-        secondsEl.innerText = s;
-
+        hoursEl.innerText = now.getHours().toString().padStart(2, '0');
+        minutesEl.innerText = now.getMinutes().toString().padStart(2, '0');
+        secondsEl.innerText = now.getSeconds().toString().padStart(2, '0');
         const options = { day: 'numeric', month: 'short', year: 'numeric' };
         dateEl.innerText = now.toLocaleDateString('uz-UZ', options);
     }, 1000);
 }
 
-// 2. Klik bo'lganda dizaynni almashtirish
 let ziyoClockStyle = 1;
 function changeClockStyle() {
     const clockCard = document.getElementById('ziyo-clock');
     if(!clockCard) return;
-    
     clockCard.classList.remove(`style-${ziyoClockStyle}`);
     ziyoClockStyle = ziyoClockStyle >= 5 ? 1 : ziyoClockStyle + 1;
     clockCard.classList.add(`style-${ziyoClockStyle}`);
 }
 
-// 3. Ma'noli gaplarni aylantirish
 const ziyoQuotes = [
     "\"Vaqt — bu daryo, uni ortga qaytarib bo'lmaydi. Har bir soniyadan unumli foydalaning.\"",
     "\"Kecha — tarix, ertaga — sir, bugun esa — senga berilgan yuksak imkoniyatdir.\"",
@@ -1324,7 +1522,6 @@ function startZiyoQuotes() {
     const quoteEl = document.getElementById('time-quote');
     let index = 0;
     if(!quoteEl) return;
-
     setInterval(() => {
         quoteEl.style.opacity = 0;
         setTimeout(() => {
@@ -1332,15 +1529,13 @@ function startZiyoQuotes() {
             quoteEl.innerText = ziyoQuotes[index];
             quoteEl.style.opacity = 1;
         }, 500);
-    }, 10000); // Har 10 soniyada o'zgaradi
+    }, 10000);
 }
 
-// Sahifa tayyor bo'lganda hammasini yoqish
 document.addEventListener("DOMContentLoaded", () => {
     startZiyoClock();
     startZiyoQuotes();
 });
-
 </script>
 <script src="js/notifications.js"></script>
 <script src="js/search-modal.js"></script>
