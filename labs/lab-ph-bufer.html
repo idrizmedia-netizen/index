@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<title>pH va Bufer Eritmalar — Ziyomap</title>
+<script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#fff;--bg3:#e8edf8;--accent:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff!important;color:#0f172a!important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95)!important;}
+[data-theme="light"] .control-panel{background:#fff!important;border-left-color:rgba(0,0,0,.08)!important;}
+[data-theme="light"] .canvas-area{background:#e8ecf4!important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.94)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important;}
+[data-theme="light"] .formula-card{background:#e8edf8!important;}
+[data-theme="light"] .formula-desc{color:#475569!important;}
+[data-theme="light"] .data-table th{background:#e8edf8!important;}
+[data-theme="light"] .data-table td{color:#0f172a!important;}
+[data-theme="light"] .slider-name{color:#475569!important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12)!important;}
+[data-theme="light"] .tab-btn{color:#475569!important;}
+[data-theme="light"] .buf-btn{background:#e8edf8!important;color:#475569!important;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.theme-btn{padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.lab-wrap{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;}
+#ph-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,14,26,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.panel-section{margin-bottom:1.5rem;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:.92rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.buf-grid{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:.5rem;}
+.buf-btn{padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:var(--bg3);color:var(--text2);font-size:.74rem;font-weight:600;cursor:pointer;text-align:left;}
+.buf-btn.active{border-color:var(--accent);background:rgba(59,130,246,.15);color:#60a5fa;}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">🧪 pH va Bufer Eritmalar (Henderson-Hasselbalch)</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-btn" onclick="toggleLabTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
+    <a href="../" class="nav-logo">Ziyomap</a>
+  </div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area">
+    <canvas id="ph-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" id="ph-badge" style="color:#22c55e;">pH = <span id="hud-ph">7.00</span></div>
+      <div class="hud-badge" style="color:var(--accent);">Bufer sig'imi: <span id="hud-cap">—</span></div>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('buf',this)">Bufer tanlash</button>
+      <button class="tab-btn" onclick="switchTab('data',this)">Hisoblash</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-buf">
+      <div class="panel-section">
+        <div class="ps-title">Bufer tizimlari</div>
+        <div class="buf-grid" id="buf-grid"></div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Nisbat sozlash</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">[A⁻] kislota anioni</span><span class="slider-val"><span id="v-a">0.1</span> M</span></div>
+          <input type="range" min="0.01" max="1" step="0.01" value="0.1" oninput="bf.A=+this.value;document.getElementById('v-a').textContent=(+this.value).toFixed(2);recalc()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">[HA] kislota</span><span class="slider-val"><span id="v-ha">0.1</span> M</span></div>
+          <input type="range" min="0.01" max="1" step="0.01" value="0.1" oninput="bf.HA=+this.value;document.getElementById('v-ha').textContent=(+this.value).toFixed(2);recalc()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Qo'shilgan kuchli kislota/ishqor</span><span class="slider-val"><span id="v-add">0</span> mmol</span></div>
+          <input type="range" min="-20" max="20" step="1" value="0" oninput="bf.added=+this.value;document.getElementById('v-add').textContent=this.value;recalc()">
+        </div>
+      </div>
+    </div>
+    <div id="tab-data" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Henderson-Hasselbalch hisobi</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>pKa</td><td id="d-pka">—</td></tr>
+            <tr><td>[A⁻]/[HA] nisbat</td><td id="d-ratio">—</td></tr>
+            <tr><td>pH = pKa + log([A⁻]/[HA])</td><td id="d-ph">—</td></tr>
+            <tr><td>Bufer sig'imi β</td><td id="d-beta">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">pH titrlanish grafigi</div>
+        <canvas id="buf-graph" width="260" height="140" style="border-radius:8px;width:100%;"></canvas>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Bufer nazariyasi</div>
+        <div class="formula-card"><div class="formula-eq">pH = pKa + log([A⁻]/[HA])</div><div class="formula-desc">Henderson-Hasselbalch tenglamasi. Bufer eritma pH ni hisoblash uchun asosiy formula.</div></div>
+        <div class="formula-card"><div class="formula-eq">[A⁻] = [HA] → pH = pKa</div><div class="formula-desc">Bufer eng samarali ishlaganda nisbat 1:1 bo'ladi.</div></div>
+        <div class="formula-card"><div class="formula-eq">Bufer zonasi: pH = pKa ± 1</div><div class="formula-desc">Bufer faqat shu diapazonda samarali ishlaydi.</div></div>
+        <div class="formula-card"><div class="formula-eq">β = 2.303·C·Ka·[H⁺]/(Ka+[H⁺])²</div><div class="formula-desc">Bufer sig'imi — qo'shilgan kislota/ishqorga qarshilik ko'rsatish qobiliyati.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('ph-canvas');
+const ctx=canvas.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+
+const BUFFERS=[
+  {name:'Asetat bufer (CH₃COOH/CH₃COO⁻)',pKa:4.76},
+  {name:'Fosfat bufer (H₂PO₄⁻/HPO₄²⁻)',pKa:7.21},
+  {name:'Bikarbonat bufer (H₂CO₃/HCO₃⁻)',pKa:6.35},
+  {name:'Ammoniy bufer (NH₄⁺/NH₃)',pKa:9.25},
+  {name:'Sitrat bufer (sitrat sistema)',pKa:6.40},
+  {name:'Tris bufer (biokimyoda)',pKa:8.06},
+];
+
+let bf={idx:0,A:0.1,HA:0.1,added:0};
+let history=[];
+
+function initCanvas(){
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*DPR;canvas.height=h*DPR;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.scale(DPR,DPR);
+  buildBufGrid();recalc();
+}
+
+function buildBufGrid(){
+  const g=document.getElementById('buf-grid');g.innerHTML='';
+  BUFFERS.forEach((b,i)=>{
+    const btn=document.createElement('div');btn.className='buf-btn'+(i===0?' active':'');
+    btn.innerHTML=`${b.name}<br><small style="color:var(--text3);">pKa = ${b.pKa}</small>`;
+    btn.onclick=()=>{bf.idx=i;document.querySelectorAll('.buf-btn').forEach(x=>x.classList.remove('active'));btn.classList.add('active');recalc();};
+    g.appendChild(btn);
+  });
+}
+
+function recalc(){
+  const buf=BUFFERS[bf.idx];
+  // apply added strong acid/base (mmol, assume 1L volume for simplicity)
+  let A=bf.A,HA=bf.HA;
+  const addedM=bf.added/1000; // mol/L approx
+  if(addedM>0){ // adding strong base, converts HA to A-
+    const delta=Math.min(addedM,HA);
+    A+=delta;HA-=delta;
+  } else if(addedM<0){ // adding strong acid, converts A- to HA
+    const delta=Math.min(-addedM,A);
+    HA+=delta;A-=delta;
+  }
+  A=Math.max(0.0001,A);HA=Math.max(0.0001,HA);
+  const ratio=A/HA;
+  const pH=buf.pKa+Math.log10(ratio);
+  const Ka=Math.pow(10,-buf.pKa);
+  const Hplus=Math.pow(10,-pH);
+  const C=A+HA;
+  const beta=2.303*C*Ka*Hplus/Math.pow(Ka+Hplus,2);
+
+  document.getElementById('hud-ph').textContent=pH.toFixed(2);
+  document.getElementById('ph-badge').style.color=phColor(pH);
+  document.getElementById('hud-cap').textContent=beta.toFixed(4);
+  document.getElementById('d-pka').textContent=buf.pKa.toFixed(2);
+  document.getElementById('d-ratio').textContent=ratio.toFixed(3);
+  document.getElementById('d-ph').textContent=pH.toFixed(3);
+  document.getElementById('d-beta').textContent=beta.toFixed(5)+' mol/(L·pH)';
+
+  history.push(pH);
+  if(history.length>100)history.shift();
+  drawGraph(buf,A,HA);
+  draw(pH);
+}
+
+function phColor(ph){
+  if(ph<2)return'#ef4444';if(ph<4)return'#f97316';if(ph<5)return'#f59e0b';
+  if(ph<6)return'#facc15';if(ph<7)return'#a3e635';if(ph<8)return'#22c55e';
+  if(ph<9)return'#14b8a6';if(ph<11)return'#3b82f6';if(ph<12)return'#6366f1';
+  return'#8b5cf6';
+}
+
+function draw(pH){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  ctx.clearRect(0,0,W,H);
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  ctx.fillStyle=isDark?'#080a12':'#e8ecf4';ctx.fillRect(0,0,W,H);
+
+  // pH scale bar (vertical)
+  const barX=W*0.15,barY=H*0.1,barW=40,barH=H*0.8;
+  const grad=ctx.createLinearGradient(0,barY,0,barY+barH);
+  grad.addColorStop(0,'#8b5cf6');grad.addColorStop(0.21,'#3b82f6');grad.addColorStop(0.43,'#22c55e');
+  grad.addColorStop(0.5,'#facc15');grad.addColorStop(0.57,'#f59e0b');grad.addColorStop(0.79,'#f97316');grad.addColorStop(1,'#ef4444');
+  ctx.fillStyle=grad;ctx.fillRect(barX,barY,barW,barH);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)';ctx.lineWidth=1.5;ctx.strokeRect(barX,barY,barW,barH);
+  // Scale labels
+  for(let i=0;i<=14;i+=2){
+    const y=barY+barH-(i/14)*barH;
+    ctx.strokeStyle=isDark?'rgba(255,255,255,.4)':'rgba(0,0,0,.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(barX,y);ctx.lineTo(barX-6,y);ctx.stroke();
+    ctx.fillStyle=isDark?'rgba(255,255,255,.6)':'rgba(0,0,0,.6)';ctx.font='10px Segoe UI';ctx.textAlign='right';
+    ctx.fillText(i,barX-10,y+3);
+  }
+  // pH marker
+  const markY=barY+barH-(pH/14)*barH;
+  ctx.beginPath();ctx.moveTo(barX+barW,markY);ctx.lineTo(barX+barW+15,markY-8);ctx.lineTo(barX+barW+15,markY+8);ctx.closePath();
+  ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.stroke();
+
+  // Beaker with solution color
+  const bkX=W*0.5,bkY=H*0.25,bkW=W*0.22,bkH=H*0.5;
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(bkX-bkW/2,bkY);ctx.lineTo(bkX-bkW/2,bkY+bkH);ctx.lineTo(bkX+bkW/2,bkY+bkH);ctx.lineTo(bkX+bkW/2,bkY);ctx.stroke();
+  ctx.fillStyle=phColor(pH)+'cc';
+  ctx.fillRect(bkX-bkW/2+2,bkY+bkH*0.3,bkW-4,bkH*0.7-3);
+  ctx.fillStyle=isDark?'rgba(255,255,255,.7)':'rgba(0,0,0,.6)';ctx.font='bold 16px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('pH = '+pH.toFixed(2),bkX,bkY+bkH+30);
+
+  // Buffer zone indicator
+  const buf=BUFFERS[bf.idx];
+  ctx.fillStyle=isDark?'rgba(255,255,255,.5)':'rgba(0,0,0,.5)';ctx.font='11px Segoe UI';
+  ctx.fillText('pKa = '+buf.pKa,bkX,bkY-15);
+  const zoneY1=barY+barH-((buf.pKa+1)/14)*barH;
+  const zoneY2=barY+barH-((buf.pKa-1)/14)*barH;
+  ctx.fillStyle='rgba(255,255,255,.15)';
+  ctx.fillRect(barX-3,zoneY1,barW+6,zoneY2-zoneY1);
+  ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  ctx.strokeRect(barX-3,zoneY1,barW+6,zoneY2-zoneY1);ctx.setLineDash([]);
+  ctx.font='9px Segoe UI';ctx.textAlign='left';
+  ctx.fillStyle=isDark?'rgba(255,255,255,.5)':'rgba(0,0,0,.5)';
+  ctx.fillText('Bufer zonasi',barX+barW+20,(zoneY1+zoneY2)/2);
+
+  // Molecular representation (HA vs A-)
+  const molX=W*0.78,molY=H*0.3;
+  const buf2=BUFFERS[bf.idx];
+  let A=bf.A,HA=bf.HA;
+  const addedM=bf.added/1000;
+  if(addedM>0){const delta=Math.min(addedM,HA);A+=delta;HA-=delta;}
+  else if(addedM<0){const delta=Math.min(-addedM,A);HA+=delta;A-=delta;}
+  const total=A+HA;
+  const haCount=Math.round((HA/total)*20),aCount=20-haCount;
+  ctx.font='9px Segoe UI';ctx.fillStyle=isDark?'rgba(255,255,255,.5)':'rgba(0,0,0,.5)';ctx.textAlign='center';
+  ctx.fillText('HA : A⁻ nisbati',molX,molY-20);
+  for(let i=0;i<20;i++){
+    const col=Math.floor(i/5),row=i%5;
+    const mx=molX-40+col*22,my=molY+row*16;
+    ctx.beginPath();ctx.arc(mx,my,6,0,Math.PI*2);
+    ctx.fillStyle=i<haCount?'#f59e0b':'#3b82f6';ctx.fill();
+  }
+  ctx.fillStyle='#f59e0b';ctx.fillText('● HA: '+haCount,molX-20,molY+95);
+  ctx.fillStyle='#3b82f6';ctx.fillText('● A⁻: '+aCount,molX+20,molY+95);
+  ctx.textAlign='left';
+}
+
+function drawGraph(buf,A,HA){
+  const gc=document.getElementById('buf-graph');if(!gc)return;
+  const gctx=gc.getContext('2d');const W=gc.width,H=gc.height;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  gctx.clearRect(0,0,W,H);gctx.fillStyle=isDark?'#1a2235':'#e8edf8';gctx.fillRect(0,0,W,H);
+  // Theoretical curve: pH vs fraction added
+  gctx.beginPath();gctx.strokeStyle='#3b82f6';gctx.lineWidth=2;
+  const totalC=A+HA;
+  for(let f=-1;f<=1;f+=0.02){
+    let aa=A,hh=HA;
+    if(f>0){const d=Math.min(f*totalC*0.5,hh);aa+=d;hh-=d;}
+    else if(f<0){const d=Math.min(-f*totalC*0.5,aa);hh+=d;aa-=d;}
+    aa=Math.max(0.0001,aa);hh=Math.max(0.0001,hh);
+    const ph=buf.pKa+Math.log10(aa/hh);
+    const x=((f+1)/2)*W;
+    const y=H-(Math.min(14,Math.max(0,ph))/14)*(H-10)-5;
+    f===-1?gctx.moveTo(x,y):gctx.lineTo(x,y);
+  }
+  gctx.stroke();
+  // pKa line
+  const pkaY=H-(buf.pKa/14)*(H-10)-5;
+  gctx.strokeStyle='rgba(245,158,11,.5)';gctx.lineWidth=1;gctx.setLineDash([3,3]);
+  gctx.beginPath();gctx.moveTo(0,pkaY);gctx.lineTo(W,pkaY);gctx.stroke();gctx.setLineDash([]);
+  gctx.fillStyle='rgba(245,158,11,.7)';gctx.font='9px Segoe UI';
+  gctx.fillText('pKa',4,pkaY-3);
+  // Current point
+  const curF=bf.added/1000/(totalC*0.5);
+  const curX=((Math.max(-1,Math.min(1,curF))+1)/2)*W;
+  gctx.beginPath();gctx.arc(curX,H/2,4,0,Math.PI*2);gctx.fillStyle='#facc15';gctx.fill();
+}
+
+function switchTab(t,btn){['buf','data','theory'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('zy_theme',n);localStorage.setItem('theme',n);var i=document.getElementById('t-icon'),l=document.getElementById('t-lbl');if(i)i.textContent=n==='dark'?'☀️':'🌙';if(l)l.textContent=n==='dark'?'Kun':'Tun';recalc();}
+(function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
+window.addEventListener('resize',initCanvas);
+initCanvas();
+</script>
+</body>
+</html>

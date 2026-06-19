@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<title>Ekosistem Modeli — Ziyomap</title>
+<script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#fff;--bg3:#e8edf8;--accent:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff!important;color:#0f172a!important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95)!important;}
+[data-theme="light"] .control-panel{background:#fff!important;border-left-color:rgba(0,0,0,.08)!important;}
+[data-theme="light"] .canvas-area{background:#e0f2e0!important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.94)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important;}
+[data-theme="light"] .formula-card{background:#e8edf8!important;}
+[data-theme="light"] .formula-desc{color:#475569!important;}
+[data-theme="light"] .data-table th{background:#e8edf8!important;}
+[data-theme="light"] .data-table td{color:#0f172a!important;}
+[data-theme="light"] .slider-name{color:#475569!important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12)!important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07)!important;color:#475569!important;}
+[data-theme="light"] .tab-btn{color:#475569!important;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.theme-btn{padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.lab-wrap{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;}
+#eco-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,14,26,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.tool-btn{padding:8px 18px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+.tool-btn.play{background:var(--green);color:#fff;}
+.tool-btn.pause{background:var(--orange);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.tool-btn:hover{filter:brightness(1.12);}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.panel-section{margin-bottom:1.5rem;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:.9rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">🌿 Ekosistem Modeli (Lotka-Volterra)</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-btn" onclick="toggleLabTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
+    <a href="../" class="nav-logo">Ziyomap</a>
+  </div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area">
+    <canvas id="eco-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" style="color:var(--green);">🐰 Ov (R): <span id="hud-prey">40</span></div>
+      <div class="hud-badge" style="color:var(--red);">🦊 Yirtqich (F): <span id="hud-pred">9</span></div>
+      <div class="hud-badge" style="color:var(--orange);">⏱ t = <span id="hud-t">0.0</span></div>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn reset" onclick="resetSim()">↺ Qayta</button>
+      <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('graph',this)">Grafik</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Boshlang'ich populyatsiya</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Ov (o'lja) R₀</span><span class="slider-val"><span id="v-r0">40</span></span></div>
+          <input type="range" min="5" max="100" step="1" value="40" oninput="p.R0=+this.value;document.getElementById('v-r0').textContent=this.value;resetSim()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Yirtqich F₀</span><span class="slider-val"><span id="v-f0">9</span></span></div>
+          <input type="range" min="1" max="50" step="1" value="9" oninput="p.F0=+this.value;document.getElementById('v-f0').textContent=this.value;resetSim()">
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Lotka-Volterra koeffitsientlari</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">α (ov o'sish tezligi)</span><span class="slider-val"><span id="v-alpha">1.1</span></span></div>
+          <input type="range" min="0.1" max="3" step="0.05" value="1.1" oninput="p.alpha=+this.value;document.getElementById('v-alpha').textContent=(+this.value).toFixed(2);resetSim()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">β (yirtqichlash tezligi)</span><span class="slider-val"><span id="v-beta">0.4</span></span></div>
+          <input type="range" min="0.05" max="2" step="0.05" value="0.4" oninput="p.beta=+this.value;document.getElementById('v-beta').textContent=(+this.value).toFixed(2);resetSim()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">δ (yirtqich o'lim tezligi)</span><span class="slider-val"><span id="v-delta">0.4</span></span></div>
+          <input type="range" min="0.05" max="2" step="0.05" value="0.4" oninput="p.delta=+this.value;document.getElementById('v-delta').textContent=(+this.value).toFixed(2);resetSim()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">γ (yirtqich o'sish tezligi)</span><span class="slider-val"><span id="v-gamma">0.1</span></span></div>
+          <input type="range" min="0.01" max="1" step="0.01" value="0.1" oninput="p.gamma=+this.value;document.getElementById('v-gamma').textContent=(+this.value).toFixed(2);resetSim()">
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Muvozanat nuqtasi</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>R* = δ/γ</td><td id="d-req">—</td></tr>
+            <tr><td>F* = α/β</td><td id="d-feq">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-graph" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Populyatsiya — vaqt grafigi</div>
+        <canvas id="time-graph" width="260" height="130" style="border-radius:8px;width:100%;"></canvas>
+        <div style="display:flex;gap:10px;margin-top:6px;">
+          <span style="font-size:.65rem;color:#10b981;">— Ov</span>
+          <span style="font-size:.65rem;color:#ef4444;">— Yirtqich</span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Fazaviy portret (R vs F)</div>
+        <canvas id="phase-graph" width="260" height="160" style="border-radius:8px;width:100%;"></canvas>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Lotka-Volterra tenglamalari</div>
+        <div class="formula-card"><div class="formula-eq">dR/dt = αR - βRF</div><div class="formula-desc">Ov populyatsiyasi: tabiiy o'sish (αR) minus yirtqichlash (βRF).</div></div>
+        <div class="formula-card"><div class="formula-eq">dF/dt = δRF - γF</div><div class="formula-desc">Yirtqich populyatsiyasi: ovga bog'liq o'sish (δRF) minus tabiiy o'lim (γF).</div></div>
+        <div class="formula-card"><div class="formula-eq">Muvozanat: R*=γ/δ, F*=α/β</div><div class="formula-desc">Bu nuqtada ikkala populyatsiya o'zgarmaydi (lekin beqaror — tsiklik harakat).</div></div>
+        <div class="formula-card"><div class="formula-eq">Davriy tsikllar</div><div class="formula-desc">Populyatsiyalar fazoviy tekislikda yopiq orbitalar bo'ylab tsiklik harakatlanadi.</div></div>
+        <div class="formula-card"><div class="formula-eq">Saqlanish miqdori</div><div class="formula-desc">H = δR - γln(R) + βF - αln(F) — vaqt davomida o'zgarmas qoladi.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('eco-canvas');
+const ctx=canvas.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+let p={R0:40,F0:9,alpha:1.1,beta:0.4,delta:0.4,gamma:0.1};
+let st={playing:false,t:0,R:40,F:9,history:[],animals:[]};
+let animId,lastTime;
+
+function initCanvas(){
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*DPR;canvas.height=h*DPR;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.scale(DPR,DPR);
+  resetSim();
+}
+
+function resetSim(){
+  st.t=0;st.R=p.R0;st.F=p.F0;st.history=[];st.playing=false;
+  st.animals=[];
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  for(let i=0;i<Math.min(40,st.R);i++)st.animals.push({type:'prey',x:Math.random()*W,y:Math.random()*H*0.7+H*0.15,vx:(Math.random()-.5)*0.5,vy:(Math.random()-.5)*0.5});
+  for(let i=0;i<Math.min(15,st.F);i++)st.animals.push({type:'pred',x:Math.random()*W,y:Math.random()*H*0.7+H*0.15,vx:(Math.random()-.5)*0.7,vy:(Math.random()-.5)*0.7});
+  document.getElementById('play-btn').textContent='▶ Boshlash';
+  document.getElementById('play-btn').className='tool-btn play';
+  document.getElementById('d-req').textContent=(p.delta/p.gamma).toFixed(2);
+  document.getElementById('d-feq').textContent=(p.alpha/p.beta).toFixed(2);
+  updateHUD();draw();drawGraphs();
+}
+
+function step(dt){
+  // RK4 for Lotka-Volterra
+  function deriv(R,F){return[p.alpha*R-p.beta*R*F, p.delta*R*F-p.gamma*F];}
+  const[dR1,dF1]=deriv(st.R,st.F);
+  const[dR2,dF2]=deriv(st.R+dR1*dt/2,st.F+dF1*dt/2);
+  const[dR3,dF3]=deriv(st.R+dR2*dt/2,st.F+dF2*dt/2);
+  const[dR4,dF4]=deriv(st.R+dR3*dt,st.F+dF3*dt);
+  st.R+=dt*(dR1+2*dR2+2*dR3+dR4)/6;
+  st.F+=dt*(dF1+2*dF2+2*dF3+dF4)/6;
+  st.R=Math.max(0.1,st.R);st.F=Math.max(0.05,st.F);
+  st.t+=dt;
+  st.history.push({t:st.t,R:st.R,F:st.F});
+  if(st.history.length>500)st.history.shift();
+
+  // Update animal counts visually (adjust array size loosely)
+  const targetPrey=Math.min(60,Math.round(st.R));
+  const targetPred=Math.min(30,Math.round(st.F));
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  let preyCount=st.animals.filter(a=>a.type==='prey').length;
+  let predCount=st.animals.filter(a=>a.type==='pred').length;
+  while(preyCount<targetPrey){st.animals.push({type:'prey',x:Math.random()*W,y:Math.random()*H*0.7+H*0.15,vx:(Math.random()-.5)*0.5,vy:(Math.random()-.5)*0.5});preyCount++;}
+  while(predCount<targetPred){st.animals.push({type:'pred',x:Math.random()*W,y:Math.random()*H*0.7+H*0.15,vx:(Math.random()-.5)*0.7,vy:(Math.random()-.5)*0.7});predCount++;}
+  if(preyCount>targetPrey){const idx=st.animals.findIndex(a=>a.type==='prey');if(idx>=0)st.animals.splice(idx,1);}
+  if(predCount>targetPred){const idx=st.animals.findIndex(a=>a.type==='pred');if(idx>=0)st.animals.splice(idx,1);}
+
+  // Move animals
+  st.animals.forEach(a=>{
+    a.x+=a.vx;a.y+=a.vy;
+    if(a.x<10||a.x>W-10)a.vx*=-1;
+    if(a.y<H*0.1||a.y>H*0.85)a.vy*=-1;
+  });
+  updateHUD();
+}
+
+function updateHUD(){
+  document.getElementById('hud-prey').textContent=Math.round(st.R);
+  document.getElementById('hud-pred').textContent=Math.round(st.F);
+  document.getElementById('hud-t').textContent=st.t.toFixed(1);
+}
+
+function draw(){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  ctx.clearRect(0,0,W,H);
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  // Field background
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  if(isDark){grad.addColorStop(0,'#0a1f0a');grad.addColorStop(1,'#051505');}
+  else{grad.addColorStop(0,'#bbf7d0');grad.addColorStop(1,'#86efac');}
+  ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+  // Grass texture
+  ctx.strokeStyle=isDark?'rgba(34,197,94,.1)':'rgba(5,150,105,.15)';ctx.lineWidth=1;
+  for(let i=0;i<60;i++){
+    const gx=(i*73.5)%W,gy=H*0.15+(i*47.3)%(H*0.7);
+    ctx.beginPath();ctx.moveTo(gx,gy);ctx.lineTo(gx+3,gy-8);ctx.stroke();
+  }
+
+  // Animals
+  st.animals.forEach(a=>{
+    ctx.font='16px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(a.type==='prey'?'🐰':'🦊',a.x,a.y);
+  });
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';
+
+  // Mini population bars at top
+  const maxPop=Math.max(st.R,st.F,50);
+  const barW=W*0.3,barH=10;
+  ctx.fillStyle=isDark?'rgba(0,0,0,.3)':'rgba(255,255,255,.5)';
+  ctx.fillRect(W*0.05,10,barW+10,46);
+  ctx.fillStyle='#10b981';ctx.fillRect(W*0.05+5,15,(st.R/maxPop)*barW,barH);
+  ctx.fillStyle='#ef4444';ctx.fillRect(W*0.05+5,32,(st.F/maxPop)*barW,barH);
+  ctx.fillStyle=isDark?'#fff':'#000';ctx.font='10px Segoe UI';
+  ctx.fillText('Ov: '+Math.round(st.R),W*0.05+barW+15,24);
+  ctx.fillText('Yirtqich: '+Math.round(st.F),W*0.05+barW+15,42);
+}
+
+function drawGraphs(){
+  drawTimeGraph();drawPhaseGraph();
+}
+
+function drawTimeGraph(){
+  const gc=document.getElementById('time-graph');if(!gc)return;
+  const gctx=gc.getContext('2d');const W=gc.width,H=gc.height;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  gctx.clearRect(0,0,W,H);gctx.fillStyle=isDark?'#1a2235':'#e8edf8';gctx.fillRect(0,0,W,H);
+  if(st.history.length<2)return;
+  const maxV=Math.max(...st.history.map(h=>Math.max(h.R,h.F)),1)*1.1;
+  const maxT=st.history[st.history.length-1].t||1;
+  ['R','F'].forEach((key,ci)=>{
+    gctx.beginPath();gctx.strokeStyle=key==='R'?'#10b981':'#ef4444';gctx.lineWidth=2;
+    st.history.forEach((h,i)=>{
+      const x=(h.t/maxT)*W;
+      const y=H-(h[key]/maxV)*(H-10)-5;
+      i===0?gctx.moveTo(x,y):gctx.lineTo(x,y);
+    });
+    gctx.stroke();
+  });
+}
+
+function drawPhaseGraph(){
+  const gc=document.getElementById('phase-graph');if(!gc)return;
+  const gctx=gc.getContext('2d');const W=gc.width,H=gc.height;
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  gctx.clearRect(0,0,W,H);gctx.fillStyle=isDark?'#1a2235':'#e8edf8';gctx.fillRect(0,0,W,H);
+  if(st.history.length<2)return;
+  const maxR=Math.max(...st.history.map(h=>h.R),1)*1.1;
+  const maxF=Math.max(...st.history.map(h=>h.F),1)*1.1;
+  gctx.beginPath();gctx.strokeStyle='#8b5cf6';gctx.lineWidth=1.8;
+  st.history.forEach((h,i)=>{
+    const x=(h.R/maxR)*(W-20)+10;
+    const y=H-(h.F/maxF)*(H-20)-10;
+    i===0?gctx.moveTo(x,y):gctx.lineTo(x,y);
+  });
+  gctx.stroke();
+  // Equilibrium point
+  const eqR=p.delta/p.gamma,eqF=p.alpha/p.beta;
+  const ex=(eqR/maxR)*(W-20)+10,ey=H-(eqF/maxF)*(H-20)-10;
+  gctx.beginPath();gctx.arc(ex,ey,4,0,Math.PI*2);gctx.fillStyle='#facc15';gctx.fill();
+  // Current point
+  const last=st.history[st.history.length-1];
+  const cx=(last.R/maxR)*(W-20)+10,cy=H-(last.F/maxF)*(H-20)-10;
+  gctx.beginPath();gctx.arc(cx,cy,4,0,Math.PI*2);gctx.fillStyle='#ef4444';gctx.fill();
+  gctx.fillStyle=isDark?'rgba(255,255,255,.4)':'rgba(0,0,0,.4)';gctx.font='9px Segoe UI';
+  gctx.fillText('R →',W-22,H-4);gctx.save();gctx.translate(8,12);gctx.fillText('F ↑',0,0);gctx.restore();
+}
+
+let aId;
+function loop(ts){
+  if(!lastTime)lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,.05);lastTime=ts;
+  if(st.playing)step(dt*2);
+  draw();drawGraphs();
+  aId=requestAnimationFrame(loop);
+}
+
+function togglePlay(){
+  st.playing=!st.playing;
+  const btn=document.getElementById('play-btn');
+  if(st.playing){btn.textContent='⏸ Pauza';btn.className='tool-btn pause';}
+  else{btn.textContent='▶ Davom';btn.className='tool-btn play';}
+}
+function switchTab(t,btn){['params','graph','theory'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('zy_theme',n);localStorage.setItem('theme',n);var i=document.getElementById('t-icon'),l=document.getElementById('t-lbl');if(i)i.textContent=n==='dark'?'☀️':'🌙';if(l)l.textContent=n==='dark'?'Kun':'Tun';draw();}
+(function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
+window.addEventListener('resize',initCanvas);
+initCanvas();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

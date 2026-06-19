@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<title>Magnit Maydon — Ziyomap</title>
+<script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--teal:#14b8a6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#fff;--bg3:#e8edf8;--accent:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--teal:#0d9488;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff!important;color:#0f172a!important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95)!important;}
+[data-theme="light"] .control-panel{background:#fff!important;border-left-color:rgba(0,0,0,.08)!important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.94)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important;}
+[data-theme="light"] .formula-card{background:#e8edf8!important;}
+[data-theme="light"] .formula-desc{color:#475569!important;}
+[data-theme="light"] .data-table th{background:#e8edf8!important;}
+[data-theme="light"] .data-table td{color:#0f172a!important;}
+[data-theme="light"] .slider-name{color:#475569!important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12)!important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07)!important;color:#475569!important;}
+[data-theme="light"] .tab-btn{color:#475569!important;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.theme-btn{padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.lab-wrap{display:grid;grid-template-columns:1fr 300px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;}
+#mag-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,14,26,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.tool-btn{padding:8px 18px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+.tool-btn.play{background:var(--green);color:#fff;}
+.tool-btn.pause{background:var(--orange);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.tool-btn:hover{filter:brightness(1.12);}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.panel-section{margin-bottom:1.5rem;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:.9rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.8rem;}
+.mode-btn{padding:9px 6px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:var(--bg3);color:var(--text2);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;transition:.15s;}
+.mode-btn.active{border-color:var(--accent);background:rgba(59,130,246,.15);color:#60a5fa;}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">🧲 Magnit Maydon Laboratoriyasi</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-btn" onclick="toggleLabTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
+    <a href="../" class="nav-logo">Ziyomap</a>
+  </div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area">
+    <canvas id="mag-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" style="color:var(--purple);">🧲 B = <span id="hud-b">—</span> T</div>
+      <div class="hud-badge" style="color:var(--orange);">I = <span id="hud-i">2.0</span> A</div>
+      <div class="hud-badge" style="color:var(--green);">F_Lor = <span id="hud-fl">—</span> N/m</div>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn reset" onclick="resetSim()">↺ Qayta</button>
+      <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('data',this)">Hisob</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Tajriba turi</div>
+        <div class="mode-grid">
+          <div class="mode-btn active" id="mb-sol" onclick="setMode('solenoid',this)">🔄 Solenoid</div>
+          <div class="mode-btn" id="mb-wire" onclick="setMode('wire',this)">⚡ O'tkazgich</div>
+          <div class="mode-btn" id="mb-lor" onclick="setMode('lorentz',this)">🔵 Lorens kuchi</div>
+          <div class="mode-btn" id="mb-bar" onclick="setMode('bar',this)">🧲 Tayoq magnit</div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Tok va geometriya</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Tok I</span><span class="slider-val"><span id="v-i">2.0</span> A</span></div>
+          <input type="range" min="0.1" max="20" step="0.1" value="2.0" oninput="p.I=+this.value;document.getElementById('v-i').textContent=(+this.value).toFixed(1);document.getElementById('hud-i').textContent=(+this.value).toFixed(1);recalc();draw()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">O'ramlar soni N</span><span class="slider-val"><span id="v-n">100</span></span></div>
+          <input type="range" min="10" max="1000" step="10" value="100" oninput="p.N=+this.value;document.getElementById('v-n').textContent=this.value;recalc();draw()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Uzunlik L</span><span class="slider-val"><span id="v-l">0.2</span> m</span></div>
+          <input type="range" min="0.05" max="1" step="0.05" value="0.2" oninput="p.L=+this.value;document.getElementById('v-l').textContent=(+this.value).toFixed(2);recalc();draw()">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Zarracha tezligi v</span><span class="slider-val"><span id="v-vp">1.0</span>×10⁶ m/s</span></div>
+          <input type="range" min="0.1" max="10" step="0.1" value="1.0" oninput="p.vp=+this.value*1e6;document.getElementById('v-vp').textContent=(+this.value).toFixed(1);recalc()">
+        </div>
+      </div>
+    </div>
+    <div id="tab-data" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Hisoblash natijalari</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>B (solenoid ichida)</td><td id="d-b">—</td></tr>
+            <tr><td>n = N/L (zichlik)</td><td id="d-n">—</td></tr>
+            <tr><td>μ₀ (magnit doimiy)</td><td>4π×10⁻⁷ T·m/A</td></tr>
+            <tr><td>Lorens kuchi F</td><td id="d-fl">—</td></tr>
+            <tr><td>Radius r (doiraviy)</td><td id="d-r">—</td></tr>
+            <tr><td>Davriy harakat T</td><td id="d-T">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Formulalar</div>
+        <div class="formula-card"><div class="formula-eq">B = μ₀·n·I</div><div class="formula-desc">Solenoid ichidagi magnit maydon. n = N/L — o'ramlar zichligi. Tashqarida B≈0.</div></div>
+        <div class="formula-card"><div class="formula-eq">B = μ₀·I / (2πr)</div><div class="formula-desc">Cheksiz uzun o'tkazgich atrofidagi B. r — masofа o'tkazgichdan.</div></div>
+        <div class="formula-card"><div class="formula-eq">F = q·v×B</div><div class="formula-desc">Lorens kuchi. F ⊥ v va F ⊥ B. Zarracha doiraviy yo'lda harakatlanadi.</div></div>
+        <div class="formula-card"><div class="formula-eq">r = mv/(qB)</div><div class="formula-desc">Lorens kuchidagi doiraviy harakat radiusi.</div></div>
+        <div class="formula-card"><div class="formula-eq">F = I·L×B</div><div class="formula-desc">Tok o'tayotgan o'tkazgichga ta'sir etuvchi kuch (Ampere kuchi).</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('mag-canvas');
+const ctx=canvas.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+const mu0=4*Math.PI*1e-7;
+let p={I:2.0,N:100,L:0.2,vp:1e6};
+let mode='solenoid';
+let st={playing:false,t:0,px:0,py:0,pvx:0,pvy:0,particles:[]};
+let animId,lastTime;
+
+function B_solenoid(){return mu0*(p.N/p.L)*p.I;}
+function recalc(){
+  const B=B_solenoid();
+  const n=p.N/p.L;
+  const q=1.6e-19,m=9.1e-31;
+  const FL=q*p.vp*B;
+  const r=m*p.vp/(q*B);
+  const T=2*Math.PI*m/(q*B);
+  document.getElementById('hud-b').textContent=B.toExponential(2);
+  document.getElementById('hud-fl').textContent=FL.toExponential(2);
+  document.getElementById('d-b').textContent=B.toExponential(3)+' T';
+  document.getElementById('d-n').textContent=n.toFixed(0)+' /m';
+  document.getElementById('d-fl').textContent=FL.toExponential(3)+' N';
+  document.getElementById('d-r').textContent=(r*1000).toExponential(3)+' mm';
+  document.getElementById('d-T').textContent=(T*1e9).toFixed(2)+' ns';
+}
+
+function initCanvas(){
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*DPR;canvas.height=h*DPR;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.scale(DPR,DPR);
+  resetSim();recalc();
+}
+
+function resetSim(){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  st.t=0;st.playing=false;
+  st.px=W*0.3;st.py=H/2;st.pvx=p.vp/1e8;st.pvy=0;
+  st.particles=[];
+  document.getElementById('play-btn').textContent='▶ Boshlash';
+  document.getElementById('play-btn').className='tool-btn play';
+  draw();
+}
+
+function drawArrowAt(x,y,angle,len,color,lw){
+  ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+  ctx.strokeStyle=color;ctx.lineWidth=lw;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(len,0);ctx.stroke();
+  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(len,0);ctx.lineTo(len-7,-4);ctx.lineTo(len-7,4);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function drawSolenoid(W,H,isDark){
+  const cx=W/2,cy=H/2;
+  const sw=W*0.5,sh=80,coils=Math.min(20,Math.floor(p.N/5));
+  const x0=cx-sw/2,x1=cx+sw/2;
+  // Outer body
+  ctx.fillStyle=isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.04)';
+  ctx.fillRect(x0,cy-sh/2,sw,sh);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.15)':'rgba(0,0,0,.15)';ctx.lineWidth=1;
+  ctx.strokeRect(x0,cy-sh/2,sw,sh);
+  // Coils
+  for(let i=0;i<=coils;i++){
+    const cx2=x0+i*(sw/coils);
+    ctx.strokeStyle=isDark?'rgba(245,158,11,.6)':'rgba(180,100,0,.6)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(cx2,cy-sh/2);ctx.lineTo(cx2,cy+sh/2);ctx.stroke();
+    // Semicircles on top/bottom
+    ctx.beginPath();ctx.arc(cx2,cy-sh/2,4,Math.PI,0,false);
+    ctx.strokeStyle=isDark?'rgba(245,158,11,.4)':'rgba(180,100,0,.4)';ctx.lineWidth=1;ctx.stroke();
+  }
+  // Current arrows
+  const iColor=p.I>0?'#ef4444':'#3b82f6';
+  ctx.fillStyle=iColor;ctx.font='bold 12px Segoe UI';ctx.textAlign='center';
+  ctx.fillText(p.I>0?'→ I':'← I',cx,cy-sh/2-10);
+  ctx.textAlign='left';
+  // B field inside
+  const B=B_solenoid();const Bshow=Math.min(1,B*100);
+  const bColor=isDark?`rgba(139,92,246,${Bshow})`:`rgba(109,40,217,${Bshow})`;
+  for(let i=0;i<8;i++){
+    const fx=x0+20+(i*(sw-40)/7),fy=cy;
+    drawArrowAt(fx,fy,0,28*Bshow,bColor,2);
+  }
+  ctx.fillStyle=isDark?'rgba(139,92,246,.7)':'rgba(109,40,217,.7)';
+  ctx.font='11px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('B = '+B.toExponential(2)+' T (ichida)',cx,cy+sh/2+20);
+  ctx.textAlign='left';
+  // Outside: near zero
+  ctx.fillStyle=isDark?'rgba(255,255,255,.2)':'rgba(0,0,0,.2)';
+  ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('B ≈ 0 (tashqarida)',cx,cy-sh/2-28);ctx.textAlign='left';
+}
+
+function drawWire(W,H,isDark){
+  const cx=W/2,cy=H/2;
+  // Wire cross section (dot = current toward us)
+  ctx.beginPath();ctx.arc(cx,cy,20,0,Math.PI*2);
+  ctx.fillStyle=isDark?'rgba(245,158,11,.3)':'rgba(180,100,0,.3)';ctx.fill();
+  ctx.strokeStyle=isDark?'#f59e0b':'#d97706';ctx.lineWidth=3;ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,6,0,Math.PI*2);
+  ctx.fillStyle=isDark?'#f59e0b':'#d97706';ctx.fill();
+  // Concentric B circles
+  const B0=mu0*p.I/(2*Math.PI);
+  for(let ri=1;ri<=6;ri++){
+    const r=ri*50;const B=B0/r*1000;
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    const alpha=Math.min(.8,.3+B*10);
+    ctx.strokeStyle=isDark?`rgba(139,92,246,${alpha})`:`rgba(109,40,217,${alpha})`;
+    ctx.lineWidth=Math.max(.5,2-ri*.2);ctx.stroke();
+    // Tangent arrow
+    const ang=Math.PI/4;
+    drawArrowAt(cx+r*Math.cos(ang),cy-r*Math.sin(ang),ang+Math.PI/2,20,isDark?'rgba(139,92,246,.6)':'rgba(109,40,217,.6)',1.5);
+  }
+  ctx.fillStyle=isDark?'rgba(255,255,255,.5)':'rgba(0,0,0,.5)';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('B = μ₀I/2πr',cx,H-20);ctx.textAlign='left';
+}
+
+function drawLorentz(W,H,isDark){
+  // B field into page (crosses)
+  ctx.fillStyle=isDark?'rgba(139,92,246,.15)':'rgba(109,40,217,.1)';ctx.fillRect(0,0,W,H);
+  for(let x=40;x<W;x+=60)for(let y=40;y<H;y+=60){
+    ctx.strokeStyle=isDark?'rgba(139,92,246,.3)':'rgba(109,40,217,.3)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x-8,y-8);ctx.lineTo(x+8,y+8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+8,y-8);ctx.lineTo(x-8,y+8);ctx.stroke();
+  }
+  ctx.fillStyle=isDark?'rgba(139,92,246,.5)':'rgba(109,40,217,.5)';ctx.font='11px Segoe UI';ctx.textAlign='right';
+  ctx.fillText('B (sahifaga qarab)',W-10,20);ctx.textAlign='left';
+  // Moving particles
+  st.particles.forEach((pt,i)=>{
+    ctx.beginPath();ctx.arc(pt.x,pt.y,5,0,Math.PI*2);
+    ctx.fillStyle=isDark?'#60a5fa':'#2563eb';ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.3)';ctx.lineWidth=1;ctx.stroke();
+    // Trail
+    if(pt.trail&&pt.trail.length>1){
+      ctx.beginPath();
+      pt.trail.forEach((t2,j)=>{j===0?ctx.moveTo(t2.x,t2.y):ctx.lineTo(t2.x,t2.y);});
+      ctx.strokeStyle=isDark?'rgba(96,165,250,.3)':'rgba(37,99,235,.3)';ctx.lineWidth=1.5;ctx.stroke();
+    }
+  });
+}
+
+function drawBarMagnet(W,H,isDark){
+  const cx=W/2,cy=H/2,mw=120,mh=40;
+  // Bar magnet
+  ctx.fillStyle='#ef4444';ctx.fillRect(cx-mw/2,cy-mh/2,mw/2,mh);
+  ctx.fillStyle='#3b82f6';ctx.fillRect(cx,cy-mh/2,mw/2,mh);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)';ctx.lineWidth=2;
+  ctx.strokeRect(cx-mw/2,cy-mh/2,mw,mh);
+  ctx.fillStyle='#fff';ctx.font='bold 14px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('N',cx-mw/4,cy);ctx.fillText('S',cx+mw/4,cy);
+  ctx.textBaseline='alphabetic';ctx.textAlign='left';
+  // Field lines (simplified)
+  const numLines=10;
+  for(let i=0;i<numLines;i++){
+    const t=i/numLines;const y0=cy-mh/2+t*mh;
+    // From N pole, curving around
+    ctx.beginPath();ctx.strokeStyle=isDark?'rgba(239,68,68,.4)':'rgba(220,38,38,.4)';ctx.lineWidth=1.5;
+    const cpx1=cx-mw/2-80,cpy1=y0-80+i*15;
+    const cpx2=cx+mw/2+80,cpy2=y0-80+i*15;
+    ctx.moveTo(cx-mw/2,y0);
+    ctx.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,cx+mw/2,cy-mh/2+t*mh);
+    ctx.stroke();
+  }
+  for(let i=0;i<numLines;i++){
+    const t=i/numLines;const y0=cy-mh/2+t*mh;
+    ctx.beginPath();ctx.strokeStyle=isDark?'rgba(59,130,246,.4)':'rgba(37,99,235,.4)';ctx.lineWidth=1.5;
+    ctx.moveTo(cx-mw/2,y0);
+    const cpx1=cx-mw/2-80,cpy1=y0+80-i*15;
+    const cpx2=cx+mw/2+80,cpy2=y0+80-i*15;
+    ctx.bezierCurveTo(cpx1,cpy1,cpx2,cpy2,cx+mw/2,cy-mh/2+t*mh);
+    ctx.stroke();
+  }
+  ctx.fillStyle=isDark?'rgba(255,255,255,.4)':'rgba(0,0,0,.4)';ctx.font='11px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('Magnit maydon chiziqlari N dan S ga',cx,cy+mh/2+24);ctx.textAlign='left';
+}
+
+function draw(){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  ctx.clearRect(0,0,W,H);
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  ctx.fillStyle=isDark?'#060810':'#dde8f5';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.05)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=50){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  if(mode==='solenoid') drawSolenoid(W,H,isDark);
+  else if(mode==='wire') drawWire(W,H,isDark);
+  else if(mode==='lorentz') drawLorentz(W,H,isDark);
+  else drawBarMagnet(W,H,isDark);
+}
+
+function stepLorentz(dt){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  const B=B_solenoid(),q=1.6e-19,m=9.1e-31;
+  // Spawn
+  if(st.particles.length<5&&Math.random()<0.05){
+    st.particles.push({x:50+Math.random()*100,y:H/3+Math.random()*H/3,vx:p.vp/5e7,vy:(Math.random()-.5)*p.vp/1e8,trail:[]});
+  }
+  st.particles.forEach(pt=>{
+    // F = q*v×B (B in -z)
+    const Fx=q*pt.vy*B,Fy=-q*pt.vx*B;
+    const ax=Fx/m,ay=Fy/m;
+    const sc=1e13;
+    pt.vx+=ax*dt/sc;pt.vy+=ay*dt/sc;
+    pt.x+=pt.vx*50*dt;pt.y+=pt.vy*50*dt;
+    pt.trail.push({x:pt.x,y:pt.y});
+    if(pt.trail.length>80)pt.trail.shift();
+    if(pt.x>W||pt.x<0||pt.y>H||pt.y<0){
+      pt.x=50+Math.random()*100;pt.y=H/3+Math.random()*H/3;
+      pt.vx=p.vp/5e7;pt.vy=(Math.random()-.5)*p.vp/1e8;pt.trail=[];
+    }
+  });
+}
+
+let aId;
+function loop(ts){
+  if(!lastTime)lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,.033);lastTime=ts;
+  if(st.playing&&mode==='lorentz')stepLorentz(dt);
+  draw();aId=requestAnimationFrame(loop);
+}
+
+function togglePlay(){
+  st.playing=!st.playing;
+  const btn=document.getElementById('play-btn');
+  if(st.playing){btn.textContent='⏸ Pauza';btn.className='tool-btn pause';}
+  else{btn.textContent='▶ Davom';btn.className='tool-btn play';}
+}
+
+function setMode(m,btn){
+  mode=m;
+  ['sol','wire','lor','bar'].forEach(k=>{document.getElementById('mb-'+k).classList.remove('active');});
+  btn.classList.add('active');
+  resetSim();recalc();
+}
+
+function switchTab(t,btn){['params','data','theory'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('zy_theme',n);localStorage.setItem('theme',n);var i=document.getElementById('t-icon'),l=document.getElementById('t-lbl');if(i)i.textContent=n==='dark'?'☀️':'🌙';if(l)l.textContent=n==='dark'?'Kun':'Tun';draw();}
+(function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
+window.addEventListener('resize',initCanvas);
+initCanvas();requestAnimationFrame(loop);
+</script>
+</body>
+</html>

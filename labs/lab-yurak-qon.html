@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<title>Yurak va Qon Aylanishi — Ziyomap</title>
+<script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--accent:#3b82f6;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--text:#f1f5f9;--text2:#94a3b8;--text3:#475569;}
+[data-theme="light"]{--bg:#f0f4ff;--bg2:#fff;--bg3:#e8edf8;--accent:#2563eb;--green:#059669;--orange:#d97706;--red:#dc2626;--purple:#7c3aed;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+[data-theme="light"] body{background:#f0f4ff!important;color:#0f172a!important;}
+[data-theme="light"] .top-nav{background:rgba(240,244,255,.95)!important;}
+[data-theme="light"] .control-panel{background:#fff!important;border-left-color:rgba(0,0,0,.08)!important;}
+[data-theme="light"] .canvas-area{background:#fce8e8!important;}
+[data-theme="light"] .hud-badge{background:rgba(240,244,255,.94)!important;border-color:rgba(0,0,0,.1)!important;color:#1e293b!important;}
+[data-theme="light"] .formula-card{background:#e8edf8!important;}
+[data-theme="light"] .formula-desc{color:#475569!important;}
+[data-theme="light"] .data-table th{background:#e8edf8!important;}
+[data-theme="light"] .data-table td{color:#0f172a!important;}
+[data-theme="light"] .slider-name{color:#475569!important;}
+[data-theme="light"] input[type=range]{background:rgba(0,0,0,.12)!important;}
+[data-theme="light"] .tool-btn.reset{background:rgba(0,0,0,.07)!important;color:#475569!important;}
+[data-theme="light"] .tab-btn{color:#475569!important;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:56px;background:rgba(10,14,26,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;}
+.nav-logo{font-size:1.1rem;font-weight:800;color:var(--accent);text-decoration:none;}
+.nav-back{color:var(--text2);font-size:.85rem;text-decoration:none;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);}
+.nav-back:hover{border-color:var(--accent);color:var(--accent);}
+.theme-btn{padding:6px 12px;border-radius:20px;border:1px solid rgba(128,128,128,.25);background:transparent;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.lab-wrap{display:grid;grid-template-columns:1fr 320px;height:calc(100vh - 56px);}
+.canvas-area{position:relative;overflow:hidden;}
+#heart-canvas{display:block;width:100%;height:100%;}
+.canvas-overlay{position:absolute;top:12px;left:12px;display:flex;flex-direction:column;gap:8px;}
+.hud-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(10,14,26,.88);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:20px;font-size:.8rem;font-weight:600;}
+.canvas-tools{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+.tool-btn{padding:8px 18px;border-radius:20px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:.2s;}
+.tool-btn.play{background:var(--green);color:#fff;}
+.tool-btn.pause{background:var(--orange);color:#fff;}
+.tool-btn.reset{background:rgba(255,255,255,.1);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.tool-btn:hover{filter:brightness(1.12);}
+.control-panel{background:var(--bg2);border-left:1px solid rgba(255,255,255,.07);overflow-y:auto;padding:1.25rem;}
+.ps-title{font-size:.65rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:flex;align-items:center;gap:6px;}
+.ps-title::before{content:'';display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;}
+.panel-section{margin-bottom:1.5rem;}
+.slider-row{margin-bottom:1rem;}
+.slider-head{display:flex;justify-content:space-between;margin-bottom:6px;}
+.slider-name{font-size:.8rem;color:var(--text2);}
+.slider-val{font-size:.85rem;font-weight:700;background:var(--bg3);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:2px 10px;}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,.1);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);}
+.data-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.data-table th{padding:6px 8px;background:var(--bg3);color:var(--text3);font-size:.65rem;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);}
+.data-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text);}
+.formula-card{background:var(--bg3);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:.875rem;margin-bottom:8px;}
+.formula-eq{font-size:.92rem;font-weight:700;color:var(--accent);text-align:center;font-family:'Courier New',monospace;margin-bottom:6px;}
+.formula-desc{font-size:.75rem;color:var(--text2);line-height:1.5;}
+.tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
+.tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
+.tab-btn.active{background:var(--accent);color:#fff;}
+</style>
+</head>
+<body>
+<nav class="top-nav">
+  <a href="../labs/" class="nav-back">← Laboratoriya</a>
+  <span style="font-size:.9rem;font-weight:600;">❤️ Yurak va Qon Aylanish Sistemasi</span>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="theme-btn" onclick="toggleLabTheme()"><span id="t-icon">☀️</span><span id="t-lbl">Kun</span></button>
+    <a href="../" class="nav-logo">Ziyomap</a>
+  </div>
+</nav>
+<div class="lab-wrap">
+  <div class="canvas-area">
+    <canvas id="heart-canvas"></canvas>
+    <div class="canvas-overlay">
+      <div class="hud-badge" style="color:var(--red);">💓 Yurak urishi: <span id="hud-bpm">72</span> bpm</div>
+      <div class="hud-badge" id="hud-phase" style="color:var(--orange);">Bosqich: Diastola</div>
+      <div class="hud-badge" style="color:var(--accent);">O₂: <span id="hud-o2">98%</span></div>
+    </div>
+    <div class="canvas-tools">
+      <button class="tool-btn reset" onclick="resetSim()">↺ Qayta</button>
+      <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
+    </div>
+  </div>
+  <div class="control-panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
+      <button class="tab-btn" onclick="switchTab('data',this)">Bosqichlar</button>
+      <button class="tab-btn" onclick="switchTab('theory',this)">Nazariya</button>
+    </div>
+    <div id="tab-params">
+      <div class="panel-section">
+        <div class="ps-title">Yurak parametrlari</div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Yurak tezligi (BPM)</span><span class="slider-val"><span id="v-bpm">72</span></span></div>
+          <input type="range" min="40" max="180" step="1" value="72" oninput="p.bpm=+this.value;document.getElementById('v-bpm').textContent=this.value;document.getElementById('hud-bpm').textContent=this.value">
+        </div>
+        <div class="slider-row">
+          <div class="slider-head"><span class="slider-name">Animatsiya tezligi</span><span class="slider-val"><span id="v-spd">1.0</span>x</span></div>
+          <input type="range" min="0.2" max="3" step="0.1" value="1.0" oninput="p.speed=+this.value;document.getElementById('v-spd').textContent=(+this.value).toFixed(1)">
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Yurak holati</div>
+        <table class="data-table">
+          <thead><tr><th>Parametr</th><th>Qiymat</th></tr></thead>
+          <tbody>
+            <tr><td>Yurak urishi</td><td><span id="d-bpm">72</span> bpm</td></tr>
+            <tr><td>Bir tsikl vaqti</td><td><span id="d-cycle">0.83</span> s</td></tr>
+            <tr><td>Sistola davomiyligi</td><td><span id="d-systole">0.3</span> s</td></tr>
+            <tr><td>Diastola davomiyligi</td><td><span id="d-diastole">0.53</span> s</td></tr>
+            <tr><td>Kuniga urishlar</td><td><span id="d-daily">~103,680</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-data" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Yurak kameralari</div>
+        <table class="data-table">
+          <thead><tr><th>Kamera</th><th>Vazifa</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#3b82f6;">O'ng bo'lmacha</td><td>Tanadan venoz qon qabul qiladi</td></tr>
+            <tr><td style="color:#1d4ed8;">O'ng qorincha</td><td>Qonni o'pkaga pompalaydi</td></tr>
+            <tr><td style="color:#ef4444;">Chap bo'lmacha</td><td>O'pkadan oksigenli qon qabul qiladi</td></tr>
+            <tr><td style="color:#dc2626;">Chap qorincha</td><td>Qonni butun tanaga pompalaydi (eng kuchli)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-section">
+        <div class="ps-title">Qon aylanish doiralari</div>
+        <table class="data-table">
+          <thead><tr><th>Doira</th><th>Yo'l</th></tr></thead>
+          <tbody>
+            <tr><td>Kichik (o'pka)</td><td>Yurak → O'pka → Yurak</td></tr>
+            <tr><td>Katta (tana)</td><td>Yurak → Tana → Yurak</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="tab-theory" style="display:none;">
+      <div class="panel-section">
+        <div class="ps-title">Yurak fiziologiyasi</div>
+        <div class="formula-card"><div class="formula-eq">Yurak siklı: Sistola + Diastola</div><div class="formula-desc">Sistola — qisqarish (qon chiqarish), diastola — bo'shashish (qon to'ldirish).</div></div>
+        <div class="formula-card"><div class="formula-eq">Yurak debiti = SV × HR</div><div class="formula-desc">Daqiqalik hajm = Bir marta chiqargan qon hajmi × yurak tezligi. ~5 L/min tinch holatda.</div></div>
+        <div class="formula-card"><div class="formula-eq">Kichik qon aylanish doira</div><div class="formula-desc">O'ng qorincha → O'pka arteriyasi → O'pka → O'pka venasi → Chap bo'lmacha. Qon oksigenlanadi.</div></div>
+        <div class="formula-card"><div class="formula-eq">Katta qon aylanish doira</div><div class="formula-desc">Chap qorincha → Aorta → Organlar → Venalar → O'ng bo'lmacha. Kislorod to'qimalarga yetkaziladi.</div></div>
+        <div class="formula-card"><div class="formula-eq">Pulmonary vs Systemic</div><div class="formula-desc">O'pka aylanish past bosimli, tana aylanishi yuqori bosimli sistema.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('heart-canvas');
+const ctx=canvas.getContext('2d');
+const DPR=window.devicePixelRatio||1;
+let p={bpm:72,speed:1.0};
+let st={playing:false,t:0,particles:[]};
+let animId,lastTime;
+
+function initCanvas(){
+  const w=canvas.parentElement.clientWidth,h=canvas.parentElement.clientHeight;
+  canvas.width=w*DPR;canvas.height=h*DPR;canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.scale(DPR,DPR);
+  resetSim();
+}
+
+function resetSim(){
+  st.t=0;st.playing=false;st.particles=[];
+  document.getElementById('play-btn').textContent='▶ Boshlash';
+  document.getElementById('play-btn').className='tool-btn play';
+  updateData();draw();
+}
+
+function updateData(){
+  const cycleT=60/p.bpm;
+  document.getElementById('d-bpm').textContent=p.bpm;
+  document.getElementById('d-cycle').textContent=cycleT.toFixed(2);
+  document.getElementById('d-systole').textContent=(cycleT*0.35).toFixed(2);
+  document.getElementById('d-diastole').textContent=(cycleT*0.65).toFixed(2);
+  document.getElementById('d-daily').textContent=Math.round(p.bpm*60*24).toLocaleString();
+}
+
+function heartPhase(t){
+  const cycleT=60/p.bpm;
+  const phase=(t%cycleT)/cycleT;
+  return phase; // 0-0.35 systole, 0.35-1 diastole
+}
+
+function drawHeartShape(ctx,cx,cy,size,scale){
+  ctx.beginPath();
+  ctx.moveTo(cx,cy+size*0.3*scale);
+  ctx.bezierCurveTo(cx-size*scale,cy-size*0.3*scale,cx-size*0.5*scale,cy-size*scale,cx,cy-size*0.4*scale);
+  ctx.bezierCurveTo(cx+size*0.5*scale,cy-size*scale,cx+size*scale,cy-size*0.3*scale,cx,cy+size*0.3*scale*scale);
+  ctx.closePath();
+}
+
+function draw(){
+  const W=canvas.width/DPR,H=canvas.height/DPR;
+  ctx.clearRect(0,0,W,H);
+  const isDark=document.documentElement.getAttribute('data-theme')!=='light';
+  ctx.fillStyle=isDark?'#150505':'#fce8e8';ctx.fillRect(0,0,W,H);
+
+  const phase=heartPhase(st.t);
+  const isSystole=phase<0.35;
+  const beatScale=isSystole?1-0.15*Math.sin(phase/0.35*Math.PI):1;
+
+  document.getElementById('hud-phase').textContent='Bosqich: '+(isSystole?'Sistola (qisqarish)':'Diastola (bo\'shashish)');
+
+  const cx=W/2,cy=H/2;
+  const heartSize=Math.min(W,H)*0.28;
+
+  // Body outline (simplified circulatory loop)
+  ctx.strokeStyle=isDark?'rgba(255,255,255,.1)':'rgba(0,0,0,.1)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(cx,cy,W*0.42,H*0.4,0,0,Math.PI*2);ctx.stroke();
+
+  // Lungs (left side - pulmonary circuit)
+  ctx.fillStyle=isDark?'rgba(96,165,250,.15)':'rgba(37,99,235,.1)';
+  ctx.beginPath();ctx.ellipse(cx-heartSize*1.8,cy-heartSize*0.5,heartSize*0.7,heartSize,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=isDark?'rgba(255,255,255,.4)':'rgba(0,0,0,.4)';ctx.font='11px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('O\'pka (kislorodlanish)',cx-heartSize*1.8,cy-heartSize*1.6);
+
+  // Body tissues (right side - systemic)
+  ctx.fillStyle=isDark?'rgba(239,68,68,.1)':'rgba(220,38,38,.08)';
+  ctx.beginPath();ctx.ellipse(cx+heartSize*1.8,cy-heartSize*0.3,heartSize*0.8,heartSize*1.1,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=isDark?'rgba(255,255,255,.4)':'rgba(0,0,0,.4)';
+  ctx.fillText('Tana to\'qimalari',cx+heartSize*1.8,cy-heartSize*1.6);
+
+  // Heart chambers
+  ctx.save();ctx.translate(cx,cy);ctx.scale(beatScale,beatScale);
+  // Right atrium (top right of heart, receives from body)
+  ctx.beginPath();ctx.ellipse(heartSize*0.35,-heartSize*0.35,heartSize*0.42,heartSize*0.38,0.3,0,Math.PI*2);
+  ctx.fillStyle='#1e40af';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.stroke();
+  // Right ventricle (bottom right, pumps to lungs)
+  ctx.beginPath();ctx.ellipse(heartSize*0.3,heartSize*0.35,heartSize*0.48,heartSize*0.55,0.1,0,Math.PI*2);
+  ctx.fillStyle='#3b82f6';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.stroke();
+  // Left atrium (top left, receives from lungs)
+  ctx.beginPath();ctx.ellipse(-heartSize*0.35,-heartSize*0.35,heartSize*0.42,heartSize*0.38,-0.3,0,Math.PI*2);
+  ctx.fillStyle='#991b1b';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.stroke();
+  // Left ventricle (bottom left, pumps to body - thickest)
+  ctx.beginPath();ctx.ellipse(-heartSize*0.3,heartSize*0.35,heartSize*0.52,heartSize*0.6,-0.1,0,Math.PI*2);
+  ctx.fillStyle='#ef4444';ctx.fill();ctx.strokeStyle='rgba(255,255,255,.2)';ctx.lineWidth=1.5;ctx.stroke();
+  // Labels
+  ctx.fillStyle='#fff';ctx.font='bold 9px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('O\'ng\nbo\'l.',heartSize*0.35,-heartSize*0.35);
+  ctx.fillText('O\'ng\nqor.',heartSize*0.3,heartSize*0.35);
+  ctx.fillText('Chap\nbo\'l.',-heartSize*0.35,-heartSize*0.35);
+  ctx.fillText('Chap\nqor.',-heartSize*0.3,heartSize*0.35);
+  ctx.textBaseline='alphabetic';
+  ctx.restore();
+
+  // Glow during systole
+  if(isSystole){
+    ctx.beginPath();ctx.arc(cx,cy,heartSize*1.3,0,Math.PI*2);
+    ctx.fillStyle=`rgba(239,68,68,${0.1*(1-phase/0.35)})`;ctx.fill();
+  }
+
+  // Vessel paths with flowing particles
+  // Pulmonary artery (right ventricle -> lungs, deoxygenated, blue)
+  drawVessel(ctx,cx+heartSize*0.3,cy+heartSize*0.35,cx-heartSize*1.8,cy-heartSize*0.5,isDark?'#60a5fa':'#3b82f6',2.5);
+  // Pulmonary vein (lungs -> left atrium, oxygenated, red)
+  drawVessel(ctx,cx-heartSize*1.8,cy-heartSize*0.5,cx-heartSize*0.35,cy-heartSize*0.35,'#ef4444',2.5);
+  // Aorta (left ventricle -> body, oxygenated, red)
+  drawVessel(ctx,cx-heartSize*0.3,cy+heartSize*0.35,cx+heartSize*1.8,cy-heartSize*0.3,'#dc2626',3);
+  // Vena cava (body -> right atrium, deoxygenated, blue)
+  drawVessel(ctx,cx+heartSize*1.8,cy-heartSize*0.3,cx+heartSize*0.35,cy-heartSize*0.35,isDark?'#3b82f6':'#1d4ed8',2.5);
+
+  // Spawn and move particles
+  if(st.playing&&Math.random()<0.3){
+    const paths=[
+      {from:[cx+heartSize*0.3,cy+heartSize*0.35],to:[cx-heartSize*1.8,cy-heartSize*0.5],col:'#60a5fa'},
+      {from:[cx-heartSize*1.8,cy-heartSize*0.5],to:[cx-heartSize*0.35,cy-heartSize*0.35],col:'#ef4444'},
+      {from:[cx-heartSize*0.3,cy+heartSize*0.35],to:[cx+heartSize*1.8,cy-heartSize*0.3],col:'#dc2626'},
+      {from:[cx+heartSize*1.8,cy-heartSize*0.3],to:[cx+heartSize*0.35,cy-heartSize*0.35],col:'#3b82f6'},
+    ];
+    const path=paths[Math.floor(Math.random()*paths.length)];
+    st.particles.push({...path,prog:0});
+  }
+  st.particles.forEach(pt=>{pt.prog+=0.02*p.speed;});
+  st.particles=st.particles.filter(pt=>pt.prog<1);
+  st.particles.forEach(pt=>{
+    const x=pt.from[0]+(pt.to[0]-pt.from[0])*pt.prog;
+    const y=pt.from[1]+(pt.to[1]-pt.from[1])*pt.prog;
+    ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle=pt.col;ctx.fill();
+  });
+
+  ctx.textAlign='left';
+}
+
+function drawVessel(ctx,x1,y1,x2,y2,color,lw){
+  ctx.beginPath();ctx.moveTo(x1,y1);
+  const mx=(x1+x2)/2,my=(y1+y2)/2-30;
+  ctx.quadraticCurveTo(mx,my,x2,y2);
+  ctx.strokeStyle=color+'80';ctx.lineWidth=lw;ctx.stroke();
+}
+
+function step(dt){
+  st.t+=dt*p.speed;
+}
+
+let aId;
+function loop(ts){
+  if(!lastTime)lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,.033);lastTime=ts;
+  if(st.playing)step(dt);
+  draw();
+  aId=requestAnimationFrame(loop);
+}
+
+function togglePlay(){
+  st.playing=!st.playing;
+  const btn=document.getElementById('play-btn');
+  if(st.playing){btn.textContent='⏸ Pauza';btn.className='tool-btn pause';}
+  else{btn.textContent='▶ Davom';btn.className='tool-btn play';}
+}
+function switchTab(t,btn){['params','data','theory'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('zy_theme',n);localStorage.setItem('theme',n);var i=document.getElementById('t-icon'),l=document.getElementById('t-lbl');if(i)i.textContent=n==='dark'?'☀️':'🌙';if(l)l.textContent=n==='dark'?'Kun':'Tun';draw();}
+(function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
+window.addEventListener('resize',initCanvas);
+initCanvas();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
