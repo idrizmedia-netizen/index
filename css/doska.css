@@ -792,3 +792,207 @@ input[type='range'].brush-range {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
+
+/* ════════════════════════════════════
+   MATN WIDGET — "Doskaga chiqarish" tugmasi
+════════════════════════════════════ */
+.tw-stamp-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--doska-accent), #e8632a);
+    color: #14171f;
+    font-weight: 700;
+    font-size: 0.76rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    font-family: var(--font-body);
+}
+.tw-stamp-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(255,138,61,0.35);
+}
+.tw-stamp-btn:active { transform: translateY(0); }
+
+.custom-color-trigger {
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.3) inset;
+}
+
+/* ════════════════════════════════════
+   TO'LIQ RANG TANLAGICH (HSV picker)
+════════════════════════════════════ */
+.cp-sv-box {
+    width: 100%;
+    height: 160px;
+    border-radius: 12px;
+    position: relative;
+    cursor: crosshair;
+    margin-bottom: 14px;
+    border: 1px solid #334155;
+    touch-action: none;
+}
+.cp-sv-cursor {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.4);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.cp-hue-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+.cp-preview {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 2px solid #475569;
+    flex-shrink: 0;
+}
+.cp-hue-slider {
+    flex: 1;
+    height: 16px;
+    border-radius: 8px;
+    position: relative;
+    cursor: pointer;
+    touch-action: none;
+}
+.cp-hue-cursor {
+    position: absolute;
+    top: 50%;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.4);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+.cp-rgb-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.cp-rgb-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.cp-rgb-field input {
+    width: 100%;
+    text-align: center;
+    padding: 7px 4px;
+    border-radius: 8px;
+    border: 1.5px solid #475569;
+    background: #0f172a;
+    color: var(--doska-text);
+    font-size: 0.85rem;
+    outline: none;
+    font-family: var(--font-mono, monospace);
+}
+.cp-rgb-field input:focus { border-color: var(--doska-accent); }
+.cp-rgb-field label { font-size: 0.65rem; opacity: 0.6; font-weight: 700; }
+.cp-hex-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.cp-hex-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border-radius: 9px;
+    border: 1.5px solid #475569;
+    background: #0f172a;
+    color: var(--doska-text);
+    font-size: 0.85rem;
+    outline: none;
+    font-family: var(--font-mono, monospace);
+}
+.cp-hex-row input:focus { border-color: var(--doska-accent); }
+.cp-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 6px;
+}
+.cp-quick-swatch {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    border: 1.5px solid rgba(255,255,255,0.12);
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+.cp-quick-swatch:hover { transform: scale(1.15); }
+
+/* ════════════════════════════════════
+   STICKY NOTE (Eslatma)
+════════════════════════════════════ */
+.board-widget.sticky-widget {
+    border: none;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.3), 2px 2px 0 rgba(0,0,0,0.06);
+    transform: rotate(-1deg);
+}
+.board-widget.sticky-widget .board-widget-title { color: rgba(15,23,42,0.55); }
+.board-widget.sticky-widget .board-widget-close { background: rgba(15,23,42,0.18); color: #0f172a; }
+.board-widget.sticky-widget .board-widget-close:hover { background: #ef4444; color: #fff; }
+.sticky-widget-text {
+    width: 100%;
+    min-width: 150px;
+    min-height: 100px;
+    background: transparent;
+    border: none;
+    outline: none;
+    resize: both;
+    color: #1e293b;
+    font-size: 0.92rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+}
+
+/* ════════════════════════════════════
+   LAZER MODE
+════════════════════════════════════ */
+#board-canvas.laser-mode { cursor: none; }
+.widget-option.active, #widget-laser.active {
+    border-color: #ff3b3b;
+    background: rgba(255,59,59,0.12);
+    color: #ff6b6b;
+}
+
+/* ════════════════════════════════════
+   YORDAM MODALI
+════════════════════════════════════ */
+.help-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #334155;
+    font-size: 0.85rem;
+}
+.help-row:last-of-type { border-bottom: none; }
+.help-row span { margin-left: auto; color: #94a3b8; }
+kbd {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.75rem;
+    color: var(--doska-text);
+    box-shadow: 0 1px 0 #475569;
+}
