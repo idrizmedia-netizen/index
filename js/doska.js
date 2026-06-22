@@ -204,18 +204,78 @@ function moveDraw(e) {
 
 function drawShape(start, end) {
     ctx.strokeStyle = color;
+    ctx.fillStyle = color;
     ctx.lineWidth = lineWidth;
     ctx.globalCompositeOperation = 'source-over';
     ctx.beginPath();
     if (tool === 'shape-line') {
         ctx.moveTo(start.x, start.y);
         ctx.lineTo(end.x, end.y);
+        ctx.stroke();
     } else if (tool === 'shape-rect') {
         ctx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
+        ctx.stroke();
     } else if (tool === 'shape-circle') {
         const r = Math.hypot(end.x - start.x, end.y - start.y);
         ctx.arc(start.x, start.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+    } else if (tool === 'shape-arrow') {
+        drawArrow(start, end);
+    } else if (tool === 'shape-triangle') {
+        drawTriangle(start, end);
+    } else if (tool === 'shape-star') {
+        drawStar(start, end);
     }
+}
+
+function drawArrow(start, end) {
+    const headLen = Math.max(14, lineWidth * 3);
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(end.x - headLen * Math.cos(angle - Math.PI / 6), end.y - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(end.x - headLen * Math.cos(angle + Math.PI / 6), end.y - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+}
+
+function drawTriangle(start, end) {
+    const w = end.x - start.x;
+    const h = end.y - start.y;
+    ctx.beginPath();
+    ctx.moveTo(start.x + w / 2, start.y);
+    ctx.lineTo(start.x, start.y + h);
+    ctx.lineTo(start.x + w, start.y + h);
+    ctx.closePath();
+    ctx.stroke();
+}
+
+function drawStar(start, end) {
+    const cx = start.x;
+    const cy = start.y;
+    const rOuter = Math.hypot(end.x - start.x, end.y - start.y);
+    const rInner = rOuter * 0.42;
+    const spikes = 5;
+    let rot = (Math.PI / 2) * 3;
+    const step = Math.PI / spikes;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - rOuter);
+    for (let i = 0; i < spikes; i++) {
+        let x = cx + Math.cos(rot) * rOuter;
+        let y = cy + Math.sin(rot) * rOuter;
+        ctx.lineTo(x, y);
+        rot += step;
+        x = cx + Math.cos(rot) * rInner;
+        y = cy + Math.sin(rot) * rInner;
+        ctx.lineTo(x, y);
+        rot += step;
+    }
+    ctx.lineTo(cx, cy - rOuter);
+    ctx.closePath();
     ctx.stroke();
 }
 
@@ -664,20 +724,26 @@ function makeWidgetDraggable(el) {
     head.addEventListener('touchend', onEnd);
 }
 
+let widgetSpawnIndex = 0;
 function createWidgetShell(title, closeCb) {
     const id = 'bw_' + (widgetIdCounter++);
     const el = document.createElement('div');
     el.className = 'board-widget';
     el.id = id;
-    el.style.left = (40 + Math.random() * 60) + 'px';
-    el.style.top = (40 + Math.random() * 60) + 'px';
+    const cascadeStep = 36;
+    const baseLeft = 40 + (widgetSpawnIndex % 6) * cascadeStep;
+    const baseTop = 40 + (widgetSpawnIndex % 6) * cascadeStep;
+    widgetSpawnIndex++;
+    el.style.left = baseLeft + 'px';
+    el.style.top = baseTop + 'px';
     el.innerHTML = `
         <div class="board-widget-head">
             <span class="board-widget-title">${title}</span>
-            <button class="board-widget-close" aria-label="Yopish"><i class="fas fa-times"></i></button>
+            <button type="button" class="board-widget-close" aria-label="Yopish"><i class="fas fa-times"></i></button>
         </div>
     `;
-    el.querySelector('.board-widget-close').addEventListener('click', () => {
+    el.querySelector('.board-widget-close').addEventListener('click', (e) => {
+        e.stopPropagation();
         if (closeCb) closeCb();
         el.remove();
     });
@@ -800,10 +866,45 @@ function addClockWidget() {
 function addTextWidget() {
     const el = createWidgetShell('✏️ Matn', null);
     el.classList.add('text-widget');
+
+    const controls = document.createElement('div');
+    controls.className = 'text-widget-controls';
+    controls.innerHTML = `
+        <button type="button" class="tw-ctrl-btn" data-act="size-dec" title="Kichraytirish"><i class="fas fa-minus"></i></button>
+        <button type="button" class="tw-ctrl-btn" data-act="size-inc" title="Kattalashtirish"><i class="fas fa-plus"></i></button>
+        <button type="button" class="tw-color-dot" data-color="#ffffff" style="background:#fff" title="Oq"></button>
+        <button type="button" class="tw-color-dot" data-color="#ff8a3d" style="background:#ff8a3d" title="Apelsin"></button>
+        <button type="button" class="tw-color-dot" data-color="#2dd4bf" style="background:#2dd4bf" title="Firuza"></button>
+        <button type="button" class="tw-color-dot" data-color="#fde047" style="background:#fde047" title="Sariq"></button>
+    `;
+    el.appendChild(controls);
+
     const ta = document.createElement('textarea');
     ta.className = 'board-widget-text';
     ta.placeholder = 'Matn yozing...';
+    ta.style.fontSize = '16px';
+    ta.style.color = '#ffffff';
     el.appendChild(ta);
+
+    /* Boshqaruv tugmalari klik bo'lganda widget surilmasligi uchun */
+    controls.addEventListener('mousedown', (e) => e.stopPropagation());
+    controls.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+    ta.addEventListener('mousedown', (e) => e.stopPropagation());
+    ta.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+    let fontSize = 16;
+    controls.querySelector('[data-act="size-inc"]').addEventListener('click', () => {
+        fontSize = Math.min(48, fontSize + 2);
+        ta.style.fontSize = fontSize + 'px';
+    });
+    controls.querySelector('[data-act="size-dec"]').addEventListener('click', () => {
+        fontSize = Math.max(10, fontSize - 2);
+        ta.style.fontSize = fontSize + 'px';
+    });
+    controls.querySelectorAll('.tw-color-dot').forEach((dot) => {
+        dot.addEventListener('click', () => { ta.style.color = dot.dataset.color; });
+    });
+
     setTimeout(() => ta.focus(), 50);
 }
 
