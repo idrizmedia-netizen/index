@@ -21,6 +21,11 @@ let shapeStart = null;
 let undoStack = [];
 const MAX_UNDO = 25;
 
+/* Lazer ko'rsatkich holati (kerakli funksiyalardan oldin e'lon qilinadi) */
+let laserMode = false;
+let laserPoints = [];
+let lastCleanSnapshot = null;
+
 /* ════════════════════════════════════
    SAHIFALAR (slaydlar)
 ════════════════════════════════════ */
@@ -167,8 +172,17 @@ let snapshotBeforeShape = null;
 function startDraw(e) {
     if (e.target.closest('.floating-toolbar') || e.target.closest('.board-widget') || e.target.closest('.page-nav')) return;
     drawing = true;
-    pushUndo();
     const p = getCoords(e);
+
+    if (laserMode) {
+        lastCleanSnapshot = lastCleanSnapshot || (() => { const im = new Image(); im.src = canvas.toDataURL(); return im; })();
+        laserPoints = [{ x: p.x, y: p.y, t: Date.now() }];
+        requestAnimationFrame(laserLoop);
+        e.preventDefault();
+        return;
+    }
+
+    pushUndo();
 
     if (tool === 'pen' || tool === 'eraser') {
         ctx.beginPath();
@@ -183,6 +197,12 @@ function startDraw(e) {
 function moveDraw(e) {
     if (!drawing) return;
     const p = getCoords(e);
+
+    if (laserMode) {
+        laserPoints.push({ x: p.x, y: p.y, t: Date.now() });
+        e.preventDefault();
+        return;
+    }
 
     if (tool === 'pen' || tool === 'eraser') {
         ctx.strokeStyle = color;
@@ -666,6 +686,342 @@ function setPageBg(bg) {
 document.getElementById('btn-open-bg-modal')?.addEventListener('click', openBgModal);
 
 /* ════════════════════════════════════
+   TO'LIQ RANG TANLAGICH (HSV picker)
+   EduBaza uslubidagi spektr + slider + RGB
+════════════════════════════════════ */
+let colorPickerEl = null;
+let colorPickerCallback = null;
+
+function hexToRgb(hex) {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map((c) => c + c).join('');
+    const num = parseInt(hex, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+}
+function hsvToRgb(h, s, v) {
+    h = h / 360; s = s / 100; v = v / 100;
+    let r, g, b;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s);
+    const q = v * (1 - f * s);
+    const t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+    }
+    return { r: r * 255, g: g * 255, b: b * 255 };
+}
+function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+        if (max === r) h = ((g - b) / d) % 6;
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+    }
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+    const s = max === 0 ? 0 : d / max;
+    return { h, s: s * 100, v: max * 100 };
+}
+
+function buildColorPicker() {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'color-picker-overlay';
+    overlay.innerHTML = `
+        <div class="modal-box" style="width:300px">
+            <div class="modal-header">
+                <h3>Rang tanlash</h3>
+                <button class="modal-close" id="cp-close" aria-label="Yopish"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="cp-sv-box" id="cp-sv-box">
+                    <div class="cp-sv-cursor" id="cp-sv-cursor"></div>
+                </div>
+                <div class="cp-hue-row">
+                    <div class="cp-preview" id="cp-preview"></div>
+                    <div class="cp-hue-slider" id="cp-hue-slider">
+                        <div class="cp-hue-cursor" id="cp-hue-cursor"></div>
+                    </div>
+                </div>
+                <div class="cp-rgb-row">
+                    <div class="cp-rgb-field"><input type="text" id="cp-r" value="255" maxlength="3"><label>R</label></div>
+                    <div class="cp-rgb-field"><input type="text" id="cp-g" value="255" maxlength="3"><label>G</label></div>
+                    <div class="cp-rgb-field"><input type="text" id="cp-b" value="255" maxlength="3"><label>B</label></div>
+                </div>
+                <div class="cp-hex-row">
+                    <input type="text" id="cp-hex" value="#ffffff" placeholder="#rrggbb">
+                    <button type="button" id="cp-apply" class="hex-apply-btn">Tanlash</button>
+                </div>
+                <div class="cp-swatch-grid" id="cp-swatch-grid"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const svBox = overlay.querySelector('#cp-sv-box');
+    const svCursor = overlay.querySelector('#cp-sv-cursor');
+    const hueSlider = overlay.querySelector('#cp-hue-slider');
+    const hueCursor = overlay.querySelector('#cp-hue-cursor');
+    const preview = overlay.querySelector('#cp-preview');
+    const rIn = overlay.querySelector('#cp-r');
+    const gIn = overlay.querySelector('#cp-g');
+    const bIn = overlay.querySelector('#cp-b');
+    const hexIn = overlay.querySelector('#cp-hex');
+
+    let state = { h: 0, s: 0, v: 100 };
+
+    function updateFromHSV() {
+        const { h, s, v } = state;
+        svBox.style.background = `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${h},100%,50%))`;
+        hueSlider.style.background = 'linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red)';
+        svCursor.style.left = s + '%';
+        svCursor.style.top = (100 - v) + '%';
+        hueCursor.style.left = (h / 360 * 100) + '%';
+
+        const { r, g, b } = hsvToRgb(h, s, v);
+        const hex = rgbToHex(r, g, b);
+        preview.style.background = hex;
+        rIn.value = Math.round(r);
+        gIn.value = Math.round(g);
+        bIn.value = Math.round(b);
+        hexIn.value = hex;
+    }
+
+    function setFromRgb(r, g, b) {
+        const hsv = rgbToHsv(r, g, b);
+        state = hsv;
+        updateFromHSV();
+    }
+
+    function pickFromSvBox(clientX, clientY) {
+        const rect = svBox.getBoundingClientRect();
+        let x = (clientX - rect.left) / rect.width;
+        let y = (clientY - rect.top) / rect.height;
+        x = Math.max(0, Math.min(1, x));
+        y = Math.max(0, Math.min(1, y));
+        state.s = x * 100;
+        state.v = (1 - y) * 100;
+        updateFromHSV();
+    }
+    function pickFromHue(clientX) {
+        const rect = hueSlider.getBoundingClientRect();
+        let x = (clientX - rect.left) / rect.width;
+        x = Math.max(0, Math.min(1, x));
+        state.h = x * 360;
+        updateFromHSV();
+    }
+
+    let draggingSv = false, draggingHue = false;
+    svBox.addEventListener('mousedown', (e) => { draggingSv = true; pickFromSvBox(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', (e) => { if (draggingSv) pickFromSvBox(e.clientX, e.clientY); if (draggingHue) pickFromHue(e.clientX); });
+    window.addEventListener('mouseup', () => { draggingSv = false; draggingHue = false; });
+    hueSlider.addEventListener('mousedown', (e) => { draggingHue = true; pickFromHue(e.clientX); });
+
+    svBox.addEventListener('touchstart', (e) => { pickFromSvBox(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+    svBox.addEventListener('touchmove', (e) => { pickFromSvBox(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
+    hueSlider.addEventListener('touchstart', (e) => { pickFromHue(e.touches[0].clientX); }, { passive: true });
+    hueSlider.addEventListener('touchmove', (e) => { pickFromHue(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+
+    [rIn, gIn, bIn].forEach((inp) => {
+        inp.addEventListener('change', () => {
+            setFromRgb(parseInt(rIn.value) || 0, parseInt(gIn.value) || 0, parseInt(bIn.value) || 0);
+        });
+    });
+    hexIn.addEventListener('change', () => {
+        const v = hexIn.value.trim();
+        if (/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) {
+            const { r, g, b } = hexToRgb(v.startsWith('#') ? v : '#' + v);
+            setFromRgb(r, g, b);
+        }
+    });
+
+    /* Tezkor tanlov ranglar qatori */
+    const quickSwatches = ['#ffffff','#000000','#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#22c55e','#10b981','#14b8a6','#06b6d4','#0ea5e9','#3b82f6','#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#78716c'];
+    const swatchGrid = overlay.querySelector('#cp-swatch-grid');
+    quickSwatches.forEach((c) => {
+        const sw = document.createElement('button');
+        sw.type = 'button';
+        sw.className = 'cp-quick-swatch';
+        sw.style.background = c;
+        sw.addEventListener('click', () => { const { r, g, b } = hexToRgb(c); setFromRgb(r, g, b); });
+        swatchGrid.appendChild(sw);
+    });
+
+    overlay.querySelector('#cp-apply').addEventListener('click', () => {
+        if (colorPickerCallback) colorPickerCallback(hexIn.value);
+        closeColorPicker();
+    });
+    overlay.querySelector('#cp-close').addEventListener('click', closeColorPicker);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeColorPicker(); });
+
+    overlay._setFromRgb = setFromRgb;
+    updateFromHSV();
+    return overlay;
+}
+
+function openColorPicker(initialHex, callback) {
+    colorPickerCallback = callback;
+    if (!colorPickerEl) colorPickerEl = buildColorPicker();
+    try {
+        const { r, g, b } = hexToRgb(initialHex || '#ffffff');
+        colorPickerEl._setFromRgb(r, g, b);
+    } catch { /* ignore */ }
+    colorPickerEl.classList.add('open');
+}
+function closeColorPicker() {
+    if (colorPickerEl) colorPickerEl.classList.remove('open');
+}
+
+/* Qalam uchun maxsus rang tugmasi */
+document.getElementById('pen-custom-color-btn')?.addEventListener('click', () => {
+    openColorPicker(color, (hex) => {
+        color = hex;
+        tool = 'pen';
+        canvas.classList.remove('eraser-mode');
+        document.getElementById('btn-eraser')?.classList.remove('active');
+        document.querySelectorAll('.shape-btn').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.color-dot').forEach((b) => b.classList.remove('active'));
+        const trigger = document.getElementById('pen-custom-color-btn');
+        if (trigger) { trigger.style.background = hex; trigger.classList.add('active'); }
+    });
+});
+
+/* ════════════════════════════════════
+   YOPISHQOQ ESLATMA (Sticky Note)
+════════════════════════════════════ */
+const STICKY_COLORS = ['#fde047', '#fda4af', '#a7f3d0', '#bfdbfe', '#ddd6fe'];
+let stickyColorIndex = 0;
+
+function addStickyWidget() {
+    const stickyColor = STICKY_COLORS[stickyColorIndex % STICKY_COLORS.length];
+    stickyColorIndex++;
+    const el = createWidgetShell('📝 Eslatma', null);
+    el.classList.add('sticky-widget');
+    el.style.background = stickyColor;
+    el.style.borderColor = stickyColor;
+
+    const ta = document.createElement('textarea');
+    ta.className = 'sticky-widget-text';
+    ta.placeholder = 'Tez eslatma...';
+    el.appendChild(ta);
+
+    ta.addEventListener('mousedown', (e) => e.stopPropagation());
+    ta.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+    setTimeout(() => ta.focus(), 50);
+}
+document.getElementById('widget-sticky')?.addEventListener('click', addStickyWidget);
+
+/* ════════════════════════════════════
+   LAZER KO'RSATKICH — vaqtinchalik chiziq
+   (taqdimot uchun, o'zi avtomatik o'chadi)
+════════════════════════════════════ */
+function toggleLaserMode() {
+    laserMode = !laserMode;
+    const btn = document.getElementById('widget-laser');
+    if (btn) btn.classList.toggle('active', laserMode);
+    canvas.classList.toggle('laser-mode', laserMode);
+    if (laserMode) showToast('🔴 Lazer rejimi yoqildi — chizilgan chiziqlar avtomatik o\'chadi');
+}
+document.getElementById('widget-laser')?.addEventListener('click', toggleLaserMode);
+
+function laserLoop() {
+    if (!laserPoints.length) return;
+    ctx.save();
+    const now = Date.now();
+    laserPoints = laserPoints.filter((p) => now - p.t < 900);
+    redrawWithoutLaser();
+    laserPoints.forEach((p, i) => {
+        if (i === 0) return;
+        const prev = laserPoints[i - 1];
+        const age = (now - p.t) / 900;
+        ctx.globalAlpha = Math.max(0, 1 - age);
+        ctx.strokeStyle = '#ff3b3b';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+    });
+    ctx.restore();
+    if (laserPoints.length) requestAnimationFrame(laserLoop);
+}
+
+function redrawWithoutLaser() {
+    if (!lastCleanSnapshot) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(lastCleanSnapshot, 0, 0);
+}
+
+/* ════════════════════════════════════
+   YORDAM MODALI (klaviatura yorliqlari)
+════════════════════════════════════ */
+function buildHelpModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.id = 'help-modal-overlay';
+    overlay.innerHTML = `
+        <div class="modal-box" style="width:340px">
+            <div class="modal-header">
+                <h3><i class="fas fa-keyboard"></i> Tezkor yo'llar</h3>
+                <button class="modal-close" id="help-modal-close" aria-label="Yopish"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="help-row"><kbd>Ctrl</kbd> + <kbd>Z</kbd><span>Orqaga qaytarish</span></div>
+                <div class="help-row"><kbd>E</kbd><span>O'chirgich</span></div>
+                <div class="help-row"><kbd>P</kbd><span>Qalam</span></div>
+                <div class="help-row"><kbd>F</kbd><span>To'liq ekran</span></div>
+                <div class="help-row"><kbd>←</kbd> <kbd>→</kbd><span>Sahifa almashtirish</span></div>
+                <div class="modal-section-label" style="margin-top:14px">Maslahatlar</div>
+                <p style="font-size:0.8rem;color:#94a3b8;line-height:1.6;margin:0">
+                    Matn yoki Eslatma widgetini ⋯ tutqichdan sudrab joylashtiring.
+                    Matnni "Doskaga chiqarish" tugmasi bilan doimiy chizmaga aylantirishingiz mumkin.
+                    Lazer rejimi taqdimotlar uchun — chizgan chiziqlaringiz o'zi yo'qoladi.
+                </p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#help-modal-close').addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+    return overlay;
+}
+let helpModalEl = null;
+document.getElementById('btn-help')?.addEventListener('click', () => {
+    if (!helpModalEl) helpModalEl = buildHelpModal();
+    helpModalEl.classList.add('open');
+});
+
+/* ════════════════════════════════════
+   QO'SHIMCHA KLAVIATURA YORLIQLARI
+════════════════════════════════════ */
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (e.key === 'e' || e.key === 'E') document.getElementById('btn-eraser')?.click();
+    if (e.key === 'p' || e.key === 'P') {
+        tool = 'pen';
+        canvas.classList.remove('eraser-mode');
+        document.getElementById('btn-eraser')?.classList.remove('active');
+    }
+    if (e.key === 'f' || e.key === 'F') document.getElementById('btn-fullscreen')?.click();
+    if (e.key === 'ArrowLeft') goToPage(currentPage - 1);
+    if (e.key === 'ArrowRight') goToPage(currentPage + 1);
+});
+
+/* ════════════════════════════════════
    WIDGETLAR — Taymer / Sekundomer / Soat / Matn
 ════════════════════════════════════ */
 let widgetIdCounter = 0;
@@ -876,6 +1232,9 @@ function addTextWidget() {
         <button type="button" class="tw-color-dot" data-color="#ff8a3d" style="background:#ff8a3d" title="Apelsin"></button>
         <button type="button" class="tw-color-dot" data-color="#2dd4bf" style="background:#2dd4bf" title="Firuza"></button>
         <button type="button" class="tw-color-dot" data-color="#fde047" style="background:#fde047" title="Sariq"></button>
+        <button type="button" class="tw-color-dot custom-color-trigger" id="tw-custom-color" title="Boshqa rang" style="background:conic-gradient(from 180deg,red,yellow,lime,cyan,blue,magenta,red);display:flex;align-items:center;justify-content:center">
+            <i class="fas fa-eye-dropper" style="font-size:8px;color:#fff;text-shadow:0 0 2px #000"></i>
+        </button>
     `;
     el.appendChild(controls);
 
@@ -886,11 +1245,19 @@ function addTextWidget() {
     ta.style.color = '#ffffff';
     el.appendChild(ta);
 
+    const stampBtn = document.createElement('button');
+    stampBtn.type = 'button';
+    stampBtn.className = 'tw-stamp-btn';
+    stampBtn.innerHTML = '<i class="fas fa-check"></i> Doskaga chiqarish';
+    stampBtn.title = 'Matnni doskaga doimiy chizib, widgetni yopadi';
+    el.appendChild(stampBtn);
+
     /* Boshqaruv tugmalari klik bo'lganda widget surilmasligi uchun */
     controls.addEventListener('mousedown', (e) => e.stopPropagation());
     controls.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
     ta.addEventListener('mousedown', (e) => e.stopPropagation());
     ta.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+    stampBtn.addEventListener('mousedown', (e) => e.stopPropagation());
 
     let fontSize = 16;
     controls.querySelector('[data-act="size-inc"]').addEventListener('click', () => {
@@ -901,8 +1268,37 @@ function addTextWidget() {
         fontSize = Math.max(10, fontSize - 2);
         ta.style.fontSize = fontSize + 'px';
     });
-    controls.querySelectorAll('.tw-color-dot').forEach((dot) => {
+    controls.querySelectorAll('.tw-color-dot:not(.custom-color-trigger)').forEach((dot) => {
         dot.addEventListener('click', () => { ta.style.color = dot.dataset.color; });
+    });
+    controls.querySelector('#tw-custom-color').addEventListener('click', () => {
+        openColorPicker(ta.style.color || '#ffffff', (hex) => { ta.style.color = hex; });
+    });
+
+    /* ── DOSKAGA CHIQARISH — matnni canvasga doimiy chizadi ── */
+    stampBtn.addEventListener('click', () => {
+        const text = ta.value.trim();
+        if (!text) { showToast('Avval matn yozing'); return; }
+        pushUndo();
+        const wrapRect = canvas.parentElement.getBoundingClientRect();
+        const widgetRect = el.getBoundingClientRect();
+        const scaleX = canvas.width / wrapRect.width;
+        const scaleY = canvas.height / wrapRect.height;
+        const x = (widgetRect.left - wrapRect.left + 12) * scaleX;
+        let y = (widgetRect.top - wrapRect.top + (controls.offsetHeight + 30)) * scaleY;
+        const fpx = fontSize * scaleX;
+
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = ta.style.color || '#ffffff';
+        ctx.font = `600 ${fpx}px 'Inter', sans-serif`;
+        ctx.textBaseline = 'top';
+        const lines = text.split('\n');
+        lines.forEach((line, i) => {
+            ctx.fillText(line, x, y + i * (fpx * 1.3));
+        });
+
+        el.remove();
+        showToast('✅ Matn doskaga chiqarildi');
     });
 
     setTimeout(() => ta.focus(), 50);
