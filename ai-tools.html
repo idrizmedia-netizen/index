@@ -19,7 +19,7 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <style>
-        :root { --primary: #2563eb; --secondary: #10b981; --bg: #f8fafc; --cw-empty: #dbeafe; --cw-active: #93c5fd; }
+        :root { --primary: #2563eb; --secondary: #10b981; --bg: #f8fafc; }
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; margin: 0; }
         .container { max-width: 1000px; margin: auto; }
@@ -33,197 +33,71 @@
         .back-link:hover { transform: translateX(-5px); background: #eef2ff; }
 
         .tool-card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        h2 { color: var(--primary); display: flex; align-items: center; gap: 10px; margin-top: 0; }
+        h2 { display: flex; align-items: center; gap: 10px; margin-top: 0; }
         .input-group { margin-bottom: 15px; }
         label { font-weight: 600; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; display: block; }
         input, select { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-size: 1rem; outline: none; }
         input:focus, select:focus { border-color: var(--primary); }
+
         .btn-ai { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 50px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; margin-top: 10px; font-size: 1rem; }
         .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
-        .btn-search { background: var(--secondary); }
 
+        .title-flex { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
+        .btn-info-icon { background: #e2e8f0; color: #475569; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .btn-info-icon:hover { background: #cbd5e1; }
+
+        /* Difficulty / Mode selector */
+        .mode-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+        .mode-btn {
+            flex: 1; min-width: 90px; padding: 11px 10px;
+            border-radius: 12px; border: 2px solid #e2e8f0;
+            background: white; cursor: pointer; font-weight: 600;
+            font-size: 0.82rem; text-align: center; color: #64748b;
+            transition: 0.2s; line-height: 1.3;
+        }
+        .mode-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        .mode-btn.active-1 { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; }
+        .mode-btn.active-2 { border-color: #10b981; background: #ecfdf5; color: #065f46; }
+        .mode-btn.active-3 { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+        .mode-label { font-weight: 600; font-size: 0.85rem; color: #64748b; margin-bottom: 8px; display: block; }
+
+        /* Difficulty */
         .difficulty-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .difficulty-btn { flex: 1; min-width: 80px; padding: 10px 14px; border-radius: 50px; border: 2px solid #e2e8f0; background: white; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; text-align: center; color: #64748b; }
         .difficulty-btn.active-easy   { border-color: #10b981; background: #ecfdf5; color: #065f46; }
         .difficulty-btn.active-medium { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
         .difficulty-btn.active-hard   { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
-        .difficulty-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        .difficulty-btn:hover { transform: translateY(-2px); }
         .difficulty-label { font-weight: 600; font-size: 0.85rem; color: #64748b; margin-bottom: 8px; display: block; }
 
-        .title-flex { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
-        .btn-info-icon { background: #e2e8f0; color: #475569; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
-        .btn-info-icon:hover { background: #cbd5e1; color: #1e293b; }
-
-        .result-area { margin-top: 25px; padding: 40px; border-radius: 15px; background: #fff; border: 1px solid #e2e8f0; display: none; line-height: 1.8; color: #000; font-size: 13pt; text-align: justify; }
+        .result-area {
+            margin-top: 25px; padding: 40px; border-radius: 15px;
+            background: #fff; border: 1px solid #e2e8f0; display: none;
+            line-height: 1.8; color: #000; font-size: 13pt; text-align: justify;
+        }
         .action-btns { display: none; gap: 10px; margin-top: 20px; }
         .btn-pdf { flex: 1; padding: 15px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: #ef4444; color: white; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
         .btn-pdf:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239,68,68,0.3); }
+
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
         table, th, td { border: 1px solid #000; padding: 12px; }
         th { background: #f1f5f9; }
 
-        /* ===== KROSSVORD INTERAKTIV QISM ===== */
-        .cw-workspace { display: none; margin-top: 25px; }
-        .cw-workspace.active { display: block; }
+        /* Mode badge below result */
+        .mode-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px; font-size: 0.78rem;
+            font-weight: 700; margin-bottom: 15px;
+        }
+        .mode-badge.academic { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .mode-badge.school   { background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; }
+        .mode-badge.quick    { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
 
-        /* Fullscreen wrapper */
-        .cw-fullscreen-wrap {
-            background: #f0f4ff;
-            border-radius: 18px;
-            border: 1px solid #c7d7fe;
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-        /* Fullscreen overlay — appended to body */
-        #cw-fs-overlay {
-            display: none;
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 99998; background: #f0f4ff;
-            flex-direction: column; overflow: hidden;
-        }
-        #cw-fs-overlay.active { display: flex; }
-
-        /* Toolbar */
-        .cw-toolbar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 20px; background: white;
-            border-bottom: 1px solid #e2e8f0; gap: 10px; flex-wrap: wrap;
-        }
-        .cw-toolbar-title { font-weight: 700; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
-        .cw-toolbar-title span { background: #e11d48; color: white; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
-        .cw-toolbar-btns { display: flex; gap: 8px; flex-wrap: wrap; }
-        .cw-btn { padding: 8px 14px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .cw-btn:hover { transform: translateY(-1px); }
-        .cw-btn-save   { background: #2563eb; color: white; }
-        .cw-btn-save:hover { background: #1d4ed8; }
-        .cw-btn-edit   { background: #f59e0b; color: white; }
-        .cw-btn-edit:hover { background: #d97706; }
-        .cw-btn-delete { background: #ef4444; color: white; }
-        .cw-btn-delete:hover { background: #dc2626; }
-        .cw-btn-pdf    { background: #0f766e; color: white; }
-        .cw-btn-pdf:hover { background: #0d5c56; }
-        .cw-btn-fs     { background: #6366f1; color: white; }
-        .cw-btn-fs:hover { background: #4f46e5; }
-        .cw-btn-check  { background: #10b981; color: white; }
-        .cw-btn-check:hover { background: #059669; }
-        .cw-btn-reset  { background: #64748b; color: white; }
-        .cw-btn-reset:hover { background: #475569; }
-
-        /* 2 column layout */
-        .cw-body {
-            display: flex; gap: 0;
-            flex: 1; overflow: hidden;
-            min-height: 400px;
-        }
-        #cw-fs-overlay .cw-body { height: calc(100vh - 115px); overflow: hidden; }
-
-        /* LEFT: questions */
-        .cw-questions {
-            width: 300px; min-width: 260px; flex-shrink: 0;
-            padding: 20px; overflow-y: auto;
-            border-right: 1px solid #e2e8f0; background: white;
-            max-height: 500px;
-        }
-        #cw-fs-overlay .cw-questions { max-height: none; height: 100%; }
-        .cw-q-section { margin-bottom: 20px; }
-        .cw-q-title {
-            font-weight: 700; font-size: 0.82rem; color: #2563eb;
-            padding: 5px 10px; background: #eff6ff; border-radius: 6px;
-            margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
-        }
-        .cw-q-title.down { color: #7c3aed; background: #f5f3ff; }
-        .cw-q-item {
-            padding: 7px 10px; border-radius: 8px; margin-bottom: 6px;
-            cursor: pointer; transition: 0.15s; font-size: 0.85rem;
-            border: 2px solid transparent; line-height: 1.4;
-        }
-        .cw-q-item:hover { background: #eff6ff; border-color: #bfdbfe; }
-        .cw-q-item.active-q { background: #dbeafe; border-color: #2563eb; }
-        .cw-q-item.solved { color: #10b981; }
-        .cw-q-item.solved::before { content: '✓ '; font-weight: 700; }
-        .cw-q-num { font-weight: 700; color: #e11d48; margin-right: 4px; }
-
-        /* RIGHT: grid */
-        .cw-grid-wrap {
-            flex: 1; overflow: auto; padding: 20px;
-            display: flex; align-items: flex-start; justify-content: center;
-        }
-        #cw-fs-overlay .cw-grid-wrap { align-items: center; }
-        .cw-grid { display: inline-grid; gap: 2px; }
-        .cw-cell {
-            width: 36px; height: 36px; position: relative;
-            background: transparent; pointer-events: none;
-        }
-        .cw-cell.letter {
-            background: white; border: 1.5px solid #93c5fd;
-            border-radius: 4px; pointer-events: auto; cursor: pointer;
-        }
-        .cw-cell.letter:hover { border-color: #2563eb; background: #eff6ff; }
-        .cw-cell.letter.active-cell { border-color: #2563eb; background: #dbeafe; box-shadow: 0 0 0 2px #2563eb44; }
-        .cw-cell.letter.active-word { background: #dbeafe; border-color: #93c5fd; }
-        .cw-cell.letter.correct { background: #d1fae5; border-color: #10b981; }
-        .cw-cell.letter.wrong   { background: #fee2e2; border-color: #ef4444; }
-        .cw-cell-num {
-            position: absolute; top: 1px; left: 2px;
-            font-size: 8px; font-weight: 700; color: #2563eb; line-height: 1;
-        }
-        .cw-cell input {
-            width: 100%; height: 100%; border: none; background: transparent;
-            text-align: center; font-size: 15px; font-weight: 700;
-            color: #1e293b; outline: none; text-transform: uppercase;
-            cursor: pointer; padding: 0;
-        }
-
-        /* Score bar */
-        .cw-score-bar {
-            padding: 10px 20px; background: white; border-top: 1px solid #e2e8f0;
-            display: flex; align-items: center; gap: 15px; font-size: 0.85rem;
-        }
-        .cw-score-item { display: flex; align-items: center; gap: 6px; }
-        .cw-dot { width: 10px; height: 10px; border-radius: 50%; }
-
-        /* Saved list */
-        .cw-saved-section { margin-top: 20px; }
-        .cw-saved-title { font-weight: 700; color: #1e293b; margin-bottom: 12px; font-size: 1rem; }
-        .cw-saved-item {
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
-            padding: 14px 16px; margin-bottom: 10px; display: flex;
-            align-items: center; justify-content: space-between; gap: 10px;
-        }
-        .cw-saved-info { flex: 1; }
-        .cw-saved-name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
-        .cw-saved-meta { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
-        .cw-saved-actions { display: flex; gap: 6px; }
-        .cw-saved-btn { padding: 6px 12px; border-radius: 7px; border: none; cursor: pointer; font-size: 0.78rem; font-weight: 600; transition: 0.2s; }
-        .cw-saved-btn:hover { transform: translateY(-1px); }
-
-        /* Old text result (kept) */
-        .cw-text-result { margin-top: 15px; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: none; font-size: 11pt; line-height: 1.7; }
-
-        /* Toast */
-        .cw-toast {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
-            background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px;
-            font-weight: 600; font-size: 0.9rem; z-index: 99999;
-            transition: transform 0.3s ease; pointer-events: none;
-        }
-        .cw-toast.show { transform: translateX(-50%) translateY(0); }
-
-        /* Stats badge */
-        .cw-stat { font-size: 0.9rem; color: #475569; }
-        .cw-stat b { color: #10b981; }
-
-        @media (max-width: 700px) {
+        @media (max-width: 600px) {
             body { padding: 10px; }
             .tool-card { padding: 15px; }
             .result-area { padding: 15px; font-size: 11pt; }
-            .cw-questions { width: 200px; min-width: 160px; }
-            .cw-cell { width: 28px; height: 28px; }
-            .cw-cell input { font-size: 12px; }
-            .cw-cell-num { font-size: 6px; }
-            .difficulty-btn { min-width: 65px; font-size: 0.78rem; }
+            .mode-btn { min-width: 80px; font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -235,48 +109,118 @@
 
     <!-- ===== DARS ISHLANMASI ===== -->
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-chalkboard-teacher"></i> Professional Dars Ishlanmasi</h2>
+        <h2 style="color:#2563eb"><i class="fas fa-chalkboard-teacher"></i> Professional Dars Ishlanmasi</h2>
+
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="subject">
-                <option>Matematika</option><option>Fizika</option><option>Kimyo</option>
-                <option>Biologiya</option><option>Informatika</option><option>O'zbek tili</option>
-                <option>Adabiyot</option><option>Ingliz tili</option><option>Tarix</option>
-                <option>Geografiya</option><option>Huquq</option><option>Iqtisodiyot</option>
-                <option>Tarbiya</option><option>Tasviriy san'at</option><option>Musiqa</option>
-                <option>Texnologiya</option><option>Chizmachilik</option><option>Jismoniy tarbiya</option>
+                <option>Matematika</option>
+                <option>Algebra</option>
+                <option>Geometriya</option>
+                <option>Fizika</option>
+                <option>Kimyo</option>
+                <option>Biologiya</option>
+                <option>Informatika va AT</option>
+                <option>O'zbek tili</option>
+                <option>O'zbek adabiyoti</option>
+                <option>Rus tili</option>
+                <option>Ingliz tili</option>
+                <option>Tarix</option>
+                <option>O'zbekiston tarixi</option>
+                <option>Jahon tarixi</option>
+                <option>Geografiya</option>
+                <option>Iqtisodiy va ijtimoiy geografiya</option>
+                <option>Huquq</option>
+                <option>Iqtisodiyot asoslari</option>
+                <option>Tarbiya</option>
+                <option>Tasviriy san'at</option>
+                <option>Musiqa</option>
+                <option>Texnologiya</option>
+                <option>Chizmachilik</option>
+                <option>Jismoniy tarbiya</option>
+                <option>Ona tili</option>
+                <option>Adabiy o'qish</option>
+                <option>Atrofimizdagi olam</option>
+                <option>Tabiatshunoslik</option>
+                <option>Astronomiya</option>
             </select>
         </div>
+
         <div class="input-group">
             <label>Sinfni tanlang:</label>
             <select id="grade" id="grade"></select>
         </div>
+
+        <div class="input-group">
+            <label>Dars turi:</label>
+            <select id="lesson-type">
+                <option value="yangi_mavzu">Yangi mavzuni o'rgatish darsi</option>
+                <option value="mustahkamlash">Bilimlarni mustahkamlash darsi</option>
+                <option value="takrorlash">Takrorlash va umumlashtirish darsi</option>
+                <option value="nazorat">Nazorat darsi</option>
+                <option value="aralash">Aralash (kombinatsiyalangan) dars</option>
+                <option value="laboratoriya">Laboratoriya-amaliy dars</option>
+                <option value="ekskursiya">Ekskursiya darsi</option>
+            </select>
+        </div>
+
         <div class="input-group">
             <label>Mavzu nomi:</label>
-            <input type="text" id="topic" placeholder="Mavzuni to'liq yozing...">
+            <input type="text" id="topic" placeholder="Dars mavzusini to'liq yozing...">
         </div>
+
+        <div class="input-group">
+            <label>Darslik / O'quv qo'llanma (ixtiyoriy):</label>
+            <input type="text" id="textbook" placeholder="Masalan: Saidaxmedov N. 7-sinf yoki standart DTS...">
+        </div>
+
         <button class="btn-ai" onclick="generate('lesson', this)">
-            <i class="fas fa-wand-magic-sparkles"></i> Mukammal reja yaratish
+            <i class="fas fa-wand-magic-sparkles"></i> DTS standartida dars ishlanmasini yaratish
         </button>
+
         <div id="res-lesson" class="result-area"></div>
         <div class="action-btns" id="btns-lesson">
-            <button class="btn-pdf" onclick="perfectPrint('res-lesson')"><i class="fas fa-file-pdf"></i> PDF yuklab olish</button>
+            <button class="btn-pdf" onclick="perfectPrint('res-lesson')">
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
+            </button>
         </div>
     </div>
 
     <!-- ===== MA'LUMOT TOPISH ===== -->
     <div class="tool-card" data-aos="fade-up">
-        <h2><i class="fas fa-search-plus" style="color:#f59e0b"></i> Mukammal Ma'lumot Topish</h2>
+        <h2 style="color:#f59e0b"><i class="fas fa-search-plus"></i> Ma'lumot Topish</h2>
+
         <div class="input-group">
             <label>Mavzu, qoida yoki termin nomi:</label>
             <input type="text" id="info-topic" placeholder="Nima haqida ma'lumot kerak?">
         </div>
-        <button class="btn-ai btn-search" onclick="generate('info', this)">
-            <i class="fas fa-microscope"></i> Chuqur tahlil qilish
+
+        <!-- INFO MODE SELECTOR -->
+        <div class="input-group">
+            <span class="mode-label"><i class="fas fa-sliders-h"></i> Javob turini tanlang:</span>
+            <div class="mode-group" id="info-mode-group">
+                <button class="mode-btn active-1" data-value="academic" onclick="selectMode(this)">
+                    🎓 Akademik<br><small style="font-weight:400;color:inherit;opacity:0.8">Ilmiy, chuqur tahlil</small>
+                </button>
+                <button class="mode-btn" data-value="school" onclick="selectMode(this)">
+                    🏫 Maktab<br><small style="font-weight:400;color:inherit;opacity:0.8">O'quvchi uchun sodda</small>
+                </button>
+                <button class="mode-btn" data-value="quick" onclick="selectMode(this)">
+                    ⚡ Tezkor javob<br><small style="font-weight:400;color:inherit;opacity:0.8">Qisqa, asosiy ma'lumot</small>
+                </button>
+            </div>
+            <input type="hidden" id="info-mode" value="academic">
+        </div>
+
+        <button class="btn-ai" style="background:#f59e0b" onclick="generate('info', this)">
+            <i class="fas fa-microscope"></i> Ma'lumot olish
         </button>
+
         <div id="res-info" class="result-area"></div>
         <div class="action-btns" id="btns-info">
-            <button class="btn-pdf" onclick="perfectPrint('res-info')"><i class="fas fa-file-pdf"></i> PDF yuklab olish</button>
+            <button class="btn-pdf" onclick="perfectPrint('res-info')">
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
+            </button>
         </div>
     </div>
 
@@ -286,18 +230,20 @@
             <h2 style="color:#8b5cf6;margin:0"><i class="fas fa-cubes"></i> Professional AI Test Generator</h2>
             <button class="btn-info-icon" onclick="showQuizInfo()"><i class="fas fa-info"></i></button>
         </div>
+
         <div class="input-group">
             <label>Fanni tanlang:</label>
             <select id="quiz-subject">
-                <option>Matematika</option><option>Fizika</option><option>Kimyo</option>
-                <option>Biologiya</option><option>Informatika</option><option>O'zbek tili</option>
-                <option>Ona tili</option><option>Adabiyot</option><option>Ingliz tili</option>
-                <option>Tarix</option><option>Geografiya</option><option>Huquq</option>
-                <option>Iqtisodiyot</option><option>Tarbiya</option><option>Tasviriy san'at</option>
-                <option>Musiqa</option><option>Texnologiya</option><option>Chizmachilik</option>
-                <option>Jismoniy tarbiya</option>
+                <option>Matematika</option><option>Algebra</option><option>Geometriya</option>
+                <option>Fizika</option><option>Kimyo</option><option>Biologiya</option>
+                <option>Informatika va AT</option><option>O'zbek tili</option>
+                <option>O'zbek adabiyoti</option><option>Ingliz tili</option>
+                <option>Tarix</option><option>O'zbekiston tarixi</option>
+                <option>Geografiya</option><option>Huquq</option><option>Iqtisodiyot asoslari</option>
+                <option>Ona tili</option><option>Adabiy o'qish</option><option>Astronomiya</option>
             </select>
         </div>
+
         <div class="input-group">
             <label>Savollar sonini tanlang:</label>
             <select id="quiz-count">
@@ -306,6 +252,7 @@
                 <option value="25">25 ta</option><option value="30">30 ta</option>
             </select>
         </div>
+
         <div class="input-group">
             <span class="difficulty-label"><i class="fas fa-signal"></i> Test darajasi:</span>
             <div class="difficulty-group" id="quiz-difficulty-group">
@@ -316,149 +263,46 @@
             </div>
             <input type="hidden" id="quiz-difficulty" value="oson">
         </div>
+
         <div class="input-group">
             <label>Mavzu yoki mavzular:</label>
-            <input type="text" id="quiz-topic" placeholder="Vergul bilan ajrating...">
+            <input type="text" id="quiz-topic" placeholder="Vergul bilan bir nechta mavzu yozish mumkin...">
         </div>
+
         <button class="btn-ai" style="background:#8b5cf6" onclick="generate('quiz',this)">
             <i class="fas fa-layer-group"></i> Variantli Testlarni Yaratish
         </button>
+
         <div id="res-quiz" class="result-area"></div>
         <div class="action-btns" id="btns-quiz">
-            <button class="btn-pdf" onclick="perfectPrint('res-quiz')"><i class="fas fa-file-pdf"></i> PDF yuklab olish</button>
+            <button class="btn-pdf" onclick="perfectPrint('res-quiz')">
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
+            </button>
         </div>
     </div>
 
-    <!-- ===== KROSSVORD GENERATOR ===== -->
-    <div class="tool-card" data-aos="fade-up">
-        <div class="title-flex">
-            <h2 style="color:#e11d48;margin:0"><i class="fas fa-th"></i> AI Krossvord Generator</h2>
-            <button class="btn-info-icon" onclick="showCrosswordInfo()"><i class="fas fa-info"></i></button>
-        </div>
-
-        <div class="input-group">
-            <label>Fanni tanlang:</label>
-            <select id="cw-subject">
-                <option>Matematika</option><option>Fizika</option><option>Kimyo</option>
-                <option>Biologiya</option><option>Informatika</option><option>O'zbek tili</option>
-                <option>Ona tili</option><option>Adabiyot</option><option>Ingliz tili</option>
-                <option>Tarix</option><option>Geografiya</option><option>Huquq</option>
-                <option>Iqtisodiyot</option><option>Tarbiya</option><option>Tasviriy san'at</option>
-                <option>Musiqa</option><option>Texnologiya</option><option>Chizmachilik</option>
-                <option>Jismoniy tarbiya</option>
-            </select>
-        </div>
-        <div class="input-group">
-            <label>Sinfni tanlang:</label>
-            <select id="cw-grade"></select>
-        </div>
-        <div class="input-group">
-            <label>Mavzu nomi:</label>
-            <input type="text" id="cw-topic" placeholder="Krossvord mavzusini yozing...">
-        </div>
-        <div class="input-group">
-            <span class="difficulty-label"><i class="fas fa-signal"></i> Krossvord darajasi:</span>
-            <div class="difficulty-group" id="cw-difficulty-group">
-                <button class="difficulty-btn active-easy" data-value="oson" onclick="selectDifficulty('cw',this)">🟢 Oson</button>
-                <button class="difficulty-btn" data-value="o'rta" onclick="selectDifficulty('cw',this)">🟡 O'rta</button>
-                <button class="difficulty-btn" data-value="qiyin" onclick="selectDifficulty('cw',this)">🔴 Qiyin</button>
-            </div>
-            <input type="hidden" id="cw-difficulty" value="oson">
-        </div>
-
-        <button class="btn-ai" style="background:#e11d48" id="cw-gen-btn" onclick="generateCrossword(this)">
-            <i class="fas fa-th"></i> Krossvord Yaratish
-        </button>
-
-        <!-- Loading state -->
-        <div id="cw-loading" style="display:none;text-align:center;padding:30px;color:#e11d48">
-            <i class="fas fa-brain fa-pulse" style="font-size:2rem"></i>
-            <p style="margin-top:10px;font-weight:600">AI krossvord tayyorlamoqda...</p>
-        </div>
-
-        <!-- INTERACTIVE WORKSPACE -->
-        <div class="cw-workspace" id="cw-workspace">
-
-            <!-- Fullscreen container -->
-            <div class="cw-fullscreen-wrap" id="cw-fs-wrap">
-
-                <!-- Toolbar -->
-                <div class="cw-toolbar">
-                    <div class="cw-toolbar-title">
-                        <i class="fas fa-th" style="color:#e11d48"></i>
-                        <span id="cw-label-badge">Krossvord</span>
-                        <span class="cw-stat">So'zlar: <b id="cw-total-count">0</b> | Bajarildi: <b id="cw-done-count">0</b></span>
-                    </div>
-                    <div class="cw-toolbar-btns">
-                        <button class="cw-btn cw-btn-check" onclick="checkAnswers()"><i class="fas fa-check-double"></i> Tekshirish</button>
-                        <button class="cw-btn cw-btn-reset" onclick="resetGrid()"><i class="fas fa-redo"></i> Tozalash</button>
-                        <button class="cw-btn cw-btn-save"   onclick="saveCrossword()"><i class="fas fa-save"></i> Saqlash</button>
-                        <button class="cw-btn cw-btn-edit"   onclick="editCrossword()"><i class="fas fa-pen"></i> Tahrirlash</button>
-                        <button class="cw-btn cw-btn-delete" onclick="deleteCrossword()"><i class="fas fa-trash"></i> O'chirish</button>
-                        <button class="cw-btn cw-btn-pdf"    onclick="cwPrint()"><i class="fas fa-file-pdf"></i> PDF</button>
-                        <button class="cw-btn cw-btn-fs"     onclick="toggleFullscreen()" id="cw-fs-btn"><i class="fas fa-expand"></i> Kengaytirish</button>
-                    </div>
-                </div>
-
-                <!-- Body: questions + grid -->
-                <div class="cw-body">
-                    <!-- LEFT: questions panel -->
-                    <div class="cw-questions" id="cw-questions-panel">
-                        <div class="cw-q-section" id="cw-across-section">
-                            <div class="cw-q-title">→ Eniga</div>
-                            <div id="cw-across-list"></div>
-                        </div>
-                        <div class="cw-q-section" id="cw-down-section">
-                            <div class="cw-q-title down">↓ Bo'yiga</div>
-                            <div id="cw-down-list"></div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT: grid panel -->
-                    <div class="cw-grid-wrap">
-                        <div class="cw-grid" id="cw-grid"></div>
-                    </div>
-                </div>
-
-                <!-- Score bar -->
-                <div class="cw-score-bar">
-                    <div class="cw-score-item"><div class="cw-dot" style="background:#dbeafe;border:1.5px solid #93c5fd"></div> Bo'sh</div>
-                    <div class="cw-score-item"><div class="cw-dot" style="background:#2563eb"></div> Tanlangan</div>
-                    <div class="cw-score-item"><div class="cw-dot" style="background:#d1fae5;border:1px solid #10b981"></div> To'g'ri</div>
-                    <div class="cw-score-item"><div class="cw-dot" style="background:#fee2e2;border:1px solid #ef4444"></div> Xato</div>
-                    <div style="margin-left:auto;font-size:0.82rem;color:#64748b" id="cw-hint-text">Savolga bosib so'zni tanlang</div>
-                </div>
-            </div>
-
-            <!-- Old text output (kept) -->
-            <div class="cw-text-result" id="cw-text-result"></div>
-            <div class="action-btns" id="btns-cw-text" style="margin-top:10px">
-                <button class="btn-pdf" onclick="perfectPrint('cw-text-result')"><i class="fas fa-file-pdf"></i> Matn PDF</button>
-            </div>
-        </div>
-
-        <!-- Saved crosswords list -->
-        <div class="cw-saved-section" id="cw-saved-section" style="display:none">
-            <div class="cw-saved-title"><i class="fas fa-bookmark" style="color:#e11d48"></i> Saqlangan Krossvorlar</div>
-            <div id="cw-saved-list"></div>
-        </div>
-    </div>
 </div>
-
-<!-- Toast notification -->
-<div class="cw-toast" id="cw-toast"></div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
 AOS.init();
 
-// ====== GRADE SELECT FILL ======
-['grade','cw-grade'].forEach(id => {
-    const sel = document.getElementById(id);
-    if(sel) for(let i=1;i<=11;i++) sel.innerHTML += `<option value="${i}">${i}-sinf</option>`;
-});
+// Grade select fill
+const gradeEl = document.getElementById('grade');
+if(gradeEl) for(let i=1;i<=11;i++) gradeEl.innerHTML += `<option value="${i}">${i}-sinf</option>`;
 
-// ====== DIFFICULTY ======
+// ====== INFO MODE SELECTOR ======
+function selectMode(btn) {
+    document.getElementById('info-mode-group').querySelectorAll('.mode-btn')
+        .forEach(b => b.classList.remove('active-1','active-2','active-3'));
+    const v = btn.getAttribute('data-value');
+    if(v==='academic') btn.classList.add('active-1');
+    else if(v==='school') btn.classList.add('active-2');
+    else btn.classList.add('active-3');
+    document.getElementById('info-mode').value = v;
+}
+
+// ====== DIFFICULTY SELECTOR ======
 function selectDifficulty(prefix, btn) {
     document.getElementById(prefix+'-difficulty-group').querySelectorAll('.difficulty-btn')
         .forEach(b => b.classList.remove('active-easy','active-medium','active-hard'));
@@ -471,611 +315,276 @@ function selectDifficulty(prefix, btn) {
 }
 
 function showQuizInfo() {
-    alert("ℹ️ TEST GENERATOR:\n\n1. Bitta mavzu yoki vergul bilan bir nechta mavzu.\n2. Daraja: Oson/O'rta/Qiyin/Aralash.");
-}
-function showCrosswordInfo() {
-    alert("ℹ️ KROSSVORD:\n\nFan, sinf va mavzuni tanlang.\nAI krossvord katakchalarini tayyorlaydi.\nSavolga bosib yechishni boshlang!");
+    alert("ℹ️ TEST GENERATOR:\n\n• Bitta mavzu yoki vergul bilan bir nechta mavzu yozing.\n• Daraja: Oson / O'rta / Qiyin / Aralash.\n\nMisol: Kvadrat tenglamalar, Viet teoremasi");
 }
 
-// ====== GENERAL GENERATE ======
+// ====== MAIN GENERATE ======
 async function generate(type, btn) {
     let topic='', resArea, btns, prompt, label='';
-    if(type==='lesson'){
-        topic=document.getElementById('topic').value;
-        resArea=document.getElementById('res-lesson');btns=document.getElementById('btns-lesson');label='dars rejasi';
-    } else if(type==='info'){
-        topic=document.getElementById('info-topic').value;
-        resArea=document.getElementById('res-info');btns=document.getElementById('btns-info');label="ma'lumot";
-    } else if(type==='quiz'){
-        topic=document.getElementById('quiz-topic').value;
-        resArea=document.getElementById('res-quiz');btns=document.getElementById('btns-quiz');label='testlar';
+
+    if(type==='lesson') {
+        topic = document.getElementById('topic').value.trim();
+        resArea = document.getElementById('res-lesson');
+        btns    = document.getElementById('btns-lesson');
+        label   = 'dars ishlanmasi';
+    } else if(type==='info') {
+        topic = document.getElementById('info-topic').value.trim();
+        resArea = document.getElementById('res-info');
+        btns    = document.getElementById('btns-info');
+        label   = "ma'lumot";
+    } else if(type==='quiz') {
+        topic = document.getElementById('quiz-topic').value.trim();
+        resArea = document.getElementById('res-quiz');
+        btns    = document.getElementById('btns-quiz');
+        label   = 'testlar';
     }
-    if(!topic) return alert("Iltimos, mavzuni kiriting!");
-    const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI '+label+' tayyorlamoqda...') : null;
-    const old=btn.innerHTML; btn.disabled=true;
-    btn.innerHTML='<i class="fas fa-sync fa-spin"></i> Tayyorlanmoqda...';
-    resArea.style.display='block';
-    resArea.innerHTML="<div style='text-align:center'><i class='fas fa-brain fa-pulse'></i> Kuting...</div>";
 
-    if(type==='lesson'){
-        prompt=`${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida dars ishlanmasi. LaTeX: $..$.`;
-    } else if(type==='info'){
-        prompt=`"${topic}" haqida akademik ma'lumot. LaTeX ishlatilsin.`;
-    } else if(type==='quiz'){
-        const s=document.getElementById('quiz-subject').value, c=document.getElementById('quiz-count').value;
-        const d=document.getElementById('quiz-difficulty').value;
-        let dd=d==='oson'?'Oson daraja.':d==="o'rta"?'O\'rta daraja.':d==='qiyin'?'Qiyin daraja.':'Aralash daraja.';
-        let t=topic.includes(',')||topic.includes(':')?`"${topic}" mavzulari aralash`:`"${topic}"`;
-        prompt=`${s} fani ${t} mavzusidan ${c} ta (A,B,C,D) test. ${dd} Oxirida javoblar kaliti jadval.`;
-    }
-    try {
-        const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})});
-        const d=await r.json();
-        resArea.innerHTML=marked.parse(d.reply);
-        if(window.MathJax) await MathJax.typesetPromise([resArea]);
-        btns.style.display='flex';
-        if(notif&&window.ZiyomapNotify) ZiyomapNotify.update(notif,'✅ Tayyor!','success');
-    } catch(e){
-        resArea.innerHTML="<span style='color:red'>Xato! Qayta urinib ko'ring.</span>";
-    } finally { btn.disabled=false; btn.innerHTML=old; }
-}
-
-// ====== CROSSWORD STATE ======
-let cwData = null;       // parsed crossword object
-let cwGrid = [];         // 2D array of cell objects
-let cwRows = 0, cwCols = 0;
-let activeCell = null;   // {r,c}
-let activeDir = 'across';
-let activeWord = null;   // word entry
-let cwSaved = JSON.parse(localStorage.getItem('cw_saved')||'[]');
-
-// ====== GENERATE CROSSWORD ======
-// ====== GENERATE CROSSWORD ======
-async function generateCrossword(btn) {
-    const topic   = document.getElementById('cw-topic').value.trim();
-    const subject = document.getElementById('cw-subject').value;
-    const grade   = document.getElementById('cw-grade').value;
-    const diff    = document.getElementById('cw-difficulty').value;
     if(!topic) return alert("Iltimos, mavzuni kiriting!");
 
-    const diffTxt = diff==='oson'?'Oson (4-6 harf)':diff==="o'rta"?'O\'rta (5-8 harf)':'Qiyin (7-12 harf)';
-
-    const prompt = `${subject} fani, ${grade}-sinf, "${topic}" mavzusi uchun krossvord yarat. Daraja: ${diffTxt}.
-FAQAT JSON (hech qanday tekst yo markdown yo'q):
-{"title":"...","words":[{"id":1,"word":"BITTA","clue":"Savol","dir":"across","row":0,"col":0}]}
-QOIDALAR:
-1. 10-12 so'z (5-6 across, 5-6 down). FAQAT A-Z KATTA HARF.
-2. across: row bir xil, col ortadi. down: col bir xil, row ortadi.
-3. KESISHUVLAR MAJBURIY - har juft (across,down) uchun: agar across.row in [down.row..down.row+down.word.length-1] VA down.col in [across.col..across.col+across.word.length-1] bo'lsa, across.word[down.col-across.col] === down.word[across.row-down.row] bo'lishi SHART.
-4. Kamida 4 ta to'g'ri kesishuv bo'lsin.
-5. JSON faqat.`;
-
+    const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI ' + label + ' tayyorlamoqda...') : null;
     const old = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> AI yaratmoqda...';
-    document.getElementById('cw-loading').style.display = 'block';
-    document.getElementById('cw-workspace').classList.remove('active');
+    btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> AI tayyorlamoqda...';
+    resArea.style.display = 'block';
+    resArea.innerHTML = "<div style='text-align:center;padding:30px'><i class='fas fa-brain fa-pulse' style='font-size:2rem;color:#2563eb'></i><br><br><b>AI ishlamoqda, iltimos kuting...</b></div>";
 
+    // ---- BUILD PROMPTS ----
+
+    if(type === 'lesson') {
+        const subject  = document.getElementById('subject').value;
+        const grade    = document.getElementById('grade').value;
+        const ltype    = document.getElementById('lesson-type').value;
+        const textbook = document.getElementById('textbook').value.trim();
+
+        const ltypeNames = {
+            yangi_mavzu:    "Yangi mavzuni o'rgatish",
+            mustahkamlash:  "Bilimlarni mustahkamlash",
+            takrorlash:     "Takrorlash va umumlashtirish",
+            nazorat:        "Nazorat darsi",
+            aralash:        "Aralash (kombinatsiyalangan)",
+            laboratoriya:   "Laboratoriya-amaliy",
+            ekskursiya:     "Ekskursiya darsi"
+        };
+
+        prompt = `Siz O'zbekiston Davlat Ta'lim Standartlari (DTS) bo'yicha yuqori malakali metodik mutaxasssissiz. Quyidagi ma'lumotlarga asoslanib TO'LIQ va PROFESSIONAL dars ishlanmasi tuzing:
+
+Fan: ${subject}
+Sinf: ${grade}-sinf
+Dars turi: ${ltypeNames[ltype]}
+Mavzu: "${topic}"
+${textbook ? `Darslik: ${textbook}` : `Darslik: O'zbekiston Respublikasi DTS talablari asosida`}
+
+DARS ISHLANMASI TUZILMASI (barchasi batafsil bo'lsin):
+
+## 📋 UMUMIY MA'LUMOTLAR
+| Ko'rsatkich | Mazmun |
+|---|---|
+| Fan | ... |
+| Sinf | ... |
+| Mavzu | ... |
+| Dars turi | ... |
+| Dars vaqti | 45 daqiqa |
+| Sana | __________ |
+
+## 🎯 MAQSADLAR
+**Ta'limiy maqsad:** (bilim va ko'nikmalar)
+**Tarbiyaviy maqsad:** (axloqiy, vatanparvarlik va boshqa tarbiyaviy jihatlar)
+**Rivojlantiruvchi maqsad:** (mantiqiy fikrlash, ijodiy qobiliyat)
+
+## 📚 KOMPETENSIYALAR (DTS asosida)
+- Funksional savodxonlik
+- Kommunikativ kompetensiya
+- Axborot kompetensiyasi
+- (fanga xos kompetensiyalar)
+
+## 🛠️ JIHOZLAR VA KO'RGAZMALI QUROLLAR
+(doskа, proyektor, darslik, tarqatma materiallar, laboratoriya jihozlari va h.k.)
+
+## 📖 DARS BOSQICHLARI
+
+### I. TASHKILIY QISM (2-3 daqiqa)
+(salomlashish, davomatni belgilash, darsga tayyorlik)
+
+### II. O'TILGAN MAVZUNI TAKRORLASH (7-8 daqiqa)
+(savollar, topshiriqlar — o'tilgan mavzu bo'yicha 3-4 ta savol)
+
+### III. YANGI MAVZUNING BAYONI (20-25 daqiqa)
+(mavzuni bosqichma-bosqich, tushunarli tarzda to'liq izohlash, misollar, formulalar, jadvallar, sxemalar)
+
+### IV. MUSTAHKAMLASH (7-8 daqiqa)
+(mashqlar, misollar, savol-javob — kamida 3-4 ta topshiriq)
+
+### V. BAHOLASH (2-3 daqiqa)
+(o'quvchilarni baholash mezonlari va ballari)
+
+### VI. UY VAZIFASI (1-2 daqiqa)
+(darslik sahifalari va mashqlari ko'rsatilsin)
+
+## 📊 TEXNOLOGIK XARITA
+| Dars bosqichi | Vaqt | O'qituvchi faoliyati | O'quvchi faoliyati | Metod |
+|---|---|---|---|---|
+| Tashkiliy qism | 2-3 min | ... | ... | ... |
+| Takrorlash | 7-8 min | ... | ... | ... |
+| Yangi mavzu | 20-25 min | ... | ... | ... |
+| Mustahkamlash | 7-8 min | ... | ... | ... |
+| Baholash | 2-3 min | ... | ... | ... |
+| Uy vazifasi | 1-2 min | ... | ... | ... |
+
+## 🧠 DIFFERENSIALLASHTIRILGAN YONDASHUV
+- **Kuchli o'quvchilar uchun:** (qo'shimcha murakkab topshiriq)
+- **O'rta o'quvchilar uchun:** (asosiy topshiriq)
+- **Kuchsiz o'quvchilar uchun:** (sodda, ko'maklashuvchi topshiriq)
+
+## 📝 NAZORAT SAVOLLARI
+(mavzu bo'yicha 5-6 ta savol — bilim tekshirish uchun)
+
+## 🔗 FANLARARO ALOQA
+(ushbu mavzu boshqa qaysi fanlar bilan bog'liqligi)
+
+Barcha matematik va kimyoviy formulalar, tenglamalar, belgilar LaTeX formatida ($...$) yozilsin.
+Dars ishlanmasi O'zbekiston Respublikasi umumiy o'rta ta'lim DTS talablariga mos, zamonaviy pedagoglika metodlari (muammoli ta'lim, hamkorlik, tanqidiy fikrlash) qo'llanilgan holda yozilsin.`;
+
+    } else if(type === 'info') {
+        const mode = document.getElementById('info-mode').value;
+
+        if(mode === 'academic') {
+            prompt = `Siz ilmiy-akademik mutaxassis sifatida "${topic}" mavzusida to'liq, chuqur va ilmiy asoslangan ma'lumot bering.
+
+Tarkibi:
+## 📌 TA'RIF VA MOHIYAT
+(ilmiy ta'rif, terminologiya, etimologiya)
+
+## 📜 TARIXI VA RIVOJLANISHI
+(qachon paydo bo'lgan, kim kashf etgan, tarixiy bosqichlar)
+
+## 🔬 ASOSIY NAZARIY ASOSLAR
+(qoidalar, qonunlar, teoremalar, formulalar, tushunchalar — batafsil)
+
+## 🔢 FORMULALAR VA IFODALAR (agar mavjud bo'lsa)
+(barcha tegishli formulalar va ularning izohlari)
+
+## 💡 AMALIY QOʻLLANILISHI
+(hayotda, fanda, sanoatda qanday ishlatiladi)
+
+## 📊 TAQQOSLASH JADVALI (agar mavjud bo'lsa)
+(o'xshash tushunchalar yoki turlar bilan taqqoslash)
+
+## 🌐 ZAMONAVIY FAN VA TEXNOLOGIYADAGI O'RNI
+(bugungi kunda ahamiyati)
+
+## 📚 QISQACHA XULOSA VA MUHIM FAKTLAR JADVALI
+| Ko'rsatkich | Ma'lumot |
+|---|---|
+
+LaTeX formulalarini $...$ ichida yozing.`;
+
+        } else if(mode === 'school') {
+            prompt = `Siz tajribali maktab o'qituvchisisiz. O'quvchilarga "${topic}" mavzusini oddiy, tushunarli va qiziqarli tarzda tushuntiring.
+
+Tarkibi:
+## 📖 ODDIY TA'RIF
+(o'quvchi tushuna oladigan sodda so'zlar bilan)
+
+## 🌟 ASOSIY TUSHUNCHALAR
+(eng muhim 3-5 ta tushuncha — har biri sodda tushuntirilgan)
+
+## 📝 FORMULALAR VA QOIDALAR (agar bo'lsa)
+(misollar bilan birga)
+
+## ✏️ MISOLLAR VA MASALALAR
+(kamida 2-3 ta yechilgan misol — bosqichma-bosqich)
+
+## 🎯 ESLAB QOLISH UCHUN
+(qoida, mnemonika yoki qulay usul)
+
+## ❓ O'Z-O'ZINI TEKSHIRISH SAVOLLARI
+(5 ta savol — o'quvchi bilimini tekshirish uchun)
+
+## 📌 XULOSA
+(qisqacha 3-4 jumlada asosiy fikr)
+
+Barcha formulalar LaTeX ($...$) formatida bo'lsin. Tilni sodda, do'stona va qiziqarli tuting.`;
+
+        } else { // quick
+            prompt = `"${topic}" haqida QISQA va ANIQ ma'lumot bering. Format:
+
+## ⚡ ${topic.toUpperCase()} — TEZKOR MA'LUMOT
+
+**Nima bu?** (1-2 jumla)
+
+**Asosiy faktlar:**
+- ...
+- ...
+- ...
+
+**Formula/Qoida:** (agar bo'lsa — LaTeX bilan)
+
+**Qo'llanilishi:** (1 jumla)
+
+**Eslab qolish uchun:** (bitta qulay tavsif yoki qoida)
+
+Javob qisqa, lo'nda va to'g'ridan-to'g'ri bo'lsin.`;
+        }
+
+    } else if(type === 'quiz') {
+        const s = document.getElementById('quiz-subject').value;
+        const c = document.getElementById('quiz-count').value;
+        const d = document.getElementById('quiz-difficulty').value;
+        const dd = d==='oson'?'Oson (oddiy, asosiy tushunchalar)':
+                   d==="o'rta"?'O\'rta (o\'ylashni talab qiluvchi)':
+                   d==='qiyin'?'Qiyin (chuqur tahliliy)':'Aralash (oson+o\'rta+qiyin)';
+        const t = (topic.includes(',')||topic.includes(':'))
+            ? `"${topic}" mavzulari aralash` : `"${topic}"`;
+
+        prompt = `Siz ta'lim tizimi ekspertisiz. ${s} fani bo'yicha ${t} mavzusidan jami ${c} ta mustaqil test savoli tuzing.
+Daraja: ${dd}
+
+Har bir savol: A), B), C), D) variantlari bo'lsin.
+Savollar turli xil bo'lsin: ta'rif, hisoblash, tahlil, qo'llash.
+Oxirida to'g'ri javoblar kaliti jadval ko'rinishida:
+
+| № | To'g'ri javob |
+|---|---|
+| 1 | A |
+...
+
+Aniq fanlarda (Matematika, Fizika, Kimyo) formulalar $...$ LaTeX formatida yozilsin.`;
+    }
+
+    // ---- API CALL ----
     try {
-        const r = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})});
-        const d = await r.json();
-        let raw = d.reply.trim();
-        raw = raw.replace(/```json/g,'').replace(/```/g,'').trim();
-        const start = raw.indexOf('{'), end = raw.lastIndexOf('}');
-        if(start>=0&&end>start) raw = raw.slice(start,end+1);
-        const parsed = JSON.parse(raw);
-        const fixed = validateAndFix(parsed);
-        buildInteractiveCrossword(fixed, subject, grade, topic);
+        const r = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: prompt })
+        });
+        const data = await r.json();
+
+        // Add mode badge for info
+        let badgeHTML = '';
+        if(type === 'info') {
+            const mode = document.getElementById('info-mode').value;
+            const badges = {
+                academic: `<div class="mode-badge academic"><i class="fas fa-graduation-cap"></i> Akademik javob</div>`,
+                school:   `<div class="mode-badge school"><i class="fas fa-school"></i> Maktab darajasi</div>`,
+                quick:    `<div class="mode-badge quick"><i class="fas fa-bolt"></i> Tezkor javob</div>`
+            };
+            badgeHTML = badges[mode] || '';
+        }
+
+        resArea.innerHTML = badgeHTML + marked.parse(data.reply);
+        if(window.MathJax) await MathJax.typesetPromise([resArea]);
+        btns.style.display = 'flex';
+        if(notif && window.ZiyomapNotify) {
+            ZiyomapNotify.update(notif, '✅ ' + (type==='lesson'?'Dars ishlanmasi':type==='info'?"Ma'lumot":'Testlar') + ' tayyor!', 'success');
+        }
     } catch(e) {
-        console.error(e);
-        showToast('Xato yuz berdi, qayta urinib ko\'ring');
-        document.getElementById('cw-loading').style.display = 'none';
+        resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi yuz berdi. Qayta urinib ko'ring.</span>";
+        if(notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = old;
     }
-}
-
-// ====== VALIDATE & AUTO-FIX INTERSECTIONS ======
-function validateAndFix(data) {
-    // Keep only clean latin words
-    data.words = data.words.filter(w => w.word && /^[A-Z]+$/.test(w.word));
-    data.words.forEach((w,i) => w.id = i+1);
-
-    // Normalize: shift all rows/cols so minimum is 0
-    let minR=Infinity, minC=Infinity;
-    data.words.forEach(w => {
-        minR = Math.min(minR, w.row);
-        minC = Math.min(minC, w.col);
-    });
-    if(minR < 0 || minC < 0) {
-        const dr = minR<0 ? -minR : 0;
-        const dc = minC<0 ? -minC : 0;
-        data.words.forEach(w => { w.row += dr; w.col += dc; });
-    }
-
-    // Fix bad intersections: for each (across, down) pair that overlap,
-    // check if letters match; if not, slide the down word to align
-    const across = data.words.filter(w=>w.dir==='across');
-    const down   = data.words.filter(w=>w.dir==='down');
-    const toRemove = new Set();
-
-    across.forEach(a => {
-        down.forEach(dw => {
-            const r = a.row;   // intersection row = across.row
-            const c = dw.col;  // intersection col = down.col
-            // Check if they overlap
-            const aOverlap = c >= a.col && c < a.col + a.word.length;
-            const dOverlap = r >= dw.row && r < dw.row + dw.word.length;
-            if (aOverlap && dOverlap) {
-                const aLetter = a.word[c - a.col];
-                const dLetter = dw.word[r - dw.row];
-                if (aLetter !== dLetter) {
-                    // Try to fix: find position in dw.word matching aLetter, then adjust dw.row
-                    let fixed = false;
-                    for (let di = 0; di < dw.word.length; di++) {
-                        if (dw.word[di] === aLetter) {
-                            const newRow = r - di;
-                            if (newRow >= 0) { dw.row = newRow; fixed = true; break; }
-                        }
-                    }
-                    if (!fixed) toRemove.add(dw.id);
-                }
-            }
-        });
-    });
-
-    if (toRemove.size > 0) data.words = data.words.filter(w => !toRemove.has(w.id));
-    data.words.forEach((w,i) => w.id = i+1);
-    return data;
-}
-
-// ====== BUILD INTERACTIVE CROSSWORD ======
-function buildInteractiveCrossword(data, subject, grade, topic) {
-    document.getElementById('cw-loading').style.display = 'none';
-    cwData = data;
-
-    // Calc grid size
-    let maxR=0, maxC=0;
-    data.words.forEach(w => {
-        const len = w.word.length;
-        if(w.dir==='across') { maxR=Math.max(maxR,w.row); maxC=Math.max(maxC,w.col+len-1); }
-        else                  { maxR=Math.max(maxR,w.row+len-1); maxC=Math.max(maxC,w.col); }
-    });
-    cwRows = maxR+1; cwCols = maxC+1;
-
-    // Init grid
-    cwGrid = Array.from({length:cwRows},()=>Array.from({length:cwCols},()=>({
-        letter:'', answer:'', wordIds:[]
-    })));
-
-    // Fill answers
-    data.words.forEach(w=>{
-        for(let i=0;i<w.word.length;i++){
-            const r = w.dir==='across'?w.row:w.row+i;
-            const c = w.dir==='across'?w.col+i:w.col;
-            if(r<cwRows && c<cwCols){
-                cwGrid[r][c].answer = w.word[i];
-                cwGrid[r][c].wordIds.push(w.id);
-            }
-        }
-    });
-
-    // Number cells (word start positions)
-    const numberedCells = {};
-    data.words.forEach(w=>{
-        const key = w.row+','+w.col;
-        if(numberedCells[key] === undefined) numberedCells[key] = w.id;
-        else numberedCells[key] = Math.min(numberedCells[key], w.id);
-    });
-
-    // Badge
-    document.getElementById('cw-label-badge').textContent = `${subject} ${grade}-sinf — ${topic}`;
-    document.getElementById('cw-total-count').textContent = data.words.length;
-    document.getElementById('cw-done-count').textContent = '0';
-
-    // Render grid
-    const gridEl = document.getElementById('cw-grid');
-    gridEl.style.gridTemplateColumns = `repeat(${cwCols},36px)`;
-    gridEl.innerHTML = '';
-
-    for(let r=0;r<cwRows;r++){
-        for(let c=0;c<cwCols;c++){
-            const cell = document.createElement('div');
-            cell.className = 'cw-cell';
-            cell.dataset.r = r; cell.dataset.c = c;
-            if(cwGrid[r][c].answer){
-                cell.classList.add('letter');
-                const num = numberedCells[r+','+c];
-                if(num !== undefined) cell.innerHTML = `<span class="cw-cell-num">${num}</span>`;
-                const inp = document.createElement('input');
-                inp.maxLength = 1;
-                inp.setAttribute('autocomplete','off');
-                inp.setAttribute('spellcheck','false');
-                inp.addEventListener('click',  ()=>onCellClick(r,c));
-                inp.addEventListener('keydown', e=>onCellKey(e,r,c));
-                inp.addEventListener('input',   e=>onCellInput(e,r,c));
-                cell.appendChild(inp);
-            }
-            gridEl.appendChild(cell);
-        }
-    }
-
-    renderQuestions(data);
-    document.getElementById('cw-workspace').classList.add('active');
-    renderSavedList();
-    showToast('Krossvord tayyor! Savolga bosib boshlang.');
-}
-
-
-function renderQuestions(data) {
-    const across = data.words.filter(w=>w.dir==='across').sort((a,b)=>a.id-b.id);
-    const down   = data.words.filter(w=>w.dir==='down').sort((a,b)=>a.id-b.id);
-
-    const aList = document.getElementById('cw-across-list');
-    const dList = document.getElementById('cw-down-list');
-    aList.innerHTML = ''; dList.innerHTML = '';
-
-    across.forEach(w=>{
-        const d = document.createElement('div');
-        d.className = 'cw-q-item'; d.dataset.wid = w.id;
-        d.innerHTML = `<span class="cw-q-num">${w.id}.</span>${w.clue}`;
-        d.onclick = ()=>selectWord(w);
-        aList.appendChild(d);
-    });
-    down.forEach(w=>{
-        const d = document.createElement('div');
-        d.className = 'cw-q-item'; d.dataset.wid = w.id;
-        d.innerHTML = `<span class="cw-q-num">${w.id}.</span>${w.clue}`;
-        d.onclick = ()=>selectWord(w);
-        dList.appendChild(d);
-    });
-}
-
-function selectWord(word) {
-    activeWord = word;
-    activeDir = word.dir;
-    // Deactivate all
-    document.querySelectorAll('.cw-cell').forEach(c=>c.classList.remove('active-word','active-cell'));
-    document.querySelectorAll('.cw-q-item').forEach(q=>q.classList.remove('active-q'));
-    const qEl = document.querySelector(`.cw-q-item[data-wid="${word.id}"]`);
-    if(qEl){ qEl.classList.add('active-q'); qEl.scrollIntoView({behavior:'smooth',block:'nearest'}); }
-    // Highlight word cells
-    for(let i=0;i<word.word.length;i++){
-        const r=word.dir==='across'?word.row:word.row+i;
-        const c=word.dir==='across'?word.col+i:word.col;
-        const el = getCellEl(r,c);
-        if(el) el.classList.add('active-word');
-    }
-    // Focus first empty cell in word
-    for(let i=0;i<word.word.length;i++){
-        const r=word.dir==='across'?word.row:word.row+i;
-        const c=word.dir==='across'?word.col+i:word.col;
-        const el = getCellEl(r,c);
-        if(el){
-            const inp = el.querySelector('input');
-            if(inp && !inp.value){ focusCell(r,c); return; }
-        }
-    }
-    focusCell(word.row, word.col);
-    document.getElementById('cw-hint-text').textContent = word.clue;
-}
-
-function getCellEl(r,c) {
-    return document.querySelector(`.cw-cell[data-r="${r}"][data-c="${c}"]`);
-}
-
-function focusCell(r,c) {
-    activeCell = {r,c};
-    document.querySelectorAll('.cw-cell').forEach(el=>el.classList.remove('active-cell'));
-    const el = getCellEl(r,c);
-    if(el){ el.classList.add('active-cell'); el.querySelector('input')?.focus(); }
-}
-
-function onCellClick(r,c) {
-    // If clicking same cell and two words intersect, toggle direction
-    if(activeCell && activeCell.r===r && activeCell.c===c){
-        const words = cwData.words.filter(w=>w.wordIds || true).filter(w=>{
-            for(let i=0;i<w.word.length;i++){
-                const wr=w.dir==='across'?w.row:w.row+i;
-                const wc=w.dir==='across'?w.col+i:w.col;
-                if(wr===r&&wc===c) return true;
-            }
-            return false;
-        });
-        if(words.length>=2){
-            const other = words.find(w=>w.dir!==activeDir);
-            if(other){ selectWord(other); return; }
-        }
-    }
-    // Find word at this cell preferring activeDir
-    const words = cwData.words.filter(w=>{
-        for(let i=0;i<w.word.length;i++){
-            const wr=w.dir==='across'?w.row:w.row+i;
-            const wc=w.dir==='across'?w.col+i:w.col;
-            if(wr===r&&wc===c) return true;
-        }
-        return false;
-    });
-    const preferred = words.find(w=>w.dir===activeDir) || words[0];
-    if(preferred) selectWord(preferred);
-    focusCell(r,c);
-}
-
-function onCellInput(e,r,c) {
-    const inp = e.target;
-    const val = inp.value.replace(/[^a-zA-ZʻʼА-Яа-яЎўҒғҲҳ]/g,'').toUpperCase().slice(-1);
-    inp.value = val;
-    cwGrid[r][c].letter = val;
-    updateDoneCount();
-    if(val) moveNext(r,c);
-}
-
-function onCellKey(e,r,c) {
-    if(e.key==='Backspace'){
-        const inp = getCellEl(r,c)?.querySelector('input');
-        if(inp && !inp.value) movePrev(r,c);
-    } else if(e.key==='ArrowRight') moveDir(r,c,0,1);
-    else if(e.key==='ArrowLeft')  moveDir(r,c,0,-1);
-    else if(e.key==='ArrowDown')  moveDir(r,c,1,0);
-    else if(e.key==='ArrowUp')    moveDir(r,c,-1,0);
-    else if(e.key==='Tab'){ e.preventDefault(); moveNextWord(); }
-}
-
-function moveNext(r,c) {
-    if(!activeWord) return;
-    if(activeWord.dir==='across') moveDir(r,c,0,1);
-    else moveDir(r,c,1,0);
-}
-function movePrev(r,c) {
-    if(!activeWord) return;
-    if(activeWord.dir==='across') moveDir(r,c,0,-1);
-    else moveDir(r,c,-1,0);
-}
-function moveDir(r,c,dr,dc) {
-    const nr=r+dr, nc=c+dc;
-    if(nr>=0&&nr<cwRows&&nc>=0&&nc<cwCols&&cwGrid[nr][nc].answer) focusCell(nr,nc);
-}
-function moveNextWord() {
-    if(!activeWord||!cwData) return;
-    const idx = cwData.words.findIndex(w=>w.id===activeWord.id);
-    const next = cwData.words[(idx+1)%cwData.words.length];
-    selectWord(next);
-}
-
-function updateDoneCount() {
-    if(!cwData) return;
-    let done=0;
-    cwData.words.forEach(w=>{
-        let correct=true;
-        for(let i=0;i<w.word.length;i++){
-            const r=w.dir==='across'?w.row:w.row+i;
-            const c=w.dir==='across'?w.col+i:w.col;
-            if((cwGrid[r][c].letter||'')!==w.word[i]) { correct=false; break; }
-        }
-        if(correct) done++;
-    });
-    document.getElementById('cw-done-count').textContent = done;
-    return done;
-}
-
-// ====== CHECK ======
-function checkAnswers() {
-    if(!cwData) return;
-    let correct=0, wrong=0;
-    // Clear previous coloring
-    document.querySelectorAll('.cw-cell.letter').forEach(el=>el.classList.remove('correct','wrong'));
-    document.querySelectorAll('.cw-q-item').forEach(el=>el.classList.remove('solved'));
-
-    cwData.words.forEach(w=>{
-        let wordCorrect=true;
-        for(let i=0;i<w.word.length;i++){
-            const r=w.dir==='across'?w.row:w.row+i;
-            const c=w.dir==='across'?w.col+i:w.col;
-            const inp = getCellEl(r,c)?.querySelector('input');
-            const val = (inp?.value||'').toUpperCase();
-            if(val && val===w.word[i]){
-                getCellEl(r,c)?.classList.add('correct');
-            } else if(val && val!==w.word[i]){
-                getCellEl(r,c)?.classList.add('wrong');
-                wordCorrect=false;
-            }
-        }
-        if(wordCorrect){
-            correct++;
-            document.querySelector(`.cw-q-item[data-wid="${w.id}"]`)?.classList.add('solved');
-        }
-    });
-    const total = cwData.words.length;
-    showToast(`✅ To'g'ri: ${correct}/${total} | ❌ Xato mavjud: ${total-correct}`);
-}
-
-function resetGrid() {
-    document.querySelectorAll('.cw-cell input').forEach(inp=>inp.value='');
-    document.querySelectorAll('.cw-cell').forEach(el=>el.classList.remove('correct','wrong'));
-    document.querySelectorAll('.cw-q-item').forEach(el=>el.classList.remove('solved'));
-    for(let r=0;r<cwRows;r++) for(let c=0;c<cwCols;c++) if(cwGrid[r]) cwGrid[r][c].letter='';
-    document.getElementById('cw-done-count').textContent='0';
-    showToast('🔄 Krossvord tozalandi');
-}
-
-// ====== SAVE / EDIT / DELETE ======
-function saveCrossword() {
-    if(!cwData) return;
-    const name = prompt("Krossvordga nom bering:", cwData.title||'Krossvord');
-    if(!name) return;
-    const id = Date.now();
-    cwSaved.push({ id, name, data:cwData, savedAt: new Date().toLocaleDateString('uz') });
-    localStorage.setItem('cw_saved', JSON.stringify(cwSaved));
-    renderSavedList();
-    showToast('💾 Saqlandi: '+name);
-}
-
-function editCrossword() {
-    // Re-open generator fields so user can regenerate
-    document.getElementById('cw-workspace').classList.remove('active');
-    document.getElementById('cw-topic').focus();
-    showToast('✏️ Tahrirlash uchun yangi mavzu kiriting');
-}
-
-function deleteCrossword() {
-    if(!confirm('Joriy krossvordni o\'chirmoqchimisiz?')) return;
-    cwData=null; cwGrid=[];
-    document.getElementById('cw-workspace').classList.remove('active');
-    showToast('🗑️ O\'chirildi');
-}
-
-function loadSaved(id) {
-    const item = cwSaved.find(s=>s.id===id);
-    if(!item) return;
-    buildInteractiveCrossword(item.data, '', '', item.name);
-}
-function deleteSaved(id) {
-    if(!confirm('O\'chirishni tasdiqlaysizmi?')) return;
-    cwSaved = cwSaved.filter(s=>s.id!==id);
-    localStorage.setItem('cw_saved', JSON.stringify(cwSaved));
-    renderSavedList();
-    showToast('🗑️ O\'chirildi');
-}
-
-function renderSavedList() {
-    const section = document.getElementById('cw-saved-section');
-    const list    = document.getElementById('cw-saved-list');
-    if(!cwSaved.length){ section.style.display='none'; return; }
-    section.style.display='block';
-    list.innerHTML = cwSaved.map(s=>`
-        <div class="cw-saved-item">
-            <div class="cw-saved-info">
-                <div class="cw-saved-name"><i class="fas fa-th" style="color:#e11d48;margin-right:6px"></i>${s.name}</div>
-                <div class="cw-saved-meta">${s.savedAt} · ${s.data.words?.length||0} so'z</div>
-            </div>
-            <div class="cw-saved-actions">
-                <button class="cw-saved-btn" style="background:#2563eb;color:white" onclick="loadSaved(${s.id})"><i class="fas fa-play"></i> Ochish</button>
-                <button class="cw-saved-btn" style="background:#ef4444;color:white" onclick="deleteSaved(${s.id})"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-    `).join('');
-}
-renderSavedList();
-
-// ====== PDF PRINT ======
-function cwPrint() {
-    if(!cwData) return;
-    // Build printable HTML
-    const words   = cwData.words;
-    const across  = words.filter(w=>w.dir==='across').sort((a,b)=>a.id-b.id);
-    const down    = words.filter(w=>w.dir==='down').sort((a,b)=>a.id-b.id);
-
-    // Build blank grid HTML
-    let gridHTML = `<table style="border-collapse:collapse;margin:0 auto">`;
-    for(let r=0;r<cwRows;r++){
-        gridHTML += '<tr>';
-        for(let c=0;c<cwCols;c++){
-            const cell = cwGrid[r][c];
-            const num  = words.find(w=>w.row===r&&w.col===c)?.id||'';
-            if(cell.answer){
-                gridHTML += `<td style="width:32px;height:32px;border:1.5px solid #93c5fd;background:#dbeafe;position:relative;text-align:center;vertical-align:middle">
-                    ${num?`<span style="position:absolute;top:1px;left:2px;font-size:7px;font-weight:700;color:#2563eb">${num}</span>`:''}
-                </td>`;
-            } else {
-                gridHTML += `<td style="width:32px;height:32px;background:#1e293b"></td>`;
-            }
-        }
-        gridHTML += '</tr>';
-    }
-    gridHTML += '</table>';
-
-    const qHTML = `
-        <div style="display:flex;gap:30px;margin-top:20px">
-            <div style="flex:1">
-                <h3 style="color:#2563eb;border-bottom:2px solid #2563eb;padding-bottom:5px">→ Eniga</h3>
-                ${across.map(w=>`<p style="margin:6px 0"><b style="color:#e11d48">${w.id}.</b> ${w.clue}</p>`).join('')}
-            </div>
-            <div style="flex:1">
-                <h3 style="color:#7c3aed;border-bottom:2px solid #7c3aed;padding-bottom:5px">↓ Bo'yiga</h3>
-                ${down.map(w=>`<p style="margin:6px 0"><b style="color:#e11d48">${w.id}.</b> ${w.clue}</p>`).join('')}
-            </div>
-        </div>`;
-
-    const answerHTML = `
-        <h3 style="color:#10b981;margin-top:30px;border-bottom:2px solid #10b981;padding-bottom:5px">✅ Javoblar</h3>
-        <table style="border-collapse:collapse;width:100%">
-            <tr style="background:#f0fdf4"><th style="border:1px solid #ccc;padding:8px">№</th><th style="border:1px solid #ccc;padding:8px">So'z</th><th style="border:1px solid #ccc;padding:8px">Savol</th></tr>
-            ${words.sort((a,b)=>a.id-b.id).map(w=>`
-            <tr><td style="border:1px solid #ccc;padding:8px;text-align:center">${w.id}</td>
-                <td style="border:1px solid #ccc;padding:8px;font-weight:700;color:#e11d48">${w.word}</td>
-                <td style="border:1px solid #ccc;padding:8px">${w.clue}</td></tr>`).join('')}
-        </table>`;
-
-    const pWin = window.open('','','height=900,width=1100');
-    pWin.document.write(`<html><head><title>Krossvord — ${cwData.title||''}</title>
-        <style>body{font-family:'Times New Roman',serif;padding:40px;color:#000}
-        @media print{@page{size:A4;margin:1.5cm}body{padding:0}}</style></head>
-        <body>
-        <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:20px">
-            <h1 style="margin:0">ZIYOMAP AI — KROSSVORD</h1>
-            <h2 style="margin:5px 0;color:#e11d48">${cwData.title||''}</h2>
-        </div>
-        ${gridHTML}${qHTML}${answerHTML}
-        <script>window.onload=()=>setTimeout(()=>window.print(),600)<\/script>
-        </body></html>`);
-    pWin.document.close();
-}
-
-// ====== FULLSCREEN ======
-let fsActive = false;
-
-function toggleFullscreen() {
-    const wrap = document.getElementById('cw-fs-wrap');
-    const btn  = document.getElementById('cw-fs-btn');
-    const toolbar  = wrap.querySelector('.cw-toolbar');
-    const body     = wrap.querySelector('.cw-body');
-    const scorebar = wrap.querySelector('.cw-score-bar');
-
-    if (!fsActive) {
-        // Create overlay div appended to body (escapes any parent overflow:hidden)
-        let overlay = document.getElementById('cw-fs-overlay');
-        if (!overlay) {
-            overlay = document.createElement('div');
-            overlay.id = 'cw-fs-overlay';
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99998;background:#f0f4ff;display:flex;flex-direction:column;overflow:hidden;';
-            document.body.appendChild(overlay);
-        }
-        overlay.innerHTML = '';
-        overlay.appendChild(toolbar);
-        overlay.appendChild(body);
-        overlay.appendChild(scorebar);
-        overlay.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        fsActive = true;
-        btn.innerHTML = '<i class="fas fa-compress"></i> Kichraytirish';
-        // Fix body height inside overlay
-        body.style.height = 'calc(100vh - 110px)';
-        body.style.overflow = 'hidden';
-    } else {
-        // Move elements back into wrap
-        const overlay = document.getElementById('cw-fs-overlay');
-        wrap.appendChild(toolbar);
-        wrap.appendChild(body);
-        wrap.appendChild(scorebar);
-        overlay.style.display = 'none';
-        document.body.style.overflow = '';
-        fsActive = false;
-        btn.innerHTML = '<i class="fas fa-expand"></i> Kengaytirish';
-        body.style.height = '';
-        body.style.overflow = 'hidden';
-    }
-}
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && fsActive) toggleFullscreen();
-});
-
-// ====== TOAST ======
-function showToast(msg) {
-    const t = document.getElementById('cw-toast');
-    t.textContent = msg; t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'), 3000);
 }
 
 // ====== PERFECT PRINT ======
@@ -1084,14 +593,21 @@ async function perfectPrint(id) {
     if(window.MathJax) await MathJax.typesetPromise([area]);
     const pWin = window.open('','','height=900,width=1100');
     pWin.document.write(`<html><head><title>Ziyomap AI</title>
-        <style>body{font-family:'Times New Roman',serif;padding:40px;line-height:1.6;color:#000}
-        table{width:100%;border-collapse:collapse;margin:20px 0}
-        th,td{border:1px solid #000;padding:10px;text-align:left}
-        th{background:#f2f2f2!important;-webkit-print-color-adjust:exact}
-        @media print{@page{size:A4;margin:1.5cm}body{padding:0}}</style></head>
+        <style>
+            body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.7; color: #000; background:#fff; }
+            table { width:100%; border-collapse:collapse; margin:20px 0; }
+            th, td { border:1px solid #000; padding:10px; text-align:left; }
+            th { background:#f2f2f2!important; -webkit-print-color-adjust:exact; }
+            h1,h2,h3 { color:#000; }
+            mjx-container { display:inline-block!important; vertical-align:middle; margin:3px 0; }
+            svg { max-width:100%; }
+            .mode-badge { display:none; }
+            @media print { @page { size:A4; margin:1.5cm; } body { padding:0; } }
+        </style></head>
         <body>
-        <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:30px">
-            <h1 style="margin:0">ZIYOMAP AI</h1><p style="margin:5px 0">Professional Ta'lim va Metodik Platforma</p>
+        <div style="text-align:center;border-bottom:3px double #000;padding-bottom:12px;margin-bottom:25px">
+            <h1 style="margin:0;font-size:1.5rem;letter-spacing:1px">ZIYOMAP AI</h1>
+            <p style="margin:4px 0;font-size:0.9rem">O'zbekiston ta'lim tizimi uchun AI yordamchi</p>
         </div>
         ${area.innerHTML}
         <script>window.onload=function(){setTimeout(()=>window.print(),800)}<\/script>
@@ -1099,14 +615,15 @@ async function perfectPrint(id) {
     pWin.document.close();
 }
 </script>
+
 <script src="js/ziyomap-usage.js"></script>
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/search-modal.js"></script>
 <script>ZiyomapAuthGuard.protectPage();</script>
 <script>
-document.addEventListener('keydown',function(e){
-    if((e.ctrlKey||e.metaKey)&&e.key==='k'){
+document.addEventListener('keydown', function(e){
+    if((e.ctrlKey||e.metaKey) && e.key==='k'){
         e.preventDefault();
         if(window.ZiyomapSearch) ZiyomapSearch.open();
     }
