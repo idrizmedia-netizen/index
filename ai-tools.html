@@ -73,12 +73,17 @@
             border: 1px solid #c7d7fe;
             overflow: hidden;
             position: relative;
+            display: flex;
+            flex-direction: column;
         }
-        .cw-fullscreen-wrap.is-fullscreen {
+        /* Fullscreen overlay — appended to body */
+        #cw-fs-overlay {
+            display: none;
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 9999; border-radius: 0; background: #f0f4ff;
-            display: flex; flex-direction: column;
+            z-index: 99998; background: #f0f4ff;
+            flex-direction: column; overflow: hidden;
         }
+        #cw-fs-overlay.active { display: flex; }
 
         /* Toolbar */
         .cw-toolbar {
@@ -110,16 +115,18 @@
         .cw-body {
             display: flex; gap: 0;
             flex: 1; overflow: hidden;
+            min-height: 400px;
         }
-        .cw-fullscreen-wrap.is-fullscreen .cw-body { height: calc(100vh - 60px); overflow: hidden; }
+        #cw-fs-overlay .cw-body { height: calc(100vh - 115px); overflow: hidden; }
 
         /* LEFT: questions */
         .cw-questions {
             width: 300px; min-width: 260px; flex-shrink: 0;
             padding: 20px; overflow-y: auto;
             border-right: 1px solid #e2e8f0; background: white;
+            max-height: 500px;
         }
-        .cw-fullscreen-wrap.is-fullscreen .cw-questions { height: 100%; }
+        #cw-fs-overlay .cw-questions { max-height: none; height: 100%; }
         .cw-q-section { margin-bottom: 20px; }
         .cw-q-title {
             font-weight: 700; font-size: 0.82rem; color: #2563eb;
@@ -143,7 +150,7 @@
             flex: 1; overflow: auto; padding: 20px;
             display: flex; align-items: flex-start; justify-content: center;
         }
-        .cw-fullscreen-wrap.is-fullscreen .cw-grid-wrap { align-items: center; }
+        #cw-fs-overlay .cw-grid-wrap { align-items: center; }
         .cw-grid { display: inline-grid; gap: 2px; }
         .cw-cell {
             width: 36px; height: 36px; position: relative;
@@ -523,6 +530,7 @@ let activeWord = null;   // word entry
 let cwSaved = JSON.parse(localStorage.getItem('cw_saved')||'[]');
 
 // ====== GENERATE CROSSWORD ======
+// ====== GENERATE CROSSWORD ======
 async function generateCrossword(btn) {
     const topic   = document.getElementById('cw-topic').value.trim();
     const subject = document.getElementById('cw-subject').value;
@@ -530,28 +538,17 @@ async function generateCrossword(btn) {
     const diff    = document.getElementById('cw-difficulty').value;
     if(!topic) return alert("Iltimos, mavzuni kiriting!");
 
-    let diffTxt = diff==='oson'?'Oson (qisqa, oddiy so\'zlar 4-6 harf)':diff==="o'rta"?'O\'rta (5-8 harf)':'Qiyin (7-12 harf, ilmiy atamalar)';
+    const diffTxt = diff==='oson'?'Oson (4-6 harf)':diff==="o'rta"?'O\'rta (5-8 harf)':'Qiyin (7-12 harf)';
 
-    const prompt = `Sen krossvord yaratuvchi tizimsan. ${subject} fani, ${grade}-sinf, "${topic}" mavzusi uchun krossvord yarat. Daraja: ${diffTxt}.
-
-FAQAT QUYIDAGI JSON FORMATIDA JAVOB BER (boshqa hech narsa yozma):
-{
-  "title": "...",
-  "words": [
-    {"id":1,"word":"SO'Z","clue":"Savol matni","dir":"across","row":0,"col":2},
-    {"id":2,"word":"SO'Z2","clue":"Savol matni","dir":"down","row":0,"col":2}
-  ]
-}
-
-MUHIM QOIDALAR:
-- Kamida 10 ta so'z (5 across, 5 down)
-- So'zlar FAQAT LOTIN HARFLARIDA bo'lsin (o'zbek imlosiga mos)
-- Har bir so'z boshqa so'z bilan kamida 1 ta umumiy harf orqali kesishsin
-- row va col 0 dan boshlanadi (0-indexed)
-- Kesishgan harflar bir xil bo'lsin
-- So'z harflari FAQAT KATTA harf
-
-JSON dan boshqa hech narsa yozma.`;
+    const prompt = `${subject} fani, ${grade}-sinf, "${topic}" mavzusi uchun krossvord yarat. Daraja: ${diffTxt}.
+FAQAT JSON (hech qanday tekst yo markdown yo'q):
+{"title":"...","words":[{"id":1,"word":"BITTA","clue":"Savol","dir":"across","row":0,"col":0}]}
+QOIDALAR:
+1. 10-12 so'z (5-6 across, 5-6 down). FAQAT A-Z KATTA HARF.
+2. across: row bir xil, col ortadi. down: col bir xil, row ortadi.
+3. KESISHUVLAR MAJBURIY - har juft (across,down) uchun: agar across.row in [down.row..down.row+down.word.length-1] VA down.col in [across.col..across.col+across.word.length-1] bo'lsa, across.word[down.col-across.col] === down.word[across.row-down.row] bo'lishi SHART.
+4. Kamida 4 ta to'g'ri kesishuv bo'lsin.
+5. JSON faqat.`;
 
     const old = btn.innerHTML;
     btn.disabled = true;
@@ -563,17 +560,74 @@ JSON dan boshqa hech narsa yozma.`;
         const r = await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})});
         const d = await r.json();
         let raw = d.reply.trim();
-        // Strip markdown code fences if present
-        raw = raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'').trim();
+        raw = raw.replace(/```json/g,'').replace(/```/g,'').trim();
+        const start = raw.indexOf('{'), end = raw.lastIndexOf('}');
+        if(start>=0&&end>start) raw = raw.slice(start,end+1);
         const parsed = JSON.parse(raw);
-        buildInteractiveCrossword(parsed, subject, grade, topic);
+        const fixed = validateAndFix(parsed);
+        buildInteractiveCrossword(fixed, subject, grade, topic);
     } catch(e) {
-        showToast('❌ Xato yuz berdi, qayta urinib ko\'ring');
+        console.error(e);
+        showToast('Xato yuz berdi, qayta urinib ko\'ring');
         document.getElementById('cw-loading').style.display = 'none';
     } finally {
         btn.disabled = false;
         btn.innerHTML = old;
     }
+}
+
+// ====== VALIDATE & AUTO-FIX INTERSECTIONS ======
+function validateAndFix(data) {
+    // Keep only clean latin words
+    data.words = data.words.filter(w => w.word && /^[A-Z]+$/.test(w.word));
+    data.words.forEach((w,i) => w.id = i+1);
+
+    // Normalize: shift all rows/cols so minimum is 0
+    let minR=Infinity, minC=Infinity;
+    data.words.forEach(w => {
+        minR = Math.min(minR, w.row);
+        minC = Math.min(minC, w.col);
+    });
+    if(minR < 0 || minC < 0) {
+        const dr = minR<0 ? -minR : 0;
+        const dc = minC<0 ? -minC : 0;
+        data.words.forEach(w => { w.row += dr; w.col += dc; });
+    }
+
+    // Fix bad intersections: for each (across, down) pair that overlap,
+    // check if letters match; if not, slide the down word to align
+    const across = data.words.filter(w=>w.dir==='across');
+    const down   = data.words.filter(w=>w.dir==='down');
+    const toRemove = new Set();
+
+    across.forEach(a => {
+        down.forEach(dw => {
+            const r = a.row;   // intersection row = across.row
+            const c = dw.col;  // intersection col = down.col
+            // Check if they overlap
+            const aOverlap = c >= a.col && c < a.col + a.word.length;
+            const dOverlap = r >= dw.row && r < dw.row + dw.word.length;
+            if (aOverlap && dOverlap) {
+                const aLetter = a.word[c - a.col];
+                const dLetter = dw.word[r - dw.row];
+                if (aLetter !== dLetter) {
+                    // Try to fix: find position in dw.word matching aLetter, then adjust dw.row
+                    let fixed = false;
+                    for (let di = 0; di < dw.word.length; di++) {
+                        if (dw.word[di] === aLetter) {
+                            const newRow = r - di;
+                            if (newRow >= 0) { dw.row = newRow; fixed = true; break; }
+                        }
+                    }
+                    if (!fixed) toRemove.add(dw.id);
+                }
+            }
+        });
+    });
+
+    if (toRemove.size > 0) data.words = data.words.filter(w => !toRemove.has(w.id));
+    data.words.forEach((w,i) => w.id = i+1);
+    return data;
 }
 
 // ====== BUILD INTERACTIVE CROSSWORD ======
@@ -592,7 +646,7 @@ function buildInteractiveCrossword(data, subject, grade, topic) {
 
     // Init grid
     cwGrid = Array.from({length:cwRows},()=>Array.from({length:cwCols},()=>({
-        letter:'', answer:'', wordIds:[], active:false
+        letter:'', answer:'', wordIds:[]
     })));
 
     // Fill answers
@@ -607,11 +661,12 @@ function buildInteractiveCrossword(data, subject, grade, topic) {
         }
     });
 
-    // Number cells
+    // Number cells (word start positions)
     const numberedCells = {};
     data.words.forEach(w=>{
         const key = w.row+','+w.col;
-        if(!numberedCells[key]) numberedCells[key]=w.id;
+        if(numberedCells[key] === undefined) numberedCells[key] = w.id;
+        else numberedCells[key] = Math.min(numberedCells[key], w.id);
     });
 
     // Badge
@@ -632,27 +687,26 @@ function buildInteractiveCrossword(data, subject, grade, topic) {
             if(cwGrid[r][c].answer){
                 cell.classList.add('letter');
                 const num = numberedCells[r+','+c];
-                if(num) cell.innerHTML = `<span class="cw-cell-num">${num}</span>`;
+                if(num !== undefined) cell.innerHTML = `<span class="cw-cell-num">${num}</span>`;
                 const inp = document.createElement('input');
                 inp.maxLength = 1;
                 inp.setAttribute('autocomplete','off');
-                inp.addEventListener('click', ()=>onCellClick(r,c));
+                inp.setAttribute('spellcheck','false');
+                inp.addEventListener('click',  ()=>onCellClick(r,c));
                 inp.addEventListener('keydown', e=>onCellKey(e,r,c));
-                inp.addEventListener('input', e=>onCellInput(e,r,c));
+                inp.addEventListener('input',   e=>onCellInput(e,r,c));
                 cell.appendChild(inp);
             }
             gridEl.appendChild(cell);
         }
     }
 
-    // Render questions
     renderQuestions(data);
-
-    // Show workspace
     document.getElementById('cw-workspace').classList.add('active');
     renderSavedList();
-    showToast('✅ Krossvord tayyor! Savolga bosib boshlang.');
+    showToast('Krossvord tayyor! Savolga bosib boshlang.');
 }
+
 
 function renderQuestions(data) {
     const across = data.words.filter(w=>w.dir==='across').sort((a,b)=>a.id-b.id);
@@ -904,22 +958,6 @@ function renderSavedList() {
 }
 renderSavedList();
 
-// ====== FULLSCREEN ======
-function toggleFullscreen() {
-    const wrap = document.getElementById('cw-fs-wrap');
-    const btn  = document.getElementById('cw-fs-btn');
-    if(wrap.classList.contains('is-fullscreen')){
-        wrap.classList.remove('is-fullscreen');
-        btn.innerHTML='<i class="fas fa-expand"></i> Kengaytirish';
-        document.body.style.overflow='';
-    } else {
-        wrap.classList.add('is-fullscreen');
-        btn.innerHTML='<i class="fas fa-compress"></i> Kichraytirish';
-        document.body.style.overflow='hidden';
-    }
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const w=document.getElementById('cw-fs-wrap'); if(w.classList.contains('is-fullscreen')) toggleFullscreen(); }});
-
 // ====== PDF PRINT ======
 function cwPrint() {
     if(!cwData) return;
@@ -983,6 +1021,55 @@ function cwPrint() {
         </body></html>`);
     pWin.document.close();
 }
+
+// ====== FULLSCREEN ======
+let fsActive = false;
+
+function toggleFullscreen() {
+    const wrap = document.getElementById('cw-fs-wrap');
+    const btn  = document.getElementById('cw-fs-btn');
+    const toolbar  = wrap.querySelector('.cw-toolbar');
+    const body     = wrap.querySelector('.cw-body');
+    const scorebar = wrap.querySelector('.cw-score-bar');
+
+    if (!fsActive) {
+        // Create overlay div appended to body (escapes any parent overflow:hidden)
+        let overlay = document.getElementById('cw-fs-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'cw-fs-overlay';
+            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99998;background:#f0f4ff;display:flex;flex-direction:column;overflow:hidden;';
+            document.body.appendChild(overlay);
+        }
+        overlay.innerHTML = '';
+        overlay.appendChild(toolbar);
+        overlay.appendChild(body);
+        overlay.appendChild(scorebar);
+        overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        fsActive = true;
+        btn.innerHTML = '<i class="fas fa-compress"></i> Kichraytirish';
+        // Fix body height inside overlay
+        body.style.height = 'calc(100vh - 110px)';
+        body.style.overflow = 'hidden';
+    } else {
+        // Move elements back into wrap
+        const overlay = document.getElementById('cw-fs-overlay');
+        wrap.appendChild(toolbar);
+        wrap.appendChild(body);
+        wrap.appendChild(scorebar);
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+        fsActive = false;
+        btn.innerHTML = '<i class="fas fa-expand"></i> Kengaytirish';
+        body.style.height = '';
+        body.style.overflow = 'hidden';
+    }
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && fsActive) toggleFullscreen();
+});
 
 // ====== TOAST ======
 function showToast(msg) {
