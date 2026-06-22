@@ -12,6 +12,7 @@ const tbBody = document.getElementById('tb-body');
 const collapseBtn = document.getElementById('tb-collapse');
 const collapseIcon = document.getElementById('tb-collapse-icon');
 const widgetLayer = document.getElementById('widget-layer');
+const pinnedLayer = document.getElementById('pinned-layer');
 
 let drawing = false;
 let color = '#ffffff';
@@ -26,10 +27,16 @@ let laserMode = false;
 let laserPoints = [];
 let lastCleanSnapshot = null;
 
+/* Zoom holati */
+let currentZoom = 1;
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 2.5;
+const ZOOM_STEP = 0.15;
+
 /* ════════════════════════════════════
    SAHIFALAR (slaydlar)
 ════════════════════════════════════ */
-let pages = [{ dataUrl: null, bg: { type: 'color', value: '#0f172a' } }];
+let pages = [{ dataUrl: null, bg: { type: 'color', value: '#0f172a' }, pinned: [] }];
 let currentPage = 0;
 
 function applyPageBg(bg) {
@@ -53,6 +60,15 @@ function savePageSnapshot() {
     try {
         pages[currentPage].dataUrl = canvas.toDataURL();
     } catch { /* ignore */ }
+    /* Joriy sahifadagi pinned-text elementlarini saqlash */
+    pages[currentPage].pinned = Array.from(pinnedLayer.children).map((el) => ({
+        text: el.querySelector('.pinned-text-content')?.textContent || '',
+        x: parseFloat(el.style.left) || 0,
+        y: parseFloat(el.style.top) || 0,
+        fontSize: parseFloat(el.style.fontSize) || 16,
+        color: el.style.color || '#ffffff',
+        width: el.style.width ? parseFloat(el.style.width) : null,
+    }));
 }
 
 function loadPageSnapshot(idx) {
@@ -64,6 +80,9 @@ function loadPageSnapshot(idx) {
         img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         img.src = page.dataUrl;
     }
+    /* Pinned-text elementlarini tozalab, joriy sahifa uchun qayta yaratish */
+    pinnedLayer.innerHTML = '';
+    (page.pinned || []).forEach((pt) => createPinnedText(pt));
     updatePageNav();
 }
 
@@ -89,7 +108,7 @@ function addPage() {
     const newBg = document.documentElement.getAttribute('data-doska-theme') === 'light'
         ? { type: 'color', value: '#ffffff' }
         : { type: 'color', value: '#0f172a' };
-    pages.push({ dataUrl: null, bg: newBg });
+    pages.push({ dataUrl: null, bg: newBg, pinned: [] });
     currentPage = pages.length - 1;
     undoStack = [];
     loadPageSnapshot(currentPage);
@@ -1245,6 +1264,180 @@ function addClockWidget() {
     clockHandle = setInterval(render, 1000);
 }
 
+/* ════════════════════════════════════════════════════════════
+   PINNED TEXT — doimiy, ko'chiriladigan, resize qilinadigan
+   matn elementlari. Har bir sahifa o'z pinned matnlarini saqlaydi.
+════════════════════════════════════════════════════════════ */
+let pinnedIdCounter = 0;
+
+const PT_COLORS = ['#ffffff', '#ff8a3d', '#2dd4bf', '#fde047', '#f87171', '#a78bfa'];
+
+function createPinnedText(data) {
+    const id = 'pt_' + (pinnedIdCounter++);
+    const el = document.createElement('div');
+    el.className = 'pinned-text';
+    el.id = id;
+    el.style.left = (data.x || 40) + 'px';
+    el.style.top = (data.y || 40) + 'px';
+    el.style.fontSize = (data.fontSize || 16) + 'px';
+    el.style.color = data.color || '#ffffff';
+    if (data.width) el.style.width = data.width + 'px';
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'pinned-text-toolbar';
+    toolbar.innerHTML = `
+        <button type="button" class="pt-tb-btn" data-act="edit" title="Tahrirlash"><i class="fas fa-pen"></i></button>
+        <button type="button" class="pt-tb-btn" data-act="size-dec" title="Kichraytirish"><i class="fas fa-minus"></i></button>
+        <button type="button" class="pt-tb-btn" data-act="size-inc" title="Kattalashtirish"><i class="fas fa-plus"></i></button>
+        <span class="pt-tb-sep"></span>
+        ${PT_COLORS.map((c) => `<button type="button" class="pt-tb-color" data-color="${c}" style="background:${c}"></button>`).join('')}
+        <span class="pt-tb-sep"></span>
+        <button type="button" class="pt-tb-btn pt-delete" data-act="delete" title="O'chirish"><i class="fas fa-trash"></i></button>
+    `;
+    el.appendChild(toolbar);
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'pinned-text-content';
+    textSpan.textContent = data.text || '';
+    el.appendChild(textSpan);
+
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'pinned-text-resize';
+    el.appendChild(resizeHandle);
+
+    pinnedLayer.appendChild(el);
+    bindPinnedTextEvents(el, textSpan, toolbar, resizeHandle);
+    return el;
+}
+
+function bindPinnedTextEvents(el, textSpan, toolbar, resizeHandle) {
+    let fontSize = parseFloat(el.style.fontSize) || 16;
+
+    function selectThis() {
+        document.querySelectorAll('.pinned-text.selected').forEach((o) => { if (o !== el) o.classList.remove('selected'); });
+        el.classList.add('selected');
+    }
+
+    /* Tanlash uchun bosish */
+    el.addEventListener('click', (e) => {
+        if (e.target.closest('.pinned-text-toolbar') || e.target.closest('.pinned-text-resize')) return;
+        selectThis();
+    });
+
+    /* Tashqariga bosilganda bekor qilish */
+    document.addEventListener('mousedown', (e) => {
+        if (!el.contains(e.target)) el.classList.remove('selected');
+    });
+
+    /* ── SUDRAB KO'CHIRISH ── */
+    let dragging = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+    function onDragStart(cx, cy) {
+        selectThis();
+        dragging = true;
+        el.classList.add('dragging');
+        startX = cx; startY = cy;
+        origLeft = parseFloat(el.style.left) || 0;
+        origTop = parseFloat(el.style.top) || 0;
+    }
+    function onDragMove(cx, cy) {
+        if (!dragging) return;
+        const z = currentZoom || 1;
+        el.style.left = (origLeft + (cx - startX) / z) + 'px';
+        el.style.top = (origTop + (cy - startY) / z) + 'px';
+    }
+    function onDragEnd() {
+        if (dragging) { dragging = false; el.classList.remove('dragging'); scheduleAutosave(); }
+    }
+    el.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.pinned-text-toolbar') || e.target.closest('.pinned-text-resize')) return;
+        e.preventDefault();
+        onDragStart(e.clientX, e.clientY);
+        const mm = (ev) => onDragMove(ev.clientX, ev.clientY);
+        const mu = () => { onDragEnd(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', mu);
+    });
+    el.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.pinned-text-toolbar') || e.target.closest('.pinned-text-resize')) return;
+        const t = e.touches[0];
+        onDragStart(t.clientX, t.clientY);
+    }, { passive: true });
+    el.addEventListener('touchmove', (e) => {
+        if (!dragging) return;
+        const t = e.touches[0];
+        onDragMove(t.clientX, t.clientY);
+        e.preventDefault();
+    }, { passive: false });
+    el.addEventListener('touchend', onDragEnd);
+
+    /* ── O'LCHAMINI O'ZGARTIRISH (resize handle) ── */
+    let resizing = false, rStartX = 0, rStartFont = 16, rStartWidth = 0;
+    function onResizeStart(cx) {
+        resizing = true;
+        rStartX = cx;
+        rStartFont = fontSize;
+        rStartWidth = el.offsetWidth;
+    }
+    function onResizeMove(cx) {
+        if (!resizing) return;
+        const z = currentZoom || 1;
+        const delta = (cx - rStartX) / z;
+        fontSize = Math.max(8, Math.min(96, rStartFont + delta * 0.18));
+        el.style.fontSize = fontSize + 'px';
+        el.style.width = Math.max(60, rStartWidth + delta) + 'px';
+    }
+    function onResizeEnd() { if (resizing) { resizing = false; scheduleAutosave(); } }
+    resizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        onResizeStart(e.clientX);
+        const mm = (ev) => onResizeMove(ev.clientX);
+        const mu = () => { onResizeEnd(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', mu);
+    });
+    resizeHandle.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        onResizeStart(e.touches[0].clientX);
+    }, { passive: true });
+    resizeHandle.addEventListener('touchmove', (e) => {
+        onResizeMove(e.touches[0].clientX);
+        e.preventDefault();
+    }, { passive: false });
+    resizeHandle.addEventListener('touchend', onResizeEnd);
+
+    /* ── TOOLBAR HARAKATLARI ── */
+    toolbar.addEventListener('mousedown', (e) => e.stopPropagation());
+    toolbar.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: true });
+
+    toolbar.querySelector('[data-act="size-inc"]').addEventListener('click', () => {
+        fontSize = Math.min(96, fontSize + 2);
+        el.style.fontSize = fontSize + 'px';
+        scheduleAutosave();
+    });
+    toolbar.querySelector('[data-act="size-dec"]').addEventListener('click', () => {
+        fontSize = Math.max(8, fontSize - 2);
+        el.style.fontSize = fontSize + 'px';
+        scheduleAutosave();
+    });
+    toolbar.querySelector('[data-act="delete"]').addEventListener('click', () => {
+        el.remove();
+        scheduleAutosave();
+    });
+    toolbar.querySelector('[data-act="edit"]').addEventListener('click', () => {
+        const newText = prompt('Matnni tahrirlash:', textSpan.textContent);
+        if (newText !== null) {
+            textSpan.textContent = newText;
+            scheduleAutosave();
+        }
+    });
+    toolbar.querySelectorAll('.pt-tb-color').forEach((dot) => {
+        dot.addEventListener('click', () => {
+            el.style.color = dot.dataset.color;
+            scheduleAutosave();
+        });
+    });
+}
+
 function addTextWidget() {
     const el = createWidgetShell('✏️ Matn', null);
     el.classList.add('text-widget');
@@ -1301,30 +1494,27 @@ function addTextWidget() {
         openColorPicker(ta.style.color || '#ffffff', (hex) => { ta.style.color = hex; });
     });
 
-    /* ── DOSKAGA CHIQARISH — matnni canvasga doimiy chizadi ── */
+    /* ── DOSKAGA CHIQARISH — endi doimiy, ko'chiriladigan/resize qilinadigan element yaratadi ── */
     stampBtn.addEventListener('click', () => {
         const text = ta.value.trim();
         if (!text) { showToast('Avval matn yozing'); return; }
-        pushUndo();
         const wrapRect = canvas.parentElement.getBoundingClientRect();
         const widgetRect = el.getBoundingClientRect();
-        const scaleX = canvas.width / wrapRect.width;
-        const scaleY = canvas.height / wrapRect.height;
-        const x = (widgetRect.left - wrapRect.left + 12) * scaleX;
-        let y = (widgetRect.top - wrapRect.top + (controls.offsetHeight + 30)) * scaleY;
-        const fpx = fontSize * scaleX;
+        const zoomVal = currentZoom || 1;
+        const x = (widgetRect.left - wrapRect.left) / zoomVal;
+        const y = (widgetRect.top - wrapRect.top) / zoomVal;
 
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = ta.style.color || '#ffffff';
-        ctx.font = `600 ${fpx}px 'Inter', sans-serif`;
-        ctx.textBaseline = 'top';
-        const lines = text.split('\n');
-        lines.forEach((line, i) => {
-            ctx.fillText(line, x, y + i * (fpx * 1.3));
+        createPinnedText({
+            text,
+            x,
+            y,
+            fontSize,
+            color: ta.style.color || '#ffffff',
         });
 
         el.remove();
-        showToast('✅ Matn doskaga chiqarildi');
+        showToast('✅ Matn doskaga chiqarildi — endi sudrab ko\'chiring yoki kattalashtiring');
+        scheduleAutosave();
     });
 
     setTimeout(() => ta.focus(), 50);
@@ -1360,6 +1550,93 @@ document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
 });
 initDoskaTheme();
 
+/* ════════════════════════════════════════════════════════════
+   ZOOM IN / ZOOM OUT
+   Butun ish hududini (canvas + widget + pinned text) kattalashtiradi
+════════════════════════════════════════════════════════════ */
+const zoomLayer = document.getElementById('doska-zoom-layer');
+const zoomLabel = document.getElementById('zoom-label');
+
+function applyZoom() {
+    if (zoomLayer) zoomLayer.style.transform = `scale(${currentZoom})`;
+    if (zoomLabel) zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+}
+function zoomIn() {
+    currentZoom = Math.min(ZOOM_MAX, +(currentZoom + ZOOM_STEP).toFixed(2));
+    applyZoom();
+}
+function zoomOut() {
+    currentZoom = Math.max(ZOOM_MIN, +(currentZoom - ZOOM_STEP).toFixed(2));
+    applyZoom();
+}
+function zoomReset() {
+    currentZoom = 1;
+    applyZoom();
+}
+document.getElementById('zoom-in')?.addEventListener('click', zoomIn);
+document.getElementById('zoom-out')?.addEventListener('click', zoomOut);
+document.getElementById('zoom-reset')?.addEventListener('click', zoomReset);
+
+/* Ctrl + scroll orqali ham zoom qilish imkoni */
+document.querySelector('.doska-canvas-wrap')?.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    if (e.deltaY < 0) zoomIn(); else zoomOut();
+}, { passive: false });
+
+/* Klaviatura: Ctrl + / Ctrl - / Ctrl 0 */
+document.addEventListener('keydown', (e) => {
+    if (!e.ctrlKey) return;
+    if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomIn(); }
+    if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomOut(); }
+    if (e.key === '0') { e.preventDefault(); zoomReset(); }
+});
+
+applyZoom();
+
+/* ════════════════════════════════════════════════════════════
+   MOBIL TOOLBAR — TEZKOR POZITSIYA TUGMASI
+   Drag qiyin bo'lgan qurilmalar uchun 4 burchak orasida aylanadi
+════════════════════════════════════════════════════════════ */
+const TOOLBAR_POSITIONS = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
+let toolbarPosIndex = 0;
+
+function applyToolbarPosition(posKey) {
+    if (!toolbar) return;
+    const margin = 12;
+    const topSafe = 64;
+    toolbar.style.transform = 'none';
+    toolbar.style.right = 'auto';
+    toolbar.style.bottom = 'auto';
+    toolbar.style.left = 'auto';
+    toolbar.style.top = 'auto';
+
+    if (posKey === 'top-left') { toolbar.style.left = margin + 'px'; toolbar.style.top = topSafe + 'px'; }
+    else if (posKey === 'top-right') { toolbar.style.right = margin + 'px'; toolbar.style.top = topSafe + 'px'; }
+    else if (posKey === 'bottom-right') { toolbar.style.right = margin + 'px'; toolbar.style.bottom = (margin + 70) + 'px'; }
+    else if (posKey === 'bottom-left') { toolbar.style.left = margin + 'px'; toolbar.style.bottom = (margin + 70) + 'px'; }
+
+    try { localStorage.setItem('doska_toolbar_pos', posKey); } catch { /* ignore */ }
+}
+
+document.getElementById('tb-position-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toolbarPosIndex = (toolbarPosIndex + 1) % TOOLBAR_POSITIONS.length;
+    const posKey = TOOLBAR_POSITIONS[toolbarPosIndex];
+    applyToolbarPosition(posKey);
+    showToast('Asboblar paneli ko\'chirildi');
+});
+
+/* Saqlangan pozitsiyani tiklash (agar foydalanuvchi avval drag qilmagan bo'lsa) */
+(function restoreToolbarPosition() {
+    let saved = null;
+    try { saved = localStorage.getItem('doska_toolbar_pos'); } catch { /* ignore */ }
+    if (saved && TOOLBAR_POSITIONS.includes(saved)) {
+        toolbarPosIndex = TOOLBAR_POSITIONS.indexOf(saved);
+        applyToolbarPosition(saved);
+    }
+})();
+
 /* ════════════════════════════════════
    AUTH + USAGE LOG
 ════════════════════════════════════ */
@@ -1381,7 +1658,7 @@ function autosaveNow() {
     try {
         savePageSnapshot();
         const payload = {
-            pages: pages.map((p) => ({ dataUrl: p.dataUrl, bg: p.bg })),
+            pages: pages.map((p) => ({ dataUrl: p.dataUrl, bg: p.bg, pinned: p.pinned || [] })),
             currentPage,
             theme: document.documentElement.getAttribute('data-doska-theme') || 'dark',
             savedAt: Date.now(),
