@@ -19,7 +19,10 @@
     <header class="doska-top">
         <a href="index.html"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
         <h1><i class="fas fa-pencil-alt"></i> ZiyoDoska</h1>
-        <button type="button" class="tb-btn" id="btn-fullscreen" title="To'liq ekran"><i class="fas fa-expand"></i></button>
+        <div style="display:flex;gap:8px;align-items:center">
+            <button type="button" class="tb-btn" id="btn-help" title="Klaviatura yorliqlari"><i class="fas fa-circle-question"></i></button>
+            <button type="button" class="tb-btn" id="btn-fullscreen" title="To'liq ekran"><i class="fas fa-expand"></i></button>
+        </div>
     </header>
 
     <div class="doska-canvas-wrap" id="doska-bg-wrap">
@@ -66,6 +69,9 @@
                     <button type="button" class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Binafsha"></button>
                     <button type="button" class="color-dot" data-color="#ff8a3d" style="background:#ff8a3d" title="Ziyo apelsin"></button>
                     <button type="button" class="color-dot" data-color="#000000" style="background:#000" title="Qora"></button>
+                    <button type="button" class="color-dot custom-color-trigger" id="pen-custom-color-btn" title="Boshqa rang tanlash" style="background:conic-gradient(from 180deg,red,yellow,lime,cyan,blue,magenta,red);display:flex;align-items:center;justify-content:center">
+                        <i class="fas fa-eye-dropper" style="font-size:10px;color:#fff;text-shadow:0 0 2px #000"></i>
+                    </button>
                 </div>
 
                 <label class="tb-label">Qalam qalinligi: <span id="brush-size-label">4px</span></label>
@@ -104,6 +110,12 @@
                     </button>
                     <button type="button" class="widget-option" id="widget-text">
                         <i class="fas fa-font"></i> Matn
+                    </button>
+                    <button type="button" class="widget-option" id="widget-sticky">
+                        <i class="fas fa-note-sticky"></i> Eslatma
+                    </button>
+                    <button type="button" class="widget-option" id="widget-laser">
+                        <i class="fas fa-bullseye"></i> Lazer
                     </button>
                 </div>
             </div>
