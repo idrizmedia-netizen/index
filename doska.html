@@ -1,130 +1,145 @@
 <!DOCTYPE html>
-
 <html lang="uz">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
     <title>ZiyoDoska | Onlayn doska</title>
     <link rel="icon" type="image/png" href="icon-192x192.png">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="css/doska.css">
-
     <link rel="stylesheet" href="css/mobile.css">
-
 </head>
-
 <body>
 
     <header class="doska-top">
-
         <a href="index.html"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
-
         <h1><i class="fas fa-pencil-alt"></i> ZiyoDoska</h1>
-
         <button type="button" class="tb-btn" id="btn-fullscreen" title="To'liq ekran"><i class="fas fa-expand"></i></button>
-
     </header>
 
-
-
     <div class="doska-canvas-wrap" id="doska-bg-wrap">
-
         <canvas id="board-canvas"></canvas>
-
+        <div id="widget-layer" style="position:absolute;inset:0;pointer-events:none;"></div>
     </div>
 
+    <!-- SAHIFA NAVIGATSIYASI -->
+    <div class="page-nav">
+        <button type="button" class="page-nav-btn" id="page-nav-prev" title="Oldingi sahifa"><i class="fas fa-chevron-left"></i></button>
+        <span class="page-nav-label" id="page-nav-label">1 / 1</span>
+        <button type="button" class="page-nav-btn" id="page-nav-next" title="Keyingi sahifa"><i class="fas fa-chevron-right"></i></button>
+        <button type="button" class="page-nav-add" id="page-nav-add" title="Yangi sahifa qo'shish"><i class="fas fa-plus"></i></button>
+    </div>
 
-
+    <!-- ASBOBLAR PANELI -->
     <div id="floating-toolbar" class="floating-toolbar" data-fab-id="doska-toolbar">
-
         <div class="tb-toolbar-head">
-
             <button type="button" class="tb-toggle-btn" id="tb-collapse" title="Menyuni yig'ish / ochish" aria-expanded="true">
-
                 <i class="fas fa-chevron-up" id="tb-collapse-icon"></i>
-
             </button>
-
             <span class="tb-head-title"><i class="fas fa-palette"></i> Asboblar</span>
-
             <span class="tb-drag" title="Surish"><i class="fas fa-grip-lines"></i></span>
-
         </div>
 
         <div class="tb-body" id="tb-body">
 
-            <div class="tb-row">
-
-                <span class="tb-mini-label">Qalam</span>
-
-                <button type="button" class="color-dot active" data-color="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
-
-                <button type="button" class="color-dot" data-color="#38bdf8" style="background:#38bdf8" title="Ko'k"></button>
-
-                <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444" title="Qizil"></button>
-
-                <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981" title="Yashil"></button>
-
-                <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b" title="Sariq"></button>
-
-                <button type="button" class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Binafsha"></button>
-
-                <button type="button" class="color-dot" data-color="#000000" style="background:#000" title="Qora"></button>
-
+            <!-- BO'LIM TANLAGICHLAR -->
+            <div class="tb-section-tabs">
+                <button type="button" class="tb-tab active" data-section="draw"><i class="fas fa-pen"></i> Chizish</button>
+                <button type="button" class="tb-tab" data-section="widget"><i class="fas fa-layer-group"></i> Widget</button>
+                <button type="button" class="tb-tab" data-section="bg"><i class="fas fa-palette"></i> Fon</button>
             </div>
 
-            <div class="tb-row tb-bg-row">
+            <!-- ═══ CHIZISH BO'LIMI ═══ -->
+            <div class="tb-section active" id="tb-section-draw">
+                <div class="tb-row">
+                    <span class="tb-mini-label">Qalam</span>
+                    <button type="button" class="color-dot active" data-color="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
+                    <button type="button" class="color-dot" data-color="#38bdf8" style="background:#38bdf8" title="Ko'k"></button>
+                    <button type="button" class="color-dot" data-color="#ef4444" style="background:#ef4444" title="Qizil"></button>
+                    <button type="button" class="color-dot" data-color="#10b981" style="background:#10b981" title="Yashil"></button>
+                    <button type="button" class="color-dot" data-color="#f59e0b" style="background:#f59e0b" title="Sariq"></button>
+                    <button type="button" class="color-dot" data-color="#a855f7" style="background:#a855f7" title="Binafsha"></button>
+                    <button type="button" class="color-dot" data-color="#ff8a3d" style="background:#ff8a3d" title="Ziyo apelsin"></button>
+                    <button type="button" class="color-dot" data-color="#000000" style="background:#000" title="Qora"></button>
+                </div>
 
-                <span class="tb-mini-label">Doska</span>
+                <label class="tb-label">Qalam qalinligi: <span id="brush-size-label">4px</span></label>
+                <input type="range" class="brush-range" id="brush-size" min="1" max="40" value="4">
 
-                <button type="button" class="bg-dot active" data-bg="#0f172a" style="background:#0f172a" title="To'q"></button>
+                <label class="tb-label" style="margin-top:8px">Shakllar</label>
+                <div class="shape-popup">
+                    <button type="button" class="shape-btn" data-shape="shape-line" title="Chiziq"><i class="fas fa-slash"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-rect" title="To'rtburchak"><i class="far fa-square"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-circle" title="Doira"><i class="far fa-circle"></i></button>
+                    <button type="button" class="tb-btn" id="btn-eraser" title="O'chirgich"><i class="fas fa-eraser"></i></button>
+                </div>
 
-                <button type="button" class="bg-dot" data-bg="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
-
-                <button type="button" class="bg-dot" data-bg="#1e3a5f" style="background:#1e3a5f" title="Ko'k"></button>
-
-                <button type="button" class="bg-dot" data-bg="#14532d" style="background:#14532d" title="Yashil"></button>
-
-                <button type="button" class="bg-dot" data-bg="#fef3c7" style="background:#fef3c7" title="Sariq"></button>
-
+                <div class="tb-row" style="margin-top:10px">
+                    <button type="button" class="tb-btn" id="btn-undo"><i class="fas fa-undo"></i> Orqaga</button>
+                    <button type="button" class="tb-btn danger" id="btn-clear"><i class="fas fa-trash"></i> Tozalash</button>
+                    <button type="button" class="tb-btn" id="btn-save"><i class="fas fa-download"></i> PNG</button>
+                </div>
             </div>
 
-            <label class="tb-label">Qalam qalinligi: <span id="brush-size-label">4px</span></label>
+            <!-- ═══ WIDGET BO'LIMI ═══ -->
+            <div class="tb-section" id="tb-section-widget">
+                <label class="tb-label">Doskaga widget qo'shish:</label>
+                <div class="widget-grid">
+                    <button type="button" class="widget-option" id="widget-timer">
+                        <i class="fas fa-stopwatch-20"></i> Taymer
+                    </button>
+                    <button type="button" class="widget-option" id="widget-stopwatch">
+                        <i class="fas fa-stopwatch"></i> Sekundomer
+                    </button>
+                    <button type="button" class="widget-option" id="widget-clock">
+                        <i class="fas fa-clock"></i> Soat
+                    </button>
+                    <button type="button" class="widget-option" id="widget-text">
+                        <i class="fas fa-font"></i> Matn
+                    </button>
+                </div>
+            </div>
 
-            <input type="range" class="brush-range" id="brush-size" min="1" max="40" value="4">
-
-            <div class="tb-row">
-
-                <button type="button" class="tb-btn" id="btn-eraser"><i class="fas fa-eraser"></i> O'chirgich</button>
-
-                <button type="button" class="tb-btn" id="btn-undo"><i class="fas fa-undo"></i> Orqaga</button>
-
-                <button type="button" class="tb-btn danger" id="btn-clear"><i class="fas fa-trash"></i> Tozalash</button>
-
-                <button type="button" class="tb-btn" id="btn-save"><i class="fas fa-download"></i> PNG</button>
-
+            <!-- ═══ FON BO'LIMI ═══ -->
+            <div class="tb-section" id="tb-section-bg">
+                <div class="tb-row tb-bg-row">
+                    <span class="tb-mini-label">Tezkor fon</span>
+                    <button type="button" class="bg-dot active" data-bg="#0f172a" style="background:#0f172a" title="To'q"></button>
+                    <button type="button" class="bg-dot" data-bg="#ffffff" style="background:#fff;border:1px solid #64748b" title="Oq"></button>
+                    <button type="button" class="bg-dot" data-bg="#1e3a5f" style="background:#1e3a5f" title="Ko'k"></button>
+                    <button type="button" class="bg-dot" data-bg="#14532d" style="background:#14532d" title="Yashil"></button>
+                    <button type="button" class="bg-dot" data-bg="#fef3c7" style="background:#fef3c7" title="Sariq"></button>
+                </div>
+                <button type="button" class="tb-btn full" id="btn-open-bg-modal" style="margin-top:10px">
+                    <i class="fas fa-image"></i> Rang / Gradient / Rasm / Pattern tanlash
+                </button>
             </div>
 
         </div>
-
     </div>
 
-
-
     <script src="js/ziyomap-usage.js"></script>
-
     <script src="js/auth-guard.js"></script>
-
     <script>ZiyomapAuthGuard.protectPage();</script>
     <script src="js/doska.js"></script>
 
+    <!-- Tezkor fon nuqtalari (bg-dot) — eski mantiqni saqlash uchun qo'shimcha bog'lash -->
+    <script>
+    document.querySelectorAll('.bg-dot').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.bg-dot').forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (typeof setPageBg === 'function') {
+                setPageBg({ type: 'color', value: btn.dataset.bg });
+            }
+        });
+    });
+    </script>
+
 </body>
-
 </html>
-
