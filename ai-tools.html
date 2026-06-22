@@ -25,7 +25,6 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
         
-        /* Qaytish tugmasi uchun yangi stil */
         .back-link {
             display: inline-flex;
             align-items: center;
@@ -57,7 +56,28 @@
         .btn-ai:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(37,99,235,0.3); }
         .btn-search { background: var(--secondary); }
         
-        /* Test generator sarlavha dizayni */
+        /* Daraja tanlash uchun badge-stil */
+        .difficulty-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .difficulty-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 14px;
+            border-radius: 50px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            text-align: center;
+            color: #64748b;
+        }
+        .difficulty-btn.active-easy   { border-color: #10b981; background: #ecfdf5; color: #065f46; }
+        .difficulty-btn.active-medium { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+        .difficulty-btn.active-hard   { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+        .difficulty-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        .difficulty-label { font-weight: 600; font-size: 0.85rem; color: #64748b; margin-bottom: 8px; display: block; }
+
         .title-flex { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; }
         .btn-info-icon { background: #e2e8f0; color: #475569; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-info-icon:hover { background: #cbd5e1; color: #1e293b; }
@@ -76,10 +96,14 @@
         table, th, td { border: 1px solid #000; padding: 12px; }
         th { background: #f1f5f9; }
 
+        /* Krossvord karta rang */
+        .crossword-card h2 { color: #e11d48; }
+
         @media (max-width: 600px) {
             body { padding: 10px; }
             .tool-card { padding: 20px; }
             .result-area { padding: 20px; font-size: 12pt; }
+            .difficulty-btn { min-width: 70px; font-size: 0.78rem; padding: 8px 10px; }
         }
     </style>
 </head>
@@ -90,6 +114,7 @@
         <i class="fas fa-arrow-left"></i> Asosiy sahifaga qaytish
     </a>
 
+    <!-- ===================== DARS ISHLANMASI ===================== -->
     <div class="tool-card" data-aos="fade-up">
         <h2><i class="fas fa-chalkboard-teacher"></i> Professional Dars Ishlanmasi</h2>
         <div class="input-group">
@@ -141,6 +166,7 @@
         </div>
     </div>
 
+    <!-- ===================== MA'LUMOT TOPISH ===================== -->
     <div class="tool-card" data-aos="fade-up">
         <h2><i class="fas fa-search-plus" style="color: #f59e0b;"></i> Mukammal Ma'lumot Topish</h2>
         <div class="input-group">
@@ -159,6 +185,7 @@
         </div>
     </div>
 
+    <!-- ===================== TEST GENERATOR ===================== -->
     <div class="tool-card" data-aos="fade-up">
         <div class="title-flex">
             <h2 style="color: #8b5cf6; margin: 0;"><i class="fas fa-cubes"></i> Professional AI Test Generator</h2>
@@ -204,6 +231,26 @@
             </select>
         </div>
 
+        <!-- YANGI: Test darajasi -->
+        <div class="input-group">
+            <span class="difficulty-label"><i class="fas fa-signal"></i> Test darajasini tanlang:</span>
+            <div class="difficulty-group" id="quiz-difficulty-group">
+                <button class="difficulty-btn active-easy" data-value="oson" onclick="selectDifficulty('quiz', this)">
+                    🟢 Oson
+                </button>
+                <button class="difficulty-btn" data-value="o'rta" onclick="selectDifficulty('quiz', this)">
+                    🟡 O'rta
+                </button>
+                <button class="difficulty-btn" data-value="qiyin" onclick="selectDifficulty('quiz', this)">
+                    🔴 Qiyin
+                </button>
+                <button class="difficulty-btn" data-value="aralash" onclick="selectDifficulty('quiz', this)">
+                    🔀 Aralash
+                </button>
+            </div>
+            <input type="hidden" id="quiz-difficulty" value="oson">
+        </div>
+
         <div class="input-group">
             <label>Mavzu yoki mavzular nomi:</label>
             <input type="text" id="quiz-topic" placeholder="Mavzuni yozing (Bir nechta bo'lsa, vergul yoki ikki nuqta bilan ajrating)...">
@@ -220,49 +267,160 @@
             </button>
         </div>
     </div>
+
+    <!-- ===================== KROSSVORD GENERATOR ===================== -->
+    <div class="tool-card crossword-card" data-aos="fade-up">
+        <div class="title-flex">
+            <h2 style="color: #e11d48; margin: 0;"><i class="fas fa-th"></i> AI Krossvord Generator</h2>
+            <button class="btn-info-icon" onclick="showCrosswordInfo()" title="Krossvord haqida yo'riqnoma">
+                <i class="fas fa-info"></i>
+            </button>
+        </div>
+
+        <div class="input-group">
+            <label>Fanni tanlang:</label>
+            <select id="cw-subject">
+                <option value="Matematika">Matematika</option>
+                <option value="Fizika">Fizika</option>
+                <option value="Kimyo">Kimyo</option>
+                <option value="Biologiya">Biologiya</option>
+                <option value="Informatika">Informatika</option>
+                <option value="O'zbek tili">O'zbek tili</option>
+                <option value="Ona tili">Ona tili</option>
+                <option value="Adabiyot">Adabiyot</option>
+                <option value="Ingliz tili">Ingliz tili</option>
+                <option value="Tarix">Tarix</option>
+                <option value="Geografiya">Geografiya</option>
+                <option value="Huquq">Huquq</option>
+                <option value="Iqtisodiyot">Iqtisodiyot</option>
+                <option value="Tarbiya">Tarbiya</option>
+                <option value="Tasviriy san'at">Tasviriy san'at</option>
+                <option value="Musiqa">Musiqa</option>
+                <option value="Texnologiya">Texnologiya</option>
+                <option value="Chizmachilik">Chizmachilik</option>
+                <option value="Jismoniy tarbiya">Jismoniy tarbiya</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Sinfni tanlang:</label>
+            <select id="cw-grade">
+                <script>
+                    for(let i=1; i<=11; i++) {
+                        document.write(`<option value="${i}">${i}-sinf</option>`);
+                    }
+                </script>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Mavzu nomi:</label>
+            <input type="text" id="cw-topic" placeholder="Krossvord tuzish uchun mavzuni yozing...">
+        </div>
+
+        <!-- Krossvord darajasi -->
+        <div class="input-group">
+            <span class="difficulty-label"><i class="fas fa-signal"></i> Krossvord darajasini tanlang:</span>
+            <div class="difficulty-group" id="cw-difficulty-group">
+                <button class="difficulty-btn active-easy" data-value="oson" onclick="selectDifficulty('cw', this)">
+                    🟢 Oson
+                </button>
+                <button class="difficulty-btn" data-value="o'rta" onclick="selectDifficulty('cw', this)">
+                    🟡 O'rta
+                </button>
+                <button class="difficulty-btn" data-value="qiyin" onclick="selectDifficulty('cw', this)">
+                    🔴 Qiyin
+                </button>
+            </div>
+            <input type="hidden" id="cw-difficulty" value="oson">
+        </div>
+
+        <button class="btn-ai" style="background: #e11d48;" onclick="generate('crossword', this)">
+            <i class="fas fa-th"></i> Krossvord Yaratish
+        </button>
+
+        <div id="res-crossword" class="result-area"></div>
+        <div class="action-btns" id="btns-crossword">
+            <button class="btn-pdf" onclick="perfectPrint('res-crossword')">
+                <i class="fas fa-file-pdf"></i> Sifatli PDF yuklab olish
+            </button>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
     AOS.init();
 
-    // Yo'riqnoma tugmasi bosilganda chiquvchi ma'lumot oynasi
+    // Daraja tanlash — quiz va crossword uchun universal
+    function selectDifficulty(prefix, btn) {
+        const group = document.getElementById(prefix + '-difficulty-group');
+        group.querySelectorAll('.difficulty-btn').forEach(b => {
+            b.classList.remove('active-easy', 'active-medium', 'active-hard');
+        });
+        const val = btn.getAttribute('data-value');
+        if (val === 'oson')        btn.classList.add('active-easy');
+        else if (val === "o'rta")  btn.classList.add('active-medium');
+        else if (val === 'qiyin')  btn.classList.add('active-hard');
+        else                       btn.classList.add('active-easy'); // aralash
+        document.getElementById(prefix + '-difficulty').value = val;
+    }
+
     function showQuizInfo() {
         alert("ℹ️ TEST GENERATOR QO'LLANMASI:\n\n" +
               "1. Bitta mavzu bo'yicha test tuzish uchun oddiygina mavzu nomini yozing.\n" +
-              "2. Agar bir nechta mavzuni qamrab olgan aralash test tuzmoqchi bo'lsangiz, ularni vergul (,) yoki ikki nuqta (:) bilan ajratib yozishingiz mumkin.\n\n" +
+              "2. Agar bir nechta mavzuni qamrab olgan aralash test tuzmoqchi bo'lsangiz, ularni vergul (,) yoki ikki nuqta (:) bilan ajratib yozishingiz mumkin.\n" +
+              "3. Daraja tanlang: Oson — oddiy, O'rta — o'ylantiruvchi, Qiyin — chuqur bilim talab etuvchi, Aralash — barcha darajalar qo'shilgan.\n\n" +
               "Masalan:\n" +
               "— To'g'ri chiziqli harakat, Tekis tezlanuvchan harakat\n" +
               "— Kvadrat tenglamalar: Viet teoremasi, Diskriminant usuli");
     }
 
+    function showCrosswordInfo() {
+        alert("ℹ️ KROSSVORD GENERATOR QO'LLANMASI:\n\n" +
+              "1. Fanni va sinfni tanlang.\n" +
+              "2. Krossvord tuzmoqchi bo'lgan mavzuni yozing.\n" +
+              "3. Qiyinlik darajasini tanlang:\n" +
+              "   🟢 Oson — oddiy atamalar, qisqa so'zlar\n" +
+              "   🟡 O'rta — o'rta murakkablikdagi savollar\n" +
+              "   🔴 Qiyin — chuqur bilim talab etuvchi atamalar\n\n" +
+              "AI krossvord savollarini, javoblar jadvalini va bo'sh to'ldirish varaqasini tayyorlaydi.");
+    }
+
     async function generate(type, btn) {
-        const isLesson = type === 'lesson';
-        const isInfo = type === 'info';
-        const isQuiz = type === 'quiz';
+        const isLesson    = type === 'lesson';
+        const isInfo      = type === 'info';
+        const isQuiz      = type === 'quiz';
+        const isCrossword = type === 'crossword';
         
         let topic = "";
         let resArea, btns, prompt;
         let label = '';
 
         if (isLesson) {
-            topic = document.getElementById('topic').value;
+            topic   = document.getElementById('topic').value;
             resArea = document.getElementById('res-lesson');
-            btns = document.getElementById('btns-lesson');
-            label = 'dars rejasi';
+            btns    = document.getElementById('btns-lesson');
+            label   = 'dars rejasi';
         } else if (isInfo) {
-            topic = document.getElementById('info-topic').value;
+            topic   = document.getElementById('info-topic').value;
             resArea = document.getElementById('res-info');
-            btns = document.getElementById('btns-info');
-            label = 'ma\'lumot';
+            btns    = document.getElementById('btns-info');
+            label   = "ma'lumot";
         } else if (isQuiz) {
-            topic = document.getElementById('quiz-topic').value;
+            topic   = document.getElementById('quiz-topic').value;
             resArea = document.getElementById('res-quiz');
-            btns = document.getElementById('btns-quiz');
-            label = 'testlar';
+            btns    = document.getElementById('btns-quiz');
+            label   = 'testlar';
+        } else if (isCrossword) {
+            topic   = document.getElementById('cw-topic').value;
+            resArea = document.getElementById('res-crossword');
+            btns    = document.getElementById('btns-crossword');
+            label   = 'krossvord';
         }
 
-        if(!topic) return alert("Iltimos, mavzuni kiriting!");
+        if (!topic) return alert("Iltimos, mavzuni kiriting!");
 
         const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI ' + label + ' tayyorlashni boshladi...') : null;
 
@@ -274,13 +432,15 @@
 
         if (isLesson) {
             prompt = `${document.getElementById('subject').value} fani ${document.getElementById('grade').value}-sinf "${topic}" mavzusida O'zbekiston darslik standartlariga mos dars ishlanmasi. Tarkibi: Mavzu maqsadi, metodlar, yangi mavzu bayoni (kengaytirilgan), amaliy mashqlar, savol-javoblar va jadvallar. LaTeX formulalarni $..$ ichida yoz.`;
+
         } else if (isInfo) {
             prompt = `"${topic}" mavzusi haqida akademik darajada batafsil ma'lumot ber. Tarixi, asosiy qoidalari, amaliy ahamiyati va jadval ko'rinishida qisqa faktlar bo'lsin. LaTeX ishlatilsin.`;
+
         } else if (isQuiz) {
-            const quizSubject = document.getElementById('quiz-subject').value;
-            const quizCount = document.getElementById('quiz-count').value;
-            
-            // Vergul yoki ikki nuqta orqali ko'p mavzulilikni tahlil qilish mantig'i
+            const quizSubject    = document.getElementById('quiz-subject').value;
+            const quizCount      = document.getElementById('quiz-count').value;
+            const quizDifficulty = document.getElementById('quiz-difficulty').value;
+
             let parsedTopics = topic;
             if (topic.includes(',') || topic.includes(':')) {
                 parsedTopics = `quyidagi kiritilgan bir nechta mustaqil mavzularni o'z ichiga olgan aralash holdagi: "${topic}"`;
@@ -288,7 +448,42 @@
                 parsedTopics = `"${topic}"`;
             }
 
-            prompt = `Siz ta'lim tizimi ekspertisiz. ${quizSubject} fani bo'yicha ${parsedTopics} mavzulari yuzasidan jami ${quizCount} ta mustaqil, variantli (A, B, C, D) test savollarini shakllantiring. Savollar tizimli va tushunarli bo'lsin. Barcha testlar tugagach, eng quyida to'g'ri javoblar kalitini (shpargalka/matritsa) jadval ko'rinishida taqdim eting. Agar fan aniq fan bo'lsa (Matematika, Fizika, Kimyo kabi), barcha matematik formulalar, tenglamalar, ildizlar va kasrlarni qat'iy ravishda $..$ (LaTeX) standartida yozing.`;
+            let difficultyDesc = '';
+            if (quizDifficulty === 'oson')       difficultyDesc = "Savollar sodda va tushunarli bo'lsin, asosiy tushunchalar tekshirilsin (oson daraja).";
+            else if (quizDifficulty === "o'rta")  difficultyDesc = "Savollar o'rta murakkablikda bo'lsin, o'ylashni talab qilsin (o'rta daraja).";
+            else if (quizDifficulty === 'qiyin')  difficultyDesc = "Savollar murakkab va chuqur bo'lsin, tahliliy fikrlashni talab qilsin (qiyin daraja).";
+            else                                  difficultyDesc = "Savollar oson, o'rta va qiyin darajalarini teng qamrab olsin (aralash daraja).";
+
+            prompt = `Siz ta'lim tizimi ekspertisiz. ${quizSubject} fani bo'yicha ${parsedTopics} mavzulari yuzasidan jami ${quizCount} ta mustaqil, variantli (A, B, C, D) test savollarini shakllantiring. ${difficultyDesc} Savollar tizimli va tushunarli bo'lsin. Barcha testlar tugagach, eng quyida to'g'ri javoblar kalitini (shpargalka/matritsa) jadval ko'rinishida taqdim eting. Agar fan aniq fan bo'lsa (Matematika, Fizika, Kimyo kabi), barcha matematik formulalar, tenglamalar, ildizlar va kasrlarni qat'iy ravishda $..$ (LaTeX) standartida yozing.`;
+
+        } else if (isCrossword) {
+            const cwSubject    = document.getElementById('cw-subject').value;
+            const cwGrade      = document.getElementById('cw-grade').value;
+            const cwDifficulty = document.getElementById('cw-difficulty').value;
+
+            let cwDiffDesc = '';
+            if (cwDifficulty === 'oson')       cwDiffDesc = "Savollar oddiy va bolalarga tushunarli bo'lsin, qisqa (4-6 harfli) so'zlar ishlatilsin.";
+            else if (cwDifficulty === "o'rta")  cwDiffDesc = "Savollar o'rta murakkablikda bo'lsin, 5-8 harfli atamalar ishlatilsin.";
+            else                               cwDiffDesc = "Savollar murakkab va chuqur bo'lsin, maxsus ilmiy atamalar (7-12 harf) ishlatilsin.";
+
+            prompt = `Siz ${cwSubject} fani mutaxassisisiz. ${cwGrade}-sinf o'quvchilari uchun "${topic}" mavzusida krossvord tayyorlang. ${cwDiffDesc}
+
+Quyidagi tartibda bering:
+
+1. **KROSSVORD SAVOLLARI** — kamida 12 ta so'z. Har bir satr quyidagi formatda:
+   - [raqam]. [Savol matni] → Javob: [SO'Z]
+
+2. **KROSSVORD SXEMASI (jadval ko'rinishida)** — har bir so'z uchun qator va ustun raqamini, yo'nalishini (gorizontal / vertikal) ko'rsating:
+
+| № | So'z | Boshlanish (qator, ustun) | Yo'nalish | Harflar soni |
+|---|------|--------------------------|-----------|--------------|
+| 1 | ... | ... | ... | ... |
+
+3. **BO'SH KROSSVORD VARAG'I** — kataklarga raqamlar qo'yilgan holda chizib bering (ASCII art yoki jadval ko'rinishida).
+
+4. **TO'LDIRILGANt KROSSVORD VARAG'I** — barcha harflar to'ldirilgan holda.
+
+Krossvord to'g'ri kesishuvlarga ega bo'lsin (gorizontal va vertikal so'zlar umumiy harf orqali tutashsin).`;
         }
 
         try {
@@ -299,12 +494,15 @@
             });
             const data = await response.json();
             resArea.innerHTML = marked.parse(data.reply);
-            if(window.MathJax) await MathJax.typesetPromise([resArea]);
+            if (window.MathJax) await MathJax.typesetPromise([resArea]);
             btns.style.display = "flex";
-            if (notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, '✅ ' + (isLesson?'Dars rejasi':isInfo?'Ma\'lumot':'Testlar') + ' muvaffaqiyatli tayyorlandi!', 'success');
+            if (notif && window.ZiyomapNotify) {
+                const successLabel = isLesson ? 'Dars rejasi' : isInfo ? "Ma'lumot" : isQuiz ? 'Testlar' : 'Krossvord';
+                ZiyomapNotify.update(notif, '✅ ' + successLabel + ' muvaffaqiyatli tayyorlandi!', 'success');
+            }
         } catch (e) { 
             resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi! Qayta urinib ko'ring.</span>";
-            if (notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi. Qayta urinib ko\'ring.', 'error');
+            if (notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, "❌ Xatolik yuz berdi. Qayta urinib ko'ring.", 'error');
         } finally {
             btn.disabled = false;
             btn.innerHTML = oldHTML;
@@ -313,14 +511,11 @@
 
     async function perfectPrint(id) {
         const area = document.getElementById(id);
-        
         if (window.MathJax) {
             await MathJax.typesetPromise([area]);
         }
-
         const content = area.innerHTML;
         const pWin = window.open('', '', 'height=900,width=1100');
-        
         pWin.document.write(`
             <html>
                 <head>
@@ -336,7 +531,6 @@
                         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
                         th, td { border: 1px solid #000; padding: 10px; text-align: left; }
                         th { background: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
-                        
                         mjx-container { 
                             display: inline-block !important; 
                             vertical-align: middle;
@@ -344,7 +538,6 @@
                             line-height: 0;
                         }
                         svg { max-width: 100%; }
-
                         @media print {
                             @page { size: A4; margin: 1.5cm; }
                             body { padding: 0; }
@@ -356,16 +549,13 @@
                         <h1 style="margin:0">ZIYOMAP AI</h1>
                         <p style="margin:5px 0">Professional Ta'lim va Metodik Platforma</p>
                     </div>
-                    
                     <div id="print-content">
                         ${content}
                     </div>
-
                     <script>
                         window.onload = function() {
                             setTimeout(() => {
                                 window.print();
-                                // window.close(); 
                             }, 800); 
                         };
                     <\/script>
