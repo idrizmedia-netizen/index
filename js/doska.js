@@ -86,16 +86,30 @@ function goToPage(idx) {
 
 function addPage() {
     savePageSnapshot();
-    pages.push({ dataUrl: null, bg: { type: 'color', value: '#0f172a' } });
+    const newBg = document.documentElement.getAttribute('data-doska-theme') === 'light'
+        ? { type: 'color', value: '#ffffff' }
+        : { type: 'color', value: '#0f172a' };
+    pages.push({ dataUrl: null, bg: newBg });
     currentPage = pages.length - 1;
     undoStack = [];
     loadPageSnapshot(currentPage);
     showToast('Yangi sahifa qo\'shildi');
 }
 
+function deletePage() {
+    if (pages.length <= 1) { showToast('Kamida 1 sahifa qolishi kerak'); return; }
+    if (!confirm(`${currentPage + 1}-sahifani o'chirasizmi?`)) return;
+    pages.splice(currentPage, 1);
+    currentPage = Math.max(0, currentPage - 1);
+    undoStack = [];
+    loadPageSnapshot(currentPage);
+    showToast('Sahifa o\'chirildi');
+}
+
 document.getElementById('page-nav-prev')?.addEventListener('click', () => goToPage(currentPage - 1));
 document.getElementById('page-nav-next')?.addEventListener('click', () => goToPage(currentPage + 1));
 document.getElementById('page-nav-add')?.addEventListener('click', addPage);
+document.getElementById('page-nav-delete')?.addEventListener('click', deletePage);
 
 /* ════════════════════════════════════
    TOAST
@@ -563,6 +577,9 @@ function buildBgModal() {
                         <input type="text" class="hex-input" id="hex-input" placeholder="#ffffff" value="#ffffff">
                         <button class="hex-apply-btn" id="hex-apply">Qo'llash</button>
                     </div>
+                    <button type="button" class="tb-btn full" id="bg-full-picker-btn" style="margin-bottom:16px">
+                        <i class="fas fa-eye-dropper"></i> Boshqa rangni tanlash (to'liq palitra)
+                    </button>
                     <div class="modal-section-label">Gradientlar</div>
                     <div class="gradient-grid" id="bg-gradient-grid"></div>
                 </div>
@@ -643,6 +660,14 @@ function buildBgModal() {
         }
     });
 
+    overlay.querySelector('#bg-full-picker-btn').addEventListener('click', () => {
+        openColorPicker(hexInput.value || '#ffffff', (hex) => {
+            setPageBg({ type: 'color', value: hex });
+            hexInput.value = hex;
+            hexPreview.style.background = hex;
+        });
+    });
+
     overlay.querySelector('#bg-image-input').addEventListener('change', (e) => {
         const f = e.target.files[0];
         if (!f) return;
@@ -681,6 +706,7 @@ function setPageBg(bg) {
     pages[currentPage].bg = bg;
     applyPageBg(bg);
     showToast('Fon o\'zgartirildi');
+    if (typeof scheduleAutosave === 'function') scheduleAutosave();
 }
 
 document.getElementById('btn-open-bg-modal')?.addEventListener('click', openBgModal);
@@ -1317,6 +1343,24 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ════════════════════════════════════
+   TUN / KUN REJIMI
+════════════════════════════════════ */
+function applyDoskaTheme(mode) {
+    document.documentElement.setAttribute('data-doska-theme', mode);
+    try { localStorage.setItem('doska_theme', mode); } catch { /* ignore */ }
+}
+function initDoskaTheme() {
+    let saved = null;
+    try { saved = localStorage.getItem('doska_theme'); } catch { /* ignore */ }
+    applyDoskaTheme(saved === 'light' ? 'light' : 'dark');
+}
+document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-doska-theme');
+    applyDoskaTheme(current === 'light' ? 'dark' : 'light');
+});
+initDoskaTheme();
+
+/* ════════════════════════════════════
    AUTH + USAGE LOG
 ════════════════════════════════════ */
 if (window.ZiyomapUsage?.getUser()) {
@@ -1324,3 +1368,59 @@ if (window.ZiyomapUsage?.getUser()) {
 }
 
 updatePageNav();
+
+/* ════════════════════════════════════
+   AVTOMATIK SAQLASH (ehtiyotkorlik bilan)
+   Faqat joriy sahifa rasmi + barcha fon sozlamalari saqlanadi.
+   localStorage hajmi cheklangani uchun xato chiqsa jim o'tkaziladi.
+════════════════════════════════════ */
+const AUTOSAVE_KEY = 'ziyodoska_autosave_v1';
+let autosaveHandle = null;
+
+function autosaveNow() {
+    try {
+        savePageSnapshot();
+        const payload = {
+            pages: pages.map((p) => ({ dataUrl: p.dataUrl, bg: p.bg })),
+            currentPage,
+            theme: document.documentElement.getAttribute('data-doska-theme') || 'dark',
+            savedAt: Date.now(),
+        };
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(payload));
+    } catch {
+        /* Hajm chegarasidan oshgan bo'lishi mumkin — jim o'tkaziladi */
+    }
+}
+
+function scheduleAutosave() {
+    clearTimeout(autosaveHandle);
+    autosaveHandle = setTimeout(autosaveNow, 1500);
+}
+
+function tryRestoreAutosave() {
+    let raw = null;
+    try { raw = localStorage.getItem(AUTOSAVE_KEY); } catch { return; }
+    if (!raw) return;
+    try {
+        const payload = JSON.parse(raw);
+        if (!payload?.pages?.length) return;
+        const ageMs = Date.now() - (payload.savedAt || 0);
+        if (ageMs > 1000 * 60 * 60 * 24 * 14) return; // 14 kundan eski bo'lsa e'tibor bermaymiz
+        if (!confirm('Saqlangan doska holati topildi. Uni tiklaymizmi?')) {
+            localStorage.removeItem(AUTOSAVE_KEY);
+            return;
+        }
+        pages = payload.pages;
+        currentPage = Math.min(payload.currentPage || 0, pages.length - 1);
+        loadPageSnapshot(currentPage);
+        showToast('✅ Avvalgi doska tiklandi');
+    } catch { /* ignore */ }
+}
+
+/* Chizish, widget va fon o'zgarishlarida avtosaqlashni rejalashtirish */
+canvas.addEventListener('mouseup', scheduleAutosave);
+canvas.addEventListener('touchend', scheduleAutosave);
+document.addEventListener('keydown', (e) => { if (e.ctrlKey && e.key === 'z') scheduleAutosave(); });
+window.addEventListener('beforeunload', autosaveNow);
+
+tryRestoreAutosave();
