@@ -11,12 +11,17 @@
 
     <!-- KaTeX — eng tez matematik formula kutubxonasi -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
-    <!-- highlight.js — kod bloklari -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css" id="hljs-theme">
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+    <!-- highlight.js — kod bloklari (defer YO'Q — inline skriptlar ishlatadi) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-theme">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
 
     <!-- Marked.js — markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
@@ -44,7 +49,7 @@
         --light-bg: #020617;
         --card-bg: rgba(30,41,59,0.95);
     }
-    body.dark-theme #hljs-theme { disabled: true; }
+    body.dark-theme #hljs-theme { /* dark theme hljs JS orqali almashtiriladi */ }
 
     /* ── TAB BAR ── */
     .ai-tab-bar {
@@ -404,11 +409,14 @@
 
     <script>
     /* ── THEME ── */
-    if(localStorage.getItem('theme')==='dark'){
+    if(localStorage.getItem('theme') === 'dark'){
         document.body.classList.add('dark-theme');
-        const hl = document.getElementById('hljs-theme');
-        if(hl) hl.href = 'https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css';
     }
+    window.toggleTheme = function() {
+        const dark = document.body.classList.toggle('dark-theme');
+        localStorage.setItem('theme', dark ? 'dark' : 'light');
+        if (window.applyHljsTheme) applyHljsTheme(dark);
+    };
     </script>
 
     <script>ZiyomapAuthGuard.protectPage();</script>
@@ -418,35 +426,65 @@
          Barcha xabarlar shu orqali chiqadi
     ══════════════════════════════════════════ -->
     <script>
-    /* marked sozlamalari */
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-        tables: true,
-    });
-
-    /* Kod blokini highlight qiluvchi renderer */
-    const renderer = new marked.Renderer();
-    renderer.code = function(code, lang) {
-        let highlighted = code;
-        if(lang && hljs.getLanguage(lang)){
-            try { highlighted = hljs.highlight(code,{language:lang}).value; } catch(e){}
-        } else {
-            try { highlighted = hljs.highlightAuto(code).value; } catch(e){}
+    /* Kutubxonalar yuklangandan keyin sozlash */
+    (function initLibs() {
+        /* hljs mavjudligini tekshir */
+        if (typeof hljs === 'undefined') {
+            console.error('[Ziyomap] highlight.js yuklanmadi!');
+            window.hljs = {
+                getLanguage: () => false,
+                highlight: (code) => ({ value: code }),
+                highlightAuto: (code) => ({ value: code }),
+            };
         }
-        return `<pre><button class="copy-code-btn" onclick="copyCode(this)">Nusxa</button><code class="hljs language-${lang||''}">${highlighted}</code></pre>`;
-    };
-    marked.use({ renderer });
+
+        /* marked sozlamalari */
+        marked.setOptions({ breaks: true, gfm: true });
+
+        /* Kod blokini highlight qiluvchi renderer */
+        const renderer = new marked.Renderer();
+        renderer.code = function(token) {
+            /* marked v9 da token ob'ekt keladi: {text, lang, ...} */
+            const code = typeof token === 'object' ? (token.text || '') : token;
+            const lang = typeof token === 'object' ? (token.lang || '') : (arguments[1] || '');
+            let highlighted = escHtml(code);
+            try {
+                if (lang && hljs.getLanguage(lang)) {
+                    highlighted = hljs.highlight(code, { language: lang }).value;
+                } else if (code.length < 5000) {
+                    highlighted = hljs.highlightAuto(code).value;
+                }
+            } catch(e) { /* noto'g'ri bo'lsa escape qilingan matni ishlatamiz */ }
+            return `<pre style="position:relative"><button class="copy-code-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i> Nusxa</button><code class="hljs language-${lang||''}">${highlighted}</code></pre>`;
+        };
+        marked.use({ renderer });
+
+        /* Dark theme uchun hljs theme almashtirish */
+        window.applyHljsTheme = function(dark) {
+            const el = document.getElementById('hljs-theme');
+            if (!el) return;
+            el.href = dark
+                ? 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css'
+                : 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css';
+        };
+        if (document.body.classList.contains('dark-theme')) applyHljsTheme(true);
+
+        /* Escape helper */
+        function escHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+        window._escHtml = escHtml;
+    })();
 
     /* KaTeX render — barcha \(...\) \[...\] $ $$ ni render qiladi */
-    function renderMath(el){
-        if(!window.renderMathInElement) return;
+    function renderMath(el) {
+        if (!window.renderMathInElement) return;
         renderMathInElement(el, {
             delimiters: [
-                {left:'$$', right:'$$', display:true},
-                {left:'$',  right:'$',  display:false},
-                {left:'\\[',right:'\\]',display:true},
-                {left:'\\(',right:'\\)',display:false},
+                { left: '$$', right: '$$', display: true  },
+                { left: '$',  right: '$',  display: false },
+                { left: '\\[', right: '\\]', display: true  },
+                { left: '\\(', right: '\\)', display: false },
             ],
             throwOnError: false,
             errorColor: '#ef4444',
@@ -455,33 +493,31 @@
     }
 
     /* Asosiy render funksiyasi */
-    function renderContent(text){
+    function renderContent(text) {
         const html = marked.parse(text);
-        const div = document.createElement('div');
+        const div  = document.createElement('div');
         div.className = 'message-content';
         div.innerHTML = html;
         renderMath(div);
-        /* Chart.js kod blokini grafik sifatida render qilish */
         div.querySelectorAll('pre code.language-chart').forEach(el => {
-            try { renderChartFromCode(el); } catch(e){}
+            try { renderChartFromCode(el); } catch(e) {}
         });
         return div;
     }
 
     /* Kod nusxalash */
-    window.copyCode = function(btn){
+    window.copyCode = function(btn) {
         const code = btn.nextElementSibling?.innerText || '';
-        navigator.clipboard.writeText(code).then(()=>{
-            btn.textContent = '✓ Nusxalandi';
+        navigator.clipboard.writeText(code).then(() => {
+            btn.innerHTML = '<i class="fas fa-check"></i> Nusxalandi';
             btn.style.background = '#10b981';
             btn.style.color = '#fff';
-            btn.style.borderColor = '#10b981';
-            setTimeout(()=>{ btn.textContent='Nusxa'; btn.style.cssText=''; }, 2000);
+            setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Nusxa'; btn.style.cssText = ''; }, 2000);
         });
     };
 
     /* Chart.js grafik render (```chart ... ``` bloklari uchun) */
-    function renderChartFromCode(codeEl){
+    function renderChartFromCode(codeEl) {
         try {
             const cfg = JSON.parse(codeEl.innerText);
             const wrap = document.createElement('div');
@@ -490,7 +526,7 @@
             wrap.appendChild(canvas);
             codeEl.closest('pre').replaceWith(wrap);
             new Chart(canvas, cfg);
-        } catch(e) { /* JSON xato bo'lsa oddiy kod ko'rsatiladi */ }
+        } catch(e) {}
     }
     </script>
 
@@ -739,71 +775,102 @@ O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $
          ESSAY CHECKER
     ══════════════════════════════ -->
     <script>
-    window.checkEssay=async function(){
-        const text=document.getElementById('essayText')?.value?.trim();
-        if(!text||text.length<20){ if(window.ZiyomapNotify) ZiyomapNotify.error('Matn juda qisqa!'); return; }
-        const btn=document.getElementById('essayCheckBtn');
-        const result=document.getElementById('essayResult');
-        const scoreEl=document.getElementById('essayScore');
-        const contentEl=document.getElementById('essayResultContent');
-        if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Tekshirilmoqda...';}
-        if(result) result.classList.remove('show');
+    window.checkEssay = async function() {
+        const textEl   = document.getElementById('essayText');
+        const btn      = document.getElementById('essayCheckBtn');
+        const result   = document.getElementById('essayResult');
+        const scoreEl  = document.getElementById('essayScore');
+        const contentEl= document.getElementById('essayResultContent');
 
-        const langN={uz:"O'zbek",ru:"Rus",en:"Ingliz"};
-        const levelN={standard:"standart",academic:"akademik",school:"maktab"};
-        const prompt=`Sen professional matn tahlilchisisisan. ${langN[essayLang]||"O'zbek"} tilidagi matnni ${levelN[essayLevel]||"standart"} darajada tekshir.
+        if (!textEl || !result) return;
+        const text = textEl.value.trim();
+        if (!text || text.length < 20) {
+            if (window.ZiyomapNotify) ZiyomapNotify.error('Matn juda qisqa (kamida 20 belgi)!');
+            return;
+        }
+
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tekshirilmoqda...'; }
+        if (result) result.classList.remove('show');
+
+        const langMap  = { uz: "O'zbek", ru: "Rus", en: "Ingliz" };
+        const levelMap = { standard: "standart", academic: "akademik (ilmiy)", school: "maktab (o'quvchi)" };
+        const curLang  = window.essayLang  || 'uz';
+        const curLevel = window.essayLevel || 'standard';
+
+        const prompt = `Sen professional matn muharriri va tilshunos mutaxassissan. ${langMap[curLang] || "O'zbek"} tilidagi matnni ${levelMap[curLevel] || "standart"} darajada chuqur tahlil qil.
 
 MATN:
+"""
 ${text}
+"""
 
-Quyidagi formatda aniq javob ber:
-BALL: [0-100]
-XULOSA: [2-3 gap]
-IMLO: [xatolar yoki "Topilmadi"]
-GRAMMATIKA: [xatolar yoki "Topilmadi"]
-USLUB: [izoh]
-KUCHLI: [kuchli tomonlar]
-TAVSIYA: [yaxshilash tavsiyalari]`;
+FAQAT quyidagi formatda javob ber (har kalit so'z yangi qatorda, keyin ikki nuqta):
+BALL: [0 dan 100 gacha son]
+XULOSA: [matn haqida 2-3 gaplik umumiy baho]
+IMLO: [imlo xatolari ro'yxati yoki "Xato topilmadi"]
+GRAMMATIKA: [grammatik xatolar ro'yxati yoki "Xato topilmadi"]
+USLUB: [uslub haqida tahlil]
+KUCHLI: [matnning kuchli tomonlari]
+TAVSIYA: [yaxshilash bo'yicha 2-3 aniq tavsiya]`;
 
-        try{
-            const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({message:prompt,history:[]})});
-            if(!res.ok) throw new Error('Server: '+res.status);
-            const data=await res.json();
-            const reply=data.reply||data.text||'';
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: prompt, history: [] })
+            });
+            if (!res.ok) throw new Error('Server xatosi: ' + res.status);
+            const data = await res.json();
+            const reply = data.reply || data.text || '';
 
-            const get=key=>{ const m=reply.match(new RegExp(key+':\\s*([\\s\\S]*?)(?=\\n[A-Z]+:|$)')); return m?m[1].trim():'—'; };
-            const ball=parseInt(reply.match(/BALL:\s*(\d+)/)?.[1])||0;
-            const color=ball>=80?'#16a34a':ball>=60?'#d97706':'#dc2626';
+            const get = key => {
+                const m = reply.match(new RegExp(key + ':\\s*([\\s\\S]*?)(?=\\n[A-ZОЬЪ]+:|$)'));
+                return m ? m[1].trim() : '—';
+            };
+            const ball = Math.min(100, Math.max(0, parseInt(reply.match(/BALL:\s*(\d+)/)?.[1]) || 0));
+            const color = ball >= 80 ? '#16a34a' : ball >= 60 ? '#d97706' : '#dc2626';
+            const label = ball >= 80 ? 'Ajoyib! 🌟' : ball >= 60 ? 'Yaxshi 👍' : 'Yaxshilash kerak ✏️';
 
-            if(scoreEl) scoreEl.innerHTML=`<span style="color:${color}">${ball}/100</span><div style="font-size:.9rem;font-weight:600;opacity:.6;margin-top:4px">${ball>=80?'Ajoyib!':ball>=60?'Yaxshi':'Yaxshilash kerak'}</div>`;
+            if (scoreEl) scoreEl.innerHTML = `
+                <span style="color:${color};font-size:2.5rem;font-weight:800">${ball}</span>
+                <span style="color:${color};font-size:1.2rem">/100</span>
+                <div style="font-size:.9rem;font-weight:600;color:${color};margin-top:4px">${label}</div>`;
 
-            /* Progress bar */
-            const pct = ball;
-            const barColor = ball>=80?'#16a34a':ball>=60?'#d97706':'#dc2626';
-            const progressBar = `<div style="background:rgba(0,0,0,.08);border-radius:8px;height:8px;margin:0 0 16px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:8px;transition:width .6s ease"></div></div>`;
+            const barColor = color;
+            const progressBar = `<div style="background:rgba(0,0,0,.08);border-radius:8px;height:10px;margin:0 0 20px;overflow:hidden">
+                <div style="width:${ball}%;height:100%;background:${barColor};border-radius:8px;transition:width .8s ease"></div>
+            </div>`;
 
-            const sections=[
-                {key:'XULOSA', title:'📊 Umumiy baho', icon:''},
-                {key:'IMLO',   title:'🔤 Imlo xatolari', icon:''},
-                {key:'GRAMMATIKA',title:'📝 Grammatika', icon:''},
-                {key:'USLUB',  title:'✍️ Uslub', icon:''},
-                {key:'KUCHLI', title:'💪 Kuchli tomonlar', icon:''},
-                {key:'TAVSIYA',title:'💡 Tavsiyalar', icon:''},
+            const sections = [
+                { key: 'XULOSA',      title: '📊 Umumiy baho'       },
+                { key: 'IMLO',        title: '🔤 Imlo xatolari'      },
+                { key: 'GRAMMATIKA',  title: '📝 Grammatika'          },
+                { key: 'USLUB',       title: '✍️ Uslub tahlili'      },
+                { key: 'KUCHLI',      title: '💪 Kuchli tomonlar'     },
+                { key: 'TAVSIYA',     title: '💡 Tavsiyalar'          },
             ];
-            const sectHtml = sections.map(s=>`
-                <div class="essay-section">
-                    <div class="essay-section-title">${s.title}</div>
-                    <div>${get(s.key)}</div>
-                </div>`).join('');
 
-            if(contentEl) contentEl.innerHTML = progressBar + sectHtml;
-            if(result) result.classList.add('show');
-            result.scrollIntoView({behavior:'smooth',block:'start'});
-        }catch(err){
-            if(window.ZiyomapNotify) ZiyomapNotify.error('Xatolik: '+err.message);
-        }finally{
-            if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-search"></i> Matnni tekshirish';}
+            function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+            const sectHtml = sections.map(s => {
+                const val = get(s.key);
+                const lines = val.split('\n').filter(l => l.trim());
+                const body = lines.length > 1
+                    ? '<ul style="margin:8px 0 0;padding-left:18px">' + lines.map(l => `<li style="margin-bottom:4px">${esc(l.replace(/^[-•]\s*/,''))}</li>`).join('') + '</ul>'
+                    : `<div style="margin-top:6px">${esc(val)}</div>`;
+                return `<div class="essay-section"><div class="essay-section-title">${s.title}</div>${body}</div>`;
+            }).join('');
+
+            if (contentEl) contentEl.innerHTML = progressBar + sectHtml;
+            if (result) result.classList.add('show');
+            result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-essay', 'Essay Checker');
+
+        } catch(err) {
+            if (window.ZiyomapNotify) ZiyomapNotify.error('Xatolik: ' + err.message);
+            console.error('[essay]', err);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-search"></i> Matnni tekshirish'; }
         }
     };
     </script>
