@@ -507,11 +507,19 @@ if (dragHandle && toolbar) {
 
     function onDragEnd() {
         drag = false;
+        try {
+            localStorage.setItem('doska_toolbar_free_pos', JSON.stringify({
+                left: toolbar.style.left,
+                top: toolbar.style.top,
+            }));
+            localStorage.removeItem('doska_toolbar_pos');
+        } catch { /* ignore */ }
     }
 
     dragHandle.addEventListener('mousedown', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        toolbar.classList.remove('default-position');
         const r = toolbar.getBoundingClientRect();
         toolbar.style.left = r.left + 'px';
         toolbar.style.top = r.top + 'px';
@@ -531,6 +539,7 @@ if (dragHandle && toolbar) {
 
     dragHandle.addEventListener('touchstart', (e) => {
         e.stopPropagation();
+        toolbar.classList.remove('default-position');
         const r = toolbar.getBoundingClientRect();
         toolbar.style.left = r.left + 'px';
         toolbar.style.top = r.top + 'px';
@@ -1603,6 +1612,7 @@ let toolbarPosIndex = 0;
 
 function applyToolbarPosition(posKey) {
     if (!toolbar) return;
+    toolbar.classList.remove('default-position');
     const margin = 12;
     const topSafe = 64;
     toolbar.style.transform = 'none';
@@ -1621,6 +1631,7 @@ function applyToolbarPosition(posKey) {
 
 document.getElementById('tb-position-btn')?.addEventListener('click', (e) => {
     e.stopPropagation();
+    try { localStorage.removeItem('doska_toolbar_free_pos'); } catch { /* ignore */ }
     toolbarPosIndex = (toolbarPosIndex + 1) % TOOLBAR_POSITIONS.length;
     const posKey = TOOLBAR_POSITIONS[toolbarPosIndex];
     applyToolbarPosition(posKey);
@@ -1629,6 +1640,18 @@ document.getElementById('tb-position-btn')?.addEventListener('click', (e) => {
 
 /* Saqlangan pozitsiyani tiklash (agar foydalanuvchi avval drag qilmagan bo'lsa) */
 (function restoreToolbarPosition() {
+    /* Avval erkin (drag qilingan) pozitsiyani tekshiramiz — u eng oxirgi harakat */
+    let freePos = null;
+    try { freePos = JSON.parse(localStorage.getItem('doska_toolbar_free_pos') || 'null'); } catch { /* ignore */ }
+    if (freePos && freePos.left && freePos.top && toolbar) {
+        toolbar.classList.remove('default-position');
+        toolbar.style.left = freePos.left;
+        toolbar.style.top = freePos.top;
+        toolbar.style.right = 'auto';
+        toolbar.style.bottom = 'auto';
+        toolbar.style.transform = 'none';
+        return;
+    }
     let saved = null;
     try { saved = localStorage.getItem('doska_toolbar_pos'); } catch { /* ignore */ }
     if (saved && TOOLBAR_POSITIONS.includes(saved)) {
