@@ -169,11 +169,6 @@
             <input type="text" id="topic" placeholder="Dars mavzusini to'liq yozing...">
         </div>
 
-        <div class="input-group">
-            <label>Darslik / O'quv qo'llanma (ixtiyoriy):</label>
-            <input type="text" id="textbook" placeholder="Masalan: Saidaxmedov N. 7-sinf yoki standart DTS...">
-        </div>
-
         <button class="btn-ai" onclick="generate('lesson', this)">
             <i class="fas fa-wand-magic-sparkles"></i> DTS standartida dars ishlanmasini yaratish
         </button>
@@ -354,95 +349,252 @@ async function generate(type, btn) {
         const subject  = document.getElementById('subject').value;
         const grade    = document.getElementById('grade').value;
         const ltype    = document.getElementById('lesson-type').value;
-        const textbook = document.getElementById('textbook').value.trim();
 
         const ltypeNames = {
-            yangi_mavzu:    "Yangi mavzuni o'rgatish",
-            mustahkamlash:  "Bilimlarni mustahkamlash",
-            takrorlash:     "Takrorlash va umumlashtirish",
+            yangi_mavzu:    "Yangi mavzuni o'rgatish darsi",
+            mustahkamlash:  "Bilimlarni mustahkamlash darsi",
+            takrorlash:     "Takrorlash va umumlashtirish darsi",
             nazorat:        "Nazorat darsi",
-            aralash:        "Aralash (kombinatsiyalangan)",
-            laboratoriya:   "Laboratoriya-amaliy",
+            aralash:        "Aralash (kombinatsiyalangan) dars",
+            laboratoriya:   "Laboratoriya-amaliy dars",
             ekskursiya:     "Ekskursiya darsi"
         };
 
-        prompt = `Siz O'zbekiston Davlat Ta'lim Standartlari (DTS) bo'yicha yuqori malakali metodik mutaxasssissiz. Quyidagi ma'lumotlarga asoslanib TO'LIQ va PROFESSIONAL dars ishlanmasi tuzing:
+        // Dars turiga qarab bosqichlar tuzilmasi
+        const stagesByType = {
+            yangi_mavzu: `
+### I. TASHKILIY QISM (2-3 daqiqa)
+- Salomlashish, davomatni belgilash, psixologik muhit yaratish, motivatsiya
 
-Fan: ${subject}
-Sinf: ${grade}-sinf
-Dars turi: ${ltypeNames[ltype]}
-Mavzu: "${topic}"
-${textbook ? `Darslik: ${textbook}` : `Darslik: O'zbekiston Respublikasi DTS talablari asosida`}
+### II. O'TILGAN MAVZUNI TAKRORLASH (7-8 daqiqa)
+(Ushbu fan va sinfga eng mos metodlarni o'zingiz tanlab qo'llang. O'tgan mavzu bo'yicha 4-5 ta savol, doskaga chiqarish, tahlil)
 
-DARS ISHLANMASI TUZILMASI (barchasi batafsil bo'lsin):
+### III. YANGI MAVZUGA KIRISH — MOTIVATSIYA (3-5 daqiqa)
+(Mavzuga eng mos kirish metodini tanlang: hayotiy misol, muammoli savol, qiziqarli fakt yoki tajriba orqali o'quvchini qiziqtiring)
+
+### IV. YANGI MAVZUNING BAYONI (18-20 daqiqa)
+(Mavzu va fanga eng mos o'qitish metodlarini tanlang. Mavzuni bosqichma-bosqich, formulalar, jadvallar, sxemalar, misollar bilan to'liq tushuntiring. Har 5-6 daqiqada nazorat savoli bering)
+
+### V. BIRLAMCHI MUSTAHKAMLASH (7-8 daqiqa)
+(Mustahkamlash uchun ushbu mavzuga eng samarali metodlarni tanlang. 2-3 ta bosqichli topshiriq bering)
+
+### VI. YAKUNIY BAHOLASH (2-3 daqiqa)
+(Darsda faol ishtirok etgan o'quvchilarni izoh bilan baholang)
+
+### VII. UY VAZIFASI (1-2 daqiqa)
+(Asosiy va qo'shimcha topshiriqlar)`,
+
+            mustahkamlash: `
+### I. TASHKILIY QISM (2-3 daqiqa)
+- Salomlashish, darsga tayyorlik, motivatsiya
+
+### II. MAVZU YUZASIDAN NAZARIY TAKRORLASH (8-10 daqiqa)
+(Ushbu fan va mavzuga eng mos takrorlash metodlarini tanlang. Asosiy ta'riflar, qoidalar, formulalar takrorlanadi)
+
+### III. AMALIY TOPSHIRIQLAR (20-22 daqiqa)
+(Mustahkamlash uchun eng samarali metodlarni tanlang. Uch bosqichda: yakka → juftlikda → guruhda)
+
+### IV. O'Z-O'ZINI NAZORAT (7-8 daqiqa)
+(Mavzuga mos tezkor nazorat shakli tanlang)
+
+### V. BAHOLASH VA XULOSA (3-4 daqiqa)
+### VI. UY VAZIFASI (1-2 daqiqa)`,
+
+            takrorlash: `
+### I. TASHKILIY QISM (2-3 daqiqa)
+### II. UMUMIY TAKRORLASH (10-12 daqiqa)
+(Bo'lim yoki mavzularga mos umumlashtirish metodini tanlang. Tushunchalar xaritasi, jadval yoki sxema tuzing)
+### III. ARALASH TOPSHIRIQLAR (15-18 daqiqa)
+(Turli darajadagi topshiriqlar uchun mos metodlarni tanlang)
+### IV. YAKUNIY TEST (8-10 daqiqa)
+### V. BAHOLASH VA XULOSA (3-4 daqiqa)
+### VI. UY VAZIFASI (1-2 daqiqa)`,
+
+            nazorat: `
+### I. TASHKILIY QISM (2-3 daqiqa)
+- Salomlashish, nazorat shartlari tushuntiriladi, variantlar tarqatiladi
+### II. MUSTAQIL NAZORAT ISHI (35-38 daqiqa)
+- 2 variant yoki individual topshiriqlar; o'quvchilar mustaqil ishlaydi
+### III. YECHIMLARNI MUHOKAMA QILISH (3-5 daqiqa)
+- To'g'ri javoblar e'lon qilinadi
+### IV. BAHOLASH MEZONI
+| Ball | Baho | Mezon |
+|---|---|---|
+| 86-100% | 5 | Mukammal |
+| 71-85% | 4 | Yaxshi |
+| 55-70% | 3 | Qoniqarli |
+| 0-54% | 2 | Qoniqarsiz |`,
+
+            aralash: `
+### I. TASHKILIY QISM (2-3 daqiqa)
+### II. UY VAZIFASINI TEKSHIRISH (5-6 daqiqa)
+(Tekshirishning eng qulay metodini tanlang)
+### III. O'TILGAN MAVZUNI TAKRORLASH (5-6 daqiqa)
+(Qisqa va samarali takrorlash metodini tanlang)
+### IV. YANGI MAVZU (15-18 daqiqa)
+(Fan, sinf va mavzuga eng mos o'qitish metodlarini tanlang. To'liq tushuntiring)
+### V. MUSTAHKAMLASH (8-10 daqiqa)
+(Mustahkamlashning eng samarali metodini tanlang)
+### VI. BAHOLASH (2-3 daqiqa)
+### VII. UY VAZIFASI (1-2 daqiqa)`,
+
+            laboratoriya: `
+### I. TASHKILIY QISM VA XAVFSIZLIK QOIDALARI (3-5 daqiqa)
+- Salomlashish, xavfsizlik texnikasi, jihozlar tekshiruvi
+### II. NAZARIY KIRISH (8-10 daqiqa)
+(Laboratoriya ishiga tayyorlash uchun mos metodlarni tanlang. Maqsad va borish tartibi tushuntiriladi)
+### III. AMALIY LABORATORIYA ISHI (20-22 daqiqa)
+(Guruhli tajriba, kuzatish va tadqiqot. Natijalar jadvalga yoziladi)
+### IV. NATIJALARNI TAHLIL VA MUHOKAMA (5-6 daqiqa)
+(Hisobot yoki taqdimot shakli tanlang)
+### V. XULOSA VA BAHOLASH (3-4 daqiqa)
+### VI. UY VAZIFASI (1-2 daqiqa)`,
+
+            ekskursiya: `
+### I. TAYYORLOV BOSQICHI — sinf ichida (5 daqiqa)
+- Ekskursiya maqsadi, qoidalar, kuzatish vazifalari tushuntiriladi
+### II. ASOSIY BOSQICH — EKSKURSIYA (30-35 daqiqa)
+(Kuzatish, intervyu, tadqiqot va yozib olish. Ob'ektlar batafsil ko'riladi)
+### III. YAKUNIY BOSQICH — sinf ichida (5-8 daqiqa)
+(Kuzatishlar muhokama qilinadi, xulosalar chiqariladi)
+### IV. UY VAZIFASI
+- Hisobot, esse yoki slayd tayyorlash`
+        };
+
+        };
+
+        prompt = `Siz O'zbekiston Davlat Ta'lim Standartlari (DTS) bo'yicha yuqori malakali metodik mutaxassissiz. Quyidagi dars uchun TO'LIQ, BATAFSIL va PROFESSIONAL dars ishlanmasi tuzing. Har bir bo'lim mazmunli va aniq yozilsin — shablon so'zlar o'rniga haqiqiy, fanga xos ma'lumotlar yozing.
+
+---
+**Fan:** ${subject}
+**Sinf:** ${grade}-sinf
+**Dars turi:** ${ltypeNames[ltype]}
+**Mavzu:** "${topic}"
+---
 
 ## 📋 UMUMIY MA'LUMOTLAR
+
 | Ko'rsatkich | Mazmun |
 |---|---|
-| Fan | ... |
-| Sinf | ... |
-| Mavzu | ... |
-| Dars turi | ... |
+| Fan | ${subject} |
+| Sinf | ${grade}-sinf |
+| Mavzu | "${topic}" |
+| Dars turi | ${ltypeNames[ltype]} |
+| Qo'llaniladigan metodlar | (Siz ushbu fan, sinf, mavzu va dars turiga eng mos zamonaviy pedagogik metodlarni o'zingiz tanlab yozing — masalan: muammoli ta'lim, loyiha metodi, aqliy hujum, klaster, BBB jadvali, debat, keys-stadi, rotatsion stansiyalar, ko'rgazmali va h.k.) |
 | Dars vaqti | 45 daqiqa |
 | Sana | __________ |
+| O'qituvchi | __________ |
+
+---
 
 ## 🎯 MAQSADLAR
-**Ta'limiy maqsad:** (bilim va ko'nikmalar)
-**Tarbiyaviy maqsad:** (axloqiy, vatanparvarlik va boshqa tarbiyaviy jihatlar)
-**Rivojlantiruvchi maqsad:** (mantiqiy fikrlash, ijodiy qobiliyat)
 
-## 📚 KOMPETENSIYALAR (DTS asosida)
-- Funksional savodxonlik
-- Kommunikativ kompetensiya
-- Axborot kompetensiyasi
-- (fanga xos kompetensiyalar)
+**Ta'limiy maqsad:** (ushbu mavzu bo'yicha o'quvchilar qanday bilim va ko'nikmaga ega bo'lishi — aniq va o'lchovli)
+
+**Tarbiyaviy maqsad:** (mavzuga bog'liq holda vatanparvarlik, ekologik madaniyat, mehnatsevarlik yoki axloqiy tarbiya)
+
+**Rivojlantiruvchi maqsad:** (mantiqiy fikrlash, tahliliy qobiliyat, muammolarni hal qilish ko'nikmasi)
+
+---
+
+## 📚 TAYANCH KOMPETENSIYALAR (DTS asosida)
+
+| Kompetensiya turi | Mavzuga bog'liq ko'nikma |
+|---|---|
+| Funksional savodxonlik | ... |
+| Kommunikativ kompetensiya | ... |
+| Axborot kompetensiyasi | ... |
+| Ijtimoiy-fuqarolik kompetensiyasi | ... |
+| Fanga xos kompetensiya | ... |
+
+---
 
 ## 🛠️ JIHOZLAR VA KO'RGAZMALI QUROLLAR
-(doskа, proyektor, darslik, tarqatma materiallar, laboratoriya jihozlari va h.k.)
+
+(mavzuga mos keladigan: dоska, bo'r, darslik, tarqatma materiallar, jadvallar, slaydlar, laboratoriya jihozlari, xaritalar, sxemalar va h.k. — barchasini aniq sanab ko'rsating)
+
+---
 
 ## 📖 DARS BOSQICHLARI
 
-### I. TASHKILIY QISM (2-3 daqiqa)
-(salomlashish, davomatni belgilash, darsga tayyorlik)
+${stagesByType[ltype]}
 
-### II. O'TILGAN MAVZUNI TAKRORLASH (7-8 daqiqa)
-(savollar, topshiriqlar — o'tilgan mavzu bo'yicha 3-4 ta savol)
-
-### III. YANGI MAVZUNING BAYONI (20-25 daqiqa)
-(mavzuni bosqichma-bosqich, tushunarli tarzda to'liq izohlash, misollar, formulalar, jadvallar, sxemalar)
-
-### IV. MUSTAHKAMLASH (7-8 daqiqa)
-(mashqlar, misollar, savol-javob — kamida 3-4 ta topshiriq)
-
-### V. BAHOLASH (2-3 daqiqa)
-(o'quvchilarni baholash mezonlari va ballari)
-
-### VI. UY VAZIFASI (1-2 daqiqa)
-(darslik sahifalari va mashqlari ko'rsatilsin)
+---
 
 ## 📊 TEXNOLOGIK XARITA
-| Dars bosqichi | Vaqt | O'qituvchi faoliyati | O'quvchi faoliyati | Metod |
-|---|---|---|---|---|
-| Tashkiliy qism | 2-3 min | ... | ... | ... |
-| Takrorlash | 7-8 min | ... | ... | ... |
-| Yangi mavzu | 20-25 min | ... | ... | ... |
-| Mustahkamlash | 7-8 min | ... | ... | ... |
-| Baholash | 2-3 min | ... | ... | ... |
-| Uy vazifasi | 1-2 min | ... | ... | ... |
+
+(Quyidagi jadvalning har bir katagini ${subject} fani, ${grade}-sinf, "${topic}" mavzusi va ${ltypeNames[ltype]} uchun eng mos va samarali pedagogik metodlar, o'qituvchi hamda o'quvchi faoliyati va vositalar bilan aniq to'ldiring. Metod/Texnologiya ustunida ushbu bosqich uchun eng qulay zamonaviy metodlarni o'zingiz tanlang)
+
+| № | Dars bosqichi | Vaqt (min) | O'qituvchi faoliyati | O'quvchi faoliyati | Metod/Texnologiya | Shakl | Vosita |
+|---|---|---|---|---|---|---|---|
+| 1 | Tashkiliy qism | 2-3 | (aniq yozing) | (aniq yozing) | (eng mos metod) | Frontal | (vosita) |
+| 2 | Takrorlash/Kirish | 5-8 | (aniq yozing) | (aniq yozing) | (eng mos metod) | Frontal | (vosita) |
+| 3 | Asosiy bosqich | 18-22 | (aniq yozing) | (aniq yozing) | (eng mos metod) | Aralash | (vosita) |
+| 4 | Mustahkamlash | 7-8 | (aniq yozing) | (aniq yozing) | (eng mos metod) | Guruh | (vosita) |
+| 5 | Baholash | 2-3 | (aniq yozing) | (aniq yozing) | (eng mos metod) | Frontal | (vosita) |
+| 6 | Uy vazifasi | 1-2 | (aniq yozing) | (aniq yozing) | (eng mos metod) | Frontal | (vosita) |
+
+MUHIM: Jadvalning barcha "..." va "(aniq yozing)", "(eng mos metod)", "(vosita)" qismlarini HAQIQIY mazmun bilan to'ldiring.
+
+---
 
 ## 🧠 DIFFERENSIALLASHTIRILGAN YONDASHUV
-- **Kuchli o'quvchilar uchun:** (qo'shimcha murakkab topshiriq)
-- **O'rta o'quvchilar uchun:** (asosiy topshiriq)
-- **Kuchsiz o'quvchilar uchun:** (sodda, ko'maklashuvchi topshiriq)
 
-## 📝 NAZORAT SAVOLLARI
-(mavzu bo'yicha 5-6 ta savol — bilim tekshirish uchun)
+| O'quvchi guruhi | Topshiriq turi | Aniq topshiriq mazmuni |
+|---|---|---|
+| Kuchli (yuqori daraja) | Ijodiy, muammoli | (mavzuga mos murakkab topshiriq) |
+| O'rta daraja | Standart | (mavzuga mos asosiy topshiriq) |
+| Kuchsiz (yordamga muhtoj) | Soddalashtirilgan | (mavzuga mos sodda topshiriq) |
 
-## 🔗 FANLARARO ALOQA
-(ushbu mavzu boshqa qaysi fanlar bilan bog'liqligi)
+---
 
-Barcha matematik va kimyoviy formulalar, tenglamalar, belgilar LaTeX formatida ($...$) yozilsin.
-Dars ishlanmasi O'zbekiston Respublikasi umumiy o'rta ta'lim DTS talablariga mos, zamonaviy pedagoglika metodlari (muammoli ta'lim, hamkorlik, tanqidiy fikrlash) qo'llanilgan holda yozilsin.`;
+## 🔬 YANGI MAVZU BATAFSIL BAYONI
+
+(Mavzuning to'liq ilmiy-metodik bayoni: ta'riflar, qoidalar, formulalar, misollar, sxemalar, jadvallar. Har bir tushuncha izohlansin. Formulalar LaTeX formatida: $...$)
+
+---
+
+## ✏️ MUSTAHKAMLASH TOPSHIRIQLARI
+
+**1-topshiriq (oson):** (mavzuga mos)
+**2-topshiriq (o'rta):** (mavzuga mos)
+**3-topshiriq (qiyin):** (mavzuga mos)
+**4-topshiriq (ijodiy):** (mavzuga mos)
+
+---
+
+## 📝 NAZORAT SAVOLLARI (dars yakuni uchun)
+
+1. ...
+2. ...
+3. ...
+4. ...
+5. ...
+
+---
+
+## 🔗 FANLARARO VA HAYOTIY ALOQA
+
+**Boshqa fanlar bilan bog'liqligi:** (qaysi fanlar, qanday bog'liq)
+**Hayot bilan bog'liqligi:** (bu mavzu kundalik hayotda qanday qo'llaniladi)
+
+---
+
+## 📈 BAHOLASH MEZONI
+
+| Baho | Ball | Mezon |
+|---|---|---|
+| 5 (a'lo) | 86-100% | Bilimni to'liq, mustaqil bayon etadi |
+| 4 (yaxshi) | 71-85% | Bilimni yetarli darajada bayon etadi |
+| 3 (qoniqarli) | 55-70% | Asosiy tushunchalarni biladi, xatolar bor |
+| 2 (qoniqarsiz) | 0-54% | Bilim yetarli emas |
+
+---
+
+Barcha formulalar, tenglamalar, kimyoviy belgilar LaTeX formatida ($...$) yozilsin.
+Dars ishlanmasi O'zbekiston Respublikasi umumiy o'rta ta'lim DTS talablariga to'liq mos bo'lsin.
+Har bir bo'limni HAQIQIY mazmun bilan to'ldiring — hech qanday "..." yoki bo'sh joy qoldirmang.
+Metod va texnologiyalarni ${subject} fani, ${grade}-sinf va "${topic}" mavzusiga qarab eng mos va samarali variantlarni O'ZINGIZ tanlang.`;
 
     } else if(type === 'info') {
         const mode = document.getElementById('info-mode').value;
