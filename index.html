@@ -715,6 +715,13 @@
                 padding: 28px 20px !important;
                 margin: 28px 0 !important;
             }
+
+            /* Mobil donat */
+            .donat-btn {
+                width: 100%;
+                max-width: 360px;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -926,7 +933,6 @@
             min-height: 330px;
         }
 
-        /* Tun — chapdan neon chiziq */
         body.dark-theme #projects .card::before {
             content: "";
             position: absolute;
@@ -940,7 +946,6 @@
         body.dark-theme #projects .card:nth-child(2)::before { background: linear-gradient(180deg, #0ea5e9, #38bdf8, #0ea5e9); box-shadow: 0 0 12px rgba(14,165,233,0.8); }
         body.dark-theme #projects .card:nth-child(3)::before { background: linear-gradient(180deg, #10b981, #34d399, #10b981); box-shadow: 0 0 12px rgba(16,185,129,0.8); }
 
-        /* Tun — glow effekti */
         body.dark-theme #projects .card::after {
             content: "";
             position: absolute;
@@ -982,7 +987,6 @@
            BLOG KARTOCHKALARI
            ============================================================ */
 
-        /* KUNDUZ */
         body:not(.dark-theme) #blog .card,
         body:not(.dark-theme) #posts-container .card {
             background: rgba(255, 255, 255, 0.22) !important;
@@ -1002,24 +1006,18 @@
             box-shadow: 0 24px 50px rgba(37,99,235,0.15), 0 4px 14px rgba(99,102,241,0.1) !important;
             border-color: rgba(99,102,241,0.35) !important;
         }
-        /* Blog kunduz — matnlar tiniq */
-        body:not(.dark-theme) #blog .card h1,
-        body:not(.dark-theme) #blog .card h2,
-        body:not(.dark-theme) #blog .card h3,
-        body:not(.dark-theme) #blog .card h4,
+        body:not(.dark-theme) #blog .card h1, body:not(.dark-theme) #blog .card h2,
+        body:not(.dark-theme) #blog .card h3, body:not(.dark-theme) #blog .card h4,
         body:not(.dark-theme) #blog .card p,
         body:not(.dark-theme) #blog .card span:not(.btn):not([class*="badge"]),
-        body:not(.dark-theme) #posts-container .card h1,
-        body:not(.dark-theme) #posts-container .card h2,
-        body:not(.dark-theme) #posts-container .card h3,
-        body:not(.dark-theme) #posts-container .card h4,
+        body:not(.dark-theme) #posts-container .card h1, body:not(.dark-theme) #posts-container .card h2,
+        body:not(.dark-theme) #posts-container .card h3, body:not(.dark-theme) #posts-container .card h4,
         body:not(.dark-theme) #posts-container .card p,
         body:not(.dark-theme) #posts-container .card span:not(.btn):not([class*="badge"]) {
             color: #ffffff !important;
             text-shadow: 0 1px 6px rgba(0,0,0,0.55) !important;
         }
 
-        /* TUN */
         body.dark-theme #blog .card,
         body.dark-theme #posts-container .card {
             background: rgba(15, 23, 42, 0.32) !important;
@@ -1039,17 +1037,12 @@
             border-color: rgba(56,189,248,0.28) !important;
             box-shadow: 0 28px 60px rgba(0,0,0,0.6), 0 0 24px rgba(56,189,248,0.07) !important;
         }
-        /* Blog tun — matnlar tiniq */
-        body.dark-theme #blog .card h1,
-        body.dark-theme #blog .card h2,
-        body.dark-theme #blog .card h3,
-        body.dark-theme #blog .card h4,
+        body.dark-theme #blog .card h1, body.dark-theme #blog .card h2,
+        body.dark-theme #blog .card h3, body.dark-theme #blog .card h4,
         body.dark-theme #blog .card p,
         body.dark-theme #blog .card span:not(.btn):not([class*="badge"]),
-        body.dark-theme #posts-container .card h1,
-        body.dark-theme #posts-container .card h2,
-        body.dark-theme #posts-container .card h3,
-        body.dark-theme #posts-container .card h4,
+        body.dark-theme #posts-container .card h1, body.dark-theme #posts-container .card h2,
+        body.dark-theme #posts-container .card h3, body.dark-theme #posts-container .card h4,
         body.dark-theme #posts-container .card p,
         body.dark-theme #posts-container .card span:not(.btn):not([class*="badge"]) {
             color: #f0f6ff !important;
@@ -1060,7 +1053,6 @@
            ALOQA FORMI
            ============================================================ */
 
-        /* KUNDUZ: Kristal oq forma */
         body:not(.dark-theme) #contact .contact-form-box {
             background: rgba(255, 255, 255, 0.26) !important;
             backdrop-filter: blur(34px) !important;
@@ -1072,7 +1064,6 @@
             position: relative;
             overflow: hidden;
         }
-
         body:not(.dark-theme) #contact .contact-form-box::before {
             content: "";
             position: absolute;
@@ -1081,7 +1072,6 @@
             background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), rgba(14,165,233,0.5), transparent);
             border-radius: 0 0 4px 4px;
         }
-
         body:not(.dark-theme) #contact .lab-input {
             background: rgba(241, 245, 249, 0.75) !important;
             border: 1.5px solid rgba(226,232,240,0.9) !important;
@@ -1101,28 +1091,19 @@
             outline: none !important;
         }
         body:not(.dark-theme) #contact .lab-input::placeholder { color: #94a3b8 !important; }
-
         body:not(.dark-theme) #contact .btn[type="submit"] {
             background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 14px !important;
-            padding: 16px 30px !important;
-            font-size: 1rem !important;
-            font-weight: 700 !important;
-            width: 100% !important;
-            margin: 10px 0 0 0 !important;
-            cursor: pointer !important;
+            color: white !important; border: none !important; border-radius: 14px !important;
+            padding: 16px 30px !important; font-size: 1rem !important; font-weight: 700 !important;
+            width: 100% !important; margin: 10px 0 0 0 !important; cursor: pointer !important;
             transition: transform 0.25s, box-shadow 0.25s !important;
-            box-shadow: 0 8px 24px rgba(79,70,229,0.3) !important;
-            letter-spacing: 0.3px !important;
+            box-shadow: 0 8px 24px rgba(79,70,229,0.3) !important; letter-spacing: 0.3px !important;
         }
         body:not(.dark-theme) #contact .btn[type="submit"]:hover {
             transform: translateY(-3px) !important;
             box-shadow: 0 14px 32px rgba(79,70,229,0.42) !important;
         }
 
-        /* TUN: Chuqur kosmik forma */
         body.dark-theme #contact .contact-form-box {
             background: rgba(15, 23, 42, 0.3) !important;
             backdrop-filter: blur(34px) !important;
@@ -1149,18 +1130,13 @@
             background: radial-gradient(circle, rgba(56,189,248,0.05) 0%, transparent 70%);
             pointer-events: none;
         }
-
         body.dark-theme #contact .lab-input {
             background: rgba(51, 65, 95, 0.85) !important;
             border: 1.5px solid rgba(100, 180, 250, 0.45) !important;
-            color: #f1f5f9 !important;
-            border-radius: 14px !important;
-            padding: 15px 18px !important;
-            font-size: 0.95rem !important;
+            color: #f1f5f9 !important; border-radius: 14px !important;
+            padding: 15px 18px !important; font-size: 0.95rem !important;
             transition: border-color 0.25s, box-shadow 0.25s !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-            margin: 8px 0 !important;
+            width: 100% !important; box-sizing: border-box !important; margin: 8px 0 !important;
         }
         body.dark-theme #contact .lab-input:focus {
             border-color: rgba(56,189,248,0.75) !important;
@@ -1169,18 +1145,11 @@
             outline: none !important;
         }
         body.dark-theme #contact .lab-input::placeholder { color: rgba(203, 213, 235, 0.7) !important; font-size: 0.92rem !important; }
-
         body.dark-theme #contact .btn[type="submit"] {
             background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 14px !important;
-            padding: 16px 30px !important;
-            font-size: 1rem !important;
-            font-weight: 700 !important;
-            width: 100% !important;
-            margin: 10px 0 0 0 !important;
-            cursor: pointer !important;
+            color: white !important; border: none !important; border-radius: 14px !important;
+            padding: 16px 30px !important; font-size: 1rem !important; font-weight: 700 !important;
+            width: 100% !important; margin: 10px 0 0 0 !important; cursor: pointer !important;
             transition: transform 0.25s, box-shadow 0.25s !important;
             box-shadow: 0 8px 24px rgba(14,165,233,0.3), 0 0 30px rgba(14,165,233,0.1) !important;
             letter-spacing: 0.3px !important;
@@ -1189,6 +1158,155 @@
             transform: translateY(-3px) !important;
             box-shadow: 0 14px 32px rgba(14,165,233,0.48), 0 0 40px rgba(14,165,233,0.14) !important;
         }
+
+        /* ============================================================
+           DONAT TUGMASI VA MODAL
+           ============================================================ */
+        .donat-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 24px 14px 16px;
+            background: linear-gradient(135deg, rgba(251,191,36,0.22), rgba(245,158,11,0.18));
+            border: 1.5px solid rgba(251,191,36,0.45);
+            border-radius: 20px;
+            cursor: pointer;
+            color: #fff;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+            box-shadow: 0 6px 24px rgba(245,158,11,0.2);
+            text-align: left;
+        }
+        .donat-btn:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, rgba(251,191,36,0.32), rgba(245,158,11,0.28));
+            box-shadow: 0 12px 32px rgba(245,158,11,0.32);
+            border-color: rgba(251,191,36,0.65);
+        }
+        .donat-btn-icon { font-size: 1.8rem; line-height: 1; filter: drop-shadow(0 2px 6px rgba(245,158,11,0.5)); }
+        .donat-btn-text { display: flex; flex-direction: column; gap: 2px; }
+        .donat-btn-label { font-size: 0.72rem; opacity: 0.75; font-weight: 500; letter-spacing: 0.02em; }
+        .donat-btn-sub { font-size: 1rem; font-weight: 800; letter-spacing: 0.01em; }
+        .donat-btn-heart { color: #f87171; font-size: 1rem; animation: heartbeat 1.4s infinite; margin-left: 4px; }
+        @keyframes heartbeat {
+            0%,100% { transform: scale(1); }
+            14% { transform: scale(1.25); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.18); }
+            70% { transform: scale(1); }
+        }
+
+        /* MODAL */
+        .donat-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(2,6,23,0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9995;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .donat-modal-overlay.active {
+            display: flex;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .donat-modal-box {
+            background: linear-gradient(160deg, rgba(22,35,58,0.98), rgba(10,18,38,0.97));
+            border: 1px solid rgba(251,191,36,0.25);
+            border-radius: 28px;
+            padding: 40px 36px 32px;
+            max-width: 560px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 60px rgba(245,158,11,0.06);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        body:not(.dark-theme) .donat-modal-box {
+            background: linear-gradient(160deg, rgba(255,255,255,0.98), rgba(240,249,255,0.97));
+            border-color: rgba(245,158,11,0.22);
+            box-shadow: 0 24px 80px rgba(0,0,0,0.16);
+        }
+        .donat-modal-close {
+            position: absolute; top: 16px; right: 16px;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(148,163,184,0.15);
+            border: 1px solid rgba(148,163,184,0.2);
+            color: #94a3b8; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; transition: background 0.2s, color 0.2s;
+        }
+        .donat-modal-close:hover { background: rgba(239,68,68,0.18); color: #f87171; }
+        .donat-modal-header { text-align: center; margin-bottom: 28px; }
+        .donat-modal-icon { font-size: 2.8rem; margin-bottom: 10px; }
+        .donat-modal-title { font-size: 1.35rem; font-weight: 800; color: #f1f5f9; margin: 0 0 8px; }
+        body:not(.dark-theme) .donat-modal-title { color: #1e293b; }
+        .donat-modal-desc { font-size: 0.88rem; color: #94a3b8; line-height: 1.6; margin: 0; }
+        body:not(.dark-theme) .donat-modal-desc { color: #64748b; }
+
+        .donat-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 480px) {
+            .donat-methods { grid-template-columns: 1fr; }
+            .donat-modal-box { padding: 28px 20px 24px; }
+        }
+        .donat-method-card {
+            background: rgba(30,41,59,0.6);
+            border: 1px solid rgba(148,163,184,0.15);
+            border-radius: 20px;
+            padding: 20px 16px;
+            display: flex; flex-direction: column; gap: 14px;
+            transition: border-color 0.25s;
+        }
+        body:not(.dark-theme) .donat-method-card {
+            background: rgba(241,245,249,0.85);
+            border-color: rgba(203,213,225,0.6);
+        }
+        .donat-method-card:hover { border-color: rgba(251,191,36,0.35); }
+        .donat-method-head { display: flex; align-items: center; justify-content: space-between; }
+        .donat-method-logo { font-size: 1rem; font-weight: 900; letter-spacing: -0.5px; padding: 4px 12px; border-radius: 8px; }
+        .payme-logo { background: #00aaff; color: #fff; }
+        .click-logo { background: #00c853; color: #fff; }
+        .donat-method-tag { font-size: 0.7rem; color: #64748b; font-weight: 500; }
+        body:not(.dark-theme) .donat-method-tag { color: #94a3b8; }
+        .donat-qr-wrap { display: flex; justify-content: center; }
+        .donat-qr-placeholder {
+            width: 140px; height: 140px;
+            border: 2px dashed rgba(148,163,184,0.35);
+            border-radius: 16px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 6px; color: #64748b;
+        }
+        .donat-qr-placeholder i { font-size: 2.5rem; opacity: 0.4; }
+        .donat-qr-placeholder span { font-size: 0.8rem; font-weight: 600; }
+        .donat-qr-placeholder small { font-size: 0.62rem; opacity: 0.6; text-align: center; padding: 0 4px; }
+        .donat-qr-img { width: 140px; height: 140px; border-radius: 16px; object-fit: contain; display: block; margin: 0 auto; }
+        .donat-pay-btn {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; padding: 11px 16px; border-radius: 12px;
+            text-decoration: none; font-size: 0.82rem; font-weight: 700;
+            color: #fff !important; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .donat-pay-btn:hover { transform: translateY(-2px); }
+        .payme-btn { background: linear-gradient(135deg,#00aaff,#0077cc); box-shadow: 0 6px 18px rgba(0,170,255,0.3); }
+        .payme-btn:hover { box-shadow: 0 10px 24px rgba(0,170,255,0.45); }
+        .click-btn { background: linear-gradient(135deg,#00c853,#009624); box-shadow: 0 6px 18px rgba(0,200,83,0.3); }
+        .click-btn:hover { box-shadow: 0 10px 24px rgba(0,200,83,0.45); }
+        .donat-thanks { text-align: center; font-size: 0.88rem; color: #94a3b8; margin: 0; }
+        body:not(.dark-theme) .donat-thanks { color: #64748b; }
 
     </style>
     <link rel="stylesheet" href="css/mobile.css">
@@ -1245,7 +1363,7 @@
         </div>
       </div>
 
-      <!-- ===== MOBIL — yuqori qator (logo + iconlar) ===== -->
+      <!-- ===== MOBIL — yuqori qator ===== -->
       <div class="nav-inner mobile-top">
         <a href="#home" class="logo-brand" style="flex:1;min-width:0">
           <img src="images/nav-icon.png" class="nav-logo-icon" alt="" style="height:38px;width:38px;">
@@ -1269,7 +1387,7 @@
         <a href="kirish.html" id="login-btn-m" class="user-btn" style="padding:2px 8px 2px 2px;height:32px"><img id="btn-user-avatar-m" src="https://www.w3schools.com/howto/img_avatar.png" alt="" style="width:28px;height:28px"><span style="font-size:0.75rem;font-weight:600">Kirish</span></a>
       </div>
 
-      <!-- ===== MOBIL — pastki scrollable menyu ===== -->
+      <!-- ===== MOBIL — scrollable menyu ===== -->
       <div class="mobile-nav-scroll" id="mobileNavScroll">
         <a href="#home" class="nav-link" data-nav="asosiy">Asosiy</a>
         <a href="#projects" class="nav-link" data-nav="loyihalar">Loyihalar</a>
@@ -1288,19 +1406,17 @@
         <h4 id="user-name" style="margin-top:10px;">Foydalanuvchi</h4>
         <p id="user-email">email@example.com</p>
     </div>
-    
     <div id="usage-history-section" style="display:none;">
         <p class="usage-history-title">Foydalanish tarixi</p>
         <p id="usage-history-empty">Hali yozuv yo'q</p>
         <ul id="usage-history-list"></ul>
     </div>
-
     <div style="height:1px; background:rgba(59,130,246,0.2); margin:15px 0;"></div>
-    
     <a href="#" class="logout-link" id="logout-btn" style="color:#ef4444; text-decoration:none; font-weight:bold;">
         <i class="fas fa-sign-out-alt"></i> Chiqish
     </a>
 </div>
+
     <section class="hero" id="home">
         <div class="hero-photo-layer">
             <img src="images/profile.jpg" alt="IdrizMedia — Fizika o'qituvchisi va dasturchi">
@@ -1320,7 +1436,6 @@
                     </div>
                     <div id="clock-date" class="clock-date">23-May, 2026</div>
                 </div>
-
                 <div class="quote-container">
                     <p id="time-quote">"Vaqt — bu daryo, uni ortga qaytarib bo'lmaydi. Har bir soniyadan unumli foydalaning."</p>
                     <span class="quote-author">— Ziyomap Ma'rifat Kengashi</span>
@@ -1339,8 +1454,78 @@
                     <p>Dars rejalari, savol-javob va tahlil — sun'iy intellekt yordamida tez tayyorlang.</p>
                 </a>
             </div>
+
+            <!-- ☕ DONAT TUGMASI -->
+            <div data-aos="fade-up" data-aos-delay="500" style="margin-top:24px;">
+                <button onclick="document.getElementById('donat-modal').classList.add('active')" class="donat-btn">
+                    <span class="donat-btn-icon">☕</span>
+                    <span class="donat-btn-text">
+                        <span class="donat-btn-label">Loyihani qo'llab-quvvatlash</span>
+                        <span class="donat-btn-sub">Donat qilish</span>
+                    </span>
+                    <i class="fas fa-heart donat-btn-heart"></i>
+                </button>
+            </div>
+
         </div>
     </section>
+
+    <!-- ☕ DONAT MODAL -->
+    <div id="donat-modal" class="donat-modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="donat-modal-box">
+            <button class="donat-modal-close" onclick="document.getElementById('donat-modal').classList.remove('active')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="donat-modal-header">
+                <div class="donat-modal-icon">☕</div>
+                <h3 class="donat-modal-title">Loyihani qo'llab-quvvatlang</h3>
+                <p class="donat-modal-desc">Sizning yordamingiz Ziyomap platformasini yanada yaxshilashga kuch beradi. Har qanday miqdor qimmatli!</p>
+            </div>
+            <div class="donat-methods">
+                <!-- PAYME -->
+                <div class="donat-method-card">
+                    <div class="donat-method-head">
+                        <span class="donat-method-logo payme-logo">Payme</span>
+                        <span class="donat-method-tag">Karta orqali</span>
+                    </div>
+                    <div class="donat-qr-wrap">
+                        <!-- QR rasm tayyor bo'lganda yuqori div o'rniga:
+                             <img src="images/payme-qr.png" alt="Payme QR" class="donat-qr-img"> -->
+                        <div class="donat-qr-placeholder">
+                            <i class="fas fa-qrcode"></i>
+                            <span>QR kod</span>
+                            <small>images/payme-qr.png</small>
+                        </div>
+                    </div>
+                    <!-- href ni o'z Payme havolangizga almashtiring -->
+                    <a href="https://payme.uz/YOUR_LINK" target="_blank" class="donat-pay-btn payme-btn">
+                        <i class="fas fa-external-link-alt"></i> Payme orqali
+                    </a>
+                </div>
+                <!-- CLICK -->
+                <div class="donat-method-card">
+                    <div class="donat-method-head">
+                        <span class="donat-method-logo click-logo">Click</span>
+                        <span class="donat-method-tag">Karta orqali</span>
+                    </div>
+                    <div class="donat-qr-wrap">
+                        <!-- QR rasm tayyor bo'lganda:
+                             <img src="images/click-qr.png" alt="Click QR" class="donat-qr-img"> -->
+                        <div class="donat-qr-placeholder">
+                            <i class="fas fa-qrcode"></i>
+                            <span>QR kod</span>
+                            <small>images/click-qr.png</small>
+                        </div>
+                    </div>
+                    <!-- href ni o'z Click havolangizga almashtiring -->
+                    <a href="https://my.click.uz/YOUR_LINK" target="_blank" class="donat-pay-btn click-btn">
+                        <i class="fas fa-external-link-alt"></i> Click orqali
+                    </a>
+                </div>
+            </div>
+            <p class="donat-thanks">💛 Har qanday yordamingiz uchun katta rahmat!</p>
+        </div>
+    </div>
 
     <section class="section photo-section" id="projects">
         <div class="section-bg-layer">
@@ -1376,7 +1561,6 @@
         </div>
         <div class="section-inner">
             <h2 class="section-title" style="text-align: center; font-size: 2.2rem;" data-aos="fade-up">Ilmiy Maqolalar va Yangiliklar</h2>
-
             <div id="posts-container" class="grid">
                 <p style="text-align: center; grid-column: 1 / -1; color:#f1f5f9;">Maqolalar yuklanmoqda...</p>
             </div>
@@ -1458,6 +1642,7 @@
     <footer>
         <p style="opacity: 0.65; font-size:0.9rem;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
+
     <script src="js/ziyomap-usage.js"></script>
     <script src="js/auth-guard.js"></script>
     <script src="js/floating-widgets.js"></script>
@@ -1500,10 +1685,13 @@
             document.getElementById('results-list').innerHTML = '<p style="color: #94a3b8; font-style: italic;">Tozalandi. Yangi tajriba boshlang.</p>';
         }
 
-  </script>
+        // ESC bilan modalni yopish
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') document.getElementById('donat-modal').classList.remove('active');
+        });
+    </script>
     
 <style>
-/* --- Soat Moduli Stillari --- */
 .clock-section {
     display: flex;
     flex-direction: column;
@@ -1514,7 +1702,6 @@
     max-width: 500px;
     font-family: 'Poppins', sans-serif;
 }
-
 .clock-card {
     padding: 15px 40px;
     border-radius: 16px;
@@ -1526,31 +1713,16 @@
     margin-bottom: 15px;
 }
 .clock-card:hover { transform: scale(1.05); }
-
-.clock-display {
-    font-size: 42px;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.clock-date {
-    font-size: 13px;
-    margin-top: 5px;
-    opacity: 0.8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
+.clock-display { font-size: 42px; font-weight: 700; letter-spacing: 2px; }
+.clock-date { font-size: 13px; margin-top: 5px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
 .clock-card.style-1 { background: #161b22; border: 2px solid #00d2ff; color: #ffffff; text-shadow: 0 0 12px rgba(0, 210, 255, 0.6); box-shadow: 0 0 20px rgba(0, 210, 255, 0.2); }
 .clock-card.style-2 { background: linear-gradient(135deg, #1f1c2c, #928dab); border: 2px solid #f39c12; color: #f1c40f; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 .clock-card.style-3 { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; }
 .clock-card.style-4 { background: #000000; border: 2px solid #2ecc71; color: #2ecc71; font-family: 'Courier New', monospace; text-shadow: 0 0 10px #2ecc71; }
 .clock-card.style-5 { background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white; border: none; }
-
 .quote-container { text-align: left; padding: 0; }
 #time-quote { font-style: italic; font-size: 15px; color: #cbd5e1; line-height: 1.6; margin: 0 0 5px 0; transition: opacity 0.5s ease; }
 .quote-author { font-size: 12px; color: #58a6ff; font-weight: 500; }
-
 @media (max-width: 768px) {
     .clock-section { align-items: center; }
     .quote-container { text-align: center; }
