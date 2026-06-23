@@ -59,6 +59,18 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
         font-size: 0.9rem;
     }
 
+    .doska-top-right {
+        gap: 5px !important;
+    }
+
+    .doska-top-right .tb-btn,
+    .doska-top-right .theme-toggle-doska {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        flex-shrink: 0;
+    }
+
     .doska-canvas-wrap {
         top: 48px;
     }
@@ -140,6 +152,13 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
 }
 .doska-top h1 i { color: var(--doska-accent); }
 
+.doska-top-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 /* ════════════════════════════════════
    CANVAS
 ════════════════════════════════════ */
@@ -217,16 +236,25 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
     text-align: center;
     color: var(--doska-text-muted);
 }
+
+/* Header ichidagi (inline) zoom — faqat mobilda ko'rinadi */
+.zoom-control--inline {
+    display: none;
+    position: static;
+    left: auto; bottom: auto;
+    box-shadow: none;
+    padding: 3px 5px;
+    background: rgba(255,255,255,0.06);
+}
+
 @media (max-width: 768px) {
-    .zoom-control {
-        bottom: auto;
-        top: 60px;
-        left: 8px;
-        flex-direction: row;
-        padding: 5px 6px;
+    .zoom-control--desktop { display: none; }
+    .zoom-control--inline {
+        display: flex;
+        gap: 2px;
     }
-    .zoom-btn { width: 26px; height: 26px; }
-    .zoom-label { font-size: 0.68rem; min-width: 36px; padding: 0 3px; }
+    .zoom-control--inline .zoom-btn { width: 24px; height: 24px; }
+    .zoom-control--inline .zoom-label { font-size: 0.65rem; min-width: 30px; padding: 0 2px; }
 }
 
 /* ════════════════════════════════════
