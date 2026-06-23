@@ -1565,10 +1565,13 @@ initDoskaTheme();
 ════════════════════════════════════════════════════════════ */
 const zoomLayer = document.getElementById('doska-zoom-layer');
 const zoomLabel = document.getElementById('zoom-label');
+const zoomLabelMobile = document.getElementById('zoom-label-m');
 
 function applyZoom() {
     if (zoomLayer) zoomLayer.style.transform = `scale(${currentZoom})`;
-    if (zoomLabel) zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+    const pct = Math.round(currentZoom * 100) + '%';
+    if (zoomLabel) zoomLabel.textContent = pct;
+    if (zoomLabelMobile) zoomLabelMobile.textContent = pct;
 }
 function zoomIn() {
     currentZoom = Math.min(ZOOM_MAX, +(currentZoom + ZOOM_STEP).toFixed(2));
@@ -1585,6 +1588,8 @@ function zoomReset() {
 document.getElementById('zoom-in')?.addEventListener('click', zoomIn);
 document.getElementById('zoom-out')?.addEventListener('click', zoomOut);
 document.getElementById('zoom-reset')?.addEventListener('click', zoomReset);
+document.getElementById('zoom-in-m')?.addEventListener('click', zoomIn);
+document.getElementById('zoom-out-m')?.addEventListener('click', zoomOut);
 
 /* Ctrl + scroll orqali ham zoom qilish imkoni */
 document.querySelector('.doska-canvas-wrap')?.addEventListener('wheel', (e) => {
