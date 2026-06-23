@@ -195,6 +195,10 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
 #board-canvas.shape-mode { cursor: crosshair; }
 #board-canvas.select-mode { cursor: default; }
 #board-canvas.text-mode { cursor: text; }
+#board-canvas.pan-mode { cursor: grab; }
+#board-canvas.pan-mode.panning { cursor: grabbing; }
+.doska-canvas-wrap.pan-active { cursor: grab; }
+.doska-canvas-wrap.pan-active.panning { cursor: grabbing; }
 
 /* ════════════════════════════════════
    ZOOM BOSHQARUVI
@@ -347,7 +351,7 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
 
 .floating-toolbar.fab-dragging .tb-drag { cursor: grabbing; }
 
-.tb-position-btn {
+.tb-pan-btn {
     width: 30px; height: 30px;
     border-radius: 8px;
     border: 1px solid var(--doska-border);
@@ -355,12 +359,18 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
     color: var(--doska-text);
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     flex-shrink: 0;
-    transition: background 0.15s, color 0.15s, transform 0.15s;
+    transition: background 0.15s, color 0.15s, transform 0.15s, border-color 0.15s;
 }
-.tb-position-btn:hover { background: rgba(255,138,61,0.14); color: var(--doska-accent); }
-.tb-position-btn:active { transform: scale(0.92); }
+.tb-pan-btn:hover { background: rgba(45,212,191,0.14); color: var(--doska-accent2); }
+.tb-pan-btn:active { transform: scale(0.92); }
+.tb-pan-btn.active {
+    background: var(--doska-accent2);
+    border-color: var(--doska-accent2);
+    color: #0f172a;
+    box-shadow: 0 0 0 3px rgba(45,212,191,0.22);
+}
 
 @media (max-width: 768px) {
     .tb-drag {
@@ -368,9 +378,9 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; }
         font-size: 1.05rem !important;
         opacity: 0.85 !important;
     }
-    .tb-position-btn {
-        width: 36px; height: 36px;
-        font-size: 0.9rem;
+    .tb-pan-btn {
+        width: 38px; height: 38px;
+        font-size: 0.95rem;
     }
 }
 
@@ -891,6 +901,24 @@ input[type='range'].brush-range {
 }
 .tw-color-dot:hover { transform: scale(1.15); border-color: #fff; }
 
+.tw-font-select,
+.pt-tb-font {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #0f172a;
+    color: var(--doska-text);
+    border: 1px solid #475569;
+    border-radius: 7px;
+    padding: 3px 6px;
+    font-size: 0.68rem;
+    cursor: pointer;
+    max-width: 92px;
+    flex-shrink: 0;
+}
+.tw-font-select:hover,
+.pt-tb-font:hover { border-color: var(--doska-accent); }
+.pt-tb-font { max-width: 80px; font-size: 0.65rem; padding: 2px 4px; }
+
 /* ════════════════════════════════════
    SHAPE TOOL POPUP
 ════════════════════════════════════ */
@@ -1323,6 +1351,12 @@ html[data-doska-theme="light"] .pinned-text-toolbar {
 }
 html[data-doska-theme="light"] .pt-tb-btn:hover { background: rgba(255,138,61,0.1); }
 html[data-doska-theme="light"] .pt-tb-sep { background: var(--doska-border); }
+html[data-doska-theme="light"] .tw-font-select,
+html[data-doska-theme="light"] .pt-tb-font {
+    background: #f1f5f9;
+    border-color: var(--doska-border);
+    color: var(--doska-text);
+}
 html[data-doska-theme="light"] .zoom-control {
     background: var(--doska-panel);
     border-color: var(--doska-border);
