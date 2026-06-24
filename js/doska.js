@@ -33,6 +33,9 @@ const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 2.5;
 const ZOOM_STEP = 0.15;
 
+/* Qo'l (pan) rejimi holati */
+let panMode = false;
+
 /* ════════════════════════════════════
    SAHIFALAR (slaydlar)
 ════════════════════════════════════ */
@@ -67,6 +70,7 @@ function savePageSnapshot() {
         y: parseFloat(el.style.top) || 0,
         fontSize: parseFloat(el.style.fontSize) || 16,
         color: el.style.color || '#ffffff',
+        fontFamily: el.style.fontFamily || "'Inter', sans-serif",
         width: el.style.width ? parseFloat(el.style.width) : null,
     }));
 }
@@ -204,6 +208,7 @@ let snapshotBeforeShape = null;
 
 function startDraw(e) {
     if (e.target.closest('.floating-toolbar') || e.target.closest('.board-widget') || e.target.closest('.page-nav')) return;
+    if (panMode) return;
     drawing = true;
     const p = getCoords(e);
 
@@ -368,6 +373,7 @@ document.querySelectorAll('.tb-tab').forEach((btn) => {
 ════════════════════════════════════ */
 document.querySelectorAll('.color-dot').forEach((btn) => {
     btn.addEventListener('click', () => {
+        if (panMode) togglePanMode(true);
         tool = 'pen';
         canvas.classList.remove('eraser-mode', 'shape-mode');
         document.getElementById('btn-eraser')?.classList.remove('active');
@@ -941,6 +947,7 @@ function closeColorPicker() {
 /* Qalam uchun maxsus rang tugmasi */
 document.getElementById('pen-custom-color-btn')?.addEventListener('click', () => {
     openColorPicker(color, (hex) => {
+        if (panMode) togglePanMode(true);
         color = hex;
         tool = 'pen';
         canvas.classList.remove('eraser-mode');
@@ -1290,11 +1297,24 @@ function createPinnedText(data) {
     el.style.top = (data.y || 40) + 'px';
     el.style.fontSize = (data.fontSize || 16) + 'px';
     el.style.color = data.color || '#ffffff';
+    el.style.fontFamily = data.fontFamily || "'Inter', sans-serif";
     if (data.width) el.style.width = data.width + 'px';
+
+    const PT_FONTS = [
+        { value: "'Inter', sans-serif", label: 'Inter' },
+        { value: "'Space Grotesk', sans-serif", label: 'Space Grotesk' },
+        { value: "'JetBrains Mono', monospace", label: 'Mono' },
+        { value: "Georgia, serif", label: 'Georgia' },
+        { value: "'Comic Sans MS', cursive", label: 'Qo\u02bclyozma' },
+        { value: "Impact, sans-serif", label: 'Impact' },
+    ];
 
     const toolbar = document.createElement('div');
     toolbar.className = 'pinned-text-toolbar';
     toolbar.innerHTML = `
+        <select class="pt-tb-font" data-act="font" title="Shrift">
+            ${PT_FONTS.map((f) => `<option value="${f.value}">${f.label}</option>`).join('')}
+        </select>
         <button type="button" class="pt-tb-btn" data-act="edit" title="Tahrirlash"><i class="fas fa-pen"></i></button>
         <button type="button" class="pt-tb-btn" data-act="size-dec" title="Kichraytirish"><i class="fas fa-minus"></i></button>
         <button type="button" class="pt-tb-btn" data-act="size-inc" title="Kattalashtirish"><i class="fas fa-plus"></i></button>
@@ -1304,6 +1324,8 @@ function createPinnedText(data) {
         <button type="button" class="pt-tb-btn pt-delete" data-act="delete" title="O'chirish"><i class="fas fa-trash"></i></button>
     `;
     el.appendChild(toolbar);
+    const fontSelectEl = toolbar.querySelector('.pt-tb-font');
+    if (fontSelectEl) fontSelectEl.value = el.style.fontFamily || PT_FONTS[0].value;
 
     const textSpan = document.createElement('span');
     textSpan.className = 'pinned-text-content';
@@ -1445,15 +1467,32 @@ function bindPinnedTextEvents(el, textSpan, toolbar, resizeHandle) {
             scheduleAutosave();
         });
     });
+    toolbar.querySelector('.pt-tb-font')?.addEventListener('change', (e) => {
+        el.style.fontFamily = e.target.value;
+        scheduleAutosave();
+    });
+    toolbar.querySelector('.pt-tb-font')?.addEventListener('mousedown', (e) => e.stopPropagation());
 }
 
 function addTextWidget() {
     const el = createWidgetShell('✏️ Matn', null);
     el.classList.add('text-widget');
 
+    const FONT_OPTIONS = [
+        { value: "'Inter', sans-serif", label: 'Inter' },
+        { value: "'Space Grotesk', sans-serif", label: 'Space Grotesk' },
+        { value: "'JetBrains Mono', monospace", label: 'Mono' },
+        { value: "Georgia, serif", label: 'Georgia' },
+        { value: "'Comic Sans MS', cursive", label: 'Qo\u02bclyozma' },
+        { value: "Impact, sans-serif", label: 'Impact' },
+    ];
+
     const controls = document.createElement('div');
     controls.className = 'text-widget-controls';
     controls.innerHTML = `
+        <select class="tw-font-select" id="tw-font-select" title="Shrift tanlash">
+            ${FONT_OPTIONS.map((f) => `<option value="${f.value}">${f.label}</option>`).join('')}
+        </select>
         <button type="button" class="tw-ctrl-btn" data-act="size-dec" title="Kichraytirish"><i class="fas fa-minus"></i></button>
         <button type="button" class="tw-ctrl-btn" data-act="size-inc" title="Kattalashtirish"><i class="fas fa-plus"></i></button>
         <button type="button" class="tw-color-dot" data-color="#ffffff" style="background:#fff" title="Oq"></button>
@@ -1471,6 +1510,7 @@ function addTextWidget() {
     ta.placeholder = 'Matn yozing...';
     ta.style.fontSize = '16px';
     ta.style.color = '#ffffff';
+    ta.style.fontFamily = FONT_OPTIONS[0].value;
     el.appendChild(ta);
 
     const stampBtn = document.createElement('button');
@@ -1502,6 +1542,10 @@ function addTextWidget() {
     controls.querySelector('#tw-custom-color').addEventListener('click', () => {
         openColorPicker(ta.style.color || '#ffffff', (hex) => { ta.style.color = hex; });
     });
+    controls.querySelector('#tw-font-select').addEventListener('change', (e) => {
+        ta.style.fontFamily = e.target.value;
+    });
+    controls.querySelector('#tw-font-select').addEventListener('mousedown', (e) => e.stopPropagation());
 
     /* ── DOSKAGA CHIQARISH — endi doimiy, ko'chiriladigan/resize qilinadigan element yaratadi ── */
     stampBtn.addEventListener('click', () => {
@@ -1519,6 +1563,7 @@ function addTextWidget() {
             y,
             fontSize,
             color: ta.style.color || '#ffffff',
+            fontFamily: ta.style.fontFamily || FONT_OPTIONS[0].value,
         });
 
         el.remove();
@@ -1609,43 +1654,77 @@ document.addEventListener('keydown', (e) => {
 applyZoom();
 
 /* ════════════════════════════════════════════════════════════
-   MOBIL TOOLBAR — TEZKOR POZITSIYA TUGMASI
-   Drag qiyin bo'lgan qurilmalar uchun 4 burchak orasida aylanadi
+   QO'L (PAN) REJIMI
+   Yoqilganda chizish to'xtaydi — sichqoncha/barmoq bilan
+   zoom qilingan doskani istalgan tomonga suriб ko'rish mumkin
 ════════════════════════════════════════════════════════════ */
-const TOOLBAR_POSITIONS = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
-let toolbarPosIndex = 0;
+const canvasWrap = document.querySelector('.doska-canvas-wrap');
 
-function applyToolbarPosition(posKey) {
-    if (!toolbar) return;
-    toolbar.classList.remove('default-position');
-    const margin = 12;
-    const topSafe = 64;
-    toolbar.style.transform = 'none';
-    toolbar.style.right = 'auto';
-    toolbar.style.bottom = 'auto';
-    toolbar.style.left = 'auto';
-    toolbar.style.top = 'auto';
-
-    if (posKey === 'top-left') { toolbar.style.left = margin + 'px'; toolbar.style.top = topSafe + 'px'; }
-    else if (posKey === 'top-right') { toolbar.style.right = margin + 'px'; toolbar.style.top = topSafe + 'px'; }
-    else if (posKey === 'bottom-right') { toolbar.style.right = margin + 'px'; toolbar.style.bottom = (margin + 70) + 'px'; }
-    else if (posKey === 'bottom-left') { toolbar.style.left = margin + 'px'; toolbar.style.bottom = (margin + 70) + 'px'; }
-
-    try { localStorage.setItem('doska_toolbar_pos', posKey); } catch { /* ignore */ }
+function togglePanMode(forceOff) {
+    panMode = forceOff === true ? false : !panMode;
+    const btn = document.getElementById('tb-pan-btn');
+    if (btn) btn.classList.toggle('active', panMode);
+    canvas.classList.toggle('pan-mode', panMode);
+    if (canvasWrap) canvasWrap.classList.toggle('pan-active', panMode);
+    if (panMode) {
+        /* Pan rejimida boshqa chizish rejimlari vizual jihatdan o'chiriladi */
+        showToast('✋ Qo\'l rejimi: doskani sudrab ko\'ring');
+    }
 }
 
-document.getElementById('tb-position-btn')?.addEventListener('click', (e) => {
+document.getElementById('tb-pan-btn')?.addEventListener('click', (e) => {
     e.stopPropagation();
-    try { localStorage.removeItem('doska_toolbar_free_pos'); } catch { /* ignore */ }
-    toolbarPosIndex = (toolbarPosIndex + 1) % TOOLBAR_POSITIONS.length;
-    const posKey = TOOLBAR_POSITIONS[toolbarPosIndex];
-    applyToolbarPosition(posKey);
-    showToast('Asboblar paneli ko\'chirildi');
+    togglePanMode();
 });
 
-/* Saqlangan pozitsiyani tiklash (agar foydalanuvchi avval drag qilmagan bo'lsa) */
-(function restoreToolbarPosition() {
-    /* Avval erkin (drag qilingan) pozitsiyani tekshiramiz — u eng oxirgi harakat */
+/* Sudrab surish (pan) mantig'i — sichqoncha */
+let panDragging = false, panStartX = 0, panStartY = 0, panScrollLeft = 0, panScrollTop = 0;
+
+function panStart(cx, cy) {
+    if (!panMode || !canvasWrap) return;
+    panDragging = true;
+    canvas.classList.add('panning');
+    canvasWrap.classList.add('panning');
+    panStartX = cx;
+    panStartY = cy;
+    panScrollLeft = canvasWrap.scrollLeft;
+    panScrollTop = canvasWrap.scrollTop;
+}
+function panMove(cx, cy) {
+    if (!panDragging || !canvasWrap) return;
+    canvasWrap.scrollLeft = panScrollLeft - (cx - panStartX);
+    canvasWrap.scrollTop = panScrollTop - (cy - panStartY);
+}
+function panEnd() {
+    panDragging = false;
+    canvas.classList.remove('panning');
+    if (canvasWrap) canvasWrap.classList.remove('panning');
+}
+
+canvas.addEventListener('mousedown', (e) => {
+    if (!panMode) return;
+    e.preventDefault();
+    panStart(e.clientX, e.clientY);
+});
+window.addEventListener('mousemove', (e) => { if (panMode) panMove(e.clientX, e.clientY); });
+window.addEventListener('mouseup', () => { if (panMode) panEnd(); });
+
+canvas.addEventListener('touchstart', (e) => {
+    if (!panMode) return;
+    const t = e.touches[0];
+    panStart(t.clientX, t.clientY);
+}, { passive: true });
+canvas.addEventListener('touchmove', (e) => {
+    if (!panMode || !panDragging) return;
+    const t = e.touches[0];
+    panMove(t.clientX, t.clientY);
+    e.preventDefault();
+}, { passive: false });
+canvas.addEventListener('touchend', () => { if (panMode) panEnd(); });
+
+/* Sahifa ochilganda, foydalanuvchi avval drag qilib qo'ygan asboblar paneli
+   pozitsiyasini tiklash */
+(function restoreToolbarFreePosition() {
     let freePos = null;
     try { freePos = JSON.parse(localStorage.getItem('doska_toolbar_free_pos') || 'null'); } catch { /* ignore */ }
     if (freePos && freePos.left && freePos.top && toolbar) {
@@ -1655,15 +1734,10 @@ document.getElementById('tb-position-btn')?.addEventListener('click', (e) => {
         toolbar.style.right = 'auto';
         toolbar.style.bottom = 'auto';
         toolbar.style.transform = 'none';
-        return;
-    }
-    let saved = null;
-    try { saved = localStorage.getItem('doska_toolbar_pos'); } catch { /* ignore */ }
-    if (saved && TOOLBAR_POSITIONS.includes(saved)) {
-        toolbarPosIndex = TOOLBAR_POSITIONS.indexOf(saved);
-        applyToolbarPosition(saved);
     }
 })();
+
+
 
 /* ════════════════════════════════════
    AUTH + USAGE LOG
