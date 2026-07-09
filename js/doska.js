@@ -41,6 +41,13 @@ const ZOOM_STEP = 0.15;
    ham (ZOOM_MAX gacha) tasvir doim aniq va tiniq bo'lib qoladi. */
 const RENDER_SCALE = Math.min(3, Math.max(1, ZOOM_MAX));
 
+/* Doska ko'rinadigan ekrandan kattaroq "sahifa" bo'lishi uchun —
+   kichraytirilganda faqat bo'sh fon emas, balki haqiqiy chizish
+   mumkin bo'lgan qo'shimcha joy ko'rinadi. Qo'l (pan) rejimi yoki
+   scroll orqali chekka joylarga o'tish mumkin. */
+const PAGE_SCALE = 1.6;
+let pageCentered = false;
+
 /* Qo'l (pan) rejimi holati */
 let panMode = false;
 
@@ -162,19 +169,37 @@ function showToast(msg) {
    CANVAS RESIZE
 ════════════════════════════════════ */
 function resizeCanvas() {
-    const wrap = canvas.parentElement;
+    const outerWrap = document.getElementById('doska-bg-wrap');
     const temp = document.createElement('canvas');
     temp.width = canvas.width;
     temp.height = canvas.height;
     if (canvas.width && canvas.height) temp.getContext('2d').drawImage(canvas, 0, 0);
-    /* Canvas CSS orqali (100%) wrap o'lchamida ko'rinadi, lekin haqiqiy
-       piksel soni RENDER_SCALE marta ko'p — shu tufayli zoom qilinganda
-       ham tasvir xira bo'lmaydi. */
-    canvas.width = Math.round(wrap.clientWidth * RENDER_SCALE);
-    canvas.height = Math.round(wrap.clientHeight * RENDER_SCALE);
+
+    /* Doska sahifasi ekran (wrap)dan PAGE_SCALE marta kattaroq bo'ladi —
+       shu sababli kichraytirilganda ham chizish mumkin bo'lgan haqiqiy
+       joy ko'proq bo'ladi, shunchaki bo'sh fon emas. */
+    const pageW = Math.round(outerWrap.clientWidth * PAGE_SCALE);
+    const pageH = Math.round(outerWrap.clientHeight * PAGE_SCALE);
+    canvas.style.width = pageW + 'px';
+    canvas.style.height = pageH + 'px';
+
+    /* Canvas CSS o'lchamda ko'rinadi, lekin haqiqiy piksel soni
+       RENDER_SCALE marta ko'p — shu tufayli zoom qilinganda ham
+       tasvir xira bo'lmaydi. */
+    canvas.width = Math.round(pageW * RENDER_SCALE);
+    canvas.height = Math.round(pageH * RENDER_SCALE);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     if (temp.width && temp.height) ctx.drawImage(temp, 0, 0, canvas.width, canvas.height);
+
+    /* Boshlang'ich yuklanishda doskani wrap markaziga scroll qilib qo'yamiz,
+       shunda foydalanuvchi avval ko'rgan markaziy joyni ko'radi, atrofida
+       esa qo'shimcha chizish joyi bo'ladi. */
+    if (!pageCentered) {
+        pageCentered = true;
+        outerWrap.scrollLeft = (pageW - outerWrap.clientWidth) / 2;
+        outerWrap.scrollTop = (pageH - outerWrap.clientHeight) / 2;
+    }
 }
 
 function pushUndo() {
@@ -1315,8 +1340,18 @@ function createPinnedText(data) {
         { value: "'Inter', sans-serif", label: 'Inter' },
         { value: "'Space Grotesk', sans-serif", label: 'Space Grotesk' },
         { value: "'JetBrains Mono', monospace", label: 'Mono' },
+        { value: "Arial, Helvetica, sans-serif", label: 'Arial' },
+        { value: "Verdana, Geneva, sans-serif", label: 'Verdana' },
+        { value: "Tahoma, Geneva, sans-serif", label: 'Tahoma' },
+        { value: "'Trebuchet MS', sans-serif", label: 'Trebuchet' },
+        { value: "'Segoe UI', sans-serif", label: 'Segoe UI' },
         { value: "Georgia, serif", label: 'Georgia' },
+        { value: "'Times New Roman', Times, serif", label: 'Times' },
+        { value: "'Palatino Linotype', 'Book Antiqua', Palatino, serif", label: 'Palatino' },
+        { value: "Garamond, 'EB Garamond', serif", label: 'Garamond' },
+        { value: "'Courier New', Courier, monospace", label: 'Courier' },
         { value: "'Comic Sans MS', cursive", label: 'Qo\u02bclyozma' },
+        { value: "'Brush Script MT', cursive", label: 'Qalam yozuv' },
         { value: "Impact, sans-serif", label: 'Impact' },
     ];
 
@@ -1493,8 +1528,18 @@ function addTextWidget() {
         { value: "'Inter', sans-serif", label: 'Inter' },
         { value: "'Space Grotesk', sans-serif", label: 'Space Grotesk' },
         { value: "'JetBrains Mono', monospace", label: 'Mono' },
+        { value: "Arial, Helvetica, sans-serif", label: 'Arial' },
+        { value: "Verdana, Geneva, sans-serif", label: 'Verdana' },
+        { value: "Tahoma, Geneva, sans-serif", label: 'Tahoma' },
+        { value: "'Trebuchet MS', sans-serif", label: 'Trebuchet' },
+        { value: "'Segoe UI', sans-serif", label: 'Segoe UI' },
         { value: "Georgia, serif", label: 'Georgia' },
+        { value: "'Times New Roman', Times, serif", label: 'Times' },
+        { value: "'Palatino Linotype', 'Book Antiqua', Palatino, serif", label: 'Palatino' },
+        { value: "Garamond, 'EB Garamond', serif", label: 'Garamond' },
+        { value: "'Courier New', Courier, monospace", label: 'Courier' },
         { value: "'Comic Sans MS', cursive", label: 'Qo\u02bclyozma' },
+        { value: "'Brush Script MT', cursive", label: 'Qalam yozuv' },
         { value: "Impact, sans-serif", label: 'Impact' },
     ];
 
