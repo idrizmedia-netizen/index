@@ -33,6 +33,14 @@ const ZOOM_MIN = 0.4;
 const ZOOM_MAX = 2.5;
 const ZOOM_STEP = 0.15;
 
+/* Doska (canvas) ichki piksel zichligini oshirish — zoom qilinganda
+   rasm sifati/chiziqlar xiralashib qolmasligi uchun canvas ekranda
+   ko'rinadigan o'lchamdan RENDER_SCALE marta yuqori aniqlikda
+   chiziladi (haqiqiy piksel zichligi), so'ng ekranga moslab
+   kichraytirib ko'rsatiladi — shu sababli qanchalik kattalashtirsak
+   ham (ZOOM_MAX gacha) tasvir doim aniq va tiniq bo'lib qoladi. */
+const RENDER_SCALE = Math.min(3, Math.max(1, ZOOM_MAX));
+
 /* Qo'l (pan) rejimi holati */
 let panMode = false;
 
@@ -159,8 +167,11 @@ function resizeCanvas() {
     temp.width = canvas.width;
     temp.height = canvas.height;
     if (canvas.width && canvas.height) temp.getContext('2d').drawImage(canvas, 0, 0);
-    canvas.width = wrap.clientWidth;
-    canvas.height = wrap.clientHeight;
+    /* Canvas CSS orqali (100%) wrap o'lchamida ko'rinadi, lekin haqiqiy
+       piksel soni RENDER_SCALE marta ko'p — shu tufayli zoom qilinganda
+       ham tasvir xira bo'lmaydi. */
+    canvas.width = Math.round(wrap.clientWidth * RENDER_SCALE);
+    canvas.height = Math.round(wrap.clientHeight * RENDER_SCALE);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     if (temp.width && temp.height) ctx.drawImage(temp, 0, 0, canvas.width, canvas.height);
@@ -244,7 +255,7 @@ function moveDraw(e) {
 
     if (tool === 'pen' || tool === 'eraser') {
         ctx.strokeStyle = color;
-        ctx.lineWidth = tool === 'eraser' ? lineWidth * 2.5 : lineWidth;
+        ctx.lineWidth = (tool === 'eraser' ? lineWidth * 2.5 : lineWidth) * RENDER_SCALE;
         ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
         ctx.lineTo(p.x, p.y);
         ctx.stroke();
@@ -263,7 +274,7 @@ function moveDraw(e) {
 function drawShape(start, end) {
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
-    ctx.lineWidth = lineWidth;
+    ctx.lineWidth = lineWidth * RENDER_SCALE;
     ctx.globalCompositeOperation = 'source-over';
     ctx.beginPath();
     if (tool === 'shape-line') {
@@ -287,7 +298,7 @@ function drawShape(start, end) {
 }
 
 function drawArrow(start, end) {
-    const headLen = Math.max(14, lineWidth * 3);
+    const headLen = Math.max(14, lineWidth * 3) * RENDER_SCALE;
     const angle = Math.atan2(end.y - start.y, end.x - start.x);
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
@@ -1010,7 +1021,7 @@ function laserLoop() {
         const age = (now - p.t) / 900;
         ctx.globalAlpha = Math.max(0, 1 - age);
         ctx.strokeStyle = '#ff3b3b';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4 * RENDER_SCALE;
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(prev.x, prev.y);
