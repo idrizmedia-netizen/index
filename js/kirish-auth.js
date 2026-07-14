@@ -33,6 +33,9 @@ const savedLoginLabel = document.getElementById('saved-login-label');
 const welcomeName = document.getElementById('welcome-name');
 const welcomeEmail = document.getElementById('welcome-email');
 const continueBtn = document.getElementById('continue-btn');
+const forgotCredsBtn = document.getElementById('forgot-creds-btn');
+const resetCredsBtn = document.getElementById('reset-creds-btn');
+const cancelResetBtn = document.getElementById('cancel-reset-btn');
 
 const params = new URLSearchParams(window.location.search);
 const Creds = window.ZiyomapCredentials;
@@ -82,6 +85,7 @@ function saveFirebaseUser(user, usageLabel) {
 
 function updateCredentialUI(user) {
     if (!user?.uid || !Creds) return;
+    if (cancelResetBtn) cancelResetBtn.style.display = 'none';
     const existing = Creds.findByUid(user.uid);
     if (existing) {
         if (setupBox) setupBox.style.display = 'none';
@@ -142,19 +146,51 @@ async function handleGoogleCallback() {
 
 handleGoogleCallback();
 
+function startGoogleLogin() {
+    const clientId = '982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com';
+    const redirectUri = window.location.origin + '/kirish.html';
+    const googleOAuthUrl =
+        `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${clientId}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=id_token` +
+        `&scope=openid%20profile%20email` +
+        `&nonce=random_nonce_string` +
+        `&prompt=select_account`;
+    window.location.href = googleOAuthUrl;
+}
+
 if (loginBtn) {
-    loginBtn.addEventListener('click', () => {
-        const clientId = '982123868162-si71h3c38q2hlvm397mo2ti17kgfj3gh.apps.googleusercontent.com';
-        const redirectUri = window.location.origin + '/kirish.html';
-        const googleOAuthUrl =
-            `https://accounts.google.com/o/oauth2/v2/auth?` +
-            `client_id=${clientId}` +
-            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-            `&response_type=id_token` +
-            `&scope=openid%20profile%20email` +
-            `&nonce=random_nonce_string` +
-            `&prompt=select_account`;
-        window.location.href = googleOAuthUrl;
+    loginBtn.addEventListener('click', startGoogleLogin);
+}
+
+/* Login yoki parolni unutgan foydalanuvchi — Google orqali qayta
+   tasdiqlanadi, so'ng logged-panel ichidagi "Tiklash" tugmasi orqali
+   yangi login/parol o'rnatiladi. */
+if (forgotCredsBtn) {
+    forgotCredsBtn.addEventListener('click', () => {
+        setStatus('Google orqali tasdiqlang, so‘ng yangi login va parol o‘rnatasiz.', 'info');
+        startGoogleLogin();
+    });
+}
+
+/* Login/parol allaqachon o'rnatilgan bo'lsa ham, foydalanuvchi
+   ularni shu yerdan tiklab (o'zgartirib) yubora oladi. */
+if (resetCredsBtn) {
+    resetCredsBtn.addEventListener('click', () => {
+        if (setupDone) setupDone.style.display = 'none';
+        if (setupBox) setupBox.style.display = 'block';
+        if (cancelResetBtn) cancelResetBtn.style.display = 'block';
+        setStatus('Yangi login va parol kiriting.', 'info');
+    });
+}
+
+if (cancelResetBtn) {
+    cancelResetBtn.addEventListener('click', () => {
+        if (setupBox) setupBox.style.display = 'none';
+        if (setupDone) setupDone.style.display = 'block';
+        cancelResetBtn.style.display = 'none';
+        setStatus('', '');
     });
 }
 
