@@ -157,6 +157,24 @@
             margin-top: 10px;
             text-align: center;
         }
+        .btn-link-plain {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 12px;
+            padding: 4px;
+            cursor: pointer;
+        }
+        .btn-link-plain:hover { text-decoration: underline; }
+        .btn-link-plain--dark {
+            color: #047857;
+            margin-top: 10px;
+        }
         #logged-panel { display: none; padding: 0 24px 24px; }
         .welcome-box {
             text-align: center;
@@ -262,6 +280,9 @@
                     <button type="submit" class="btn-primary"><i class="fas fa-sign-in-alt"></i> Kirish</button>
                 </form>
                 <p class="hint">Login va parol faqat Google bilan bir marta kirgandan keyin o‘rnatiladi.</p>
+                <button type="button" id="forgot-creds-btn" class="btn-link-plain">
+                    <i class="fas fa-rotate"></i> Login yoki parolni unutdingizmi? Google orqali tiklang
+                </button>
             </div>
         </div>
 
@@ -275,6 +296,9 @@
                 <i class="fas fa-check-circle"></i>
                 Login o‘rnatilgan: <strong id="saved-login-label">—</strong>.
                 Keyingi safar shu login va parol bilan kira olasiz.
+                <button type="button" id="reset-creds-btn" class="btn-link-plain btn-link-plain--dark">
+                    <i class="fas fa-rotate"></i> Login yoki parolni tiklash
+                </button>
             </div>
 
             <div id="setup-box" class="setup-box">
@@ -295,6 +319,9 @@
                     </div>
                     <button type="submit" class="btn-primary">Saqlash</button>
                 </form>
+                <button type="button" id="cancel-reset-btn" class="btn-link-plain" style="display:none">
+                    Bekor qilish
+                </button>
             </div>
 
             <a href="index.html" class="btn-link" id="continue-btn">Davom etish →</a>
