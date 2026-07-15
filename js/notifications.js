@@ -115,7 +115,8 @@
 
   function attachItemClicks(container){
     container.querySelectorAll('.zy-notif-item').forEach(function(el){
-      el.addEventListener('click',function(){
+      el.addEventListener('click',function(e){
+        e.stopPropagation();
         var id=el.dataset.nid;
         var ids=getReadIds();
         if(ids.indexOf(id)<0){ids.push(id);saveReadIds(ids);}
