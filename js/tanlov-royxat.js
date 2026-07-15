@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
 import {
     getFirestore,
     collection,
@@ -26,6 +27,13 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const authInst = getAuth(app);
+const authReady = new Promise((resolve) => {
+    const unsub = onAuthStateChanged(authInst, () => {
+        unsub();
+        resolve();
+    });
+});
 
 const contestInfo = document.getElementById('contest-info');
 const needLoginBox = document.getElementById('need-login-box');
@@ -82,6 +90,7 @@ async function nextRegistrationId() {
 
 async function init() {
     hideAll();
+    await authReady;
 
     const user = window.ZiyomapUsage && ZiyomapUsage.getUser();
     if (!user || !user.uid) {
