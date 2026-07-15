@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Tanlovga ro'yxatdan o'tish | Ziyomap</title>
+<link rel="icon" type="image/png" href="icon-192x192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="css/notifications.css">
 <style>
@@ -15,21 +16,39 @@
     --muted: #64748b;
     --border: #e2e8f0;
     --success: #059669;
+    --page-bg: linear-gradient(145deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+}
+body.dark-theme {
+    --card: #151f32;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #293449;
+    --page-bg: linear-gradient(145deg, #0b1220 0%, #0f1a2e 50%, #0b1a14 100%);
 }
 * { box-sizing: border-box; }
 body {
     font-family: Inter, system-ui, sans-serif;
     margin: 0;
     min-height: 100dvh;
-    background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+    background: var(--page-bg);
     color: var(--text);
     padding: 16px;
     padding-bottom: max(16px, env(safe-area-inset-bottom));
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background .25s, color .25s;
 }
 .wrap { max-width: 560px; width: 100%; }
+.top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 900; font-size: 1.05rem; }
+.brand img { height: 30px; width: 30px; object-fit: contain; }
+.brand span.b { color: #00bcd4; }
+.icon-btn {
+    width: 34px; height: 34px; border-radius: 10px; border: none;
+    background: var(--card); color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.12);
+    display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem;
+}
 .back {
     display: inline-flex; align-items: center; gap: 6px;
     color: var(--primary); text-decoration: none; font-weight: 600;
@@ -100,7 +119,16 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
 </head>
 <body>
 <div class="wrap">
-<a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
+<div class="top-row">
+  <a href="index.html" class="brand">
+    <img src="images/nav-icon.png" alt="Ziyomap">
+    <span><span class="b">Ziyo</span>map</span>
+  </a>
+  <div style="display:flex;gap:8px">
+    <button class="icon-btn" id="theme-toggle-tanlov" title="Tun/Kun rejimi"><i class="fas fa-moon"></i></button>
+    <a href="index.html" class="icon-btn" title="Bosh sahifa"><i class="fas fa-house"></i></a>
+  </div>
+</div>
 <div class="card">
 
     <div class="card-head">
@@ -176,5 +204,20 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script type="module" src="js/tanlov-royxat.js"></script>
+<script>
+(function () {
+    function applyTheme(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        const icon = document.getElementById('theme-toggle-tanlov')?.querySelector('i');
+        if (icon) { icon.classList.toggle('fa-sun', isDark); icon.classList.toggle('fa-moon', !isDark); }
+    }
+    applyTheme(localStorage.getItem('theme') === 'dark');
+    document.getElementById('theme-toggle-tanlov')?.addEventListener('click', () => {
+        const isDark = !document.body.classList.contains('dark-theme');
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+})();
+</script>
 </body>
 </html>
