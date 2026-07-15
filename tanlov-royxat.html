@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tanlovga ro'yxatdan o'tish | Ziyomap</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/notifications.css">
+<style>
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --success: #059669;
+}
+* { box-sizing: border-box; }
+body {
+    font-family: Inter, system-ui, sans-serif;
+    margin: 0;
+    min-height: 100dvh;
+    background: linear-gradient(145deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+    color: var(--text);
+    padding: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.wrap { max-width: 560px; width: 100%; }
+.back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--primary); text-decoration: none; font-weight: 600;
+    font-size: 0.9rem; margin-bottom: 16px;
+}
+.card {
+    background: var(--card); border-radius: 24px; padding: 28px 24px;
+    box-shadow: 0 20px 50px rgba(37, 99, 235, 0.12);
+}
+.card-head { text-align: center; margin-bottom: 20px; }
+.logo-icon {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary), #3b82f6);
+    color: white; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 12px;
+}
+h1 { margin: 0 0 6px; font-size: 1.4rem; }
+.subtitle { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+
+#contest-info {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 18px; font-size: 0.88rem; color: #1d4ed8;
+}
+#contest-info b { display: block; font-size: 1rem; margin-bottom: 2px; color: #1e3a8a; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.field input, .field select {
+    width: 100%; padding: 13px 14px; border-radius: 12px;
+    border: 1px solid var(--border); font-size: 16px; outline: none;
+    transition: border-color 0.2s; font-family: inherit;
+}
+.field input:focus, .field select:focus { border-color: var(--primary); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-primary {
+    width: 100%; padding: 15px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), #3b82f6);
+    color: white; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px;
+}
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+#status-msg {
+    margin: 14px 0 0; padding: 12px 14px; border-radius: 12px;
+    font-size: 0.85rem; text-align: center; display: none;
+}
+#status-msg.show { display: block; }
+#status-msg.info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+#status-msg.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+#status-msg.success { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+
+#already-box, #closed-box, #need-login-box {
+    display: none; text-align: center; padding: 24px 8px;
+}
+#already-box .id-badge, #need-login-box .id-badge {
+    display: inline-block; margin-top: 10px; padding: 8px 18px;
+    background: #ecfdf5; color: #047857; border-radius: 12px;
+    font-weight: 800; font-size: 1.1rem; letter-spacing: 0.5px;
+}
+.btn-google {
+    width: 100%; padding: 14px 18px; border: none; border-radius: 14px;
+    background: #fff; color: #374151; font-size: 15px; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    gap: 10px; box-shadow: 0 0 0 1px #e5e7eb, 0 4px 12px rgba(0,0,0,0.04); margin-top: 14px;
+}
+.btn-google i { color: #ea4335; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<a href="index.html" class="back"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
+<div class="card">
+
+    <div class="card-head">
+        <div class="logo-icon"><i class="fas fa-trophy"></i></div>
+        <h1>Tanlovga ro'yxatdan o'tish</h1>
+        <p class="subtitle">Ma'lumotlaringizni to'ldiring — tasdiqlovchi kod kerak emas, darhol maxsus ID olasiz.</p>
+    </div>
+
+    <div id="contest-info" style="display:none"></div>
+
+    <!-- Login talab qilinadi -->
+    <div id="need-login-box">
+        <p style="color:var(--muted);font-size:0.9rem">Ro'yxatdan o'tish uchun avval Google hisobingiz bilan kiring.</p>
+        <a href="kirish.html?return=tanlov-royxat.html" class="btn-google">
+            <i class="fab fa-google"></i> Google hisobi bilan kirish
+        </a>
+    </div>
+
+    <!-- Faol tanlov yo'q -->
+    <div id="closed-box">
+        <i class="fas fa-hourglass-half" style="font-size:2rem;color:var(--muted)"></i>
+        <p style="color:var(--muted);margin-top:10px">Hozircha faol tanlov yo'q. Yangiliklarni bildirishnomalar orqali kuzatib boring.</p>
+    </div>
+
+    <!-- Allaqachon ro'yxatdan o'tgan -->
+    <div id="already-box">
+        <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success)"></i>
+        <p style="margin-top:10px">Siz allaqachon shu tanlovga ro'yxatdan o'tgansiz. Sizning ID:</p>
+        <div class="id-badge" id="already-id">—</div>
+        <p style="color:var(--muted);font-size:0.82rem;margin-top:14px">Natijalaringizni <a href="dashboard.html" style="color:var(--primary)">shaxsiy kabinetingizda</a> kuzatib boring.</p>
+    </div>
+
+    <!-- Ro'yxatdan o'tish formasi -->
+    <form id="reg-form" style="display:none">
+        <div class="row2">
+            <div class="field">
+                <label for="f-familiya">Familiya</label>
+                <input type="text" id="f-familiya" required autocomplete="family-name">
+            </div>
+            <div class="field">
+                <label for="f-ism">Ism</label>
+                <input type="text" id="f-ism" required autocomplete="given-name">
+            </div>
+        </div>
+        <div class="field">
+            <label for="f-sharif">Sharif (otasining ismi)</label>
+            <input type="text" id="f-sharif" required>
+        </div>
+        <div class="field">
+            <label for="f-maktab">Maktab / muassasa</label>
+            <input type="text" id="f-maktab" required placeholder="Masalan: 21-maktab, Toshkent">
+        </div>
+        <div class="row2">
+            <div class="field">
+                <label for="f-yosh">Yosh</label>
+                <input type="number" id="f-yosh" min="5" max="100" required>
+            </div>
+            <div class="field">
+                <label for="f-tel">Telefon raqam</label>
+                <input type="tel" id="f-tel" required placeholder="+998 90 123 45 67">
+            </div>
+        </div>
+        <button type="submit" class="btn-primary" id="submit-btn">
+            <i class="fas fa-paper-plane"></i> Ro'yxatdan o'tish
+        </button>
+    </form>
+
+    <p id="status-msg" role="alert"></p>
+</div>
+</div>
+
+<script src="js/ziyomap-usage.js"></script>
+<script src="js/auth-guard.js"></script>
+<script src="js/notifications.js"></script>
+<script type="module" src="js/tanlov-royxat.js"></script>
+</body>
+</html>

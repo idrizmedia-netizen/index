@@ -1,0 +1,62 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ⚠️ Shu yerga ham admin-guard.js dagi bilan BIR XIL emailni yozing
+    function ownerEmail() {
+      return "idrizmedia@gmail.com";
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email.lower() == ownerEmail().lower() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
+      );
+    }
+
+    // ── Tanlovlar: hammaga ochiq o'qish, faqat admin yozadi ──
+    match /contests/{contestId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Ro'yxatdan o'tishlar ──
+    match /registrations/{regId} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.score == null;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── Ketma-ket ID hisoblagich ──
+    match /counters/{counterId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // ── Bildirishnomalar: hammaga ochiq o'qish, faqat admin yozadi ──
+    match /notifications/{notifId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Adminlar ro'yxati: kiruvchilar o'qiy oladi, faqat owner o'zgartiradi ──
+    match /admins/{email} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.token.email.lower() == ownerEmail().lower();
+    }
+
+    // ── Ochiq statistika: hammaga o'qish, kirgan foydalanuvchi yangilay oladi ──
+    match /stats/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+  }
+}
