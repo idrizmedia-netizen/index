@@ -45,10 +45,20 @@
             const { initializeApp, getApps, getApp } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js'
             );
+            const { getAuth, onAuthStateChanged } = await import(
+                'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js'
+            );
             const { getFirestore, collection, query, where, getDocs } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
             );
             const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+            const authInst = getAuth(app);
+            await new Promise((resolve) => {
+                const unsub = onAuthStateChanged(authInst, () => {
+                    unsub();
+                    resolve();
+                });
+            });
             const db = getFirestore(app);
 
             const snap = await getDocs(query(collection(db, 'registrations'), where('uid', '==', user.uid)));
