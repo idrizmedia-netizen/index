@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
 import {
     getFirestore,
     collection,
@@ -26,6 +27,16 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const authInst = getAuth(app);
+
+// Avvalgi sahifada (kirish.html) saqlangan Firebase sessiyasi to'liq
+// yuklanguncha kutamiz — aks holda Firestore so'rovlari "kirmagan" deb hisoblanadi.
+const authReady = new Promise((resolve) => {
+    const unsub = onAuthStateChanged(authInst, () => {
+        unsub();
+        resolve();
+    });
+});
 
 const gate = document.getElementById('gate');
 const wrap = document.getElementById('wrap');
@@ -49,12 +60,13 @@ function escapeHtml(str) {
 }
 
 /* ── KIRISHNI TEKSHIRISH ── */
-function boot(isAdmin) {
+async function boot(isAdmin) {
     if (!isAdmin) {
         gate.innerHTML =
             '<i class="fas fa-lock"></i><p>Bu sahifaga kirish huquqingiz yo\u2018q.<br>Faqat admin sifatida belgilangan Google hisob bilan kiring.</p>';
         return;
     }
+    await authReady;
     gate.style.display = 'none';
     wrap.classList.add('show');
     if (window.ZiyomapIsOwner) {
@@ -90,13 +102,13 @@ function initTabs() {
 /* ── STATISTIKA ── */
 async function loadStats() {
     try {
-        const [regC, contC, openC, admC] = await Promise.all([
-            getCountFromServer(collection(db, 'registrations')),
+        const [regSnap, contC, openC, admC] = await Promise.all([
+            getDocs(collection(db, 'registrations')),
             getCountFromServer(collection(db, 'contests')),
             getCountFromServer(query(collection(db, 'contests'), where('status', '==', 'open'))),
             getCountFromServer(collection(db, 'admins')),
         ]);
-        document.getElementById('st-reg').textContent = regC.data().count;
+        document.getElementById('st-reg').textContent = regSnap.size;
         document.getElementById('st-contests').textContent = contC.data().count;
         document.getElementById('st-open').textContent = openC.data().count;
         document.getElementById('st-admins').textContent = admC.data().count + 1; // +1 = owner
