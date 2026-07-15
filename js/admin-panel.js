@@ -137,9 +137,12 @@ async function loadContests() {
                     <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span></div>
                     <div class="d">${escapeHtml(c.description || '')}</div>
                 </div>
-                <button class="btn ${isOpen ? 'btn-red' : 'btn-green'}" data-toggle="${d.id}" data-next="${isOpen ? 'closed' : 'open'}">
-                    <i class="fas ${isOpen ? 'fa-lock' : 'fa-unlock'}"></i> ${isOpen ? 'Yopish' : 'Ochish'}
-                </button>
+                <div style="display:flex;gap:8px">
+                    <button class="btn ${isOpen ? 'btn-red' : 'btn-green'}" data-toggle="${d.id}" data-next="${isOpen ? 'closed' : 'open'}">
+                        <i class="fas ${isOpen ? 'fa-lock' : 'fa-unlock'}"></i> ${isOpen ? 'Yopish' : 'Ochish'}
+                    </button>
+                    <button class="btn btn-red" data-delete-contest="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
+                </div>
             </div>`;
             selectHtml += `<option value="${d.id}">${escapeHtml(c.title)}</option>`;
         });
@@ -151,6 +154,22 @@ async function loadContests() {
                 btn.disabled = true;
                 try {
                     await updateDoc(doc(db, 'contests', btn.dataset.toggle), { status: btn.dataset.next });
+                    loadContests();
+                    loadStats();
+                } catch (err) {
+                    console.error(err);
+                    setStatus('Xatolik yuz berdi.', 'error');
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        listEl.querySelectorAll('[data-delete-contest]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Bu tanlovni butunlay o\u2018chirmoqchimisiz? Ro\u2018yxatdan o\u2018tganlar ma\u2019lumoti saqlanib qoladi, lekin tanlov ro\u2018yxatdan yo\u2018qoladi.')) return;
+                btn.disabled = true;
+                try {
+                    await deleteDoc(doc(db, 'contests', btn.dataset.deleteContest));
                     loadContests();
                     loadStats();
                 } catch (err) {
