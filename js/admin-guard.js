@@ -57,10 +57,22 @@
             const { initializeApp, getApps, getApp } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js'
             );
+            const { getAuth, onAuthStateChanged } = await import(
+                'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js'
+            );
             const { getFirestore, doc, getDoc } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
             );
             const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+            const authInst = getAuth(app);
+            // Avvalgi sahifada (kirish.html) saqlangan Firebase sessiyasi
+            // to'liq yuklanguncha kutamiz — aks holda so'rov "kirmagan" deb hisoblanadi.
+            await new Promise((resolve) => {
+                const unsub = onAuthStateChanged(authInst, () => {
+                    unsub();
+                    resolve();
+                });
+            });
             const db = getFirestore(app);
             const snap = await getDoc(doc(db, 'admins', email));
             const isAdmin = snap.exists();
