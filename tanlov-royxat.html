@@ -115,6 +115,17 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
     gap: 10px; box-shadow: 0 0 0 1px #e5e7eb, 0 4px 12px rgba(0,0,0,0.04); margin-top: 14px;
 }
 .btn-google i { color: #ea4335; }
+
+#contest-select-list .contest-pick {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 14px;
+    margin-bottom: 10px; cursor: pointer; transition: border-color .2s, transform .15s;
+}
+#contest-select-list .contest-pick:hover { border-color: var(--primary); transform: translateY(-1px); }
+#contest-select-list .contest-pick .cp-t { font-weight: 700; }
+#contest-select-list .contest-pick .cp-d { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
+#contest-select-list .contest-pick i { color: var(--primary); }
+.back-link { display:inline-flex; align-items:center; gap:6px; color:var(--primary); text-decoration:none; font-weight:600; font-size:0.85rem; margin-bottom:14px; }
 </style>
 </head>
 <body>
@@ -138,6 +149,12 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
     </div>
 
     <div id="contest-info" style="display:none"></div>
+
+    <!-- Bir nechta faol tanlov bo'lsa — tanlash -->
+    <div id="contest-select-box" style="display:none">
+        <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px;text-align:center">Hozir bir nechta faol tanlov bor — birini tanlang:</p>
+        <div id="contest-select-list"></div>
+    </div>
 
     <!-- Login talab qilinadi -->
     <div id="need-login-box">
