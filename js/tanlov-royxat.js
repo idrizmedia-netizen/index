@@ -5,8 +5,6 @@ import {
     collection,
     query,
     where,
-    orderBy,
-    limit,
     getDocs,
     doc,
     getDoc,
@@ -36,6 +34,8 @@ const authReady = new Promise((resolve) => {
 });
 
 const contestInfo = document.getElementById('contest-info');
+const contestSelectBox = document.getElementById('contest-select-box');
+const contestSelectList = document.getElementById('contest-select-list');
 const needLoginBox = document.getElementById('need-login-box');
 const closedBox = document.getElementById('closed-box');
 const alreadyBox = document.getElementById('already-box');
@@ -43,6 +43,8 @@ const alreadyId = document.getElementById('already-id');
 const regForm = document.getElementById('reg-form');
 const submitBtn = document.getElementById('submit-btn');
 const statusMsg = document.getElementById('status-msg');
+
+let currentUser = null;
 
 function setStatus(text, type) {
     if (!text) {
@@ -56,23 +58,27 @@ function setStatus(text, type) {
 
 function hideAll() {
     contestInfo.style.display = 'none';
+    contestSelectBox.style.display = 'none';
     needLoginBox.style.display = 'none';
     closedBox.style.display = 'none';
     alreadyBox.style.display = 'none';
     regForm.style.display = 'none';
+    setStatus('');
 }
 
-async function getActiveContest() {
-    const q = query(
-        collection(db, 'contests'),
-        where('status', '==', 'open'),
-        orderBy('createdAt', 'desc'),
-        limit(1)
-    );
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str == null ? '' : String(str);
+    return d.innerHTML;
+}
+
+async function getOpenContests() {
+    const q = query(collection(db, 'contests'), where('status', '==', 'open'));
     const snap = await getDocs(q);
-    if (snap.empty) return null;
-    const d = snap.docs[0];
-    return { id: d.id, ...d.data() };
+    const list = [];
+    snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+    list.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+    return list;
 }
 
 async function nextRegistrationId() {
@@ -88,45 +94,68 @@ async function nextRegistrationId() {
     return `ZM-${year}-${String(n).padStart(4, '0')}`;
 }
 
-async function init() {
-    hideAll();
-    await authReady;
+/* ── Tanlovlar ro'yxatidan birini tanlash ── */
+function showContestChoice(contests) {
+    contestSelectBox.style.display = 'block';
+    contestSelectList.innerHTML = contests
+        .map(
+            (c) => `<div class="contest-pick" data-pick="${c.id}">
+                <div>
+                    <div class="cp-t">${escapeHtml(c.title)}</div>
+                    <div class="cp-d">${escapeHtml(c.description || '')}</div>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </div>`
+        )
+        .join('');
 
-    const user = window.ZiyomapUsage && ZiyomapUsage.getUser();
-    if (!user || !user.uid) {
-        needLoginBox.style.display = 'block';
-        return;
+    contestSelectList.querySelectorAll('[data-pick]').forEach((el) => {
+        el.addEventListener('click', () => {
+            const contest = contests.find((c) => c.id === el.dataset.pick);
+            contestSelectBox.style.display = 'none';
+            openContest(contest, contests.length > 1);
+        });
+    });
+}
+
+/* ── Tanlangan tanlov uchun forma yoki "allaqachon ro'yxatdan o'tgan" holatini ko'rsatish ── */
+async function openContest(contest, showBack) {
+    contestInfo.style.display = 'block';
+    contestInfo.innerHTML =
+        (showBack ? '<a href="#" id="back-to-list" class="back-link"><i class="fas fa-arrow-left"></i> Boshqa tanlov tanlash</a><br>' : '') +
+        `<b>${escapeHtml(contest.title || 'Tanlov')}</b>${escapeHtml(contest.description || '')}`;
+
+    const backLink = document.getElementById('back-to-list');
+    if (backLink) {
+        backLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            hideAll();
+            getOpenContests().then((contests) => {
+                if (contests.length > 1) showContestChoice(contests);
+                else if (contests.length === 1) openContest(contests[0], false);
+                else closedBox.style.display = 'block';
+            });
+        });
     }
 
-    let contest;
+    const regId = `${contest.id}_${currentUser.uid}`;
+    let existing;
     try {
-        contest = await getActiveContest();
+        existing = await getDoc(doc(db, 'registrations', regId));
     } catch (err) {
         console.error(err);
         setStatus('Ma\u2019lumotlarni yuklashda xatolik. Qayta urinib ko\u2018ring.', 'error');
         return;
     }
 
-    if (!contest) {
-        closedBox.style.display = 'block';
-        return;
-    }
-
-    contestInfo.style.display = 'block';
-    contestInfo.innerHTML = `<b>${escapeHtml(contest.title || 'Tanlov')}</b>${escapeHtml(contest.description || '')}`;
-
-    const regId = `${contest.id}_${user.uid}`;
-    const existing = await getDoc(doc(db, 'registrations', regId));
-
     if (existing.exists()) {
         alreadyBox.style.display = 'block';
-        alreadyId.textContent = existing.data().customId || '—';
+        alreadyId.textContent = existing.data().customId || '\u2014';
         return;
     }
 
     regForm.style.display = 'block';
-
-    regForm.addEventListener('submit', async (e) => {
+    regForm.onsubmit = async (e) => {
         e.preventDefault();
         submitBtn.disabled = true;
         setStatus('Yuborilmoqda...', 'info');
@@ -144,8 +173,8 @@ async function init() {
             await setDoc(doc(db, 'registrations', regId), {
                 contestId: contest.id,
                 contestTitle: contest.title || '',
-                uid: user.uid,
-                email: user.email || null,
+                uid: currentUser.uid,
+                email: currentUser.email || null,
                 familiya,
                 ism,
                 sharif,
@@ -159,14 +188,10 @@ async function init() {
                 createdAt: serverTimestamp(),
             });
 
-            await setDoc(
-                doc(db, 'stats', 'public'),
-                { totalRegistrations: increment(1) },
-                { merge: true }
-            );
+            await setDoc(doc(db, 'stats', 'public'), { totalRegistrations: increment(1) }, { merge: true });
 
             if (window.ZiyomapUsage) {
-                ZiyomapUsage.logUsage('tanlov-royxat', 'Tanlovga ro\u2018yxatdan o\u2018tish');
+                ZiyomapUsage.logUsage('tanlov-royxat', 'Tanlovga ro\u2018yxatdan o\u2018tish: ' + (contest.title || ''));
             }
 
             regForm.style.display = 'none';
@@ -178,13 +203,38 @@ async function init() {
             setStatus('Xatolik yuz berdi. Qayta urinib ko\u2018ring.', 'error');
             submitBtn.disabled = false;
         }
-    });
+    };
 }
 
-function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
+async function init() {
+    hideAll();
+    await authReady;
+
+    currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
+    if (!currentUser || !currentUser.uid) {
+        needLoginBox.style.display = 'block';
+        return;
+    }
+
+    let contests;
+    try {
+        contests = await getOpenContests();
+    } catch (err) {
+        console.error(err);
+        setStatus('Ma\u2019lumotlarni yuklashda xatolik. Qayta urinib ko\u2018ring.', 'error');
+        return;
+    }
+
+    if (!contests.length) {
+        closedBox.style.display = 'block';
+        return;
+    }
+
+    if (contests.length === 1) {
+        openContest(contests[0], false);
+    } else {
+        showContestChoice(contests);
+    }
 }
 
 // ZiyomapUsage darhol tayyor bo'lishi mumkin, lekin ehtiyot uchun biroz kutamiz
