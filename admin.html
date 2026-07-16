@@ -135,6 +135,8 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <button class="tab-btn" data-tab="contests"><i class="fas fa-trophy"></i> Tanlovlar</button>
     <button class="tab-btn" data-tab="registrants"><i class="fas fa-users"></i> Ishtirokchilar</button>
     <button class="tab-btn" data-tab="notify"><i class="fas fa-bullhorn"></i> Bildirishnoma</button>
+    <button class="tab-btn" data-tab="users"><i class="fas fa-user-group"></i> Foydalanuvchilar</button>
+    <button class="tab-btn" data-tab="content"><i class="fas fa-image"></i> Sayt kontenti</button>
     <button class="tab-btn" data-tab="admins" id="admins-tab-btn" style="display:none"><i class="fas fa-user-shield"></i> Adminlar</button>
   </div>
 
@@ -145,6 +147,11 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
       <div class="stat-card"><div class="v" id="st-contests">—</div><div class="k">Jami tanlovlar</div></div>
       <div class="stat-card"><div class="v" id="st-open">—</div><div class="k">Faol tanlovlar</div></div>
       <div class="stat-card"><div class="v" id="st-admins">—</div><div class="k">Adminlar soni</div></div>
+      <div class="stat-card"><div class="v" id="st-users">—</div><div class="k">Saytga kirganlar (jami)</div></div>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-chart-column"></i> Bo'limlar bo'yicha ishlatilish</h3>
+      <div id="usageStatsList"><div class="empty">Yuklanmoqda...</div></div>
     </div>
   </div>
 
@@ -171,6 +178,7 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <div class="card">
       <h3><i class="fas fa-table"></i> Ro'yxat</h3>
       <button class="btn btn-green" id="export-excel-btn" style="display:none;margin-bottom:14px"><i class="fas fa-file-excel"></i> Excelga yuklash</button>
+      <button class="btn btn-primary" id="publish-leaderboard-btn" style="display:none;margin-bottom:14px;margin-left:8px"><i class="fas fa-medal"></i> G'oliblarni e'lon qilish</button>
       <div class="table-scroll" id="registrantsTable"><div class="empty">Yuqorida tanlov tanlang</div></div>
     </div>
   </div>
@@ -180,12 +188,46 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <div class="card">
       <h3><i class="fas fa-paper-plane"></i> Barchaga bildirishnoma yuborish</h3>
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Xabar barcha foydalanuvchilarning qo'ng'iroq (🔔) bo'limida va asosiy oynada ko'rinadi.</p>
+      <div class="field">
+        <label>Tayyor shablon (ixtiyoriy)</label>
+        <select id="n-template-select">
+          <option value="">— shablon tanlang —</option>
+          <option value="winners">G'oliblarni tabriklash</option>
+          <option value="new-contest">Yangi tanlov e'lon qilish</option>
+        </select>
+      </div>
       <div class="field"><textarea id="n-text" placeholder="Masalan: Fizika olimpiadasi 2026 boshlandi! Ro'yxatdan o'ting."></textarea></div>
       <button class="btn btn-primary" id="n-send-btn"><i class="fas fa-bullhorn"></i> Yuborish</button>
     </div>
     <div class="card">
       <h3><i class="fas fa-clock-rotate-left"></i> Yuborilgan xabarlar</h3>
       <div id="notifyList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <!-- FOYDALANUVCHILAR -->
+  <div class="panel" id="panel-users">
+    <div class="card">
+      <h3><i class="fas fa-user-group"></i> Saytga kirgan barcha foydalanuvchilar</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">So'nggi faollik bo'yicha tartiblangan. Bloklangan foydalanuvchi yangi tanlovlarga ro'yxatdan o'ta olmaydi.</p>
+      <div class="table-scroll" id="usersTable"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <!-- SAYT KONTENTI -->
+  <div class="panel" id="panel-content">
+    <div class="card">
+      <h3><i class="fas fa-image"></i> Bosh sahifa — rasm va matn</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Bu yerdagi o'zgarishlar kod yozmasdan, to'g'ridan-to'g'ri bosh sahifada ko'rinadi.</p>
+      <div class="field">
+        <label>Profil rasmi manzili (URL)</label>
+        <input type="text" id="content-photo-url" placeholder="https://... (masalan Imgur yoki boshqa rasm havolasi)">
+      </div>
+      <div class="field">
+        <label>Bio matni (rasm ostidagi tavsif)</label>
+        <textarea id="content-bio-text" placeholder="Fizika o'qituvchisi, Dasturchi va IT tadbirkor..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="content-save-btn"><i class="fas fa-check"></i> Saqlash</button>
     </div>
   </div>
 
