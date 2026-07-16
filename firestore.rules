@@ -31,9 +31,30 @@ service cloud.firestore {
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isSignedIn()
                     && request.resource.data.uid == request.auth.uid
-                    && request.resource.data.score == null;
+                    && request.resource.data.score == null
+                    && !(exists(/databases/$(database)/documents/users/$(request.auth.uid))
+                         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.blocked == true);
       allow update: if isAdmin();
       allow delete: if isAdmin();
+    }
+
+    // ── Barcha saytga kirgan foydalanuvchilar (bloklash uchun ham) ──
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isAdmin();
+    }
+
+    // ── Bo'limlar qanchalik ishlatilishi (statistika) ──
+    match /usage-stats/{featureId} {
+      allow read: if isAdmin();
+      allow write: if isSignedIn();
+    }
+
+    // ── Bosh sahifa kontenti (rasm, matn) — admin tahrirlaydi, hammaga ochiq o'qish ──
+    match /site-content/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // ── Ketma-ket ID hisoblagich ──
@@ -58,6 +79,12 @@ service cloud.firestore {
     match /stats/{docId} {
       allow read: if true;
       allow write: if isSignedIn();
+    }
+
+    // ── G'oliblar reytingi: admin e'lon qiladi, hammaga ochiq (shaxsiy ma'lumotsiz) ──
+    match /leaderboards/{contestId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
