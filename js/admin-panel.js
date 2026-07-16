@@ -216,37 +216,54 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
 });
 
 /* ── ISHTIROKCHILAR ── */
+let currentRegistrants = [];
+let currentContestTitle = '';
+
 document.getElementById('reg-contest-select').addEventListener('change', async (e) => {
     const contestId = e.target.value;
+    const contestTitle = e.target.options[e.target.selectedIndex]?.textContent || '';
     const tableEl = document.getElementById('registrantsTable');
+    const exportBtn = document.getElementById('export-excel-btn');
     if (!contestId) {
         tableEl.innerHTML = '<div class="empty">Yuqorida tanlov tanlang</div>';
+        if (exportBtn) exportBtn.style.display = 'none';
         return;
     }
     tableEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+    if (exportBtn) exportBtn.style.display = 'none';
     try {
         const snap = await getDocs(
-            query(collection(db, 'registrations'), where('contestId', '==', contestId), orderBy('createdAt', 'asc'))
+            query(collection(db, 'registrations'), where('contestId', '==', contestId))
         );
         if (snap.empty) {
             tableEl.innerHTML = '<div class="empty">Bu tanlovga hali hech kim ro\u2018yxatdan o\u2018tmagan.</div>';
+            currentRegistrants = [];
             return;
         }
+
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
+
+        currentRegistrants = list;
+        currentContestTitle = contestTitle;
+        if (exportBtn) exportBtn.style.display = '';
+
         let rows = '';
-        snap.forEach((d) => {
-            const r = d.data();
+        list.forEach((r, i) => {
             rows += `<tr>
-                <td><b>${escapeHtml(r.customId)}</b></td>
+                <td>${i + 1}</td>
                 <td>${escapeHtml(r.fullName)}</td>
+                <td><b>${escapeHtml(r.customId)}</b></td>
                 <td>${escapeHtml(r.maktab)}</td>
                 <td>${escapeHtml(r.yosh)}</td>
                 <td>${escapeHtml(r.telefon)}</td>
-                <td><input type="number" step="0.1" data-score="${d.id}" value="${r.score ?? ''}" placeholder="—"></td>
-                <td><button class="btn btn-primary" data-save="${d.id}"><i class="fas fa-save"></i></button></td>
+                <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—"></td>
+                <td><button class="btn btn-primary" data-save="${r.id}"><i class="fas fa-save"></i></button></td>
             </tr>`;
         });
         tableEl.innerHTML = `<table>
-            <thead><tr><th>ID</th><th>F.I.Sh</th><th>Maktab</th><th>Yosh</th><th>Telefon</th><th>Ball</th><th></th></tr></thead>
+            <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Ball</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
         </table>`;
 
@@ -271,6 +288,25 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         console.error(err);
         tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
     }
+});
+
+document.getElementById('export-excel-btn')?.addEventListener('click', () => {
+    if (!currentRegistrants.length || !window.XLSX) return;
+    const rows = currentRegistrants.map((r, i) => ({
+        '№': i + 1,
+        'F.I.Sh': r.fullName,
+        ID: r.customId,
+        Maktabi: r.maktab,
+        Yoshi: r.yosh,
+        'Telefon raqami': r.telefon,
+        Ball: r.score ?? '',
+    }));
+    const ws = window.XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }];
+    const wb = window.XLSX.utils.book_new();
+    window.XLSX.utils.book_append_sheet(wb, ws, 'Ishtirokchilar');
+    const safeTitle = (currentContestTitle || 'tanlov').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40);
+    window.XLSX.writeFile(wb, `${safeTitle}_ishtirokchilar.xlsx`);
 });
 
 /* ── BILDIRISHNOMA ── */
