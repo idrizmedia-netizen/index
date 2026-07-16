@@ -148,6 +148,7 @@
     if(!bdEl){
       bdEl=document.createElement('div');
       bdEl.className='zy-bell-backdrop';
+      bdEl.style.zIndex='99998';
       bdEl.addEventListener('click',closeDd);
       document.body.appendChild(bdEl);
     }
@@ -163,6 +164,8 @@
     var clr=dd.querySelector('.zy-bell-clear');
     if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
     getBd().classList.add('show');
+    dd.style.zIndex='99999';
+    dd.style.position=dd.style.position||'absolute';
     dd.classList.add('open');
     openedDd=dd;
     /* Bell */
@@ -259,8 +262,10 @@
     });
 
     /* Tashqarida bosish — kompyuterda */
-    document.addEventListener('click',function(){
-      if(!isMob()) closeDd();
+    document.addEventListener('click',function(e){
+      if(isMob()) return;
+      if(e.target.closest && e.target.closest('.zy-bell-dropdown, .zy-bell-btn')) return;
+      closeDd();
     });
 
     /* Escape */
