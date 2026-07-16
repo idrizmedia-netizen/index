@@ -238,6 +238,11 @@
       var dd=wrap.querySelector('.zy-bell-dropdown');
       if(!btn||!dd) return;
 
+      var clr=dd.querySelector('.zy-bell-clear');
+      if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
+      var closeX=dd.querySelector('.zy-bell-close-x');
+      if(closeX) closeX.onclick=function(e){e.stopPropagation();closeDd();};
+
       btn.addEventListener('click',function(e){
         e.preventDefault();
         e.stopPropagation();
