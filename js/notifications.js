@@ -8,46 +8,99 @@
   /* ─── DESKTOP DROPDOWN — mobil dizayniga mos qora kartochkalar ── */
   var styleTag = document.createElement('style');
   styleTag.textContent = `
+    /* ===== KUN REJIMI (asosiy sahifa light bo'lganda) — DEFAULT ===== */
     .zy-bell-dropdown{
-      background:#0f1729!important; border-radius:18px!important; overflow:hidden!important;
-      box-shadow:0 20px 60px rgba(0,0,0,0.45)!important; border:1px solid #1e293b!important;
+      background:#ffffff!important; border-radius:18px!important; overflow:hidden!important;
+      box-shadow:0 20px 60px rgba(15,23,42,0.18)!important; border:1px solid #e2e8f0!important;
       padding:0!important; width:360px!important; max-width:92vw!important;
     }
     .zy-bell-dd-header{
-      background:#111c34!important; padding:16px 18px!important; margin:0!important;
+      background:#f8fafc!important; padding:16px 18px!important; margin:0!important;
       display:flex!important; align-items:center!important; gap:10px!important;
-      color:#f1f5f9!important; font-weight:800!important; font-size:16px!important;
-      border-bottom:1px solid #1e293b!important;
+      color:#1e293b!important; font-weight:800!important; font-size:16px!important;
+      border-bottom:1px solid #e2e8f0!important;
     }
     .zy-bell-clear{ display:none!important; }
     .zy-bell-close-x{
       margin-left:auto!important; width:30px!important; height:30px!important; border-radius:50%!important;
-      background:#1e2a44!important; color:#cbd5e1!important; display:flex!important;
+      background:#eef2f7!important; color:#64748b!important; display:flex!important;
       align-items:center!important; justify-content:center!important; font-size:13px!important;
     }
     .zy-bell-dd-list{ padding:12px!important; max-height:min(60vh,420px)!important; overflow-y:auto!important; }
     .zy-bell-dd-list .zy-notif-item{
-      background:#161f38!important; border-radius:14px!important; padding:14px!important;
+      background:#f1f5f9!important; border-radius:14px!important; padding:14px!important;
       margin-bottom:10px!important; display:flex!important; align-items:center!important; gap:12px!important;
       border-left:3px solid #6366f1!important; cursor:pointer!important; transition:background .15s!important;
     }
     .zy-bell-dd-list .zy-notif-item.read{ border-left-color:transparent!important; opacity:.6!important; }
-    .zy-bell-dd-list .zy-notif-item:hover{ background:#1c2744!important; }
+    .zy-bell-dd-list .zy-notif-item:hover{ background:#e7edf5!important; }
     .zy-bell-dd-list .zy-ni-icon{
       width:42px!important; height:42px!important; border-radius:50%!important; flex-shrink:0!important;
-      background:#3730a3!important; display:flex!important; align-items:center!important; justify-content:center!important;
+      background:#4f46e5!important; display:flex!important; align-items:center!important; justify-content:center!important;
       color:#fff!important; font-size:15px!important;
     }
     .zy-bell-dd-list .zy-ni-icon.admin{ background:#ea580c!important; }
-    .zy-bell-dd-list .zy-ni-title{ color:#e2e8f0!important; font-weight:700!important; font-size:14px!important; }
-    .zy-bell-dd-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#6366f1!important; flex-shrink:0!important; }
-    .zy-bell-dd-list .zy-bell-empty{ color:#64748b!important; text-align:center!important; padding:30px 10px!important; }
+    .zy-bell-dd-list .zy-ni-title{ color:#1e293b!important; font-weight:700!important; font-size:14px!important; }
+    .zy-bell-dd-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#4f46e5!important; flex-shrink:0!important; }
+    .zy-bell-dd-list .zy-bell-empty{ color:#94a3b8!important; text-align:center!important; padding:30px 10px!important; }
     .zy-bell-dd-footer{
-      background:#111c34!important; border-top:1px solid #1e293b!important; padding:14px!important;
-      text-align:center!important; color:#818cf8!important; font-weight:700!important; font-size:13px!important;
+      background:#f8fafc!important; border-top:1px solid #e2e8f0!important; padding:14px!important;
+      text-align:center!important; color:#4f46e5!important; font-weight:700!important; font-size:13px!important;
       cursor:pointer!important; display:flex!important; align-items:center!important; justify-content:center!important; gap:8px!important;
     }
-    .zy-bell-dd-footer:hover{ background:#152040!important; }
+    .zy-bell-dd-footer:hover{ background:#eef2f7!important; }
+    .zy-bell-dd-list::-webkit-scrollbar{ width:6px!important; }
+    .zy-bell-dd-list::-webkit-scrollbar-thumb{ background:#cbd5e1!important; border-radius:3px!important; }
+    .zy-bell-dd-list::-webkit-scrollbar-track{ background:transparent!important; }
+
+    /* ===== TUN REJIMI (asosiy sahifada body.dark-theme bo'lsa) ===== */
+    body.dark-theme .zy-bell-dropdown{
+      background:#0f1729!important; box-shadow:0 20px 60px rgba(0,0,0,0.45)!important; border:1px solid #1e293b!important;
+    }
+    body.dark-theme .zy-bell-dd-header{
+      background:#111c34!important; color:#f1f5f9!important; border-bottom:1px solid #1e293b!important;
+    }
+    body.dark-theme .zy-bell-close-x{ background:#1e2a44!important; color:#cbd5e1!important; }
+    body.dark-theme .zy-bell-dd-list .zy-notif-item{ background:#161f38!important; border-left-color:#6366f1!important; }
+    body.dark-theme .zy-bell-dd-list .zy-notif-item.read{ border-left-color:transparent!important; }
+    body.dark-theme .zy-bell-dd-list .zy-notif-item:hover{ background:#1c2744!important; }
+    body.dark-theme .zy-bell-dd-list .zy-ni-icon{ background:#3730a3!important; }
+    body.dark-theme .zy-bell-dd-list .zy-ni-icon.admin{ background:#ea580c!important; }
+    body.dark-theme .zy-bell-dd-list .zy-ni-title{ color:#e2e8f0!important; }
+    body.dark-theme .zy-bell-dd-list .zy-ni-dot{ background:#6366f1!important; }
+    body.dark-theme .zy-bell-dd-list .zy-bell-empty{ color:#64748b!important; }
+    body.dark-theme .zy-bell-dd-footer{ background:#111c34!important; border-top:1px solid #1e293b!important; color:#818cf8!important; }
+    body.dark-theme .zy-bell-dd-footer:hover{ background:#152040!important; }
+    body.dark-theme .zy-bell-dd-list::-webkit-scrollbar-thumb{ background:#334155!important; }
+
+    /* ===== MOBIL OVERLAY — ro'yxat surilishi (surgich) va mavzuga mos rang ===== */
+    .zy-mob-list{ overflow-y:auto!important; -webkit-overflow-scrolling:touch!important; }
+    .zy-mob-list::-webkit-scrollbar{ width:6px!important; }
+    .zy-mob-list::-webkit-scrollbar-thumb{ background:#cbd5e1!important; border-radius:3px!important; }
+    .zy-mob-list::-webkit-scrollbar-track{ background:transparent!important; }
+    .zy-mob-list .zy-notif-item{
+      background:#f1f5f9!important; border-radius:14px!important; padding:14px!important;
+      margin-bottom:10px!important; display:flex!important; align-items:center!important; gap:12px!important;
+      border-left:3px solid #6366f1!important; cursor:pointer!important; transition:background .15s!important;
+    }
+    .zy-mob-list .zy-notif-item.read{ border-left-color:transparent!important; opacity:.6!important; }
+    .zy-mob-list .zy-ni-icon{
+      width:42px!important; height:42px!important; border-radius:50%!important; flex-shrink:0!important;
+      background:#4f46e5!important; display:flex!important; align-items:center!important; justify-content:center!important;
+      color:#fff!important; font-size:15px!important;
+    }
+    .zy-mob-list .zy-ni-icon.admin{ background:#ea580c!important; }
+    .zy-mob-list .zy-ni-title{ color:#1e293b!important; font-weight:700!important; font-size:14px!important; }
+    .zy-mob-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#4f46e5!important; flex-shrink:0!important; }
+    .zy-mob-list .zy-bell-empty{ color:#94a3b8!important; text-align:center!important; padding:30px 10px!important; }
+    body.dark-theme .zy-mob-list::-webkit-scrollbar-thumb{ background:#334155!important; }
+    body.dark-theme .zy-mob-list .zy-notif-item{ background:#161f38!important; border-left-color:#6366f1!important; }
+    body.dark-theme .zy-mob-list .zy-notif-item.read{ border-left-color:transparent!important; }
+    body.dark-theme .zy-mob-list .zy-ni-icon{ background:#3730a3!important; }
+    body.dark-theme .zy-mob-list .zy-ni-icon.admin{ background:#ea580c!important; }
+    body.dark-theme .zy-mob-list .zy-ni-title{ color:#e2e8f0!important; }
+    body.dark-theme .zy-mob-list .zy-ni-dot{ background:#6366f1!important; }
+    body.dark-theme .zy-mob-list .zy-bell-empty{ color:#64748b!important; }
   `;
   document.head.appendChild(styleTag);
 
