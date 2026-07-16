@@ -5,102 +5,139 @@
 (function(){
   'use strict';
 
-  /* ─── DESKTOP DROPDOWN — mobil dizayniga mos qora kartochkalar ── */
+  /* ─── DROPDOWN + MOBIL OVERLAY — kun/tun rejimiga mos dizayn ── */
   var styleTag = document.createElement('style');
   styleTag.textContent = `
-    /* ===== KUN REJIMI (asosiy sahifa light bo'lganda) — DEFAULT ===== */
+    .zy-bell-wrap{ position:relative!important; }
+
     .zy-bell-dropdown{
-      background:#ffffff!important; border-radius:18px!important; overflow:hidden!important;
-      box-shadow:0 20px 60px rgba(15,23,42,0.18)!important; border:1px solid #e2e8f0!important;
+      border-radius:18px!important; overflow:hidden!important;
       padding:0!important; width:360px!important; max-width:92vw!important;
+      position:absolute!important; top:calc(100% + 12px)!important; right:0!important;
+      display:none!important; z-index:99999!important;
     }
+    .zy-bell-dropdown.open{ display:block!important; animation:zyDdIn .18s ease!important; }
+    @keyframes zyDdIn{ from{opacity:0;transform:translateY(-8px);} to{opacity:1;transform:translateY(0);} }
+
+    .zy-bell-backdrop{
+      position:fixed!important; inset:0!important; background:transparent!important;
+      display:none!important; z-index:99998!important;
+    }
+    .zy-bell-backdrop.show{ display:block!important; }
+
     .zy-bell-dd-header{
-      background:#f8fafc!important; padding:16px 18px!important; margin:0!important;
+      padding:16px 18px!important; margin:0!important;
       display:flex!important; align-items:center!important; gap:10px!important;
-      color:#1e293b!important; font-weight:800!important; font-size:16px!important;
-      border-bottom:1px solid #e2e8f0!important;
+      font-weight:800!important; font-size:16px!important;
     }
     .zy-bell-clear{ display:none!important; }
     .zy-bell-close-x{
       margin-left:auto!important; width:30px!important; height:30px!important; border-radius:50%!important;
-      background:#eef2f7!important; color:#64748b!important; display:flex!important;
-      align-items:center!important; justify-content:center!important; font-size:13px!important;
+      display:flex!important; align-items:center!important; justify-content:center!important; font-size:13px!important;
     }
     .zy-bell-dd-list{ padding:12px!important; max-height:min(60vh,420px)!important; overflow-y:auto!important; }
-    .zy-bell-dd-list .zy-notif-item{
-      background:#f1f5f9!important; border-radius:14px!important; padding:14px!important;
-      margin-bottom:10px!important; display:flex!important; align-items:center!important; gap:12px!important;
-      border-left:3px solid #6366f1!important; cursor:pointer!important; transition:background .15s!important;
-    }
-    .zy-bell-dd-list .zy-notif-item.read{ border-left-color:transparent!important; opacity:.6!important; }
-    .zy-bell-dd-list .zy-notif-item:hover{ background:#e7edf5!important; }
-    .zy-bell-dd-list .zy-ni-icon{
-      width:42px!important; height:42px!important; border-radius:50%!important; flex-shrink:0!important;
-      background:#4f46e5!important; display:flex!important; align-items:center!important; justify-content:center!important;
-      color:#fff!important; font-size:15px!important;
-    }
-    .zy-bell-dd-list .zy-ni-icon.admin{ background:#ea580c!important; }
-    .zy-bell-dd-list .zy-ni-title{ color:#1e293b!important; font-weight:700!important; font-size:14px!important; }
-    .zy-bell-dd-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#4f46e5!important; flex-shrink:0!important; }
-    .zy-bell-dd-list .zy-bell-empty{ color:#94a3b8!important; text-align:center!important; padding:30px 10px!important; }
     .zy-bell-dd-footer{
-      background:#f8fafc!important; border-top:1px solid #e2e8f0!important; padding:14px!important;
-      text-align:center!important; color:#4f46e5!important; font-weight:700!important; font-size:13px!important;
+      border-top:1px solid!important; padding:14px!important;
+      text-align:center!important; font-weight:700!important; font-size:13px!important;
       cursor:pointer!important; display:flex!important; align-items:center!important; justify-content:center!important; gap:8px!important;
     }
-    .zy-bell-dd-footer:hover{ background:#eef2f7!important; }
-    .zy-bell-dd-list::-webkit-scrollbar{ width:6px!important; }
-    .zy-bell-dd-list::-webkit-scrollbar-thumb{ background:#cbd5e1!important; border-radius:3px!important; }
-    .zy-bell-dd-list::-webkit-scrollbar-track{ background:transparent!important; }
 
-    /* ===== TUN REJIMI (asosiy sahifada body.dark-theme bo'lsa) ===== */
-    body.dark-theme .zy-bell-dropdown{
-      background:#0f1729!important; box-shadow:0 20px 60px rgba(0,0,0,0.45)!important; border:1px solid #1e293b!important;
-    }
-    body.dark-theme .zy-bell-dd-header{
-      background:#111c34!important; color:#f1f5f9!important; border-bottom:1px solid #1e293b!important;
-    }
-    body.dark-theme .zy-bell-close-x{ background:#1e2a44!important; color:#cbd5e1!important; }
-    body.dark-theme .zy-bell-dd-list .zy-notif-item{ background:#161f38!important; border-left-color:#6366f1!important; }
-    body.dark-theme .zy-bell-dd-list .zy-notif-item.read{ border-left-color:transparent!important; }
-    body.dark-theme .zy-bell-dd-list .zy-notif-item:hover{ background:#1c2744!important; }
-    body.dark-theme .zy-bell-dd-list .zy-ni-icon{ background:#3730a3!important; }
-    body.dark-theme .zy-bell-dd-list .zy-ni-icon.admin{ background:#ea580c!important; }
-    body.dark-theme .zy-bell-dd-list .zy-ni-title{ color:#e2e8f0!important; }
-    body.dark-theme .zy-bell-dd-list .zy-ni-dot{ background:#6366f1!important; }
-    body.dark-theme .zy-bell-dd-list .zy-bell-empty{ color:#64748b!important; }
-    body.dark-theme .zy-bell-dd-footer{ background:#111c34!important; border-top:1px solid #1e293b!important; color:#818cf8!important; }
-    body.dark-theme .zy-bell-dd-footer:hover{ background:#152040!important; }
-    body.dark-theme .zy-bell-dd-list::-webkit-scrollbar-thumb{ background:#334155!important; }
-
-    /* ===== MOBIL OVERLAY — ro'yxat surilishi (surgich) va mavzuga mos rang ===== */
-    .zy-mob-list{ overflow-y:auto!important; -webkit-overflow-scrolling:touch!important; }
-    .zy-mob-list::-webkit-scrollbar{ width:6px!important; }
-    .zy-mob-list::-webkit-scrollbar-thumb{ background:#cbd5e1!important; border-radius:3px!important; }
-    .zy-mob-list::-webkit-scrollbar-track{ background:transparent!important; }
-    .zy-mob-list .zy-notif-item{
-      background:#f1f5f9!important; border-radius:14px!important; padding:14px!important;
+    /* ── Notif kartochkalar (dropdown va mobil overlayda umumiy) ── */
+    .zy-bell-dd-list .zy-notif-item, .zy-mob-list .zy-notif-item{
+      border-radius:14px!important; padding:14px!important;
       margin-bottom:10px!important; display:flex!important; align-items:center!important; gap:12px!important;
-      border-left:3px solid #6366f1!important; cursor:pointer!important; transition:background .15s!important;
+      border-left:3px solid #6366f1!important; cursor:pointer!important; transition:background .15s,opacity .15s!important;
     }
-    .zy-mob-list .zy-notif-item.read{ border-left-color:transparent!important; opacity:.6!important; }
-    .zy-mob-list .zy-ni-icon{
+    .zy-bell-dd-list .zy-notif-item.read, .zy-mob-list .zy-notif-item.read{
+      border-left-color:transparent!important; opacity:.55!important; background:transparent!important;
+    }
+    .zy-bell-dd-list .zy-ni-icon, .zy-mob-list .zy-ni-icon{
       width:42px!important; height:42px!important; border-radius:50%!important; flex-shrink:0!important;
-      background:#4f46e5!important; display:flex!important; align-items:center!important; justify-content:center!important;
+      background:#6366f1!important; display:flex!important; align-items:center!important; justify-content:center!important;
       color:#fff!important; font-size:15px!important;
     }
-    .zy-mob-list .zy-ni-icon.admin{ background:#ea580c!important; }
-    .zy-mob-list .zy-ni-title{ color:#1e293b!important; font-weight:700!important; font-size:14px!important; }
-    .zy-mob-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#4f46e5!important; flex-shrink:0!important; }
-    .zy-mob-list .zy-bell-empty{ color:#94a3b8!important; text-align:center!important; padding:30px 10px!important; }
-    body.dark-theme .zy-mob-list::-webkit-scrollbar-thumb{ background:#334155!important; }
-    body.dark-theme .zy-mob-list .zy-notif-item{ background:#161f38!important; border-left-color:#6366f1!important; }
-    body.dark-theme .zy-mob-list .zy-notif-item.read{ border-left-color:transparent!important; }
-    body.dark-theme .zy-mob-list .zy-ni-icon{ background:#3730a3!important; }
-    body.dark-theme .zy-mob-list .zy-ni-icon.admin{ background:#ea580c!important; }
+    .zy-bell-dd-list .zy-ni-icon.admin, .zy-mob-list .zy-ni-icon.admin{ background:#ea580c!important; }
+    .zy-bell-dd-list .zy-ni-title, .zy-mob-list .zy-ni-title{ font-weight:700!important; font-size:14px!important; }
+    .zy-bell-dd-list .zy-ni-dot, .zy-mob-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#6366f1!important; flex-shrink:0!important; }
+    .zy-bell-dd-list .zy-bell-empty, .zy-mob-list .zy-bell-empty{ text-align:center!important; padding:30px 10px!important; }
+    .zy-bell-dd-list .zy-bell-empty i, .zy-mob-list .zy-bell-empty i{ display:block!important; font-size:28px!important; margin-bottom:8px!important; opacity:.5!important; }
+
+    /* ── KUN (yorug') rejim ── */
+    body:not(.dark-theme) .zy-bell-dropdown{
+      background:#ffffff!important; border:1px solid #e2e8f0!important;
+      box-shadow:0 20px 60px rgba(15,23,42,0.16)!important;
+    }
+    body:not(.dark-theme) .zy-bell-dd-header{ background:#f8fafc!important; color:#0f172a!important; border-bottom:1px solid #e2e8f0!important; }
+    body:not(.dark-theme) .zy-bell-close-x{ background:#eef2f7!important; color:#475569!important; }
+    body:not(.dark-theme) .zy-bell-dd-list .zy-notif-item{ background:#f8fafc!important; }
+    body:not(.dark-theme) .zy-bell-dd-list .zy-notif-item:hover{ background:#eef2ff!important; }
+    body:not(.dark-theme) .zy-bell-dd-list .zy-ni-title{ color:#1e293b!important; }
+    body:not(.dark-theme) .zy-bell-dd-list .zy-bell-empty{ color:#94a3b8!important; }
+    body:not(.dark-theme) .zy-bell-dd-footer{ background:#f8fafc!important; border-top-color:#e2e8f0!important; color:#4f46e5!important; }
+    body:not(.dark-theme) .zy-bell-dd-footer:hover{ background:#eef2ff!important; }
+
+    /* ── TUN (qorong'i) rejim ── */
+    body.dark-theme .zy-bell-dropdown{
+      background:#0f1729!important; border:1px solid #1e293b!important;
+      box-shadow:0 20px 60px rgba(0,0,0,0.45)!important;
+    }
+    body.dark-theme .zy-bell-dd-header{ background:#111c34!important; color:#f1f5f9!important; border-bottom:1px solid #1e293b!important; }
+    body.dark-theme .zy-bell-close-x{ background:#1e2a44!important; color:#cbd5e1!important; }
+    body.dark-theme .zy-bell-dd-list .zy-notif-item{ background:#161f38!important; }
+    body.dark-theme .zy-bell-dd-list .zy-notif-item:hover{ background:#1c2744!important; }
+    body.dark-theme .zy-bell-dd-list .zy-ni-title{ color:#e2e8f0!important; }
+    body.dark-theme .zy-bell-dd-list .zy-bell-empty{ color:#64748b!important; }
+    body.dark-theme .zy-bell-dd-footer{ background:#111c34!important; border-top-color:#1e293b!important; color:#818cf8!important; }
+    body.dark-theme .zy-bell-dd-footer:hover{ background:#152040!important; }
+
+    /* ── MOBIL — to'liq ekran overlay, kun/tun rejimiga mos ── */
+    .zy-mob-overlay{
+      position:fixed!important; top:0!important; left:0!important; right:0!important; bottom:0!important;
+      display:flex!important; flex-direction:column!important;
+      transform:translateY(100%)!important; transition:transform .28s ease!important;
+      z-index:2147483647!important;
+    }
+    .zy-mob-overlay.open{ transform:translateY(0)!important; }
+    .zy-mob-header{
+      display:flex!important; align-items:center!important; gap:10px!important;
+      padding:16px 18px!important; font-weight:800!important; font-size:16px!important;
+      flex-shrink:0!important;
+    }
+    .zy-mob-close{
+      margin-left:auto!important; width:32px!important; height:32px!important; border-radius:50%!important;
+      display:flex!important; align-items:center!important; justify-content:center!important;
+      border:none!important; cursor:pointer!important; font-size:14px!important;
+    }
+    .zy-mob-list{ flex:1!important; overflow-y:auto!important; padding:12px!important; -webkit-overflow-scrolling:touch!important; }
+    .zy-mob-clear{
+      padding:14px!important; text-align:center!important; font-weight:700!important; font-size:13px!important;
+      cursor:pointer!important; flex-shrink:0!important; border-top:1px solid!important;
+      display:flex!important; align-items:center!important; justify-content:center!important; gap:8px!important;
+    }
+
+    body:not(.dark-theme) .zy-mob-overlay{ background:#ffffff!important; }
+    body:not(.dark-theme) .zy-mob-header{ background:#f8fafc!important; color:#0f172a!important; border-bottom:1px solid #e2e8f0!important; }
+    body:not(.dark-theme) .zy-mob-close{ background:#eef2f7!important; color:#475569!important; }
+    body:not(.dark-theme) .zy-mob-list .zy-notif-item{ background:#f8fafc!important; }
+    body:not(.dark-theme) .zy-mob-list .zy-ni-title{ color:#1e293b!important; }
+    body:not(.dark-theme) .zy-mob-clear{ background:#f8fafc!important; border-top-color:#e2e8f0!important; color:#4f46e5!important; }
+
+    body.dark-theme .zy-mob-overlay{ background:#0f1729!important; }
+    body.dark-theme .zy-mob-header{ background:#111c34!important; color:#f1f5f9!important; border-bottom:1px solid #1e293b!important; }
+    body.dark-theme .zy-mob-close{ background:#1e2a44!important; color:#cbd5e1!important; }
+    body.dark-theme .zy-mob-list .zy-notif-item{ background:#161f38!important; }
     body.dark-theme .zy-mob-list .zy-ni-title{ color:#e2e8f0!important; }
-    body.dark-theme .zy-mob-list .zy-ni-dot{ background:#6366f1!important; }
-    body.dark-theme .zy-mob-list .zy-bell-empty{ color:#64748b!important; }
+    body.dark-theme .zy-mob-clear{ background:#111c34!important; border-top-color:#1e293b!important; color:#818cf8!important; }
+
+    /* ── Surgich (scrollbar) — bildirishnomalar ko'payganda ── */
+    .zy-bell-dd-list::-webkit-scrollbar, .zy-mob-list::-webkit-scrollbar{ width:8px!important; }
+    .zy-bell-dd-list::-webkit-scrollbar-track, .zy-mob-list::-webkit-scrollbar-track{ background:transparent!important; }
+    body:not(.dark-theme) .zy-bell-dd-list::-webkit-scrollbar-thumb, body:not(.dark-theme) .zy-mob-list::-webkit-scrollbar-thumb{
+      background:#cbd5e1!important; border-radius:10px!important;
+    }
+    body.dark-theme .zy-bell-dd-list::-webkit-scrollbar-thumb, body.dark-theme .zy-mob-list::-webkit-scrollbar-thumb{
+      background:#334155!important; border-radius:10px!important;
+    }
   `;
   document.head.appendChild(styleTag);
 
@@ -220,8 +257,6 @@
         var ids=getReadIds();
         if(ids.indexOf(id)<0){ids.push(id);saveReadIds(ids);}
         el.classList.add('read');
-        el.style.borderLeftColor='transparent';
-        el.style.background='transparent';
         var dot=el.querySelector('.zy-ni-dot');
         if(dot)dot.remove();
         updateBadges();
@@ -256,6 +291,26 @@
 
   var openedDd=null;
 
+  function positionDd(dd, wrap){
+    if(!wrap) return;
+    var btn=wrap.querySelector('button');
+    if(!btn) return;
+    var r=btn.getBoundingClientRect();
+    var ddWidth=Math.min(360, window.innerWidth*0.92);
+    var left=r.right-ddWidth;
+    if(left<8) left=8;
+    var maxLeft=window.innerWidth-ddWidth-8;
+    if(left>maxLeft) left=maxLeft;
+    dd.style.left=left+'px';
+    dd.style.top=(r.bottom+10)+'px';
+  }
+
+  function repositionOpenDd(){
+    if(openedDd && openedDd._zyWrap) positionDd(openedDd, openedDd._zyWrap);
+  }
+  window.addEventListener('resize', repositionOpenDd);
+  window.addEventListener('scroll', repositionOpenDd, true);
+
   function openDd(dd){
     if(openedDd&&openedDd!==dd) closeDd();
     var list=dd.querySelector('.zy-bell-dd-list');
@@ -263,17 +318,37 @@
     var clr=dd.querySelector('.zy-bell-clear');
     if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
     getBd().classList.add('show');
-    dd.style.zIndex='99999';
-    dd.style.position=dd.style.position||'absolute';
+
+    /* Nav elementi position:fixed + z-index bilan o'z stacking-kontekstini
+       yaratadi, shu sabab dropdown nav ichida qolsa, backdrop undan "ustunroq"
+       chizilib, barcha bosishlarni (X, Hammasini o'qish, xabarlar) o'ziga olib
+       qo'yardi. Buni oldini olish uchun ochilganda dropdownni to'g'ridan-to'g'ri
+       <body>ga ko'chiramiz va tugma tagiga joylashtiramiz; yopilganda asl joyiga
+       qaytaramiz. */
+    var wrap=dd._zyWrap||dd.closest('.zy-bell-wrap');
+    dd._zyWrap=wrap;
+    if(dd.parentNode!==document.body) document.body.appendChild(dd);
+    dd.style.position='fixed';
+    positionDd(dd, wrap);
+    dd.style.zIndex='2147483000';
+
     dd.classList.add('open');
     openedDd=dd;
     /* Bell */
-    var btn=dd.closest('.zy-bell-wrap').querySelector('button');
+    var btn=wrap?wrap.querySelector('button'):null;
     if(btn){btn.classList.add('ringing');setTimeout(function(){btn.classList.remove('ringing');},700);}
   }
 
   function closeDd(){
-    if(openedDd) openedDd.classList.remove('open');
+    if(openedDd){
+      openedDd.classList.remove('open');
+      var wrap=openedDd._zyWrap;
+      if(wrap && openedDd.parentNode!==wrap) wrap.appendChild(openedDd);
+      openedDd.style.position='';
+      openedDd.style.left='';
+      openedDd.style.top='';
+      openedDd.style.zIndex='';
+    }
     openedDd=null;
     if(bdEl) bdEl.classList.remove('show');
   }
