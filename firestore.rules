@@ -27,7 +27,8 @@ service cloud.firestore {
 
     // ── Ro'yxatdan o'tishlar ──
     match /registrations/{regId} {
-      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource == null || resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isSignedIn()
                     && request.resource.data.uid == request.auth.uid
                     && request.resource.data.score == null;
