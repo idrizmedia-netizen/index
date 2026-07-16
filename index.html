@@ -1658,7 +1658,7 @@
             </div>
 
             <!-- DONAT TUGMASI -->
-            <div data-aos="fade-up" data-aos-delay="500" style="margin-top:24px;">
+            <div id="donat-row-anchor" data-aos="fade-up" data-aos-delay="500" style="margin-top:24px; display:flex; flex-wrap:wrap; align-items:stretch; gap:14px;">
                 <button onclick="document.getElementById('donat-modal').classList.add('active')" class="donat-btn">
                     <span class="donat-btn-logo-wrap">
                         <img src="images/nav-icon.png" alt="Ziyomap" class="donat-btn-logo">
@@ -2010,6 +2010,72 @@ document.addEventListener("DOMContentLoaded", () => {
     startZiyoClock();
     startZiyoQuotes();
 });
+</script>
+<style>
+  /* Ro'yxatdan o'tganlar / O'tkazilgan tanlovlar / Hozir faol tanlov kartalari
+     Donat tugmasi yonida ixcham ko'rinishda chiqishi uchun */
+  #donat-row-anchor .zy-stats-inline{
+    display:flex!important; flex-wrap:wrap!important; gap:12px!important;
+    margin:0!important; flex:1 1 auto!important;
+  }
+  #donat-row-anchor .zy-stats-inline > *{
+    flex:1 1 140px!important; min-width:130px!important; margin:0!important;
+  }
+  @media (max-width:600px){
+    #donat-row-anchor{ flex-direction:column!important; }
+  }
+</style>
+<script>
+(function(){
+  'use strict';
+  /* js/public-stats.js "Ro'yxatdan o'tganlar", "O'tkazilgan tanlovlar" va
+     "Hozir faol tanlov" kartalarini sahifa boshiga qo'shadi. Bu skript ularni
+     Donat tugmasi yoniga ko'chiradi — public-stats.js faylini o'zgartirmasdan. */
+  var STAT_LABELS = ["Ro'yxatdan o'tganlar", "O'tkazilgan tanlovlar", "Hozir faol tanlov"];
+
+  function findStatsRow(){
+    var candidates = [];
+    var all = document.body.querySelectorAll('*');
+    for (var i=0;i<all.length;i++){
+      var el = all[i];
+      if (el.children.length) continue; // faqat matn tugunlari (label)
+      var t = (el.textContent||'').trim();
+      if (STAT_LABELS.indexOf(t) !== -1) candidates.push(el);
+    }
+    if (candidates.length < 3) return null;
+
+    // Umumiy ota elementni topamiz — barcha 3 ta labelni o'z ichiga olgan eng kichik ajdod
+    var node = candidates[0];
+    while (node && node !== document.body){
+      var txt = node.textContent || '';
+      var hasAll = STAT_LABELS.every(function(l){ return txt.indexOf(l) !== -1; });
+      if (hasAll) return node;
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  function relocate(){
+    if (document.getElementById('donat-row-anchor') && document.getElementById('donat-row-anchor').dataset.statsMoved) return true;
+    var row = findStatsRow();
+    var anchor = document.getElementById('donat-row-anchor');
+    if (!row || !anchor) return false;
+    row.classList.add('zy-stats-inline');
+    anchor.insertBefore(row, anchor.firstChild);
+    anchor.dataset.statsMoved = '1';
+    return true;
+  }
+
+  if (relocate()) return;
+
+  var tries = 0;
+  var mo = new MutationObserver(function(){
+    if (relocate() || ++tries > 200) mo.disconnect();
+  });
+  mo.observe(document.body, { childList:true, subtree:true });
+
+  document.addEventListener('DOMContentLoaded', function(){ relocate(); });
+})();
 </script>
 <script src="js/notifications.js"></script>
 <script src="js/search-modal.js"></script>
