@@ -211,6 +211,18 @@ async function init() {
     await authReady;
 
     currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
+    const liveUser = authInst.currentUser;
+    if (!currentUser || !liveUser || currentUser.uid !== liveUser.uid) {
+        if (liveUser) {
+            // localStorage eskirgan yoki mos kelmayapti — haqiqiy Firebase sessiyasidan olinadi
+            currentUser = {
+                uid: liveUser.uid,
+                email: liveUser.email || currentUser?.email || null,
+                displayName: liveUser.displayName || currentUser?.displayName || 'Foydalanuvchi',
+                photoURL: liveUser.photoURL || currentUser?.photoURL || null,
+            };
+        }
+    }
     if (!currentUser || !currentUser.uid) {
         needLoginBox.style.display = 'block';
         return;
