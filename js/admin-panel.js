@@ -8,12 +8,15 @@ import {
     orderBy,
     limit,
     getDocs,
+    getDoc,
     getCountFromServer,
     doc,
     setDoc,
     updateDoc,
     deleteDoc,
     serverTimestamp,
+    writeBatch,
+    increment,
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -76,6 +79,8 @@ async function boot(isAdmin) {
     loadStats();
     loadContests();
     loadNotifications();
+    loadUsers();
+    loadSiteContent();
     if (window.ZiyomapIsOwner) loadAdmins();
 }
 
@@ -102,18 +107,41 @@ function initTabs() {
 /* ── STATISTIKA ── */
 async function loadStats() {
     try {
-        const [regSnap, contC, openC, admC] = await Promise.all([
+        const [regSnap, contC, openC, admC, usersC] = await Promise.all([
             getDocs(collection(db, 'registrations')),
             getCountFromServer(collection(db, 'contests')),
             getCountFromServer(query(collection(db, 'contests'), where('status', '==', 'open'))),
             getCountFromServer(collection(db, 'admins')),
+            getCountFromServer(collection(db, 'users')),
         ]);
         document.getElementById('st-reg').textContent = regSnap.size;
         document.getElementById('st-contests').textContent = contC.data().count;
         document.getElementById('st-open').textContent = openC.data().count;
         document.getElementById('st-admins').textContent = admC.data().count + 1; // +1 = owner
+        document.getElementById('st-users').textContent = usersC.data().count;
     } catch (err) {
         console.error(err);
+    }
+
+    const usageEl = document.getElementById('usageStatsList');
+    try {
+        const snap = await getDocs(collection(db, 'usage-stats'));
+        if (snap.empty) {
+            usageEl.innerHTML = '<div class="empty">Hali statistika yig\u2018ilmagan.</div>';
+            return;
+        }
+        const rows = [];
+        snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
+        rows.sort((a, b) => (b.count || 0) - (a.count || 0));
+        usageEl.innerHTML = rows
+            .slice(0, 15)
+            .map(
+                (r) => `<div class="admin-row"><span>${escapeHtml(r.label || r.id)}</span><b>${r.count || 0}</b></div>`
+            )
+            .join('');
+    } catch (err) {
+        console.error(err);
+        usageEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
     }
 }
 
@@ -218,19 +246,24 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
 /* ── ISHTIROKCHILAR ── */
 let currentRegistrants = [];
 let currentContestTitle = '';
+let currentContestId = '';
 
 document.getElementById('reg-contest-select').addEventListener('change', async (e) => {
     const contestId = e.target.value;
     const contestTitle = e.target.options[e.target.selectedIndex]?.textContent || '';
     const tableEl = document.getElementById('registrantsTable');
     const exportBtn = document.getElementById('export-excel-btn');
+    const publishBtn = document.getElementById('publish-leaderboard-btn');
+    currentContestId = contestId;
     if (!contestId) {
         tableEl.innerHTML = '<div class="empty">Yuqorida tanlov tanlang</div>';
         if (exportBtn) exportBtn.style.display = 'none';
+        if (publishBtn) publishBtn.style.display = 'none';
         return;
     }
     tableEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
     if (exportBtn) exportBtn.style.display = 'none';
+    if (publishBtn) publishBtn.style.display = 'none';
     try {
         const snap = await getDocs(
             query(collection(db, 'registrations'), where('contestId', '==', contestId))
@@ -248,6 +281,7 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         currentRegistrants = list;
         currentContestTitle = contestTitle;
         if (exportBtn) exportBtn.style.display = '';
+        if (publishBtn) publishBtn.style.display = '';
 
         let rows = '';
         list.forEach((r, i) => {
@@ -290,6 +324,49 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
     }
 });
 
+document.getElementById('publish-leaderboard-btn')?.addEventListener('click', async () => {
+    if (!currentRegistrants.length || !currentContestId) return;
+
+    const scored = currentRegistrants.filter((r) => r.score !== null && r.score !== undefined);
+    if (!scored.length) {
+        setStatus('Hech kimga ball qo\u2018yilmagan. Avval ball kiriting.', 'error');
+        return;
+    }
+    if (!confirm(`"${currentContestTitle}" uchun g\u2018oliblar reytingi e\u2018lon qilinsinmi? Bu barcha foydalanuvchilarga ochiq bo\u2018ladi.`)) return;
+
+    const btn = document.getElementById('publish-leaderboard-btn');
+    btn.disabled = true;
+    try {
+        const sorted = [...scored].sort((a, b) => b.score - a.score);
+        const entries = sorted.map((r, i) => ({
+            rank: i + 1,
+            fullName: r.fullName,
+            maktab: r.maktab,
+            customId: r.customId,
+            score: r.score,
+        }));
+
+        await setDoc(doc(db, 'leaderboards', currentContestId), {
+            contestTitle: currentContestTitle,
+            publishedAt: serverTimestamp(),
+            entries,
+        });
+
+        const batch = writeBatch(db);
+        sorted.forEach((r, i) => {
+            batch.update(doc(db, 'registrations', r.id), { rank: i + 1 });
+        });
+        await batch.commit();
+
+        setStatus('G\u2018oliblar reytingi e\u2018lon qilindi!', 'success');
+    } catch (err) {
+        console.error(err);
+        setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});
+
 document.getElementById('export-excel-btn')?.addEventListener('click', () => {
     if (!currentRegistrants.length || !window.XLSX) return;
     const rows = currentRegistrants.map((r, i) => ({
@@ -310,6 +387,17 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
 });
 
 /* ── BILDIRISHNOMA ── */
+/* ── BILDIRISHNOMA ── */
+document.getElementById('n-template-select')?.addEventListener('change', (e) => {
+    const textarea = document.getElementById('n-text');
+    const title = currentContestTitle || '[tanlov nomi]';
+    if (e.target.value === 'winners') {
+        textarea.value = `🏆 "${title}" tanlovi natijalari e'lon qilindi! G'oliblarni "G'oliblar" bo'limida ko'rishingiz mumkin. Barcha ishtirokchilarga rahmat!`;
+    } else if (e.target.value === 'new-contest') {
+        textarea.value = `📢 Yangi tanlov boshlandi: "${title}"! Ro'yxatdan o'tish uchun "Tanlov" bo'limiga o'ting.`;
+    }
+});
+
 document.getElementById('n-send-btn').addEventListener('click', async () => {
     const text = document.getElementById('n-text').value.trim();
     if (!text) {
@@ -359,6 +447,82 @@ async function loadNotifications() {
         listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
     }
 }
+
+/* ── FOYDALANUVCHILAR ── */
+async function loadUsers() {
+    const tableEl = document.getElementById('usersTable');
+    try {
+        const snap = await getDocs(query(collection(db, 'users'), orderBy('lastSeen', 'desc'), limit(200)));
+        if (snap.empty) {
+            tableEl.innerHTML = '<div class="empty">Hali hech kim qayd etilmagan.</div>';
+            return;
+        }
+        let rows = '';
+        snap.forEach((d) => {
+            const u = d.data();
+            const blocked = !!u.blocked;
+            rows += `<tr>
+                <td>${escapeHtml(u.displayName || '—')}</td>
+                <td>${escapeHtml(u.email || '—')}</td>
+                <td>${blocked ? '<span class="badge closed">BLOKLANGAN</span>' : '<span class="badge open">FAOL</span>'}</td>
+                <td><button class="btn ${blocked ? 'btn-green' : 'btn-red'}" data-block="${d.id}" data-next="${blocked ? 'false' : 'true'}">
+                    <i class="fas ${blocked ? 'fa-unlock' : 'fa-ban'}"></i> ${blocked ? 'Blokdan chiqarish' : 'Bloklash'}
+                </button></td>
+            </tr>`;
+        });
+        tableEl.innerHTML = `<table>
+            <thead><tr><th>Ism</th><th>Email</th><th>Holati</th><th></th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+
+        tableEl.querySelectorAll('[data-block]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                try {
+                    await updateDoc(doc(db, 'users', btn.dataset.block), { blocked: btn.dataset.next === 'true' });
+                    loadUsers();
+                } catch (err) {
+                    console.error(err);
+                    setStatus('Xatolik yuz berdi.', 'error');
+                    btn.disabled = false;
+                }
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+}
+
+/* ── SAYT KONTENTI ── */
+async function loadSiteContent() {
+    try {
+        const snap = await getDoc(doc(db, 'site-content', 'homepage'));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('content-photo-url').value = data.heroPhotoUrl || '';
+            document.getElementById('content-bio-text').value = data.heroBio || '';
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+document.getElementById('content-save-btn')?.addEventListener('click', async () => {
+    const heroPhotoUrl = document.getElementById('content-photo-url').value.trim();
+    const heroBio = document.getElementById('content-bio-text').value.trim();
+    const btn = document.getElementById('content-save-btn');
+    btn.disabled = true;
+    try {
+        await setDoc(doc(db, 'site-content', 'homepage'), { heroPhotoUrl, heroBio }, { merge: true });
+        setStatus('Saqlandi! Bosh sahifada bir necha soniyada yangilanadi.', 'success');
+    } catch (err) {
+        console.error(err);
+        setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});
 
 /* ── ADMINLAR (faqat owner) ── */
 document.getElementById('a-add-btn')?.addEventListener('click', async () => {
