@@ -301,8 +301,17 @@
     if(left<8) left=8;
     var maxLeft=window.innerWidth-ddWidth-8;
     if(left>maxLeft) left=maxLeft;
-    dd.style.left=left+'px';
-    dd.style.top=(r.bottom+10)+'px';
+    /* setProperty(...,'important') ishlatiladi, chunki tashqi CSS faylida
+       .zy-bell-dropdown uchun !important qoida bo'lsa, oddiy inline style
+       (dd.style.top=...) uni yenga olmaydi va oyna sahifa oxiriga tushib qolardi. */
+    dd.style.setProperty('position','fixed','important');
+    dd.style.setProperty('left',left+'px','important');
+    dd.style.setProperty('top',(r.bottom+10)+'px','important');
+    dd.style.setProperty('right','auto','important');
+    dd.style.setProperty('bottom','auto','important');
+    dd.style.setProperty('margin','0','important');
+    dd.style.setProperty('transform','none','important');
+    dd.style.setProperty('z-index','2147483000','important');
   }
 
   function repositionOpenDd(){
@@ -313,10 +322,9 @@
 
   function openDd(dd){
     if(openedDd&&openedDd!==dd) closeDd();
+    ensureDdFooter(dd);
     var list=dd.querySelector('.zy-bell-dd-list');
     if(list){list.innerHTML=buildItemsHTML();attachItemClicks(list);}
-    var clr=dd.querySelector('.zy-bell-clear');
-    if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
     getBd().classList.add('show');
 
     /* Nav elementi position:fixed + z-index bilan o'z stacking-kontekstini
@@ -328,9 +336,7 @@
     var wrap=dd._zyWrap||dd.closest('.zy-bell-wrap');
     dd._zyWrap=wrap;
     if(dd.parentNode!==document.body) document.body.appendChild(dd);
-    dd.style.position='fixed';
     positionDd(dd, wrap);
-    dd.style.zIndex='2147483000';
 
     dd.classList.add('open');
     openedDd=dd;
@@ -344,13 +350,20 @@
       openedDd.classList.remove('open');
       var wrap=openedDd._zyWrap;
       if(wrap && openedDd.parentNode!==wrap) wrap.appendChild(openedDd);
-      openedDd.style.position='';
-      openedDd.style.left='';
-      openedDd.style.top='';
-      openedDd.style.zIndex='';
+      ['position','left','top','right','bottom','margin','transform','z-index'].forEach(function(p){
+        openedDd.style.removeProperty(p);
+      });
     }
     openedDd=null;
     if(bdEl) bdEl.classList.remove('show');
+  }
+
+  function ensureDdFooter(dd){
+    if(!dd || dd.querySelector('.zy-bell-dd-footer')) return;
+    var footer=document.createElement('div');
+    footer.className='zy-bell-dd-footer';
+    footer.innerHTML='<i class="fas fa-check-double"></i> Barchasini o\'qilgan belgilash';
+    dd.appendChild(footer);
   }
 
   /* ─── MOBIL — ALOHIDA OVERLAY ───────────────────── */
@@ -407,53 +420,44 @@
 
   /* ─── BELL INIT ─────────────────────────────────── */
   function initBells(){
-    document.querySelectorAll('.zy-bell-wrap').forEach(function(wrap){
-      var btn=wrap.querySelector('button')||wrap.querySelector('.nav-icon-btn');
-      var dd=wrap.querySelector('.zy-bell-dropdown');
-      if(!btn||!dd) return;
+    /* Har ehtimolga qarshi, hozircha mavjud bo'lgan dropdownlarga footer qo'shib qo'yamiz */
+    document.querySelectorAll('.zy-bell-dropdown').forEach(ensureDdFooter);
 
-      var clr=dd.querySelector('.zy-bell-clear');
-      if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
-      var closeX=dd.querySelector('.zy-bell-close-x');
-      if(closeX) closeX.onclick=function(e){e.stopPropagation();closeDd();};
+    /* MUHIM: bosishlar to'g'ridan-to'g'ri tugmalarga emas, balki document darajasida
+       "delegatsiya" orqali ushlanadi. Sabab: ba'zi akkauntlarda nav.js/auth.js kabi
+       boshqa skriptlar sahifa yuklangach nav qatoridagi elementlarni qayta chizib
+       qo'yishi mumkin — shunda shu yerda to'g'ridan-to'g'ri ulangan handlerlar yo'qolib,
+       qo'ng'iroqcha bosilganda hech narsa ochilmay qolardi. Delegatsiya esa har safar
+       bosilgan paytda joriy DOM holatini tekshiradi, shuning uchun har doim ishlaydi. */
+    document.addEventListener('click', function(e){
+      var t = e.target;
 
-      /* Mobil dizayniga mos pastki "Barchasini o'qilgan belgilash" panel */
-      if(!dd.querySelector('.zy-bell-dd-footer')){
-        var footer=document.createElement('div');
-        footer.className='zy-bell-dd-footer';
-        footer.innerHTML='<i class="fas fa-check-double"></i> Barchasini o\'qilgan belgilash';
-        footer.addEventListener('click',function(e){e.stopPropagation();markAll();});
-        dd.appendChild(footer);
-      }
-
-      btn.addEventListener('click',function(e){
+      var bellBtn = t.closest && t.closest('.zy-bell-btn');
+      if(bellBtn){
         e.preventDefault();
         e.stopPropagation();
+        var wrap = bellBtn.closest('.zy-bell-wrap');
+        if(!wrap) return;
+        var dd = (openedDd && openedDd._zyWrap===wrap) ? openedDd : wrap.querySelector('.zy-bell-dropdown');
         if(isMob()){
-          /* MOBIL: alohida overlay */
-          if(mobOverlay&&mobOverlay.classList.contains('open')){
-            closeMob();
-          } else {
-            openMob();
-          }
-        } else {
-          /* KOMPYUTER: dropdown */
-          if(dd.classList.contains('open')){
-            closeDd();
-          } else {
-            openDd(dd);
-          }
+          if(mobOverlay && mobOverlay.classList.contains('open')) closeMob(); else openMob();
+        } else if(dd){
+          if(dd.classList.contains('open')) closeDd(); else openDd(dd);
         }
-      });
+        return;
+      }
 
-      dd.addEventListener('click',function(e){e.stopPropagation();});
-    });
+      var closeX = t.closest && t.closest('.zy-bell-close-x');
+      if(closeX){ e.stopPropagation(); closeDd(); return; }
 
-    /* Tashqarida bosish — kompyuterda */
-    document.addEventListener('click',function(e){
-      if(isMob()) return;
-      if(e.target.closest && e.target.closest('.zy-bell-dropdown, .zy-bell-btn')) return;
-      closeDd();
+      var clearBtn = t.closest && t.closest('.zy-bell-clear, .zy-bell-dd-footer');
+      if(clearBtn){ e.stopPropagation(); markAll(); return; }
+
+      var insideDd = t.closest && t.closest('.zy-bell-dropdown');
+      if(insideDd){ e.stopPropagation(); return; }
+
+      /* Tashqarida bosish — kompyuterda dropdownni yopadi */
+      if(!isMob()) closeDd();
     });
 
     /* Escape */
