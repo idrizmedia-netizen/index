@@ -60,8 +60,9 @@
                 });
             });
             const db = getFirestore(app);
+            const queryUid = (authInst.currentUser && authInst.currentUser.uid) || user.uid;
 
-            const snap = await getDocs(query(collection(db, 'registrations'), where('uid', '==', user.uid)));
+            const snap = await getDocs(query(collection(db, 'registrations'), where('uid', '==', queryUid)));
 
             if (snap.empty) {
                 target.innerHTML =
