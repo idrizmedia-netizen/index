@@ -74,11 +74,12 @@
             snap.forEach((d) => {
                 const r = d.data();
                 const hasScore = r.score !== null && r.score !== undefined;
+                const hasRank = r.rank !== null && r.rank !== undefined;
                 html += `<div class="activity-row">
                     <div class="act-icon" style="background:#fdf2f8">🏆</div>
                     <div style="flex:1">
                         <div class="act-label">${esc(r.contestTitle)}</div>
-                        <div class="act-time">ID: ${esc(r.customId)}</div>
+                        <div class="act-time">ID: ${esc(r.customId)}${hasRank ? ' · ' + esc(r.rank) + '-o\u2018rin' : ''}</div>
                     </div>
                     <div style="font-weight:800;color:${hasScore ? 'var(--primary)' : 'var(--muted)'}">
                         ${hasScore ? esc(r.score) + ' ball' : 'Kutilmoqda'}
