@@ -5,6 +5,52 @@
 (function(){
   'use strict';
 
+  /* ─── DESKTOP DROPDOWN — mobil dizayniga mos qora kartochkalar ── */
+  var styleTag = document.createElement('style');
+  styleTag.textContent = `
+    .zy-bell-dropdown{
+      background:#0f1729!important; border-radius:18px!important; overflow:hidden!important;
+      box-shadow:0 20px 60px rgba(0,0,0,0.45)!important; border:1px solid #1e293b!important;
+      padding:0!important; width:360px!important; max-width:92vw!important;
+    }
+    .zy-bell-dd-header{
+      background:#111c34!important; padding:16px 18px!important; margin:0!important;
+      display:flex!important; align-items:center!important; gap:10px!important;
+      color:#f1f5f9!important; font-weight:800!important; font-size:16px!important;
+      border-bottom:1px solid #1e293b!important;
+    }
+    .zy-bell-clear{ display:none!important; }
+    .zy-bell-close-x{
+      margin-left:auto!important; width:30px!important; height:30px!important; border-radius:50%!important;
+      background:#1e2a44!important; color:#cbd5e1!important; display:flex!important;
+      align-items:center!important; justify-content:center!important; font-size:13px!important;
+    }
+    .zy-bell-dd-list{ padding:12px!important; max-height:min(60vh,420px)!important; overflow-y:auto!important; }
+    .zy-bell-dd-list .zy-notif-item{
+      background:#161f38!important; border-radius:14px!important; padding:14px!important;
+      margin-bottom:10px!important; display:flex!important; align-items:center!important; gap:12px!important;
+      border-left:3px solid #6366f1!important; cursor:pointer!important; transition:background .15s!important;
+    }
+    .zy-bell-dd-list .zy-notif-item.read{ border-left-color:transparent!important; opacity:.6!important; }
+    .zy-bell-dd-list .zy-notif-item:hover{ background:#1c2744!important; }
+    .zy-bell-dd-list .zy-ni-icon{
+      width:42px!important; height:42px!important; border-radius:50%!important; flex-shrink:0!important;
+      background:#3730a3!important; display:flex!important; align-items:center!important; justify-content:center!important;
+      color:#fff!important; font-size:15px!important;
+    }
+    .zy-bell-dd-list .zy-ni-icon.admin{ background:#ea580c!important; }
+    .zy-bell-dd-list .zy-ni-title{ color:#e2e8f0!important; font-weight:700!important; font-size:14px!important; }
+    .zy-bell-dd-list .zy-ni-dot{ width:8px!important; height:8px!important; border-radius:50%!important; background:#6366f1!important; flex-shrink:0!important; }
+    .zy-bell-dd-list .zy-bell-empty{ color:#64748b!important; text-align:center!important; padding:30px 10px!important; }
+    .zy-bell-dd-footer{
+      background:#111c34!important; border-top:1px solid #1e293b!important; padding:14px!important;
+      text-align:center!important; color:#818cf8!important; font-weight:700!important; font-size:13px!important;
+      cursor:pointer!important; display:flex!important; align-items:center!important; justify-content:center!important; gap:8px!important;
+    }
+    .zy-bell-dd-footer:hover{ background:#152040!important; }
+  `;
+  document.head.appendChild(styleTag);
+
   /* ─── TOAST ─────────────────────────────────────── */
   var toastBox = document.createElement('div');
   toastBox.className = 'zy-notif-container';
@@ -242,6 +288,15 @@
       if(clr) clr.onclick=function(e){e.stopPropagation();markAll();};
       var closeX=dd.querySelector('.zy-bell-close-x');
       if(closeX) closeX.onclick=function(e){e.stopPropagation();closeDd();};
+
+      /* Mobil dizayniga mos pastki "Barchasini o'qilgan belgilash" panel */
+      if(!dd.querySelector('.zy-bell-dd-footer')){
+        var footer=document.createElement('div');
+        footer.className='zy-bell-dd-footer';
+        footer.innerHTML='<i class="fas fa-check-double"></i> Barchasini o\'qilgan belgilash';
+        footer.addEventListener('click',function(e){e.stopPropagation();markAll();});
+        dd.appendChild(footer);
+      }
 
       btn.addEventListener('click',function(e){
         e.preventDefault();
