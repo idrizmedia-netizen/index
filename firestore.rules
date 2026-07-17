@@ -3,9 +3,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ⚠️ Shu yerga ham admin-guard.js dagi bilan BIR XIL emailni yozing
-    function ownerEmail() {
-      return "idrizmedia@gmail.com";
+    // ⚠️ Shu yerga ham admin-guard.js dagi bilan BIR XIL UID'ni yozing
+    function ownerUid() {
+      return "PhFPRmGQdnVNu3dsepFLem5Xzmg2";
     }
 
     function isSignedIn() {
@@ -14,8 +14,8 @@ service cloud.firestore {
 
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email.lower() == ownerEmail().lower() ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
+        request.auth.uid == ownerUid() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }
 
@@ -67,10 +67,10 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ── Adminlar ro'yxati: kiruvchilar o'qiy oladi, faqat owner o'zgartiradi ──
-    match /admins/{email} {
+    // ── Adminlar ro'yxati (UID bo'yicha): kiruvchilar o'qiy oladi, faqat owner o'zgartiradi ──
+    match /admins/{uid} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.auth.token.email.lower() == ownerEmail().lower();
+      allow write: if isSignedIn() && request.auth.uid == ownerUid();
     }
 
     // ── Login/parol hisoblari (barcha qurilmalarda ishlashi uchun) ──
