@@ -31,9 +31,7 @@ service cloud.firestore {
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
       allow create: if isSignedIn()
                     && request.resource.data.uid == request.auth.uid
-                    && request.resource.data.score == null
-                    && !(exists(/databases/$(database)/documents/users/$(request.auth.uid))
-                         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.blocked == true);
+                    && request.resource.data.score == null;
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
@@ -73,6 +71,14 @@ service cloud.firestore {
     match /admins/{email} {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && request.auth.token.email.lower() == ownerEmail().lower();
+    }
+
+    // ── Login/parol hisoblari (barcha qurilmalarda ishlashi uchun) ──
+    match /local-accounts/{login} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
     }
 
     // ── Ochiq statistika: hammaga o'qish, kirgan foydalanuvchi yangilay oladi ──
