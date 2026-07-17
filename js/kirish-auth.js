@@ -71,11 +71,17 @@ function saveUser(data, provider, usageLabel) {
 }
 
 function saveFirebaseUser(user, usageLabel) {
+    // user.email ba'zan login/parol ulanganda ichki "@ziyomap-login.app"
+    // manziliga almashib qolishi mumkin — shuning uchun haqiqiy Google
+    // emailini har doim providerData'dan olamiz.
+    const googleEntry = (user.providerData || []).find((p) => p.providerId === 'google.com');
+    const realEmail = googleEntry?.email || (user.email && !user.email.endsWith('@ziyomap-login.app') ? user.email : null);
+
     saveUser(
         {
             uid: user.uid,
-            email: user.email || null,
-            displayName: user.displayName || user.email || 'Foydalanuvchi',
+            email: realEmail,
+            displayName: user.displayName || realEmail || 'Foydalanuvchi',
             photoURL: user.photoURL || null,
         },
         'google',
