@@ -1,16 +1,23 @@
 /* ===================================================
    ZIYOMAP — Admin Guard
    Eski auth fayllarga tegmaydi. Faqat:
-   - ZiyomapUsage.getUser() dan emailni oladi
-   - Firestore "admins" kolleksiyasidan tekshiradi
+   - ZiyomapUsage.getUser() dan UID'ni oladi
+   - Firestore "admins" kolleksiyasidan (UID bo'yicha) tekshiradi
    - [data-admin-only] elementlarni ko'rsatadi/yashiradi
+
+   ⚠️ Email emas, UID ishlatiladi — chunki login/parol ulash
+   (account linking) ba'zan email claim'ni ichki texnik
+   manzilga almashtirib yuboradi, lekin UID hech qachon
+   o'zgarmaydi.
    =================================================== */
 (function () {
     'use strict';
 
-    /* ⚠️ SHU YERGA O'ZINGIZNING SHAXSIY EMAILINGIZNI YOZING.
-       Bu email har doim, Firestore'ga qaramasdan ham, admin bo'ladi. */
-    const OWNER_EMAIL = 'idrizmedia@gmail.com';
+    /* ⚠️ SHU YERGA O'ZINGIZNING FIREBASE UID'INGIZNI YOZING.
+       Buni admin.html sahifasida konsolga chiqqan
+       "currentUser.uid" qatoridan olishingiz mumkin.
+       Bu UID har doim, Firestore'ga qaramasdan ham, admin bo'ladi. */
+    const OWNER_UID = 'PhFPRmGQdnVNu3dsepFLem5Xzmg2';
 
     const firebaseConfig = {
         apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
@@ -35,7 +42,7 @@
 
     async function checkAdmin() {
         const user = window.ZiyomapUsage && ZiyomapUsage.getUser();
-        if (!user || !user.email) {
+        if (!user || !user.uid) {
             window.ZiyomapIsAdmin = false;
             window.ZiyomapIsOwner = false;
             hide();
@@ -43,9 +50,7 @@
             return false;
         }
 
-        const email = user.email.toLowerCase();
-
-        if (email === OWNER_EMAIL.toLowerCase()) {
+        if (user.uid === OWNER_UID) {
             window.ZiyomapIsAdmin = true;
             window.ZiyomapIsOwner = true;
             reveal();
@@ -74,7 +79,7 @@
                 });
             });
             const db = getFirestore(app);
-            const snap = await getDoc(doc(db, 'admins', email));
+            const snap = await getDoc(doc(db, 'admins', user.uid));
             const isAdmin = snap.exists();
 
             window.ZiyomapIsAdmin = isAdmin;
@@ -93,7 +98,7 @@
 
     window.ZiyomapAdminGuard = {
         checkAdmin,
-        ownerEmail: OWNER_EMAIL,
+        ownerUid: OWNER_UID,
         get isAdmin() {
             return !!window.ZiyomapIsAdmin;
         },
