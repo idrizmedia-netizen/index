@@ -75,6 +75,19 @@ async function boot(isAdmin) {
 
     if (!authInst.currentUser) {
         setStatus('Sessiyangiz eskirgan. Iltimos, chiqib, Google orqali qayta kiring — aks holda ma\u2018lumotlar yuklanmaydi.', 'error');
+    } else {
+        try {
+            const tokenResult = await authInst.currentUser.getIdTokenResult(true);
+            console.log('=== ZIYOMAP DIAGNOSTIKA ===');
+            console.log('currentUser.uid:', authInst.currentUser.uid);
+            console.log('currentUser.email:', authInst.currentUser.email);
+            console.log('providerData:', authInst.currentUser.providerData);
+            console.log('ID TOKEN email claim:', tokenResult.claims.email);
+            console.log('ID TOKEN full claims:', tokenResult.claims);
+            console.log('===========================');
+        } catch (err) {
+            console.error('Token diagnostikasida xatolik:', err);
+        }
     }
 
     if (window.ZiyomapIsOwner) {
