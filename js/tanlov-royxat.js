@@ -157,6 +157,12 @@ async function openContest(contest, showBack) {
     regForm.style.display = 'block';
     regForm.onsubmit = async (e) => {
         e.preventDefault();
+
+        if (!authInst.currentUser) {
+            setStatus('Sessiyangiz eskirgan. Iltimos, chiqib, Google orqali qayta kiring.', 'error');
+            return;
+        }
+
         submitBtn.disabled = true;
         setStatus('Yuborilmoqda...', 'info');
 
@@ -173,8 +179,8 @@ async function openContest(contest, showBack) {
             await setDoc(doc(db, 'registrations', regId), {
                 contestId: contest.id,
                 contestTitle: contest.title || '',
-                uid: currentUser.uid,
-                email: currentUser.email || null,
+                uid: authInst.currentUser.uid,
+                email: authInst.currentUser.email || currentUser.email || null,
                 familiya,
                 ism,
                 sharif,
@@ -199,8 +205,9 @@ async function openContest(contest, showBack) {
             alreadyId.textContent = customId;
             setStatus('Muvaffaqiyatli ro\u2018yxatdan o\u2018tdingiz!', 'success');
         } catch (err) {
-            console.error(err);
-            setStatus('Xatolik yuz berdi. Qayta urinib ko\u2018ring.', 'error');
+            console.error('Ro\u2018yxatdan o\u2018tish xatoligi:', err.code, err.message, err);
+            const detail = err.code ? ` (${err.code})` : '';
+            setStatus('Xatolik yuz berdi' + detail + '. Qayta urinib ko\u2018ring.', 'error');
             submitBtn.disabled = false;
         }
     };
