@@ -204,9 +204,19 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
                 <input type="number" id="f-yosh" min="5" max="100" required>
             </div>
             <div class="field">
-                <label for="f-tel">Telefon raqam</label>
-                <input type="tel" id="f-tel" required placeholder="+998 90 123 45 67">
+                <label for="f-sinf">Sinf</label>
+                <select id="f-sinf">
+                    <option value="">— tanlanmagan —</option>
+                    <option value="1">1-sinf</option><option value="2">2-sinf</option><option value="3">3-sinf</option>
+                    <option value="4">4-sinf</option><option value="5">5-sinf</option><option value="6">6-sinf</option>
+                    <option value="7">7-sinf</option><option value="8">8-sinf</option><option value="9">9-sinf</option>
+                    <option value="10">10-sinf</option><option value="11">11-sinf</option>
+                </select>
             </div>
+        </div>
+        <div class="field">
+            <label for="f-tel">Telefon raqam</label>
+            <input type="tel" id="f-tel" required placeholder="+998 90 123 45 67">
         </div>
         <button type="submit" class="btn-primary" id="submit-btn">
             <i class="fas fa-paper-plane"></i> Ro'yxatdan o'tish
