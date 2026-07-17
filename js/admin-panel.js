@@ -72,6 +72,11 @@ async function boot(isAdmin) {
     await authReady;
     gate.style.display = 'none';
     wrap.classList.add('show');
+
+    if (!authInst.currentUser) {
+        setStatus('Sessiyangiz eskirgan. Iltimos, chiqib, Google orqali qayta kiring — aks holda ma\u2018lumotlar yuklanmaydi.', 'error');
+    }
+
     if (window.ZiyomapIsOwner) {
         document.getElementById('admins-tab-btn').style.display = '';
     }
