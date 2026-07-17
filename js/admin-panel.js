@@ -160,10 +160,14 @@ async function loadContests() {
         snap.forEach((d) => {
             const c = d.data();
             const isOpen = c.status === 'open';
+            const restrictions = [];
+            if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}–${c.maxAge || '∞'}`);
+            if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
             listHtml += `<div class="contest-item">
                 <div>
                     <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span></div>
                     <div class="d">${escapeHtml(c.description || '')}</div>
+                    ${restrictions.length ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-filter"></i> ${escapeHtml(restrictions.join(' · '))}</div>` : ''}
                 </div>
                 <div style="display:flex;gap:8px">
                     <button class="btn ${isOpen ? 'btn-red' : 'btn-green'}" data-toggle="${d.id}" data-next="${isOpen ? 'closed' : 'open'}">
@@ -216,10 +220,30 @@ async function loadContests() {
 document.getElementById('c-create-btn').addEventListener('click', async () => {
     const title = document.getElementById('c-title').value.trim();
     const desc = document.getElementById('c-desc').value.trim();
+    const minAgeRaw = document.getElementById('c-min-age').value.trim();
+    const maxAgeRaw = document.getElementById('c-max-age').value.trim();
+    const gradesRaw = document.getElementById('c-grades').value.trim();
     if (!title) {
         setStatus('Tanlov nomini kiriting.', 'error');
         return;
     }
+
+    // "5-9" yoki "5,6,7,8,9" ko'rinishini raqamlar ro'yxatiga aylantirish
+    let grades = [];
+    if (gradesRaw) {
+        if (gradesRaw.includes('-')) {
+            const [a, b] = gradesRaw.split('-').map((n) => parseInt(n.trim(), 10));
+            if (!isNaN(a) && !isNaN(b)) {
+                for (let i = Math.min(a, b); i <= Math.max(a, b); i++) grades.push(i);
+            }
+        } else {
+            grades = gradesRaw
+                .split(',')
+                .map((n) => parseInt(n.trim(), 10))
+                .filter((n) => !isNaN(n));
+        }
+    }
+
     const btn = document.getElementById('c-create-btn');
     btn.disabled = true;
     try {
@@ -228,10 +252,16 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             title,
             description: desc,
             status: 'open',
+            minAge: minAgeRaw ? parseInt(minAgeRaw, 10) : null,
+            maxAge: maxAgeRaw ? parseInt(maxAgeRaw, 10) : null,
+            grades,
             createdAt: serverTimestamp(),
         });
         document.getElementById('c-title').value = '';
         document.getElementById('c-desc').value = '';
+        document.getElementById('c-min-age').value = '';
+        document.getElementById('c-max-age').value = '';
+        document.getElementById('c-grades').value = '';
         setStatus('Tanlov yaratildi va e\u2018lon qilindi!', 'success');
         loadContests();
         loadStats();
