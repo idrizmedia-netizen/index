@@ -83,10 +83,10 @@ function saveFirebaseUser(user, usageLabel) {
     );
 }
 
-function updateCredentialUI(user) {
+async function updateCredentialUI(user) {
     if (!user?.uid || !Creds) return;
     if (cancelResetBtn) cancelResetBtn.style.display = 'none';
-    const existing = Creds.findByUid(user.uid);
+    const existing = await Creds.findByUid(user.uid);
     if (existing) {
         if (setupBox) setupBox.style.display = 'none';
         if (setupDone) setupDone.style.display = 'block';
