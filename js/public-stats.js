@@ -16,14 +16,14 @@
     };
 
     function buildWidget() {
-        const nav = document.querySelector('nav');
-        if (!nav) return null;
+        const anchor = document.getElementById('home') || document.querySelector('nav');
+        if (!anchor) return null;
 
         const section = document.createElement('div');
         section.id = 'zy-public-stats';
         section.style.cssText =
-            'max-width:720px;margin:70px auto 0;padding:0 16px;display:grid;' +
-            'grid-template-columns:repeat(3,1fr);gap:8px;';
+            'max-width:720px;margin:14px auto 14px;padding:0 16px;display:grid;' +
+            'grid-template-columns:repeat(3,1fr);gap:8px;position:relative;z-index:1;';
         section.innerHTML = `
             <div class="zy-pub-card" id="zyPubCardReg" style="background:var(--card-bg);border-radius:12px;padding:9px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.12);transition:transform .2s;">
                 <div style="width:26px;height:26px;flex-shrink:0;border-radius:8px;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center">
@@ -52,7 +52,7 @@
                     <div style="font-size:9px;color:var(--text-color);opacity:.7;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Faol tanlov</div>
                 </div>
             </div>`;
-        nav.insertAdjacentElement('afterend', section);
+        anchor.insertAdjacentElement('beforebegin', section);
 
         section.querySelectorAll('.zy-pub-card').forEach((c) => {
             c.addEventListener('mouseenter', () => { c.style.transform = 'translateY(-2px)'; });
