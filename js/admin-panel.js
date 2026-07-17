@@ -75,19 +75,6 @@ async function boot(isAdmin) {
 
     if (!authInst.currentUser) {
         setStatus('Sessiyangiz eskirgan. Iltimos, chiqib, Google orqali qayta kiring — aks holda ma\u2018lumotlar yuklanmaydi.', 'error');
-    } else {
-        try {
-            const tokenResult = await authInst.currentUser.getIdTokenResult(true);
-            console.log('=== ZIYOMAP DIAGNOSTIKA ===');
-            console.log('currentUser.uid:', authInst.currentUser.uid);
-            console.log('currentUser.email:', authInst.currentUser.email);
-            console.log('providerData:', authInst.currentUser.providerData);
-            console.log('ID TOKEN email claim:', tokenResult.claims.email);
-            console.log('ID TOKEN full claims:', tokenResult.claims);
-            console.log('===========================');
-        } catch (err) {
-            console.error('Token diagnostikasida xatolik:', err);
-        }
     }
 
     if (window.ZiyomapIsOwner) {
@@ -580,8 +567,21 @@ document.getElementById('a-add-btn')?.addEventListener('click', async () => {
         return;
     }
     const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
+    const btn = document.getElementById('a-add-btn');
+    btn.disabled = true;
     try {
-        await setDoc(doc(db, 'admins', email), {
+        // Email orqali foydalanuvchining UID'ini topamiz (u avval saytga
+        // kamida bir marta Google orqali kirgan bo'lishi kerak)
+        const userSnap = await getDocs(query(collection(db, 'users'), where('email', '==', email)));
+        if (userSnap.empty) {
+            setStatus('Bu email bilan hech kim saytga kirmagan. Avval o\u2018sha odam saytga Google orqali kirsin, keyin qo\u2018shing.', 'error');
+            btn.disabled = false;
+            return;
+        }
+        const targetUid = userSnap.docs[0].id;
+
+        await setDoc(doc(db, 'admins', targetUid), {
+            email,
             addedAt: serverTimestamp(),
             addedBy: currentUser?.email || 'owner',
         });
@@ -592,6 +592,8 @@ document.getElementById('a-add-btn')?.addEventListener('click', async () => {
     } catch (err) {
         console.error(err);
         setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
     }
 });
 
@@ -599,9 +601,11 @@ async function loadAdmins() {
     const listEl = document.getElementById('adminsList');
     try {
         const snap = await getDocs(collection(db, 'admins'));
-        let html = `<div class="admin-row"><span><i class="fas fa-crown" style="color:#d97706"></i> ${escapeHtml(window.ZiyomapAdminGuard?.ownerEmail || '')} (asosiy admin)</span></div>`;
+        const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
+        let html = `<div class="admin-row"><span><i class="fas fa-crown" style="color:#d97706"></i> ${escapeHtml(currentUser?.email || 'Siz')} (asosiy admin)</span></div>`;
         snap.forEach((d) => {
-            html += `<div class="admin-row"><span>${escapeHtml(d.id)}</span>
+            const a = d.data();
+            html += `<div class="admin-row"><span>${escapeHtml(a.email || d.id)}</span>
                 <button class="btn btn-red" data-del-admin="${d.id}"><i class="fas fa-trash"></i></button></div>`;
         });
         listEl.innerHTML = html;
