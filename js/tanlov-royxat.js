@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
 import {
     getFirestore,
     collection,
@@ -120,10 +120,17 @@ function showContestChoice(contests) {
 
 /* ── Tanlangan tanlov uchun forma yoki "allaqachon ro'yxatdan o'tgan" holatini ko'rsatish ── */
 async function openContest(contest, showBack) {
+    const restrictions = [];
+    if (contest.minAge || contest.maxAge) restrictions.push(`Yosh: ${contest.minAge || '0'}\u2013${contest.maxAge || '\u221e'}`);
+    if (contest.grades && contest.grades.length) restrictions.push(`Sinflar: ${contest.grades.join(', ')}`);
+
     contestInfo.style.display = 'block';
     contestInfo.innerHTML =
         (showBack ? '<a href="#" id="back-to-list" class="back-link"><i class="fas fa-arrow-left"></i> Boshqa tanlov tanlash</a><br>' : '') +
-        `<b>${escapeHtml(contest.title || 'Tanlov')}</b>${escapeHtml(contest.description || '')}`;
+        `<b>${escapeHtml(contest.title || 'Tanlov')}</b>${escapeHtml(contest.description || '')}` +
+        (restrictions.length
+            ? `<div style="margin-top:8px;font-size:0.78rem;color:#b45309"><i class="fas fa-circle-info"></i> ${escapeHtml(restrictions.join(' · '))}</div>`
+            : '');
 
     const backLink = document.getElementById('back-to-list');
     if (backLink) {
@@ -171,7 +178,24 @@ async function openContest(contest, showBack) {
         const sharif = document.getElementById('f-sharif').value.trim();
         const maktab = document.getElementById('f-maktab').value.trim();
         const yosh = parseInt(document.getElementById('f-yosh').value, 10);
+        const sinf = document.getElementById('f-sinf').value ? parseInt(document.getElementById('f-sinf').value, 10) : null;
         const telefon = document.getElementById('f-tel').value.trim();
+
+        if (contest.minAge && yosh < contest.minAge) {
+            setStatus(`Bu tanlov uchun yosh chegarasi: ${contest.minAge} dan boshlab.`, 'error');
+            submitBtn.disabled = false;
+            return;
+        }
+        if (contest.maxAge && yosh > contest.maxAge) {
+            setStatus(`Bu tanlov uchun yosh chegarasi: ${contest.maxAge} gacha.`, 'error');
+            submitBtn.disabled = false;
+            return;
+        }
+        if (contest.grades && contest.grades.length && (!sinf || !contest.grades.includes(sinf))) {
+            setStatus(`Bu tanlov faqat quyidagi sinflar uchun: ${contest.grades.join(', ')}. Iltimos, sinfingizni tanlang.`, 'error');
+            submitBtn.disabled = false;
+            return;
+        }
 
         try {
             const customId = await nextRegistrationId();
@@ -187,6 +211,7 @@ async function openContest(contest, showBack) {
                 fullName: `${familiya} ${ism} ${sharif}`.trim(),
                 maktab,
                 yosh,
+                sinf,
                 telefon,
                 customId,
                 score: null,
@@ -219,7 +244,22 @@ async function init() {
 
     currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
     const liveUser = authInst.currentUser;
-    if (!currentUser || !liveUser || currentUser.uid !== liveUser.uid) {
+
+    if (currentUser && currentUser.provider === 'local' && !liveUser) {
+        // Login/parol orqali kirgan — Firestore uchun "ko'rinmas" sessiya yaratamiz
+        try {
+            const result = await signInAnonymously(authInst);
+            currentUser = {
+                uid: result.user.uid,
+                email: currentUser.email || null,
+                displayName: currentUser.displayName || 'Foydalanuvchi',
+                photoURL: currentUser.photoURL || null,
+                provider: 'local',
+            };
+        } catch (err) {
+            console.error('Anonim kirishda xatolik:', err);
+        }
+    } else if (!currentUser || !liveUser || currentUser.uid !== liveUser.uid) {
         if (liveUser) {
             // localStorage eskirgan yoki mos kelmayapti — haqiqiy Firebase sessiyasidan olinadi
             currentUser = {
