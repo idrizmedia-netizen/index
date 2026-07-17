@@ -76,11 +76,13 @@
                 const r = d.data();
                 const hasScore = r.score !== null && r.score !== undefined;
                 const hasRank = r.rank !== null && r.rank !== undefined;
+                const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
                 html += `<div class="activity-row">
-                    <div class="act-icon" style="background:#fdf2f8">🏆</div>
+                    <div class="act-icon" style="background:#fdf2f8;font-size:16px">${medal}</div>
                     <div style="flex:1">
                         <div class="act-label">${esc(r.contestTitle)}</div>
-                        <div class="act-time">ID: ${esc(r.customId)}${hasRank ? ' · ' + esc(r.rank) + '-o\u2018rin' : ''}</div>
+                        <div class="act-time">ID: ${esc(r.customId)}</div>
+                        ${hasRank ? `<div style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:11px;font-weight:800">${esc(r.rank)}-o\u2018rin</div>` : ''}
                     </div>
                     <div style="font-weight:800;color:${hasScore ? 'var(--primary)' : 'var(--muted)'}">
                         ${hasScore ? esc(r.score) + ' ball' : 'Kutilmoqda'}
