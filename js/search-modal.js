@@ -27,6 +27,52 @@
     { title: 'Blog', desc: 'Ilmiy maqolalar va yangiliklar', url: '/#blog', icon: 'fas fa-newspaper', iconBg: '#6366f1' },
     { title: 'Statistika', desc: "O'yin statistikasi", url: 'oyin/statistika.html', icon: 'fas fa-chart-simple', iconBg: '#059669' },
     { title: 'Admin xabarlar', desc: 'Admin broadcast paneli', url: 'admin-xabarlar.html', icon: 'fas fa-bullhorn', iconBg: '#f97316' },
+    { title: '3D Geometrik Jismlar', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-3d-geometriya.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'DNK Replikatsiyasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-biologiya-dna.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Ekosistem Modeli', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-biologiya-ekosistema.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Hujayra Bo\'linishi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-biologiya-hujaira.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Davriy Jadval', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-davriy-jadval.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Doppler Effekti', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-doppler-effekti.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Ehtimollar Nazariyasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-ehtimollar.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Kondensator', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-elektr-kondensator.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Elektr Maydon', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-elektr-maydon.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Elektr Zanjiri', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-elektr-zanjir.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Elektroliz Laboratoriyasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-elektroliz.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Erkin Tushish Laboratoriyasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-erkin-tushish.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Fotosintez va Nafas Olish', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-fotosintez.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Fraktallar', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-fraktallar.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Genetika va Punnett Kvadrati', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-genetika-punnett.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Gravitatsiya', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-gravitatsiya.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Molekular Harakat', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-kimyo-molekulalar.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Reaksiya Kinetikasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-kimyo-reaksiya.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Kimyoviy Reaksiya Tenglashtirish', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-kimyo-tenglashtirish.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Kislota-Ishqor Titrimetria', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-kimyo-titrimetria.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Kristall Panjara', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-kristall-panjara.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Magnit Maydon', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-magnit-maydon.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Funksiya Grafigi Chizuvchi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-matematika-grafik.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Vektor Maydon', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-matematika-vektor.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Matritsa Amallari', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-matritsa-amallar.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Mayatnik Laboratoriyasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-mayatnik.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Neyron va Asab Impulsi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-neyron-impuls.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Optika — Yorug\'lik Sinishi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-optika.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'pH va Bufer Eritmalar', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-ph-bufer.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Prujina Tebranishi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-prujina-tebranishi.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Quyosh Sistemasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-quyosh-sistemasi.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Snaryad Harakati', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-snaryad-harakati.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Taylor va Fourier Qatorlari', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-taylor-fourier.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Termodinamika', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-termodinamika.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'To\'lqin Interferensiyasi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-tolqin-interferensiya.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Radioaktiv Yemirilish', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-yadro-yemirilish.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Yurak va Qon Aylanishi', desc: 'Virtual laboratoriya ishi', url: 'labs/lab-yurak-qon.html', icon: 'fas fa-flask', iconBg: '#f59e0b' },
+    { title: 'Peshqadamlar Reytingi', desc: 'Ta\'limiy o\'yinlar bo\'limi', url: 'oyin/reytin.html', icon: 'fas fa-trophy', iconBg: '#059669' },
+    { title: 'O\'yin Statistikasi', desc: 'Ta\'limiy o\'yinlar bo\'limi', url: 'oyin/statistika.html', icon: 'fas fa-chart-simple', iconBg: '#059669' },
+    { title: 'Interaktiv Metodlar', desc: 'O\'qitishning interaktiv metodlari', url: 'metodlar/index.html', icon: 'fas fa-book', iconBg: '#ec4899' },
+    { title: 'Shaxsiy Kabinet', desc: 'Sizning natijalaringiz va profilingiz', url: 'dashboard.html', icon: 'fas fa-id-card', iconBg: '#6366f1' },
+    { title: 'Kirish', desc: 'Tizimga kirish sahifasi', url: 'kirish.html', icon: 'fas fa-right-to-bracket', iconBg: '#6366f1' },
+    { title: 'Tanlovga ro\'yxatdan o\'tish', desc: 'Tanlov uchun ro\'yxatdan o\'tish', url: 'tanlov-royxat.html', icon: 'fas fa-user-plus', iconBg: '#8b5cf6' },
+    { title: 'G\'oliblar', desc: 'Tanlov g\'oliblari e\'loni', url: 'gyoliblar.html', icon: 'fas fa-medal', iconBg: '#f97316' },
+    { title: 'Guruhlar', desc: 'Guruhlar va do\'stlar', url: 'guruhlar.html', icon: 'fas fa-users', iconBg: '#3b82f6' },
+    { title: 'Test', desc: 'Onlayn test topshirish', url: 'test.html', icon: 'fas fa-file-pen', iconBg: '#dc2626' },
   ];
 
   const suggestions = [
@@ -40,14 +86,21 @@
     { type: 'link', label: 'Matematik mayatnik simulyatsiyasi', icon: 'fas fa-clock', url: 'labs/lab-mayatnik.html' },
   ];
 
+  const rootPrefix = document.body.getAttribute('data-zy-root') || '';
+
+  function resolveUrl(u) {
+    if (u === '/' || u.startsWith('http') || u.startsWith('#') || u.startsWith('/#')) return rootPrefix ? (rootPrefix + '..' + u) : u;
+    return rootPrefix + u;
+  }
+
   let overlay = null;
 
   function getSuggestionsHTML() {
     const chips = suggestions.filter(s => s.type === 'chip').map(s =>
-      '<a href="' + s.url + '" class="zy-sg-chip" data-close-search>' + s.label + '</a>'
+      '<a href="' + resolveUrl(s.url) + '" class="zy-sg-chip" data-close-search>' + s.label + '</a>'
     ).join('');
     const links = suggestions.filter(s => s.type === 'link').map(s =>
-      '<a href="' + s.url + '" class="zy-sg-link" data-close-search>' +
+      '<a href="' + resolveUrl(s.url) + '" class="zy-sg-link" data-close-search>' +
         '<i class="' + s.icon + '" style="background:#2563eb;color:#fff"></i>' +
         '<span>' + s.label + '</span>' +
       '</a>'
@@ -90,7 +143,7 @@
       const m = searchIndex.filter(i => i.title.toLowerCase().includes(q) || i.desc.toLowerCase().includes(q));
       if (!m.length) { body.innerHTML = '<div class="zy-sg-empty">Hech narsa topilmadi</div>'; return; }
       body.innerHTML = m.map(i =>
-        '<a class="zy-search-result" href="' + i.url + '" data-close-search>' +
+        '<a class="zy-search-result" href="' + resolveUrl(i.url) + '" data-close-search>' +
           '<i class="' + i.icon + '" style="background:' + i.iconBg + '"></i>' +
           '<div class="zy-search-result-info">' +
             '<div class="zy-search-result-title">' + i.title + '</div>' +
@@ -135,5 +188,14 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     buildOverlay();
+  });
+
+  // Ctrl+K / Cmd+K bilan ham qidiruvni ochish (lupa tugmasi qaysi sahifada
+  // bo'lsa, shu sahifada)
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      openSearch();
+    }
   });
 })();
