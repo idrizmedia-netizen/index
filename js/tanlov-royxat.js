@@ -114,15 +114,24 @@ async function loadMiniStats() {
 }
 
 /* ── Tanlovlar ro'yxatidan birini tanlash ── */
+const CARD_GRADIENTS = [
+    'linear-gradient(135deg,#2563eb,#3b82f6)',
+    'linear-gradient(135deg,#7c3aed,#a78bfa)',
+    'linear-gradient(135deg,#ea580c,#f59e0b)',
+    'linear-gradient(135deg,#059669,#10b981)',
+];
+
 function showContestChoice(contests) {
     contestSelectBox.style.display = 'block';
     contestSelectList.innerHTML = contests
-        .map((c) => {
+        .map((c, i) => {
             const restrictions = [];
             if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}\u2013${c.maxAge || '\u221e'}`);
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
+            const grad = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
             return `<div class="contest-pick" data-pick="${c.id}">
-                <div class="cp-icon"><i class="fas fa-trophy"></i></div>
+                <span class="cp-live">FAOL</span>
+                <div class="cp-icon" style="background:${grad}"><i class="fas fa-trophy"></i></div>
                 <div class="cp-body">
                     <div class="cp-t">${escapeHtml(c.title)}</div>
                     <div class="cp-d">${escapeHtml(c.description || '')}</div>
