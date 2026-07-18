@@ -6,6 +6,7 @@ import {
     query,
     where,
     getDocs,
+    getCountFromServer,
     doc,
     getDoc,
     setDoc,
@@ -94,26 +95,49 @@ async function nextRegistrationId() {
     return `ZM-${year}-${String(n).padStart(4, '0')}`;
 }
 
+async function loadMiniStats() {
+    try {
+        const [statsSnap, contestsCount, openCount] = await Promise.all([
+            getDoc(doc(db, 'stats', 'public')),
+            getCountFromServer(collection(db, 'contests')),
+            getCountFromServer(query(collection(db, 'contests'), where('status', '==', 'open'))),
+        ]);
+        const row = document.getElementById('tr-stats-row');
+        if (!row) return;
+        document.getElementById('tr-st-reg').textContent = statsSnap.exists() ? statsSnap.data().totalRegistrations || 0 : 0;
+        document.getElementById('tr-st-contests').textContent = contestsCount.data().count;
+        document.getElementById('tr-st-open').textContent = openCount.data().count;
+        row.style.display = 'grid';
+    } catch (err) {
+        console.error('Statistika yuklashda xatolik:', err);
+    }
+}
+
 /* ── Tanlovlar ro'yxatidan birini tanlash ── */
 function showContestChoice(contests) {
     contestSelectBox.style.display = 'block';
     contestSelectList.innerHTML = contests
-        .map(
-            (c) => `<div class="contest-pick" data-pick="${c.id}">
-                <div>
+        .map((c) => {
+            const restrictions = [];
+            if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}\u2013${c.maxAge || '\u221e'}`);
+            if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
+            return `<div class="contest-pick" data-pick="${c.id}">
+                <div class="cp-icon"><i class="fas fa-trophy"></i></div>
+                <div class="cp-body">
                     <div class="cp-t">${escapeHtml(c.title)}</div>
                     <div class="cp-d">${escapeHtml(c.description || '')}</div>
+                    ${restrictions.length ? `<div class="cp-badges">${restrictions.map((r) => `<span class="cp-badge">${escapeHtml(r)}</span>`).join('')}</div>` : ''}
+                    <div class="cp-cta">Ro'yxatdan o'tish <i class="fas fa-arrow-right"></i></div>
                 </div>
-                <i class="fas fa-chevron-right"></i>
-            </div>`
-        )
+            </div>`;
+        })
         .join('');
 
     contestSelectList.querySelectorAll('[data-pick]').forEach((el) => {
         el.addEventListener('click', () => {
             const contest = contests.find((c) => c.id === el.dataset.pick);
             contestSelectBox.style.display = 'none';
-            openContest(contest, contests.length > 1);
+            openContest(contest, true);
         });
     });
 }
@@ -137,9 +161,9 @@ async function openContest(contest, showBack) {
         backLink.addEventListener('click', (e) => {
             e.preventDefault();
             hideAll();
+            document.getElementById('tr-stats-row').style.display = 'grid';
             getOpenContests().then((contests) => {
-                if (contests.length > 1) showContestChoice(contests);
-                else if (contests.length === 1) openContest(contests[0], false);
+                if (contests.length) showContestChoice(contests);
                 else closedBox.style.display = 'block';
             });
         });
@@ -240,6 +264,7 @@ async function openContest(contest, showBack) {
 
 async function init() {
     hideAll();
+    loadMiniStats();
     await authReady;
 
     currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
@@ -289,11 +314,7 @@ async function init() {
         return;
     }
 
-    if (contests.length === 1) {
-        openContest(contests[0], false);
-    } else {
-        showContestChoice(contests);
-    }
+    showContestChoice(contests);
 }
 
 // ZiyomapUsage darhol tayyor bo'lishi mumkin, lekin ehtiyot uchun biroz kutamiz
