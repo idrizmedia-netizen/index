@@ -138,6 +138,7 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
     padding: 22px 20px; border-radius: 22px; margin-bottom: 14px; cursor: pointer;
     color: #fff; text-decoration: none; position: relative; overflow: hidden;
     box-shadow: 0 16px 36px rgba(0,0,0,0.28); transition: transform .25s, box-shadow .25s; border: none;
+    background: linear-gradient(145deg,#6366f1,#4f46e5);
 }
 #contest-select-list .contest-pick:hover { transform: translateY(-5px); box-shadow: 0 22px 46px rgba(0,0,0,0.34); }
 #contest-select-list .cp-live {
@@ -220,6 +221,9 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
         <i class="fas fa-check-circle" style="font-size:2rem;color:var(--success)"></i>
         <p style="margin-top:10px">Siz allaqachon shu tanlovga ro'yxatdan o'tgansiz. Sizning ID:</p>
         <div class="id-badge" id="already-id">—</div>
+        <a href="#" id="start-test-link" style="display:none;margin-top:16px" class="btn-google">
+            <i class="fas fa-file-pen"></i> Testni boshlash
+        </a>
         <p style="color:var(--muted);font-size:0.82rem;margin-top:14px">Natijalaringizni <a href="dashboard.html" style="color:var(--primary)">shaxsiy kabinetingizda</a> kuzatib boring.</p>
     </div>
 
