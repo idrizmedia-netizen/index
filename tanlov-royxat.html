@@ -16,14 +16,14 @@
     --muted: #64748b;
     --border: #e2e8f0;
     --success: #059669;
-    --page-bg: linear-gradient(145deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+    --page-bg: linear-gradient(160deg, #ede9fe 0%, #fce7f3 45%, #ffedd5 100%);
 }
 body.dark-theme {
-    --card: #151f32;
+    --card: #1e1533;
     --text: #f1f5f9;
-    --muted: #94a3b8;
-    --border: #293449;
-    --page-bg: linear-gradient(145deg, #0b1220 0%, #0f1a2e 50%, #0b1a14 100%);
+    --muted: #a78bfa;
+    --border: #3b2a5c;
+    --page-bg: linear-gradient(160deg, #1e1b4b 0%, #581c87 45%, #7c2d12 100%);
 }
 * { box-sizing: border-box; }
 body {
@@ -78,9 +78,9 @@ body {
 .card-head { text-align: center; margin-bottom: 20px; position: relative; }
 .logo-icon {
     width: 64px; height: 64px; border-radius: 20px;
-    background: linear-gradient(135deg, var(--primary), #60a5fa);
+    background: linear-gradient(145deg, #f97316, #db2777);
     color: white; display: inline-flex; align-items: center; justify-content: center;
-    font-size: 1.7rem; margin-bottom: 14px; box-shadow: 0 12px 26px rgba(37,99,235,0.35);
+    font-size: 1.7rem; margin-bottom: 14px; box-shadow: 0 12px 26px rgba(219,39,119,0.35);
 }
 h1 { margin: 0 0 6px; font-size: 1.4rem; }
 .subtitle { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
@@ -134,36 +134,36 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
 .btn-google i { color: #ea4335; }
 
 #contest-select-list .contest-pick {
-    display: flex; align-items: center; gap: 14px;
-    padding: 18px; border: 1.5px solid var(--border); border-radius: 20px;
-    margin-bottom: 12px; cursor: pointer; transition: border-color .2s, transform .15s, box-shadow .2s;
-    background: var(--card); position: relative;
+    display: flex; flex-direction: column; align-items: flex-start; text-align: left;
+    padding: 22px 20px; border-radius: 22px; margin-bottom: 14px; cursor: pointer;
+    color: #fff; text-decoration: none; position: relative; overflow: hidden;
+    box-shadow: 0 16px 36px rgba(0,0,0,0.28); transition: transform .25s, box-shadow .25s; border: none;
 }
-#contest-select-list .contest-pick:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 14px 34px rgba(37,99,235,0.2); }
+#contest-select-list .contest-pick:hover { transform: translateY(-5px); box-shadow: 0 22px 46px rgba(0,0,0,0.34); }
 #contest-select-list .cp-live {
-    position: absolute; top: 12px; right: 14px; font-size: 9.5px; font-weight: 800;
-    color: #059669; background: #ecfdf5; padding: 2px 8px; border-radius: 20px;
-    display: flex; align-items: center; gap: 4px;
+    position: absolute; top: 14px; right: 14px; font-size: 9.5px; font-weight: 800;
+    color: #fff; background: rgba(255,255,255,0.22); backdrop-filter: blur(6px);
+    padding: 3px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px;
 }
-#contest-select-list .cp-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #10b981; animation: cpPulse 1.6s infinite; }
+#contest-select-list .cp-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: cpPulse 1.6s infinite; }
 @keyframes cpPulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 #contest-select-list .cp-icon {
-    width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px;
-    color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-    box-shadow: 0 8px 18px rgba(37,99,235,0.3);
+    width: 46px; height: 46px; border-radius: 14px; margin-bottom: 12px;
+    background: rgba(255,255,255,0.22); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #fff;
 }
-#contest-select-list .cp-body { flex: 1; min-width: 0; padding-right: 50px; }
-#contest-select-list .contest-pick .cp-t { font-weight: 800; font-size: 1.05rem; }
-#contest-select-list .contest-pick .cp-d { color: var(--muted); font-size: 0.82rem; margin-top: 3px; line-height: 1.4; }
-#contest-select-list .cp-badges { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+#contest-select-list .cp-body { width: 100%; padding-right: 60px; }
+#contest-select-list .contest-pick .cp-t { font-weight: 800; font-size: 1.15rem; color: #fff; }
+#contest-select-list .contest-pick .cp-d { color: rgba(255,255,255,0.92); font-size: 0.85rem; margin-top: 6px; line-height: 1.5; }
+#contest-select-list .cp-badges { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
 #contest-select-list .cp-badge {
-    font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
-    background: #fef3c7; color: #b45309;
+    font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    background: rgba(255,255,255,0.25); color: #fff; backdrop-filter: blur(4px);
 }
 #contest-select-list .cp-cta {
-    color: #fff; font-weight: 800; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;
-    margin-top: 12px; background: linear-gradient(135deg, var(--primary), #3b82f6);
-    padding: 8px 16px; border-radius: 12px; box-shadow: 0 6px 16px rgba(37,99,235,0.3);
+    color: var(--primary); font-weight: 800; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 16px; background: #fff; padding: 9px 18px; border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
 }
 .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--primary); text-decoration:none; font-weight:600; font-size:0.85rem; margin-bottom:14px; }
 </style>
@@ -181,9 +181,9 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
   </div>
 </div>
 <div class="stats-row" id="tr-stats-row" style="display:none">
-  <div class="s-card"><div class="s-ic" style="background:linear-gradient(135deg,#6366f1,#4f46e5)"><i class="fas fa-users"></i></div><div class="v" id="tr-st-reg">—</div><div class="k">Ro'yxatdan o'tgan</div></div>
-  <div class="s-card"><div class="s-ic" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><i class="fas fa-trophy"></i></div><div class="v" id="tr-st-contests">—</div><div class="k">O'tkazilgan</div></div>
-  <div class="s-card"><div class="s-ic" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-bolt"></i></div><div class="v" id="tr-st-open">—</div><div class="k">Faol tanlov</div></div>
+  <div class="s-card"><div class="s-ic" style="background:linear-gradient(135deg,#a855f7,#7c3aed)"><i class="fas fa-users"></i></div><div class="v" id="tr-st-reg">—</div><div class="k">Ro'yxatdan o'tgan</div></div>
+  <div class="s-card"><div class="s-ic" style="background:linear-gradient(135deg,#f97316,#db2777)"><i class="fas fa-trophy"></i></div><div class="v" id="tr-st-contests">—</div><div class="k">O'tkazilgan</div></div>
+  <div class="s-card"><div class="s-ic" style="background:linear-gradient(135deg,#059669,#0d9488)"><i class="fas fa-bolt"></i></div><div class="v" id="tr-st-open">—</div><div class="k">Faol tanlov</div></div>
 </div>
 <div class="card">
 
