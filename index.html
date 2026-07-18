@@ -219,6 +219,46 @@
         .nav-btn-blue { background: linear-gradient(135deg,#3b82f6,#1d4ed8); }
         .nav-btn-gold { background: linear-gradient(135deg,#f59e0b,#ea580c); }
 
+        /* Ixcham navbar — bir qatorga sig'ishi uchun */
+        .nav-links { gap: 4px; }
+        .nav-link, .nav-btn { padding: 6px 9px; font-size: 0.74rem; }
+
+        .nav-more-wrap { position: relative; display: inline-flex; }
+        .nav-more-btn { cursor: pointer; }
+        .nav-more-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            left: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            padding: 8px;
+            min-width: 175px;
+            z-index: 500;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .nav-more-dropdown.open { display: flex; }
+        .nav-more-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 11px;
+            border-radius: 8px;
+            color: #1e293b !important;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .nav-more-dropdown a:hover { background: rgba(99,102,241,0.08); }
+        .nav-more-dropdown a i { width: 16px; text-align: center; color: #6366f1; }
+
+        body.dark-theme .nav-more-dropdown { background: #1e293b; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+        body.dark-theme .nav-more-dropdown a { color: #f1f5f9 !important; }
+        body.dark-theme .nav-more-dropdown a:hover { background: rgba(129,140,248,0.12); }
+
         .nav-icons {
             display: flex;
             align-items: center;
@@ -1526,15 +1566,21 @@
         </a>
 
         <div class="nav-links">
-          <a href="#projects" class="nav-link" data-nav="loyihalar">Loyihalar</a>
           <a href="labs/index.html" class="nav-link" data-nav="laboratoriya" data-require-auth data-track="laboratoriya">Laboratoriya</a>
           <a href="#blog" class="nav-link" data-nav="blog">Blog</a>
-          <a href="metodlar/index.html" class="nav-link" data-nav="metodlar" data-track="metodlar">✨ Metodlar</a>
           <a href="guruhlar.html" class="nav-link" data-nav="guruhlar" data-require-auth data-track="guruhlar"><i class="fas fa-people-group"></i> Guruhlar</a>
+          <a href="oyin/index.html" class="nav-btn nav-btn-green" data-require-auth data-track="oyinlar"><i class="fas fa-gamepad"></i> O'yinlar</a>
           <a href="tanlov-royxat.html" class="nav-btn nav-btn-blue" data-track="tanlov" data-track-label="Tanlovga yozilish"><i class="fas fa-trophy"></i> Tanlov</a>
           <a href="gyoliblar.html" class="nav-btn nav-btn-gold" data-track="gyoliblar"><i class="fas fa-medal"></i> G'oliblar</a>
-          <a href="oyin/index.html" class="nav-btn nav-btn-green" data-require-auth data-track="oyinlar"><i class="fas fa-gamepad"></i> O'yinlar</a>
-          <a href="doska.html" class="nav-btn nav-btn-blue" data-require-auth data-track="doska"><i class="fas fa-pencil-alt"></i> Doska</a>
+
+          <div class="nav-more-wrap">
+            <button type="button" class="nav-btn nav-btn-blue nav-more-btn" id="navMoreBtn"><i class="fas fa-ellipsis"></i> Ko'proq</button>
+            <div class="nav-more-dropdown" id="navMoreDropdown">
+              <a href="#projects" data-nav="loyihalar"><i class="fas fa-diagram-project"></i> Loyihalar</a>
+              <a href="metodlar/index.html" data-track="metodlar"><i class="fas fa-wand-magic-sparkles"></i> Metodlar</a>
+            </div>
+          </div>
+
           <button onclick="document.getElementById('donat-modal').classList.add('active')" class="nav-btn nav-btn-donat">
             <img src="images/nav-icon.png" class="nav-donat-logo" alt=""><span>Donat</span><i class="fas fa-heart nav-donat-heart"></i>
           </button>
@@ -2026,6 +2072,15 @@ document.addEventListener('keydown', function(e){
     e.preventDefault();
     if (window.ZiyomapSearch) ZiyomapSearch.open();
   }
+});
+</script>
+<script>
+document.getElementById('navMoreBtn')?.addEventListener('click', function (e) {
+  e.stopPropagation();
+  document.getElementById('navMoreDropdown')?.classList.toggle('open');
+});
+document.addEventListener('click', function () {
+  document.getElementById('navMoreDropdown')?.classList.remove('open');
 });
 </script>
 </body>
