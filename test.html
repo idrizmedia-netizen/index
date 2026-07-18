@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Test | Ziyomap</title>
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+:root {
+    --primary: #2563eb; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --page-bg: linear-gradient(160deg, #ede9fe 0%, #fce7f3 45%, #ffedd5 100%);
+}
+body.dark-theme {
+    --card: #1e1533; --text: #f1f5f9; --muted: #a78bfa; --border: #3b2a5c;
+    --page-bg: linear-gradient(160deg, #1e1b4b 0%, #581c87 45%, #7c2d12 100%);
+}
+* { box-sizing: border-box; }
+body { font-family: Inter, system-ui, sans-serif; margin: 0; min-height: 100dvh; background: var(--page-bg); color: var(--text); }
+.top-bar {
+    position: sticky; top: 0; z-index: 50; background: var(--card); padding: 14px 18px;
+    display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+.top-bar .t-name { font-weight: 800; font-size: 0.95rem; }
+.timer {
+    font-weight: 900; font-size: 1.1rem; padding: 6px 16px; border-radius: 20px;
+    background: linear-gradient(135deg,#059669,#0d9488); color: #fff;
+}
+.timer.warn { background: linear-gradient(135deg,#dc2626,#ea580c); animation: timerPulse 1s infinite; }
+@keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.wrap { max-width: 700px; margin: 0 auto; padding: 20px 16px 60px; }
+.card { background: var(--card); border-radius: 24px; padding: 28px 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.12); margin-bottom: 16px; }
+.center-card { text-align: center; }
+.icon-big {
+    width: 66px; height: 66px; border-radius: 20px; margin: 0 auto 16px;
+    background: linear-gradient(145deg,#7c3aed,#db2777); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.8rem;
+    box-shadow: 0 14px 30px rgba(124,58,237,0.35);
+}
+h1 { font-size: 1.4rem; margin: 0 0 10px; }
+p.d { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+.btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg,#2563eb,#3b82f6); color: #fff; font-weight: 800; font-size: 0.95rem;
+    cursor: pointer; box-shadow: 0 10px 26px rgba(37,99,235,0.3); margin-top: 14px; text-decoration: none;
+}
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.q-block { margin-bottom: 26px; }
+.q-num { font-size: 0.78rem; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+.q-text { font-weight: 700; font-size: 1.02rem; margin-bottom: 14px; }
+.opt {
+    display: flex; align-items: center; gap: 12px; padding: 13px 16px; border: 1.5px solid var(--border);
+    border-radius: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.opt:hover { border-color: var(--primary); }
+.opt.selected { border-color: var(--primary); background: rgba(37,99,235,0.08); }
+.opt input { accent-color: var(--primary); width: 18px; height: 18px; }
+.result-score { font-size: 3rem; font-weight: 900; color: var(--primary); margin: 14px 0; }
+.warn-banner {
+    background: #fef2f2; color: #b91c1c; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+#gate { text-align: center; padding: 80px 20px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <i class="fas fa-spinner fa-spin" style="font-size:2rem"></i>
+  <p style="margin-top:14px">Yuklanmoqda...</p>
+</div>
+
+<div id="app" style="display:none">
+  <div class="top-bar" id="topBar" style="display:none">
+    <span class="t-name" id="testTitleBar"></span>
+    <span class="timer" id="timerBadge">--:--</span>
+  </div>
+  <div class="wrap">
+
+    <div class="card center-card" id="introCard" style="display:none">
+      <div class="icon-big"><i class="fas fa-file-pen"></i></div>
+      <h1 id="introTitle"></h1>
+      <p class="d" id="introDesc"></p>
+      <button class="btn" id="startBtn"><i class="fas fa-play"></i> Testni boshlash</button>
+    </div>
+
+    <div id="questionsCard" style="display:none"></div>
+
+    <div class="card center-card" id="resultCard" style="display:none">
+      <div class="icon-big" style="background:linear-gradient(145deg,#059669,#0d9488)"><i class="fas fa-check"></i></div>
+      <h1>Test yakunlandi!</h1>
+      <div class="result-score" id="resultScoreText">0/0</div>
+      <p class="d">Natijangiz saqlandi. To'liq natijalarni shaxsiy kabinetingizda ko'rishingiz mumkin.</p>
+      <a href="dashboard.html" class="btn"><i class="fas fa-user"></i> Shaxsiy kabinetga o'tish</a>
+    </div>
+
+    <div class="card center-card" id="msgCard" style="display:none">
+      <div class="icon-big" style="background:linear-gradient(145deg,#64748b,#334155)"><i class="fas fa-info"></i></div>
+      <h1 id="msgTitle"></h1>
+      <p class="d" id="msgDesc"></p>
+      <a href="dashboard.html" class="btn"><i class="fas fa-arrow-left"></i> Orqaga</a>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/ziyomap-usage.js"></script>
+<script src="js/auth-guard.js"></script>
+<script type="module" src="js/test.js"></script>
+<script>
+(function () {
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');
+})();
+</script>
+</body>
+</html>
