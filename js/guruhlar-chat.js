@@ -126,18 +126,30 @@
     async function loadMyGroups() {
         const { collectionGroup, query, where, onSnapshot, doc, getDoc } = fb;
         const q = query(collectionGroup(db, 'members'), where('uid', '==', currentUser.uid));
-        unsubGroupMemberships = onSnapshot(q, async (snap) => {
-            const groupIds = snap.docs.map((d) => d.ref.parent.parent.id);
-            const groups = [];
-            for (const gid of groupIds) {
-                try {
-                    const gs = await getDoc(doc(db, 'chat-groups', gid));
-                    if (gs.exists()) groups.push({ id: gid, ...gs.data() });
-                } catch (e) { /* o'chirilgan guruh bo'lishi mumkin */ }
+        unsubGroupMemberships = onSnapshot(
+            q,
+            async (snap) => {
+                const groupIds = snap.docs.map((d) => d.ref.parent.parent.id);
+                const groups = [];
+                for (const gid of groupIds) {
+                    try {
+                        const gs = await getDoc(doc(db, 'chat-groups', gid));
+                        if (gs.exists()) groups.push({ id: gid, ...gs.data() });
+                    } catch (e) { /* o'chirilgan guruh bo'lishi mumkin */ }
+                }
+                groupsCache = groups;
+                renderGroups();
+            },
+            (err) => {
+                // Eng ko'p uchraydigan sabab: Firestore'da "members" uchun
+                // collection group indeksi hali yaratilmagan. Xato matnida
+                // Firebase konsolining indeks yaratish havolasi bo'ladi —
+                // shu havolani F12 → Console'da bosib, indeksni yarating.
+                console.error("Guruhlarni yuklashda xatolik (ehtimol Firestore indeks kerak):", err);
+                els['guruh-list'].innerHTML =
+                    '<div class="guruh-empty"><p>Guruhlarni yuklab bo\'lmadi</p><span>F12 tugmasini bosib "Console" bo\'limini oching — u yerdagi Firebase havolasini bosib, so\'ralgan indeksni yarating (bir necha daqiqada tayyor bo\'ladi).</span></div>';
             }
-            groupsCache = groups;
-            renderGroups();
-        });
+        );
     }
 
     async function selectGroup(id) {
@@ -382,6 +394,14 @@
         }
     }
 
+    /* ============ ADMIN TUGMASI ============ */
+    // admin-guard.js data-admin-only elementlarni o'zi ham ko'rsatadi/yashiradi,
+    // lekin bu yerda ham to'g'ridan-to'g'ri tekshirib, ikki karra ishonchli qilamiz.
+    function updateAdminButton() {
+        const isAdmin = !!(window.ZiyomapAdminGuard && ZiyomapAdminGuard.isAdmin);
+        if (els['guruh-new-btn']) els['guruh-new-btn'].style.display = isAdmin ? '' : 'none';
+    }
+
     /* ============ UMUMIY ============ */
     function bindEvents() {
         els['tab-groups-btn'].addEventListener('click', () => showTab('groups'));
@@ -446,6 +466,9 @@
         loadMyGroups();
         loadIncomingRequests();
         loadFriendships();
+
+        updateAdminButton();
+        document.addEventListener('ziyomap-admin-checked', updateAdminButton);
     }
 
     if (document.readyState === 'loading') {
