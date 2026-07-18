@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Guruhlar va do'stlar | Ziyomap</title>
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f7f9; --white:#ffffff; --text:#0f172a; --muted:#64748b;
+  --border:#e2e8f0; --primary:#0d9488; --primary-2:#4f46e5;
+  --primary-light:#e6f6f4; --bubble-mine:#0d9488; --bubble-theirs:#eef2f7;
+  --gradient:linear-gradient(135deg,#0d9488 0%,#4f46e5 100%);
+}
+body.dark-theme{
+  --bg:#0b1220; --white:#141b2d; --text:#f1f5f9; --muted:#94a3b8;
+  --border:#243047; --primary-light:#123330; --bubble-theirs:#1e293b;
+}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
+
+.top-nav{
+  position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;
+}
+.top-nav .logo{font-size:1.15rem;font-weight:800;display:flex;align-items:center;gap:9px;color:var(--text);text-decoration:none}
+.top-nav .logo i{background:var(--gradient);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:1.3rem}
+.top-nav-right{display:flex;align-items:center;gap:10px}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;border:none;background:var(--primary-light);
+  color:var(--primary);display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:0.95rem;transition:transform .2s;text-decoration:none;
+}
+.icon-btn:hover{transform:translateY(-1px)}
+.top-nav a.home{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:6px}
+
+#guruh-gate{
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  min-height:70vh;text-align:center;padding:20px;color:var(--muted);
+}
+#guruh-gate i{font-size:2.5rem;margin-bottom:14px;color:var(--primary)}
+#guruh-gate h2{color:var(--text);margin-bottom:8px;font-size:1.3rem}
+#guruh-gate a{
+  margin-top:18px;display:inline-block;background:var(--gradient);color:#fff;
+  padding:11px 22px;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.9rem;
+}
+
+#guruh-app{display:none;flex-direction:column;height:calc(100vh - 64px);max-width:1100px;margin:0 auto}
+
+.guruh-tabs{display:flex;gap:8px;padding:12px 16px 0;background:var(--white);border-bottom:1px solid var(--border)}
+.guruh-tab-btn{
+  border:none;background:transparent;color:var(--muted);font-weight:700;font-size:13.5px;
+  padding:10px 16px;border-radius:10px 10px 0 0;cursor:pointer;
+}
+.guruh-tab-btn.active{color:var(--primary);background:var(--primary-light)}
+
+.guruh-layout{display:flex;flex:1;min-height:0;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+
+.guruh-sidebar{width:260px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.guruh-sidebar-header{padding:16px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.guruh-me-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+#guruh-me-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.guruh-new-btn{
+  margin:14px 16px;background:transparent;border:1.5px dashed var(--primary);border-radius:10px;
+  color:var(--primary);padding:10px;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 32px);
+}
+.guruh-new-btn:hover{background:var(--primary-light)}
+
+.guruh-list{flex:1;overflow-y:auto;padding:0 8px 12px}
+.guruh-empty{padding:24px 12px;text-align:center;color:var(--muted)}
+.guruh-empty p{font-weight:700;color:var(--text);margin-bottom:4px;font-size:13.5px}
+.guruh-empty span{font-size:12px}
+
+.guruh-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:10px;cursor:pointer;margin-bottom:2px}
+.guruh-item:hover{background:var(--primary-light)}
+.guruh-item-active{background:var(--primary-light)}
+.guruh-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.guruh-avatar.sm{width:26px;height:26px;font-size:11px}
+.guruh-item-text{min-width:0}
+.guruh-item-name{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guruh-item-desc{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.guruh-main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)}
+.guruh-no-selection{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px}
+.guruh-no-selection p{font-weight:700;color:var(--text);margin-bottom:6px}
+
+.guruh-chat-pane{display:none;flex-direction:column;flex:1;min-height:0}
+.guruh-chat-header{padding:16px 22px 12px;border-bottom:1px solid var(--border);background:var(--white)}
+.guruh-chat-header .title{font-size:16px;font-weight:800}
+.guruh-chat-header .desc{font-size:12.5px;color:var(--muted);margin-top:3px}
+
+.guruh-messages{flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:12px}
+.guruh-empty-msgs{color:var(--muted);text-align:center;margin-top:40px;font-size:13px}
+.guruh-msg-row{display:flex;align-items:flex-end}
+.guruh-msg-row.mine{justify-content:flex-end}
+.guruh-msg-row:not(.mine) .guruh-avatar{margin-right:8px}
+.guruh-msg-col{max-width:68%}
+.guruh-author{font-size:11px;color:var(--muted);margin-bottom:3px;margin-left:2px}
+.guruh-bubble{padding:9px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;word-break:break-word;background:var(--bubble-theirs);color:var(--text);border-bottom-left-radius:4px}
+.guruh-bubble.mine{background:var(--bubble-mine);color:#fff;border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.guruh-time{font-size:10.5px;color:var(--muted);margin-top:3px}
+.guruh-time.right{text-align:right}
+
+.guruh-input-row{display:flex;gap:10px;padding:14px 22px;border-top:1px solid var(--border);background:var(--white)}
+.guruh-input-row input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13.5px;outline:none}
+.guruh-input-row button{background:var(--gradient);border:none;border-radius:10px;padding:0 20px;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer}
+
+#guruh-modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.55);align-items:center;justify-content:center;z-index:200}
+.guruh-modal-card{background:var(--white);border-radius:16px;padding:26px 24px;width:320px}
+.guruh-modal-card h3{margin-bottom:16px;font-size:16px}
+.guruh-modal-card input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:13.5px;outline:none;margin-bottom:10px}
+.guruh-modal-hint{font-size:11.5px;color:var(--muted);margin:-6px 0 10px}
+.guruh-modal-actions{display:flex;gap:10px;margin-top:12px}
+.guruh-modal-actions button{flex:1;border-radius:10px;padding:11px 10px;font-size:13px;font-weight:700;cursor:pointer;border:none}
+#guruh-modal-cancel{background:transparent;border:1px solid var(--border) !important;color:var(--muted)}
+#guruh-modal-create{background:var(--gradient);color:#fff}
+
+/* Do'stlar bo'limi */
+.dost-search{padding:14px 16px 6px}
+.dost-search-box{display:flex;gap:6px}
+.dost-search-box input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:12.5px;color:var(--text);outline:none}
+.dost-search-box button{background:var(--gradient);border:none;border-radius:8px;padding:0 12px;color:#fff;cursor:pointer;font-size:12px}
+#dost-search-result{margin-top:8px}
+.dost-hint{font-size:12px;color:var(--muted);padding:6px 2px}
+.dost-found{display:flex;align-items:center;gap:8px;padding:6px 2px}
+.dost-found span{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dost-found button{background:var(--primary);border:none;color:#fff;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:700;cursor:pointer}
+.dost-section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:14px 10px 6px}
+.dost-request{display:flex;align-items:center;gap:8px;padding:7px 8px}
+.dost-req-name{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dost-accept,.dost-decline{width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+.dost-accept{background:var(--primary-light);color:var(--primary)}
+.dost-decline{background:#fbe9e9;color:#dc2626}
+
+@media (max-width:720px){
+  .guruh-sidebar{width:100px}
+  .guruh-item-desc,.dost-req-name{display:none}
+  .guruh-item-name{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="logo" href="index.html"><i class="fa-solid fa-people-group"></i> Ziyomap Guruhlar</a>
+  <div class="top-nav-right">
+    <button class="icon-btn" id="guruh-theme-btn" title="Rejimni almashtirish"><i class="fa-solid fa-circle-half-stroke"></i></button>
+    <a class="home" href="index.html"><i class="fa-solid fa-house"></i> Bosh sahifa</a>
+  </div>
+</nav>
+
+<div id="guruh-gate">
+  <i class="fa-solid fa-lock"></i>
+  <h2>Kirish uchun tizimga kiring</h2>
+  <p>Guruhlar va do'stlar bilan yozishish uchun avval hisobingizga kiring.</p>
+  <a id="guruh-login-link" href="kirish.html">Tizimga kirish</a>
+</div>
+
+<div id="guruh-app">
+  <div class="guruh-tabs">
+    <button class="guruh-tab-btn active" id="tab-groups-btn">Guruhlar</button>
+    <button class="guruh-tab-btn" id="tab-friends-btn">Do'stlar</button>
+  </div>
+
+  <!-- GURUHLAR PANELI -->
+  <div class="guruh-layout" id="panel-groups" style="display:flex">
+    <aside class="guruh-sidebar">
+      <div class="guruh-sidebar-header">
+        <div class="guruh-me-avatar" id="guruh-me-avatar"></div>
+        <span id="guruh-me-name"></span>
+      </div>
+      <button class="guruh-new-btn" id="guruh-new-btn" data-admin-only style="display:none">+ Yangi guruh</button>
+      <div class="guruh-list" id="guruh-list"></div>
+    </aside>
+
+    <main class="guruh-main">
+      <div class="guruh-no-selection" id="guruh-no-selection">
+        <p>Suhbatni boshlash uchun guruh tanlang</p>
+        <span>Chap tomondan guruhni bosing.</span>
+      </div>
+      <div class="guruh-chat-pane" id="guruh-chat-pane">
+        <div class="guruh-chat-header">
+          <div class="title" id="guruh-chat-title"></div>
+          <div class="desc" id="guruh-chat-desc"></div>
+        </div>
+        <div class="guruh-messages" id="guruh-messages"></div>
+        <div class="guruh-input-row">
+          <input id="guruh-text-input" type="text" placeholder="Xabar yozing…">
+          <button id="guruh-send-btn">Yuborish</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- DO'STLAR PANELI -->
+  <div class="guruh-layout" id="panel-friends" style="display:none">
+    <aside class="guruh-sidebar">
+      <div class="dost-search">
+        <div class="dost-search-box">
+          <input id="dost-search-input" type="text" placeholder="Email orqali qidirish">
+          <button id="dost-search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <div id="dost-search-result"></div>
+      </div>
+      <div class="guruh-list" style="flex:1">
+        <div id="dost-requests-list"></div>
+        <div id="dost-friends-list"></div>
+      </div>
+    </aside>
+
+    <main class="guruh-main">
+      <div class="guruh-no-selection" id="dost-no-selection">
+        <p>Suhbatni boshlash uchun do'st tanlang</p>
+        <span>Yoki yuqoridan email orqali yangi do'st qidiring.</span>
+      </div>
+      <div class="guruh-chat-pane" id="dost-chat-pane">
+        <div class="guruh-chat-header">
+          <div class="title" id="dost-chat-title"></div>
+        </div>
+        <div class="guruh-messages" id="dost-messages"></div>
+        <div class="guruh-input-row">
+          <input id="dost-text-input" type="text" placeholder="Xabar yozing…">
+          <button id="dost-send-btn">Yuborish</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div id="guruh-modal">
+  <div class="guruh-modal-card">
+    <h3>Yangi guruh yaratish</h3>
+    <input id="guruh-modal-name" type="text" placeholder="Guruh nomi" maxlength="40">
+    <input id="guruh-modal-desc" type="text" placeholder="Qisqacha tavsif (ixtiyoriy)" maxlength="80">
+    <input id="guruh-modal-contest" type="text" placeholder="Tanlov ID (ixtiyoriy)" maxlength="60">
+    <div class="guruh-modal-hint">Tanlov ID ni to'ldirsangiz, shu tanlovdan ro'yxatdan o'tganlar avtomatik shu guruhga qo'shiladi.</div>
+    <div class="guruh-modal-actions">
+      <button id="guruh-modal-cancel">Bekor qilish</button>
+      <button id="guruh-modal-create">Yaratish</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var isDark = localStorage.getItem('theme') === 'dark';
+  document.body.classList.toggle('dark-theme', isDark);
+  document.getElementById('guruh-theme-btn').addEventListener('click', function () {
+    isDark = !document.body.classList.contains('dark-theme');
+    document.body.classList.toggle('dark-theme', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  });
+})();
+</script>
+<script src="js/ziyomap-usage.js"></script>
+<script src="js/auth-guard.js"></script>
+<script src="js/admin-guard.js"></script>
+<script src="js/guruhlar-chat.js"></script>
+
+</body>
+</html>
