@@ -130,9 +130,9 @@ function showContestChoice(contests) {
             if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}\u2013${c.maxAge || '\u221e'}`);
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
             const grad = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
-            return `<div class="contest-pick" data-pick="${c.id}">
+            return `<div class="contest-pick" data-pick="${c.id}" style="background:${grad}">
                 <span class="cp-live">FAOL</span>
-                <div class="cp-icon" style="background:${grad}"><i class="fas fa-trophy"></i></div>
+                <div class="cp-icon"><i class="fas fa-trophy"></i></div>
                 <div class="cp-body">
                     <div class="cp-t">${escapeHtml(c.title)}</div>
                     <div class="cp-d">${escapeHtml(c.description || '')}</div>
@@ -190,8 +190,7 @@ async function openContest(contest, showBack) {
     }
 
     if (existing.exists()) {
-        alreadyBox.style.display = 'block';
-        alreadyId.textContent = existing.data().customId || '\u2014';
+        showAlreadyRegistered(existing.data().customId, contest.id);
         return;
     }
 
@@ -260,8 +259,7 @@ async function openContest(contest, showBack) {
             }
 
             regForm.style.display = 'none';
-            alreadyBox.style.display = 'block';
-            alreadyId.textContent = customId;
+            showAlreadyRegistered(customId, contest.id);
             setStatus('Muvaffaqiyatli ro\u2018yxatdan o\u2018tdingiz!', 'success');
         } catch (err) {
             console.error('Ro\u2018yxatdan o\u2018tish xatoligi:', err.code, err.message, err);
@@ -270,6 +268,24 @@ async function openContest(contest, showBack) {
             submitBtn.disabled = false;
         }
     };
+}
+
+async function showAlreadyRegistered(customId, cId) {
+    alreadyBox.style.display = 'block';
+    alreadyId.textContent = customId || '\u2014';
+
+    const testLink = document.getElementById('start-test-link');
+    if (!testLink) return;
+    testLink.style.display = 'none';
+    try {
+        const testSnap = await getDoc(doc(db, 'tests', cId));
+        if (testSnap.exists() && testSnap.data().published) {
+            testLink.href = `test.html?contest=${cId}`;
+            testLink.style.display = 'inline-flex';
+        }
+    } catch (err) {
+        console.error('Test tekshirishda xatolik:', err);
+    }
 }
 
 async function init() {
