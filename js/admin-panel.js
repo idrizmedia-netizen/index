@@ -742,6 +742,19 @@ document.getElementById('t-sync-scores-btn')?.addEventListener('click', async ()
 });
 
 /* ── GURUHLAR ── */
+let editingGroupId = null;
+
+function resetGroupForm() {
+    editingGroupId = null;
+    document.getElementById('g-name').value = '';
+    document.getElementById('g-desc').value = '';
+    document.getElementById('g-contest-select').value = '';
+    document.getElementById('g-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish';
+    document.getElementById('g-cancel-edit-btn').style.display = 'none';
+}
+
+document.getElementById('g-cancel-edit-btn')?.addEventListener('click', resetGroupForm);
+
 document.getElementById('g-create-btn')?.addEventListener('click', async () => {
     const name = document.getElementById('g-name').value.trim();
     const desc = document.getElementById('g-desc').value.trim();
@@ -757,27 +770,40 @@ document.getElementById('g-create-btn')?.addEventListener('click', async () => {
     const btn = document.getElementById('g-create-btn');
     btn.disabled = true;
     try {
-        const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
-        const ref = doc(collection(db, 'chat-groups'));
-        await setDoc(ref, {
-            name,
-            desc,
-            contestId: contestId || null,
-            contestTitle: contestId ? contestTitle : null,
-            createdBy: authInst.currentUser?.uid || null,
-            createdAt: serverTimestamp(),
-        });
-        // Admin ham guruh ichida yozisha olishi uchun o'zini a'zo qiladi
-        if (authInst.currentUser) {
-            await setDoc(doc(db, 'chat-groups', ref.id, 'members', authInst.currentUser.uid), {
-                uid: authInst.currentUser.uid,
-                name: currentUser?.displayName || 'Admin',
-                joinedAt: serverTimestamp(),
+        if (editingGroupId) {
+            // ── Mavjud guruhni yangilash ──
+            await updateDoc(doc(db, 'chat-groups', editingGroupId), {
+                name,
+                desc,
+                contestId: contestId || null,
+                contestTitle: contestId ? contestTitle : null,
             });
+            setStatus('Guruh yangilandi!', 'success');
+            resetGroupForm();
+        } else {
+            // ── Yangi guruh yaratish ──
+            const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
+            const ref = doc(collection(db, 'chat-groups'));
+            await setDoc(ref, {
+                name,
+                desc,
+                contestId: contestId || null,
+                contestTitle: contestId ? contestTitle : null,
+                createdBy: authInst.currentUser?.uid || null,
+                createdAt: serverTimestamp(),
+            });
+            // Admin ham guruh ichida yozisha olishi uchun o'zini a'zo qiladi
+            if (authInst.currentUser) {
+                await setDoc(doc(db, 'chat-groups', ref.id, 'members', authInst.currentUser.uid), {
+                    uid: authInst.currentUser.uid,
+                    name: currentUser?.displayName || 'Admin',
+                    joinedAt: serverTimestamp(),
+                });
+            }
+            document.getElementById('g-name').value = '';
+            document.getElementById('g-desc').value = '';
+            setStatus('Guruh yaratildi!', 'success');
         }
-        document.getElementById('g-name').value = '';
-        document.getElementById('g-desc').value = '';
-        setStatus('Guruh yaratildi!', 'success');
         loadGroups();
     } catch (err) {
         console.error(err);
@@ -812,11 +838,65 @@ async function loadGroups() {
                     ${g.contestTitle ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-trophy"></i> ${escapeHtml(g.contestTitle)} bilan bog'langan</div>` : ''}
                 </div>
                 <div style="display:flex;gap:8px">
+                    <button class="btn btn-primary" data-edit-group="${g.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
                     <button class="btn btn-red" data-delete-group="${g.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
                 </div>
+            </div>
+            <div style="display:flex;gap:8px;margin:-4px 0 10px;padding:0 2px">
+                <input type="email" placeholder="Email orqali a'zo qo'shish" data-member-email="${g.id}"
+                    style="flex:1;padding:8px 11px;border-radius:8px;border:1px solid var(--border);font-size:0.8rem">
+                <button class="btn btn-green" data-add-member="${g.id}" style="padding:8px 14px"><i class="fas fa-user-plus"></i></button>
             </div>`;
         });
         listEl.innerHTML = html;
+
+        listEl.querySelectorAll('[data-edit-group]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const g = groups.find((x) => x.id === btn.dataset.editGroup);
+                if (!g) return;
+                editingGroupId = g.id;
+                document.getElementById('g-name').value = g.name || '';
+                document.getElementById('g-desc').value = g.desc || '';
+                document.getElementById('g-contest-select').value = g.contestId || '';
+                document.getElementById('g-create-btn').innerHTML = '<i class="fas fa-check"></i> Yangilash';
+                document.getElementById('g-cancel-edit-btn').style.display = '';
+                document.getElementById('g-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+
+        listEl.querySelectorAll('[data-add-member]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const groupId = btn.dataset.addMember;
+                const input = listEl.querySelector(`[data-member-email="${groupId}"]`);
+                const email = input.value.trim().toLowerCase();
+                if (!email || !email.includes('@')) {
+                    setStatus("To'g'ri email kiriting.", 'error');
+                    return;
+                }
+                btn.disabled = true;
+                try {
+                    const userSnap = await getDocs(query(collection(db, 'users'), where('email', '==', email)));
+                    if (userSnap.empty) {
+                        setStatus("Bu email bilan hech kim saytga kirmagan. Avval o'sha odam saytga Google orqali kirsin.", 'error');
+                        return;
+                    }
+                    const userDoc = userSnap.docs[0];
+                    await setDoc(doc(db, 'chat-groups', groupId, 'members', userDoc.id), {
+                        uid: userDoc.id,
+                        name: userDoc.data().displayName || 'Foydalanuvchi',
+                        joinedAt: serverTimestamp(),
+                    });
+                    input.value = '';
+                    setStatus("A'zo qo'shildi!", 'success');
+                    loadGroups();
+                } catch (err) {
+                    console.error(err);
+                    setStatus("A'zo qo'shishda xatolik yuz berdi.", 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
 
         listEl.querySelectorAll('[data-delete-group]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -833,6 +913,7 @@ async function loadGroups() {
                     messagesSnap.forEach((d) => batch.delete(d.ref));
                     batch.delete(doc(db, 'chat-groups', groupId));
                     await batch.commit();
+                    if (editingGroupId === groupId) resetGroupForm();
                     loadGroups();
                 } catch (err) {
                     console.error(err);
