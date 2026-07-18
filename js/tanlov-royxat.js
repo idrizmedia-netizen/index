@@ -254,6 +254,23 @@ async function openContest(contest, showBack) {
 
             await setDoc(doc(db, 'stats', 'public'), { totalRegistrations: increment(1) }, { merge: true });
 
+            // Shu tanlov uchun yaratilgan guruh(lar)ga avtomatik qo'shilish
+            // (agar guruh yaratilmagan bo'lsa, hech narsa topilmaydi va xato bermaydi)
+            try {
+                const groupsSnap = await getDocs(
+                    query(collection(db, 'chat-groups'), where('contestId', '==', contest.id))
+                );
+                for (const groupDoc of groupsSnap.docs) {
+                    await setDoc(doc(db, 'chat-groups', groupDoc.id, 'members', authInst.currentUser.uid), {
+                        uid: authInst.currentUser.uid,
+                        name: `${familiya} ${ism} ${sharif}`.trim() || 'Foydalanuvchi',
+                        joinedAt: serverTimestamp(),
+                    });
+                }
+            } catch (groupErr) {
+                console.error("Guruhga avtomatik qo'shishda xatolik:", groupErr);
+            }
+
             if (window.ZiyomapUsage) {
                 ZiyomapUsage.logUsage('tanlov-royxat', 'Tanlovga ro\u2018yxatdan o\u2018tish: ' + (contest.title || ''));
             }
