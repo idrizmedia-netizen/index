@@ -115,10 +115,11 @@ async function loadMiniStats() {
 
 /* ── Tanlovlar ro'yxatidan birini tanlash ── */
 const CARD_GRADIENTS = [
-    'linear-gradient(135deg,#2563eb,#3b82f6)',
-    'linear-gradient(135deg,#7c3aed,#a78bfa)',
-    'linear-gradient(135deg,#ea580c,#f59e0b)',
-    'linear-gradient(135deg,#059669,#10b981)',
+    'linear-gradient(145deg,#6366f1,#4f46e5)',
+    'linear-gradient(145deg,#0ea5e9,#2563eb)',
+    'linear-gradient(145deg,#f97316,#db2777)',
+    'linear-gradient(145deg,#059669,#0d9488)',
+    'linear-gradient(145deg,#a855f7,#7c3aed)',
 ];
 
 function showContestChoice(contests) {
