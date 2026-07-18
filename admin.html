@@ -142,6 +142,7 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
   <div class="tabs">
     <button class="tab-btn active" data-tab="stats"><i class="fas fa-chart-simple"></i> Statistika</button>
     <button class="tab-btn" data-tab="contests"><i class="fas fa-trophy"></i> Tanlovlar</button>
+    <button class="tab-btn" data-tab="tests"><i class="fas fa-file-pen"></i> Testlar</button>
     <button class="tab-btn" data-tab="registrants"><i class="fas fa-users"></i> Ishtirokchilar</button>
     <button class="tab-btn" data-tab="notify"><i class="fas fa-bullhorn"></i> Bildirishnoma</button>
     <button class="tab-btn" data-tab="users"><i class="fas fa-user-group"></i> Foydalanuvchilar</button>
@@ -183,6 +184,52 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <div class="card">
       <h3><i class="fas fa-list"></i> Barcha tanlovlar</h3>
       <div id="contestsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <!-- TESTLAR -->
+  <div class="panel" id="panel-tests">
+    <div class="card">
+      <h3><i class="fas fa-file-pen"></i> Yangi test yaratish</h3>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="t-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field"><label>Test nomi</label><input type="text" id="t-title" placeholder="Masalan: Fizika — 1-bosqich testi"></div>
+      <div class="field"><label>Vaqt chegarasi (daqiqa)</label><input type="number" id="t-time-limit" value="20" min="1"></div>
+      <div class="field">
+        <label>Savollar (quyidagi formatda kiriting)</label>
+        <textarea id="t-questions" rows="12" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="Nyutonning 1-qonuni haqida nima deyiladi?
+A) Jism tezlanadi
+B) Kuch ta'sir etmasa, jism tinch yoki notekis harakatda qoladi
+C) Har doim tortishish kuchi bor
+D) Energiya yo'qoladi
+Javob: B
+---
+Ikkinchi savol matni?
+A) variant
+B) variant
+C) variant
+D) variant
+Javob: A"></textarea>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Har birida 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart.</p>
+      </div>
+      <button class="btn btn-primary" id="t-create-btn"><i class="fas fa-check"></i> Testni yaratish va e'lon qilish</button>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-list-check"></i> Mavjud testlar</h3>
+      <div id="testsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-chart-bar"></i> Test natijalari</h3>
+      <div class="field">
+        <label>Qaysi tanlov testi</label>
+        <select id="tr-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <button class="btn btn-green" id="t-sync-scores-btn" style="display:none;margin-bottom:14px"><i class="fas fa-arrows-rotate"></i> Ballarni ishtirokchilar ro'yxatiga ko'chirish</button>
+      <div class="table-scroll" id="testResultsTable"><div class="empty">Yuqorida tanlov tanlang</div></div>
     </div>
   </div>
 
