@@ -10,11 +10,11 @@
 <style>
 :root {
     --primary: #2563eb; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
-    --page-bg: linear-gradient(145deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+    --page-bg: linear-gradient(160deg, #ede9fe 0%, #fce7f3 45%, #ffedd5 100%);
 }
 body.dark-theme {
-    --card: #151f32; --text: #f1f5f9; --muted: #94a3b8; --border: #293449;
-    --page-bg: linear-gradient(145deg, #0b1220 0%, #0f1a2e 50%, #0b1a14 100%);
+    --card: #1e1533; --text: #f1f5f9; --muted: #a78bfa; --border: #3b2a5c;
+    --page-bg: linear-gradient(160deg, #1e1b4b 0%, #581c87 45%, #7c2d12 100%);
 }
 * { box-sizing: border-box; }
 body {
@@ -34,11 +34,11 @@ body {
 }
 .page-head { text-align: center; margin-bottom: 22px; }
 .page-head .ic {
-    width: 60px; height: 60px; border-radius: 18px; background: linear-gradient(135deg,#f59e0b,#ea580c);
-    color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 10px;
-    box-shadow: 0 10px 24px rgba(234,88,12,0.3);
+    width: 66px; height: 66px; border-radius: 20px; background: linear-gradient(145deg,#f59e0b,#db2777);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 1.9rem; margin-bottom: 12px;
+    box-shadow: 0 14px 30px rgba(219,39,119,0.35);
 }
-.page-head h1 { margin: 0 0 6px; font-size: 1.4rem; }
+.page-head h1 { margin: 0 0 6px; font-size: 1.5rem; }
 .page-head p { margin: 0; color: var(--muted); font-size: 0.88rem; }
 
 #contest-select-wrap { margin-bottom: 18px; }
@@ -48,25 +48,32 @@ body {
 }
 
 .podium { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 22px; }
-.podium .p-item { flex: 1; text-align: center; background: var(--card); border-radius: 16px; padding: 14px 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-.podium .p-item.first { padding-top: 22px; order: 2; box-shadow: 0 14px 34px rgba(245,158,11,0.25); border: 1.5px solid #f59e0b; }
-.podium .p-item.second { order: 1; }
-.podium .p-item.third { order: 3; }
-.podium .medal { font-size: 1.8rem; margin-bottom: 6px; }
-.podium .p-name { font-weight: 800; font-size: 0.85rem; }
-.podium .p-score { color: var(--primary); font-weight: 900; font-size: 1.1rem; margin-top: 4px; }
-.podium .p-school { color: var(--muted); font-size: 0.72rem; margin-top: 2px; }
+.podium .p-item {
+    flex: 1; text-align: center; border-radius: 20px; padding: 18px 10px; color: #fff;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.22); position: relative; overflow: hidden;
+}
+.podium .p-item.first { padding-top: 28px; order: 2; background: linear-gradient(160deg,#fbbf24,#f59e0b,#ea580c); box-shadow: 0 20px 42px rgba(245,158,11,0.4); transform: scale(1.06); z-index: 1; }
+.podium .p-item.second { order: 1; background: linear-gradient(160deg,#cbd5e1,#94a3b8,#64748b); }
+.podium .p-item.third { order: 3; background: linear-gradient(160deg,#fdba74,#ea580c,#9a3412); }
+.podium .medal { font-size: 2.1rem; margin-bottom: 6px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25)); }
+.podium .p-name { font-weight: 800; font-size: 0.87rem; color: #fff; }
+.podium .p-score { color: #fff; font-weight: 900; font-size: 1.2rem; margin-top: 6px; text-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+.podium .p-school { color: rgba(255,255,255,0.85); font-size: 0.72rem; margin-top: 3px; }
 
-.rest-list { background: var(--card); border-radius: 18px; padding: 8px; }
-.rest-row { display: flex; align-items: center; gap: 12px; padding: 12px 10px; border-bottom: 1px solid var(--border); }
+.rest-list { background: var(--card); border-radius: 20px; padding: 8px; box-shadow: 0 10px 26px rgba(0,0,0,0.08); }
+.rest-row { display: flex; align-items: center; gap: 12px; padding: 13px 12px; border-bottom: 1px solid var(--border); }
 .rest-row:last-child { border-bottom: none; }
-.rest-row .rk { width: 28px; text-align: center; font-weight: 800; color: var(--muted); }
+.rest-row .rk {
+    width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(145deg,#a855f7,#7c3aed); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.82rem;
+}
 .rest-row .nm { flex: 1; }
 .rest-row .nm .n1 { font-weight: 700; font-size: 0.9rem; }
 .rest-row .nm .n2 { color: var(--muted); font-size: 0.75rem; }
 .rest-row .sc { font-weight: 800; color: var(--primary); }
 
-.empty-box { text-align: center; color: var(--muted); padding: 50px 10px; }
+.empty-box { text-align: center; color: var(--muted); padding: 50px 10px; background: var(--card); border-radius: 20px; box-shadow: 0 10px 26px rgba(0,0,0,0.06); }
 .empty-box i { font-size: 2.2rem; margin-bottom: 10px; display: block; }
 </style>
 </head>
