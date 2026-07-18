@@ -39,7 +39,14 @@ body {
     justify-content: center;
     transition: background .25s, color .25s;
 }
-.wrap { max-width: 560px; width: 100%; }
+.wrap { max-width: 640px; width: 100%; }
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+.stats-row .s-card {
+    background: var(--card); border-radius: 12px; padding: 10px 8px; text-align: center;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.08); border: 1px solid var(--border);
+}
+.stats-row .s-card .v { font-size: 1.15rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+.stats-row .s-card .k { font-size: 9.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
 .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 900; font-size: 1.05rem; }
 .brand img { height: 30px; width: 30px; object-fit: contain; }
@@ -117,14 +124,27 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
 .btn-google i { color: #ea4335; }
 
 #contest-select-list .contest-pick {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 14px;
-    margin-bottom: 10px; cursor: pointer; transition: border-color .2s, transform .15s;
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px; border: 1.5px solid var(--border); border-radius: 18px;
+    margin-bottom: 12px; cursor: pointer; transition: border-color .2s, transform .15s, box-shadow .2s;
+    background: var(--card);
 }
-#contest-select-list .contest-pick:hover { border-color: var(--primary); transform: translateY(-1px); }
-#contest-select-list .contest-pick .cp-t { font-weight: 700; }
+#contest-select-list .contest-pick:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(37,99,235,0.15); }
+#contest-select-list .cp-icon {
+    width: 48px; height: 48px; flex-shrink: 0; border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary), #3b82f6); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+}
+#contest-select-list .cp-body { flex: 1; min-width: 0; }
+#contest-select-list .contest-pick .cp-t { font-weight: 800; font-size: 1rem; }
 #contest-select-list .contest-pick .cp-d { color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
-#contest-select-list .contest-pick i { color: var(--primary); }
+#contest-select-list .cp-badges { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+#contest-select-list .cp-badge {
+    font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    background: #fef3c7; color: #b45309;
+}
+#contest-select-list .cp-cta { color: var(--primary); font-weight: 800; font-size: 0.82rem; display: flex; align-items: center; gap: 4px; margin-top: 8px; }
+#contest-select-list i.cp-arrow { color: var(--primary); flex-shrink: 0; }
 .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--primary); text-decoration:none; font-weight:600; font-size:0.85rem; margin-bottom:14px; }
 </style>
 </head>
@@ -139,6 +159,11 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
     <button class="icon-btn" id="theme-toggle-tanlov" title="Tun/Kun rejimi"><i class="fas fa-moon"></i></button>
     <a href="index.html" class="icon-btn" title="Bosh sahifa"><i class="fas fa-house"></i></a>
   </div>
+</div>
+<div class="stats-row" id="tr-stats-row" style="display:none">
+  <div class="s-card"><div class="v" id="tr-st-reg">—</div><div class="k">Ro'yxatdan o'tgan</div></div>
+  <div class="s-card"><div class="v" id="tr-st-contests">—</div><div class="k">O'tkazilgan tanlov</div></div>
+  <div class="s-card"><div class="v" id="tr-st-open">—</div><div class="k">Faol tanlov</div></div>
 </div>
 <div class="card">
 
