@@ -86,6 +86,7 @@ async function boot(isAdmin) {
     loadNotifications();
     loadUsers();
     loadSiteContent();
+    loadTests();
     if (window.ZiyomapIsOwner) loadAdmins();
 }
 
@@ -185,6 +186,10 @@ async function loadContests() {
         });
         listEl.innerHTML = listHtml;
         selectEl.innerHTML = selectHtml;
+        const tSelect = document.getElementById('t-contest-select');
+        const trSelect = document.getElementById('tr-contest-select');
+        if (tSelect) tSelect.innerHTML = selectHtml;
+        if (trSelect) trSelect.innerHTML = selectHtml;
 
         listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -554,6 +559,180 @@ document.getElementById('content-save-btn')?.addEventListener('click', async () 
     } catch (err) {
         console.error(err);
         setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+/* ── TESTLAR ── */
+function parseQuestions(raw) {
+    const blocks = raw
+        .split(/^---$/m)
+        .map((b) => b.trim())
+        .filter(Boolean);
+    const questions = [];
+    blocks.forEach((block, idx) => {
+        const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
+        if (lines.length < 6) return; // savol + 4 variant + javob
+        const text = lines[0];
+        const options = [];
+        let correctIndex = -1;
+        lines.slice(1).forEach((line) => {
+            const optMatch = line.match(/^([A-D])\)\s*(.+)$/i);
+            if (optMatch) {
+                options.push(optMatch[2].trim());
+                return;
+            }
+            const ansMatch = line.match(/^Javob:\s*([A-D])/i);
+            if (ansMatch) {
+                correctIndex = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
+            }
+        });
+        if (text && options.length === 4 && correctIndex >= 0) {
+            questions.push({ id: 'q' + idx, text, options, correctIndex });
+        }
+    });
+    return questions;
+}
+
+document.getElementById('t-create-btn')?.addEventListener('click', async () => {
+    const contestId = document.getElementById('t-contest-select').value;
+    const title = document.getElementById('t-title').value.trim();
+    const timeLimitMinutes = parseInt(document.getElementById('t-time-limit').value, 10) || 20;
+    const rawQuestions = document.getElementById('t-questions').value;
+
+    if (!contestId) {
+        setStatus('Tanlovni tanlang.', 'error');
+        return;
+    }
+    if (!title) {
+        setStatus('Test nomini kiriting.', 'error');
+        return;
+    }
+    const questions = parseQuestions(rawQuestions);
+    if (!questions.length) {
+        setStatus('Savollar formatida xatolik bor. Namunani tekshiring.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('t-create-btn');
+    btn.disabled = true;
+    try {
+        await setDoc(doc(db, 'tests', contestId), {
+            title,
+            timeLimitMinutes,
+            questions,
+            published: true,
+            createdAt: serverTimestamp(),
+        });
+        setStatus(`Test yaratildi! ${questions.length} ta savol qo\u2018shildi.`, 'success');
+        document.getElementById('t-title').value = '';
+        document.getElementById('t-questions').value = '';
+        loadTests();
+    } catch (err) {
+        console.error(err);
+        setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+async function loadTests() {
+    const listEl = document.getElementById('testsList');
+    try {
+        const snap = await getDocs(collection(db, 'tests'));
+        if (snap.empty) {
+            listEl.innerHTML = '<div class="empty">Hali test yaratilmagan.</div>';
+            return;
+        }
+        let html = '';
+        snap.forEach((d) => {
+            const t = d.data();
+            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol, ${t.timeLimitMinutes} daqiqa</span>
+                <button class="btn btn-red" data-del-test="${d.id}"><i class="fas fa-trash"></i></button></div>`;
+        });
+        listEl.innerHTML = html;
+        listEl.querySelectorAll('[data-del-test]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Bu testni o\u2018chirmoqchimisiz?')) return;
+                await deleteDoc(doc(db, 'tests', btn.dataset.delTest));
+                loadTests();
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+}
+
+let currentTestContestId = '';
+let currentTestAttempts = [];
+
+document.getElementById('tr-contest-select')?.addEventListener('change', async (e) => {
+    const contestId = e.target.value;
+    currentTestContestId = contestId;
+    const tableEl = document.getElementById('testResultsTable');
+    const syncBtn = document.getElementById('t-sync-scores-btn');
+    if (!contestId) {
+        tableEl.innerHTML = '<div class="empty">Yuqorida tanlov tanlang</div>';
+        syncBtn.style.display = 'none';
+        return;
+    }
+    tableEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+    syncBtn.style.display = 'none';
+    try {
+        const snap = await getDocs(query(collection(db, 'test-attempts'), where('contestId', '==', contestId)));
+        if (snap.empty) {
+            tableEl.innerHTML = '<div class="empty">Hali hech kim test topshirmagan.</div>';
+            currentTestAttempts = [];
+            return;
+        }
+        const list = [];
+        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+        list.sort((a, b) => (b.score || 0) - (a.score || 0));
+        currentTestAttempts = list;
+        syncBtn.style.display = '';
+
+        let rows = '';
+        list.forEach((a) => {
+            const statusTxt = a.status === 'submitted' ? `${a.score}/${a.totalQuestions}` : 'Jarayonda...';
+            rows += `<tr>
+                <td>${escapeHtml(a.uid.slice(0, 8))}...</td>
+                <td>${statusTxt}</td>
+                <td>${a.tabSwitchCount || 0}</td>
+                <td>${a.submittedAt ? new Date(a.submittedAt.toMillis()).toLocaleString('uz-UZ') : '\u2014'}</td>
+            </tr>`;
+        });
+        tableEl.innerHTML = `<table>
+            <thead><tr><th>Foydalanuvchi (UID)</th><th>Natija</th><th>Chetga chiqishlar</th><th>Topshirilgan vaqt</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    } catch (err) {
+        console.error(err);
+        tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+});
+
+document.getElementById('t-sync-scores-btn')?.addEventListener('click', async () => {
+    if (!currentTestAttempts.length || !currentTestContestId) return;
+    if (!confirm('Test ballarini shu tanlovdagi ishtirokchilar ro\u2018yxatiga (Ball ustuniga) ko\u2018chirasizmi?')) return;
+
+    const btn = document.getElementById('t-sync-scores-btn');
+    btn.disabled = true;
+    try {
+        const batch = writeBatch(db);
+        let count = 0;
+        currentTestAttempts.forEach((a) => {
+            if (a.status !== 'submitted') return;
+            const regId = `${currentTestContestId}_${a.uid}`;
+            batch.update(doc(db, 'registrations', regId), { score: a.score });
+            count++;
+        });
+        await batch.commit();
+        setStatus(`${count} ta ishtirokchining balli ko\u2018chirildi!`, 'success');
+    } catch (err) {
+        console.error(err);
+        setStatus('Xatolik yuz berdi (ba\u2018zi ishtirokchilar ro\u2018yxatda topilmagan bo\u2018lishi mumkin).', 'error');
     } finally {
         btn.disabled = false;
     }
