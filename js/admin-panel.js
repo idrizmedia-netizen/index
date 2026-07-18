@@ -87,6 +87,7 @@ async function boot(isAdmin) {
     loadUsers();
     loadSiteContent();
     loadTests();
+    loadGroups();
     if (window.ZiyomapIsOwner) loadAdmins();
 }
 
@@ -188,8 +189,10 @@ async function loadContests() {
         selectEl.innerHTML = selectHtml;
         const tSelect = document.getElementById('t-contest-select');
         const trSelect = document.getElementById('tr-contest-select');
+        const gSelect = document.getElementById('g-contest-select');
         if (tSelect) tSelect.innerHTML = selectHtml;
         if (trSelect) trSelect.innerHTML = selectHtml;
+        if (gSelect) gSelect.innerHTML = selectHtml.replace('— tanlov tanlang —', "— tanlovga bog'lamaslik —");
 
         listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -737,6 +740,112 @@ document.getElementById('t-sync-scores-btn')?.addEventListener('click', async ()
         btn.disabled = false;
     }
 });
+
+/* ── GURUHLAR ── */
+document.getElementById('g-create-btn')?.addEventListener('click', async () => {
+    const name = document.getElementById('g-name').value.trim();
+    const desc = document.getElementById('g-desc').value.trim();
+    const contestId = document.getElementById('g-contest-select').value;
+    const contestTitle = contestId
+        ? document.getElementById('g-contest-select').selectedOptions[0]?.textContent || ''
+        : '';
+    if (!name) {
+        setStatus("Guruh nomini kiriting.", 'error');
+        return;
+    }
+
+    const btn = document.getElementById('g-create-btn');
+    btn.disabled = true;
+    try {
+        const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
+        const ref = doc(collection(db, 'chat-groups'));
+        await setDoc(ref, {
+            name,
+            desc,
+            contestId: contestId || null,
+            contestTitle: contestId ? contestTitle : null,
+            createdBy: authInst.currentUser?.uid || null,
+            createdAt: serverTimestamp(),
+        });
+        // Admin ham guruh ichida yozisha olishi uchun o'zini a'zo qiladi
+        if (authInst.currentUser) {
+            await setDoc(doc(db, 'chat-groups', ref.id, 'members', authInst.currentUser.uid), {
+                uid: authInst.currentUser.uid,
+                name: currentUser?.displayName || 'Admin',
+                joinedAt: serverTimestamp(),
+            });
+        }
+        document.getElementById('g-name').value = '';
+        document.getElementById('g-desc').value = '';
+        setStatus('Guruh yaratildi!', 'success');
+        loadGroups();
+    } catch (err) {
+        console.error(err);
+        setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+async function loadGroups() {
+    const listEl = document.getElementById('groupsList');
+    if (!listEl) return;
+    try {
+        const snap = await getDocs(query(collection(db, 'chat-groups'), orderBy('createdAt', 'desc')));
+        if (snap.empty) {
+            listEl.innerHTML = '<div class="empty">Hali guruh yaratilmagan.</div>';
+            return;
+        }
+        const groups = [];
+        snap.forEach((d) => groups.push({ id: d.id, ...d.data() }));
+
+        const counts = await Promise.all(
+            groups.map((g) => getCountFromServer(collection(db, 'chat-groups', g.id, 'members')))
+        );
+
+        let html = '';
+        groups.forEach((g, i) => {
+            html += `<div class="contest-item">
+                <div>
+                    <div class="t">${escapeHtml(g.name)} <span class="badge open"><i class="fas fa-user-group"></i> ${counts[i].data().count} a'zo</span></div>
+                    ${g.desc ? `<div class="d">${escapeHtml(g.desc)}</div>` : ''}
+                    ${g.contestTitle ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-trophy"></i> ${escapeHtml(g.contestTitle)} bilan bog'langan</div>` : ''}
+                </div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-red" data-delete-group="${g.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
+        });
+        listEl.innerHTML = html;
+
+        listEl.querySelectorAll('[data-delete-group]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!confirm("Bu guruhni a'zolari va barcha xabarlari bilan birga butunlay o'chirmoqchimisiz?")) return;
+                btn.disabled = true;
+                const groupId = btn.dataset.deleteGroup;
+                try {
+                    const [membersSnap, messagesSnap] = await Promise.all([
+                        getDocs(collection(db, 'chat-groups', groupId, 'members')),
+                        getDocs(collection(db, 'chat-groups', groupId, 'messages')),
+                    ]);
+                    const batch = writeBatch(db);
+                    membersSnap.forEach((d) => batch.delete(d.ref));
+                    messagesSnap.forEach((d) => batch.delete(d.ref));
+                    batch.delete(doc(db, 'chat-groups', groupId));
+                    await batch.commit();
+                    loadGroups();
+                } catch (err) {
+                    console.error(err);
+                    setStatus("Guruhni o'chirishda xatolik yuz berdi.", 'error');
+                    btn.disabled = false;
+                }
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+}
 
 /* ── ADMINLAR (faqat owner) ── */
 document.getElementById('a-add-btn')?.addEventListener('click', async () => {
