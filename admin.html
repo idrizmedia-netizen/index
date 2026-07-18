@@ -11,19 +11,22 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f0f4ff; --white:#ffffff; --text:#0f172a; --muted:#64748b;
-  --border:#e2e8f0; --primary:#2563eb; --primary-light:#eff6ff;
+  --bg:#f5f0ff; --bg-gradient:linear-gradient(160deg,#ede9fe 0%,#fce7f3 45%,#ffedd5 100%);
+  --white:#ffffff; --text:#0f172a; --muted:#64748b;
+  --border:#e5dcff; --primary:#7c3aed; --primary-light:#f3ebff;
   --green:#059669; --orange:#d97706; --red:#dc2626; --card:#ffffff;
-  --gradient:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%);
+  --gradient:linear-gradient(135deg,#7c3aed 0%,#db2777 100%);
 }
 body.dark-theme{
-  --bg:#0b1220; --white:#151f32; --text:#f1f5f9; --muted:#94a3b8;
-  --border:#293449; --card:#151f32; --primary-light:#1e2a44;
+  --bg:#0b1220; --bg-gradient:linear-gradient(160deg,#1e1b4b 0%,#3b1550 45%,#4a1d1d 100%);
+  --white:#1e1533; --text:#f1f5f9; --muted:#c4b5fd;
+  --border:#3b2a5c; --card:#1e1533; --primary-light:#2e1f4d;
 }
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg-gradient);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
 .top-nav{
   position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border);
   padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;transition:background .25s,border-color .25s;
+  box-shadow:0 4px 20px rgba(124,58,237,0.08);
 }
 .top-nav .logo{font-size:1.25rem;font-weight:900;display:flex;align-items:center;gap:9px;color:var(--text);text-decoration:none;letter-spacing:.2px}
 .top-nav .logo img{height:36px;width:36px;object-fit:contain}
@@ -58,13 +61,14 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--tex
 .panel{display:none}
 .panel.active{display:block}
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:18px;box-shadow:0 10px 30px rgba(124,58,237,0.06)}
 .card h3{font-size:1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:18px}
-.stat-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:18px;text-align:center}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;box-shadow:0 10px 26px rgba(124,58,237,0.08);display:flex;flex-direction:column;align-items:center;gap:6px}
+.stat-card .s-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.85rem;margin-bottom:2px}
 .stat-card .v{font-size:1.8rem;font-weight:800;color:var(--primary)}
-.stat-card .k{font-size:12px;color:var(--muted);margin-top:4px}
+.stat-card .k{font-size:12px;color:var(--muted);margin-top:4px;font-weight:600}
 
 .field{margin-bottom:12px}
 .field label{display:block;font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:6px}
@@ -79,11 +83,13 @@ body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--tex
 .btn{
   padding:11px 20px;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;
   cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:#fff;
+  box-shadow:0 6px 16px rgba(124,58,237,0.18);transition:transform .15s;
 }
+.btn:hover{transform:translateY(-1px)}
 .btn-primary{background:var(--gradient)}
-.btn-green{background:var(--green)}
-.btn-red{background:var(--red)}
-.btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-green{background:linear-gradient(135deg,#059669,#0d9488)}
+.btn-red{background:linear-gradient(135deg,#dc2626,#e11d48)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 
 table{width:100%;border-collapse:collapse;font-size:0.83rem}
 th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
@@ -95,9 +101,11 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
 .badge.closed{background:#f1f5f9;color:#64748b}
 
 .contest-item{
-  display:flex;justify-content:space-between;align-items:center;padding:14px;
-  border:1px solid var(--border);border-radius:14px;margin-bottom:10px;flex-wrap:wrap;gap:10px;
+  display:flex;justify-content:space-between;align-items:center;padding:16px;
+  border:1px solid var(--border);border-radius:16px;margin-bottom:10px;flex-wrap:wrap;gap:10px;
+  transition:box-shadow .2s;
 }
+.contest-item:hover{box-shadow:0 6px 18px rgba(124,58,237,0.1)}
 .contest-item .t{font-weight:700}
 .contest-item .d{color:var(--muted);font-size:0.82rem;margin-top:2px}
 .admin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
@@ -143,11 +151,11 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
   <!-- STATISTIKA -->
   <div class="panel active" id="panel-stats">
     <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="v" id="st-reg">—</div><div class="k">Jami ro'yxatdan o'tganlar</div></div>
-      <div class="stat-card"><div class="v" id="st-contests">—</div><div class="k">Jami tanlovlar</div></div>
-      <div class="stat-card"><div class="v" id="st-open">—</div><div class="k">Faol tanlovlar</div></div>
-      <div class="stat-card"><div class="v" id="st-admins">—</div><div class="k">Adminlar soni</div></div>
-      <div class="stat-card"><div class="v" id="st-users">—</div><div class="k">Saytga kirganlar (jami)</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#a855f7,#7c3aed)"><i class="fas fa-user-check"></i></div><div class="v" id="st-reg">—</div><div class="k">Jami ro'yxatdan o'tganlar</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#f97316,#db2777)"><i class="fas fa-trophy"></i></div><div class="v" id="st-contests">—</div><div class="k">Jami tanlovlar</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#059669,#0d9488)"><i class="fas fa-bolt"></i></div><div class="v" id="st-open">—</div><div class="k">Faol tanlovlar</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#2563eb,#0ea5e9)"><i class="fas fa-user-shield"></i></div><div class="v" id="st-admins">—</div><div class="k">Adminlar soni</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#db2777,#e11d48)"><i class="fas fa-users"></i></div><div class="v" id="st-users">—</div><div class="k">Saytga kirganlar (jami)</div></div>
     </div>
     <div class="card">
       <h3><i class="fas fa-chart-column"></i> Bo'limlar bo'yicha ishlatilish</h3>
