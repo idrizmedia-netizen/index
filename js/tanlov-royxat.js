@@ -13,7 +13,6 @@ import {
     runTransaction,
     serverTimestamp,
     increment,
-    arrayUnion,
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -255,24 +254,6 @@ async function openContest(contest, showBack) {
 
             await setDoc(doc(db, 'stats', 'public'), { totalRegistrations: increment(1) }, { merge: true });
 
-            // Shu tanlov uchun yaratilgan guruh(lar)ga avtomatik qo'shilish
-            // (agar guruh yaratilmagan bo'lsa, hech narsa topilmaydi va xato bermaydi)
-            try {
-                const groupsSnap = await getDocs(
-                    query(collection(db, 'chat-groups'), where('contestId', '==', contest.id))
-                );
-                for (const groupDoc of groupsSnap.docs) {
-                    await setDoc(doc(db, 'chat-groups', groupDoc.id, 'members', authInst.currentUser.uid), {
-                        uid: authInst.currentUser.uid,
-                        name: `${familiya} ${ism} ${sharif}`.trim() || 'Foydalanuvchi',
-                        joinedAt: serverTimestamp(),
-                    });
-                    await setDoc(doc(db, 'users', authInst.currentUser.uid), { groupIds: arrayUnion(groupDoc.id) }, { merge: true });
-                }
-            } catch (groupErr) {
-                console.error("Guruhga avtomatik qo'shishda xatolik:", groupErr);
-            }
-
             if (window.ZiyomapUsage) {
                 ZiyomapUsage.logUsage('tanlov-royxat', 'Tanlovga ro\u2018yxatdan o\u2018tish: ' + (contest.title || ''));
             }
@@ -294,8 +275,21 @@ async function showAlreadyRegistered(customId, cId) {
     alreadyId.textContent = customId || '\u2014';
 
     const testLink = document.getElementById('start-test-link');
+    const meetLink = document.getElementById('meet-link-display');
+    if (testLink) testLink.style.display = 'none';
+    if (meetLink) meetLink.style.display = 'none';
+
+    try {
+        const contestSnap = await getDoc(doc(db, 'contests', cId));
+        if (contestSnap.exists() && contestSnap.data().meetLink && meetLink) {
+            meetLink.href = contestSnap.data().meetLink;
+            meetLink.style.display = 'inline-flex';
+        }
+    } catch (err) {
+        console.error('Suhbat havolasini tekshirishda xatolik:', err);
+    }
+
     if (!testLink) return;
-    testLink.style.display = 'none';
     try {
         const testSnap = await getDoc(doc(db, 'tests', cId));
         if (testSnap.exists() && testSnap.data().published) {
