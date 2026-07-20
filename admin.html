@@ -143,7 +143,6 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <button class="tab-btn active" data-tab="stats"><i class="fas fa-chart-simple"></i> Statistika</button>
     <button class="tab-btn" data-tab="contests"><i class="fas fa-trophy"></i> Tanlovlar</button>
     <button class="tab-btn" data-tab="tests"><i class="fas fa-file-pen"></i> Testlar</button>
-    <button class="tab-btn" data-tab="guruhlar"><i class="fas fa-people-group"></i> Guruhlar</button>
     <button class="tab-btn" data-tab="registrants"><i class="fas fa-users"></i> Ishtirokchilar</button>
     <button class="tab-btn" data-tab="notify"><i class="fas fa-bullhorn"></i> Bildirishnoma</button>
     <button class="tab-btn" data-tab="users"><i class="fas fa-user-group"></i> Foydalanuvchilar</button>
@@ -185,6 +184,23 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <div class="card">
       <h3><i class="fas fa-list"></i> Barcha tanlovlar</h3>
       <div id="contestsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-video"></i> Suhbat (Google Meet)</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        <a href="https://meet.google.com/new" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">meet.google.com/new</a> orqali yangi uchrashuv yarating, havolasini nusxalab shu yerga joylashtiring.
+        Ro'yxatdan o'tgan ishtirokchilar buni o'z sahifasida ko'radi.
+      </p>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="meet-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field">
+        <label>Google Meet havolasi</label>
+        <input type="text" id="meet-link-input" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+      </div>
+      <button class="btn btn-primary" id="meet-save-btn"><i class="fas fa-check"></i> Saqlash</button>
     </div>
   </div>
 
@@ -231,27 +247,6 @@ Javob: A"></textarea>
       </div>
       <button class="btn btn-green" id="t-sync-scores-btn" style="display:none;margin-bottom:14px"><i class="fas fa-arrows-rotate"></i> Ballarni ishtirokchilar ro'yxatiga ko'chirish</button>
       <div class="table-scroll" id="testResultsTable"><div class="empty">Yuqorida tanlov tanlang</div></div>
-    </div>
-  </div>
-
-  <!-- GURUHLAR -->
-  <div class="panel" id="panel-guruhlar">
-    <div class="card">
-      <h3><i class="fas fa-plus"></i> Yangi guruh yaratish</h3>
-      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Guruhlarni faqat siz yaratasiz. Foydalanuvchilar guruhlar.html sahifasida faqat a'zo bo'lgan guruhlarida yozishadi.</p>
-      <div class="field"><label>Guruh nomi</label><input type="text" id="g-name" placeholder="Masalan: Fizika olimpiadasi ishtirokchilari"></div>
-      <div class="field"><label>Qisqacha tavsif (ixtiyoriy)</label><input type="text" id="g-desc" placeholder="Masalan: 2-bosqich haqida muhokama"></div>
-      <div class="field">
-        <label>Tanlovga bog'lash (ixtiyoriy)</label>
-        <select id="g-contest-select"><option value="">— tanlovga bog'lamaslik —</option></select>
-        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Tanlangan tanlovga ro'yxatdan o'tgan har bir kishi shu guruhga avtomatik qo'shiladi.</p>
-      </div>
-      <button class="btn btn-primary" id="g-create-btn"><i class="fas fa-check"></i> Yaratish</button>
-      <button class="btn" id="g-cancel-edit-btn" style="display:none;background:var(--white);border:1px solid var(--border);color:var(--muted)">Bekor qilish</button>
-    </div>
-    <div class="card">
-      <h3><i class="fas fa-list"></i> Mavjud guruhlar</h3>
-      <div id="groupsList"><div class="empty">Yuklanmoqda...</div></div>
     </div>
   </div>
 
