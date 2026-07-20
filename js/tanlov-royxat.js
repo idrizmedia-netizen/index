@@ -157,6 +157,9 @@ async function openContest(contest, showBack) {
     const restrictions = [];
     if (contest.minAge || contest.maxAge) restrictions.push(`Yosh: ${contest.minAge || '0'}\u2013${contest.maxAge || '\u221e'}`);
     if (contest.grades && contest.grades.length) restrictions.push(`Sinflar: ${contest.grades.join(', ')}`);
+    if (contest.regStartDate || contest.regEndDate) {
+        restrictions.push(`Ro'yxatdan o'tish muddati: ${contest.regStartDate || '\u2014'} \u2013 ${contest.regEndDate || '\u2014'}`);
+    }
 
     contestInfo.style.display = 'block';
     contestInfo.innerHTML =
@@ -191,6 +194,20 @@ async function openContest(contest, showBack) {
 
     if (existing.exists()) {
         showAlreadyRegistered(existing.data().customId, contest.id);
+        return;
+    }
+
+    // Ro'yxatdan o'tish sana oralig'ini tekshirish (agar admin belgilagan bo'lsa)
+    // Diqqat: toISOString() UTC asosida ishlaydi va O'zbekiston vaqti bilan (UTC+5)
+    // tungi soatlarda bir kunlik farq berishi mumkin edi — shu sabab lokal sana ishlatiladi.
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (contest.regStartDate && todayStr < contest.regStartDate) {
+        setStatus(`Ro'yxatdan o'tish hali boshlanmagan. Boshlanish sanasi: ${contest.regStartDate}.`, 'error');
+        return;
+    }
+    if (contest.regEndDate && todayStr > contest.regEndDate) {
+        setStatus(`Ro'yxatdan o'tish muddati tugagan. Tugash sanasi: ${contest.regEndDate} edi.`, 'error');
         return;
     }
 
@@ -276,14 +293,25 @@ async function showAlreadyRegistered(customId, cId) {
 
     const testLink = document.getElementById('start-test-link');
     const meetLink = document.getElementById('meet-link-display');
+    const datesBox = document.getElementById('already-dates');
     if (testLink) testLink.style.display = 'none';
     if (meetLink) meetLink.style.display = 'none';
 
     try {
         const contestSnap = await getDoc(doc(db, 'contests', cId));
-        if (contestSnap.exists() && contestSnap.data().meetLink && meetLink) {
-            meetLink.href = contestSnap.data().meetLink;
-            meetLink.style.display = 'inline-flex';
+        if (contestSnap.exists()) {
+            const c = contestSnap.data();
+            if (c.meetLink && meetLink) {
+                meetLink.href = c.meetLink;
+                meetLink.style.display = 'inline-flex';
+            }
+            if (datesBox) {
+                const bits = [];
+                if (c.testDate) bits.push(`Test sanasi: ${new Date(c.testDate).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
+                if (c.interviewDate) bits.push(`Suhbat sanasi: ${new Date(c.interviewDate).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
+                datesBox.textContent = bits.join(' \u00b7 ');
+                datesBox.style.display = bits.length ? 'block' : 'none';
+            }
         }
     } catch (err) {
         console.error('Suhbat havolasini tekshirishda xatolik:', err);
