@@ -124,12 +124,15 @@
     }
 
     async function loadMyGroups() {
-        const { collectionGroup, query, where, onSnapshot, doc, getDoc } = fb;
-        const q = query(collectionGroup(db, 'members'), where('uid', '==', currentUser.uid));
+        // Eski usul (collectionGroup so'rovi) ba'zi hollarda "Missing or
+        // insufficient permissions" xatoligini berardi. Shuning uchun endi
+        // shunchaki o'zimizning users/{uid} hujjatidagi groupIds ro'yxatini
+        // o'qiymiz — bu har doim ishonchli ishlaydi.
+        const { doc, onSnapshot, getDoc } = fb;
         unsubGroupMemberships = onSnapshot(
-            q,
-            async (snap) => {
-                const groupIds = snap.docs.map((d) => d.ref.parent.parent.id);
+            doc(db, 'users', currentUser.uid),
+            async (userSnap) => {
+                const groupIds = (userSnap.exists() && userSnap.data().groupIds) || [];
                 const groups = [];
                 for (const gid of groupIds) {
                     try {
@@ -141,13 +144,9 @@
                 renderGroups();
             },
             (err) => {
-                // Eng ko'p uchraydigan sabab: Firestore'da "members" uchun
-                // collection group indeksi hali yaratilmagan. Xato matnida
-                // Firebase konsolining indeks yaratish havolasi bo'ladi —
-                // shu havolani F12 → Console'da bosib, indeksni yarating.
-                console.error("Guruhlarni yuklashda xatolik (ehtimol Firestore indeks kerak):", err);
+                console.error("Guruhlarni yuklashda xatolik:", err);
                 els['guruh-list'].innerHTML =
-                    '<div class="guruh-empty"><p>Guruhlarni yuklab bo\'lmadi</p><span>F12 tugmasini bosib "Console" bo\'limini oching — u yerdagi Firebase havolasini bosib, so\'ralgan indeksni yarating (bir necha daqiqada tayyor bo\'ladi).</span></div>';
+                    '<div class="guruh-empty"><p>Guruhlarni yuklab bo\'lmadi</p><span>Sahifani yangilab ko\'ring. Davom etsa, F12 → Console dagi xatoni tekshiring.</span></div>';
             }
         );
     }
