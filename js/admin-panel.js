@@ -17,6 +17,8 @@ import {
     serverTimestamp,
     writeBatch,
     increment,
+    arrayUnion,
+    arrayRemove,
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -799,6 +801,7 @@ document.getElementById('g-create-btn')?.addEventListener('click', async () => {
                     name: currentUser?.displayName || 'Admin',
                     joinedAt: serverTimestamp(),
                 });
+                await setDoc(doc(db, 'users', authInst.currentUser.uid), { groupIds: arrayUnion(ref.id) }, { merge: true });
             }
             document.getElementById('g-name').value = '';
             document.getElementById('g-desc').value = '';
@@ -886,6 +889,7 @@ async function loadGroups() {
                         name: userDoc.data().displayName || 'Foydalanuvchi',
                         joinedAt: serverTimestamp(),
                     });
+                    await setDoc(doc(db, 'users', userDoc.id), { groupIds: arrayUnion(groupId) }, { merge: true });
                     input.value = '';
                     setStatus("A'zo qo'shildi!", 'success');
                     loadGroups();
@@ -908,6 +912,11 @@ async function loadGroups() {
                         getDocs(collection(db, 'chat-groups', groupId, 'members')),
                         getDocs(collection(db, 'chat-groups', groupId, 'messages')),
                     ]);
+                    await Promise.all(
+                        membersSnap.docs.map((d) =>
+                            setDoc(doc(db, 'users', d.id), { groupIds: arrayRemove(groupId) }, { merge: true }).catch(() => {})
+                        )
+                    );
                     const batch = writeBatch(db);
                     membersSnap.forEach((d) => batch.delete(d.ref));
                     messagesSnap.forEach((d) => batch.delete(d.ref));
