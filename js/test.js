@@ -46,6 +46,7 @@ let currentUser = null;
 let testData = null;
 let attemptRef = null;
 let answers = [];
+let questionOrder = [];
 let timerInterval = null;
 let submitted = false;
 
@@ -83,16 +84,54 @@ async function init() {
     }
 
     // Ro'yxatdan o'tganligini tekshirish
+    let regData = null;
     try {
         const regSnap = await getDoc(doc(db, 'registrations', `${contestId}_${currentUser.uid}`));
         if (!regSnap.exists()) {
             showMsg('Ro\u2018yxatdan o\u2018tmagansiz', 'Testni boshlash uchun avval shu tanlovga ro\u2018yxatdan o\u2018ting.');
             return;
         }
+        regData = regSnap.data();
     } catch (err) {
         console.error(err);
         showMsg('Xatolik', 'Ma\u2019lumotlarni tekshirishda xatolik yuz berdi.');
         return;
+    }
+
+    // Test sanasi cheklovini tekshirish (agar admin sana belgilagan bo'lsa)
+    let contestData = null;
+    try {
+        const contestSnap = await getDoc(doc(db, 'contests', contestId));
+        if (contestSnap.exists()) contestData = contestSnap.data();
+    } catch (err) {
+        console.error('Tanlov ma\u2019lumotini yuklashda xatolik:', err);
+    }
+
+    if (contestData && contestData.testDate) {
+        const testDay = new Date(contestData.testDate);
+        const dayStart = new Date(testDay.getFullYear(), testDay.getMonth(), testDay.getDate(), 0, 0, 0);
+        const dayEnd = new Date(testDay.getFullYear(), testDay.getMonth(), testDay.getDate(), 23, 59, 59);
+        const now = new Date();
+        const retakeUntil = regData.retakeUntil ? new Date(regData.retakeUntil) : null;
+        const withinRetake = retakeUntil && now <= retakeUntil;
+
+        // Agar attempt allaqachon topshirilgan bo'lsa, sana tekshiruvi keraksiz (natija ko'rsatiladi)
+        let alreadySubmitted = false;
+        try {
+            const attemptCheck = await getDoc(doc(db, 'test-attempts', `${contestId}_${currentUser.uid}`));
+            alreadySubmitted = attemptCheck.exists() && attemptCheck.data().status === 'submitted';
+        } catch (err) { /* e'tiborsiz qoldiriladi, quyida qayta tekshiriladi */ }
+
+        if (!alreadySubmitted) {
+            if (now < dayStart && !withinRetake) {
+                showMsg('Test hali boshlanmagan', `Bu tanlov uchun test sanasi: ${testDay.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}. Shu kunda qayta kiring.`);
+                return;
+            }
+            if (now > dayEnd && !withinRetake) {
+                showMsg('Test vaqti tugagan', 'Belgilangan test kuni o\u2018tib ketgan. Agar test topshira olmagan bo\u2018lsangiz, admin bilan bog\u2018lanib qayta topshirish uchun ruxsat so\u2018rang.');
+                return;
+            }
+        }
     }
 
     // Testning o'zini yuklash
@@ -131,27 +170,46 @@ async function init() {
     }
 
     if (attemptSnap.exists() && attemptSnap.data().status === 'in-progress') {
-        answers = attemptSnap.data().answers || new Array(testData.questions.length).fill(null);
-        startTest(attemptSnap.data().startedAt.toMillis());
+        const ad = attemptSnap.data();
+        questionOrder = ad.questionOrder && ad.questionOrder.length ? ad.questionOrder : testData.questions.map((_, i) => i);
+        answers = ad.answers || new Array(questionOrder.length).fill(null);
+        startTest(ad.startedAt.toMillis());
         return;
     }
 
     // Hali boshlanmagan — kirish oynasi
+    const totalToShow = testData.questionsPerAttempt && testData.questionsPerAttempt < testData.questions.length
+        ? testData.questionsPerAttempt
+        : testData.questions.length;
     introCard.style.display = 'block';
     document.getElementById('introTitle').textContent = testData.title;
     document.getElementById('introDesc').textContent =
-        `${testData.questions.length} ta savol \u2014 ${testData.timeLimitMinutes} daqiqa vaqt beriladi. Test boshlangandan so\u2018ng sahifadan chiqib ketmang \u2014 tizim buni kuzatib boradi.`;
+        `${totalToShow} ta savol \u2014 ${testData.timeLimitMinutes} daqiqa vaqt beriladi. Test boshlangandan so\u2018ng sahifadan chiqib ketmang \u2014 tizim buni kuzatib boradi.`;
     document.getElementById('startBtn').addEventListener('click', startNewAttempt);
+}
+
+function buildQuestionOrder() {
+    const total = testData.questions.length;
+    const indices = Array.from({ length: total }, (_, i) => i);
+    // Fisher-Yates aralashtirish — har bir ishtirokchiga boshqacha tartib/savollar tushishi uchun
+    for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+    }
+    const n = testData.questionsPerAttempt && testData.questionsPerAttempt > 0 ? Math.min(testData.questionsPerAttempt, total) : total;
+    return indices.slice(0, n);
 }
 
 async function startNewAttempt() {
     const btn = document.getElementById('startBtn');
     btn.disabled = true;
     try {
-        answers = new Array(testData.questions.length).fill(null);
+        questionOrder = buildQuestionOrder();
+        answers = new Array(questionOrder.length).fill(null);
         await setDoc(attemptRef, {
             uid: currentUser.uid,
             contestId,
+            questionOrder,
             answers,
             status: 'in-progress',
             tabSwitchCount: 0,
@@ -179,10 +237,12 @@ function startTest(startedAtMillis) {
 
 function renderQuestions() {
     let html = '';
-    testData.questions.forEach((q, qi) => {
+    questionOrder.forEach((origIdx, qi) => {
+        const q = testData.questions[origIdx];
         html += `<div class="card q-block">
-            <div class="q-num">${qi + 1}-savol / ${testData.questions.length}</div>
+            <div class="q-num">${qi + 1}-savol / ${questionOrder.length}</div>
             <div class="q-text">${esc(q.text)}</div>
+            ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" alt="Savol rasmi" style="max-width:100%;border-radius:12px;margin:10px 0">` : ''}
             <div class="opts" data-qi="${qi}">
                 ${q.options
                     .map(
@@ -216,7 +276,7 @@ function renderQuestions() {
 
     document.getElementById('submitBtn').addEventListener('click', () => {
         const answered = answers.filter((a) => a !== null).length;
-        const total = testData.questions.length;
+        const total = questionOrder.length;
         const msg =
             answered < total
                 ? `Siz ${total} tadan faqat ${answered} ta savolga javob berdingiz. Baribir yakunlaysizmi?`
@@ -284,7 +344,8 @@ async function submitTest() {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
 
     let score = 0;
-    testData.questions.forEach((q, qi) => {
+    questionOrder.forEach((origIdx, qi) => {
+        const q = testData.questions[origIdx];
         if (answers[qi] === q.correctIndex) score++;
     });
 
@@ -292,7 +353,7 @@ async function submitTest() {
         await updateDoc(attemptRef, {
             answers,
             score,
-            totalQuestions: testData.questions.length,
+            totalQuestions: questionOrder.length,
             status: 'submitted',
             submittedAt: serverTimestamp(),
         });
@@ -307,7 +368,7 @@ async function submitTest() {
     topBar.style.display = 'none';
     questionsCard.style.display = 'none';
     resultCard.style.display = 'block';
-    document.getElementById('resultScoreText').textContent = `${score}/${testData.questions.length}`;
+    document.getElementById('resultScoreText').textContent = `${score}/${questionOrder.length}`;
 }
 
 if (document.readyState === 'loading') {
