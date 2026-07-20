@@ -17,8 +17,6 @@ import {
     serverTimestamp,
     writeBatch,
     increment,
-    arrayUnion,
-    arrayRemove,
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -89,7 +87,6 @@ async function boot(isAdmin) {
     loadUsers();
     loadSiteContent();
     loadTests();
-    loadGroups();
     if (window.ZiyomapIsOwner) loadAdmins();
 }
 
@@ -191,10 +188,10 @@ async function loadContests() {
         selectEl.innerHTML = selectHtml;
         const tSelect = document.getElementById('t-contest-select');
         const trSelect = document.getElementById('tr-contest-select');
-        const gSelect = document.getElementById('g-contest-select');
+        const meetSelect = document.getElementById('meet-contest-select');
         if (tSelect) tSelect.innerHTML = selectHtml;
         if (trSelect) trSelect.innerHTML = selectHtml;
-        if (gSelect) gSelect.innerHTML = selectHtml.replace('— tanlov tanlang —', "— tanlovga bog'lamaslik —");
+        if (meetSelect) meetSelect.innerHTML = selectHtml;
 
         listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -330,6 +327,7 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
 
         let rows = '';
         list.forEach((r, i) => {
+            const total = (r.score ?? 0) + (r.interviewScore ?? 0);
             rows += `<tr>
                 <td>${i + 1}</td>
                 <td>${escapeHtml(r.fullName)}</td>
@@ -337,24 +335,28 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
                 <td>${escapeHtml(r.maktab)}</td>
                 <td>${escapeHtml(r.yosh)}</td>
                 <td>${escapeHtml(r.telefon)}</td>
-                <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—"></td>
+                <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" style="width:64px"></td>
+                <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" style="width:64px"></td>
+                <td><b>${total || '\u2014'}</b></td>
                 <td><button class="btn btn-primary" data-save="${r.id}"><i class="fas fa-save"></i></button></td>
             </tr>`;
         });
         tableEl.innerHTML = `<table>
-            <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Ball</th><th></th></tr></thead>
+            <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Jami</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
         </table>`;
 
         tableEl.querySelectorAll('[data-save]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.save;
-                const input = tableEl.querySelector(`[data-score="${id}"]`);
-                const val = input.value === '' ? null : parseFloat(input.value);
+                const scoreInput = tableEl.querySelector(`[data-score="${id}"]`);
+                const interviewInput = tableEl.querySelector(`[data-interview="${id}"]`);
+                const score = scoreInput.value === '' ? null : parseFloat(scoreInput.value);
+                const interviewScore = interviewInput.value === '' ? null : parseFloat(interviewInput.value);
                 btn.disabled = true;
                 try {
-                    await updateDoc(doc(db, 'registrations', id), { score: val });
-                    setStatus('Ball saqlandi.', 'success');
+                    await updateDoc(doc(db, 'registrations', id), { score, interviewScore });
+                    setStatus('Ballar saqlandi.', 'success');
                 } catch (err) {
                     console.error(err);
                     setStatus('Xatolik yuz berdi.', 'error');
@@ -372,9 +374,11 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
 document.getElementById('publish-leaderboard-btn')?.addEventListener('click', async () => {
     if (!currentRegistrants.length || !currentContestId) return;
 
-    const scored = currentRegistrants.filter((r) => r.score !== null && r.score !== undefined);
-    if (!scored.length) {
-        setStatus('Hech kimga ball qo\u2018yilmagan. Avval ball kiriting.', 'error');
+    const withTotal = currentRegistrants
+        .map((r) => ({ ...r, total: (r.score ?? null) === null && (r.interviewScore ?? null) === null ? null : (r.score ?? 0) + (r.interviewScore ?? 0) }))
+        .filter((r) => r.total !== null);
+    if (!withTotal.length) {
+        setStatus('Hech kimga ball qo\u2018yilmagan. Avval test yoki suhbat ballini kiriting.', 'error');
         return;
     }
     if (!confirm(`"${currentContestTitle}" uchun g\u2018oliblar reytingi e\u2018lon qilinsinmi? Bu barcha foydalanuvchilarga ochiq bo\u2018ladi.`)) return;
@@ -382,13 +386,15 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
     const btn = document.getElementById('publish-leaderboard-btn');
     btn.disabled = true;
     try {
-        const sorted = [...scored].sort((a, b) => b.score - a.score);
+        const sorted = [...withTotal].sort((a, b) => b.total - a.total);
         const entries = sorted.map((r, i) => ({
             rank: i + 1,
             fullName: r.fullName,
             maktab: r.maktab,
             customId: r.customId,
-            score: r.score,
+            score: r.total,
+            testScore: r.score ?? null,
+            interviewScore: r.interviewScore ?? null,
         }));
 
         await setDoc(doc(db, 'leaderboards', currentContestId), {
@@ -421,10 +427,12 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
         Maktabi: r.maktab,
         Yoshi: r.yosh,
         'Telefon raqami': r.telefon,
-        Ball: r.score ?? '',
+        Test: r.score ?? '',
+        Suhbat: r.interviewScore ?? '',
+        Jami: (r.score ?? 0) + (r.interviewScore ?? 0),
     }));
     const ws = window.XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }];
+    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb, ws, 'Ishtirokchilar');
     const safeTitle = (currentContestTitle || 'tanlov').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40);
@@ -743,71 +751,31 @@ document.getElementById('t-sync-scores-btn')?.addEventListener('click', async ()
     }
 });
 
-/* ── GURUHLAR ── */
-let editingGroupId = null;
+document.getElementById('meet-contest-select')?.addEventListener('change', async (e) => {
+    const contestId = e.target.value;
+    const input = document.getElementById('meet-link-input');
+    input.value = '';
+    if (!contestId) return;
+    try {
+        const snap = await getDoc(doc(db, 'contests', contestId));
+        if (snap.exists()) input.value = snap.data().meetLink || '';
+    } catch (err) {
+        console.error(err);
+    }
+});
 
-function resetGroupForm() {
-    editingGroupId = null;
-    document.getElementById('g-name').value = '';
-    document.getElementById('g-desc').value = '';
-    document.getElementById('g-contest-select').value = '';
-    document.getElementById('g-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish';
-    document.getElementById('g-cancel-edit-btn').style.display = 'none';
-}
-
-document.getElementById('g-cancel-edit-btn')?.addEventListener('click', resetGroupForm);
-
-document.getElementById('g-create-btn')?.addEventListener('click', async () => {
-    const name = document.getElementById('g-name').value.trim();
-    const desc = document.getElementById('g-desc').value.trim();
-    const contestId = document.getElementById('g-contest-select').value;
-    const contestTitle = contestId
-        ? document.getElementById('g-contest-select').selectedOptions[0]?.textContent || ''
-        : '';
-    if (!name) {
-        setStatus("Guruh nomini kiriting.", 'error');
+document.getElementById('meet-save-btn')?.addEventListener('click', async () => {
+    const contestId = document.getElementById('meet-contest-select').value;
+    const meetLink = document.getElementById('meet-link-input').value.trim();
+    if (!contestId) {
+        setStatus('Tanlovni tanlang.', 'error');
         return;
     }
-
-    const btn = document.getElementById('g-create-btn');
+    const btn = document.getElementById('meet-save-btn');
     btn.disabled = true;
     try {
-        if (editingGroupId) {
-            // ── Mavjud guruhni yangilash ──
-            await updateDoc(doc(db, 'chat-groups', editingGroupId), {
-                name,
-                desc,
-                contestId: contestId || null,
-                contestTitle: contestId ? contestTitle : null,
-            });
-            setStatus('Guruh yangilandi!', 'success');
-            resetGroupForm();
-        } else {
-            // ── Yangi guruh yaratish ──
-            const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
-            const ref = doc(collection(db, 'chat-groups'));
-            await setDoc(ref, {
-                name,
-                desc,
-                contestId: contestId || null,
-                contestTitle: contestId ? contestTitle : null,
-                createdBy: authInst.currentUser?.uid || null,
-                createdAt: serverTimestamp(),
-            });
-            // Admin ham guruh ichida yozisha olishi uchun o'zini a'zo qiladi
-            if (authInst.currentUser) {
-                await setDoc(doc(db, 'chat-groups', ref.id, 'members', authInst.currentUser.uid), {
-                    uid: authInst.currentUser.uid,
-                    name: currentUser?.displayName || 'Admin',
-                    joinedAt: serverTimestamp(),
-                });
-                await setDoc(doc(db, 'users', authInst.currentUser.uid), { groupIds: arrayUnion(ref.id) }, { merge: true });
-            }
-            document.getElementById('g-name').value = '';
-            document.getElementById('g-desc').value = '';
-            setStatus('Guruh yaratildi!', 'success');
-        }
-        loadGroups();
+        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null });
+        setStatus('Suhbat havolasi saqlandi!', 'success');
     } catch (err) {
         console.error(err);
         setStatus('Xatolik yuz berdi.', 'error');
@@ -815,127 +783,6 @@ document.getElementById('g-create-btn')?.addEventListener('click', async () => {
         btn.disabled = false;
     }
 });
-
-async function loadGroups() {
-    const listEl = document.getElementById('groupsList');
-    if (!listEl) return;
-    try {
-        const snap = await getDocs(query(collection(db, 'chat-groups'), orderBy('createdAt', 'desc')));
-        if (snap.empty) {
-            listEl.innerHTML = '<div class="empty">Hali guruh yaratilmagan.</div>';
-            return;
-        }
-        const groups = [];
-        snap.forEach((d) => groups.push({ id: d.id, ...d.data() }));
-
-        const counts = await Promise.all(
-            groups.map((g) => getCountFromServer(collection(db, 'chat-groups', g.id, 'members')))
-        );
-
-        let html = '';
-        groups.forEach((g, i) => {
-            html += `<div class="contest-item">
-                <div>
-                    <div class="t">${escapeHtml(g.name)} <span class="badge open"><i class="fas fa-user-group"></i> ${counts[i].data().count} a'zo</span></div>
-                    ${g.desc ? `<div class="d">${escapeHtml(g.desc)}</div>` : ''}
-                    ${g.contestTitle ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-trophy"></i> ${escapeHtml(g.contestTitle)} bilan bog'langan</div>` : ''}
-                </div>
-                <div style="display:flex;gap:8px">
-                    <button class="btn btn-primary" data-edit-group="${g.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
-                    <button class="btn btn-red" data-delete-group="${g.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-            <div style="display:flex;gap:8px;margin:-4px 0 10px;padding:0 2px">
-                <input type="email" placeholder="Email orqali a'zo qo'shish" data-member-email="${g.id}"
-                    style="flex:1;padding:8px 11px;border-radius:8px;border:1px solid var(--border);font-size:0.8rem">
-                <button class="btn btn-green" data-add-member="${g.id}" style="padding:8px 14px"><i class="fas fa-user-plus"></i></button>
-            </div>`;
-        });
-        listEl.innerHTML = html;
-
-        listEl.querySelectorAll('[data-edit-group]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const g = groups.find((x) => x.id === btn.dataset.editGroup);
-                if (!g) return;
-                editingGroupId = g.id;
-                document.getElementById('g-name').value = g.name || '';
-                document.getElementById('g-desc').value = g.desc || '';
-                document.getElementById('g-contest-select').value = g.contestId || '';
-                document.getElementById('g-create-btn').innerHTML = '<i class="fas fa-check"></i> Yangilash';
-                document.getElementById('g-cancel-edit-btn').style.display = '';
-                document.getElementById('g-name').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-        });
-
-        listEl.querySelectorAll('[data-add-member]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const groupId = btn.dataset.addMember;
-                const input = listEl.querySelector(`[data-member-email="${groupId}"]`);
-                const email = input.value.trim().toLowerCase();
-                if (!email || !email.includes('@')) {
-                    setStatus("To'g'ri email kiriting.", 'error');
-                    return;
-                }
-                btn.disabled = true;
-                try {
-                    const userSnap = await getDocs(query(collection(db, 'users'), where('email', '==', email)));
-                    if (userSnap.empty) {
-                        setStatus("Bu email bilan hech kim saytga kirmagan. Avval o'sha odam saytga Google orqali kirsin.", 'error');
-                        return;
-                    }
-                    const userDoc = userSnap.docs[0];
-                    await setDoc(doc(db, 'chat-groups', groupId, 'members', userDoc.id), {
-                        uid: userDoc.id,
-                        name: userDoc.data().displayName || 'Foydalanuvchi',
-                        joinedAt: serverTimestamp(),
-                    });
-                    await setDoc(doc(db, 'users', userDoc.id), { groupIds: arrayUnion(groupId) }, { merge: true });
-                    input.value = '';
-                    setStatus("A'zo qo'shildi!", 'success');
-                    loadGroups();
-                } catch (err) {
-                    console.error(err);
-                    setStatus("A'zo qo'shishda xatolik yuz berdi.", 'error');
-                } finally {
-                    btn.disabled = false;
-                }
-            });
-        });
-
-        listEl.querySelectorAll('[data-delete-group]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm("Bu guruhni a'zolari va barcha xabarlari bilan birga butunlay o'chirmoqchimisiz?")) return;
-                btn.disabled = true;
-                const groupId = btn.dataset.deleteGroup;
-                try {
-                    const [membersSnap, messagesSnap] = await Promise.all([
-                        getDocs(collection(db, 'chat-groups', groupId, 'members')),
-                        getDocs(collection(db, 'chat-groups', groupId, 'messages')),
-                    ]);
-                    await Promise.all(
-                        membersSnap.docs.map((d) =>
-                            setDoc(doc(db, 'users', d.id), { groupIds: arrayRemove(groupId) }, { merge: true }).catch(() => {})
-                        )
-                    );
-                    const batch = writeBatch(db);
-                    membersSnap.forEach((d) => batch.delete(d.ref));
-                    messagesSnap.forEach((d) => batch.delete(d.ref));
-                    batch.delete(doc(db, 'chat-groups', groupId));
-                    await batch.commit();
-                    if (editingGroupId === groupId) resetGroupForm();
-                    loadGroups();
-                } catch (err) {
-                    console.error(err);
-                    setStatus("Guruhni o'chirishda xatolik yuz berdi.", 'error');
-                    btn.disabled = false;
-                }
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
 
 /* ── ADMINLAR (faqat owner) ── */
 document.getElementById('a-add-btn')?.addEventListener('click', async () => {
