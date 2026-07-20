@@ -37,11 +37,15 @@ function renderBoard(lb) {
 
     let html = '<div class="podium">';
     top3.forEach((e, i) => {
+        const breakdown = e.testScore != null || e.interviewScore != null
+            ? `<div class="p-school" style="margin-top:2px">Test: ${escapeHtml(e.testScore ?? '\u2014')} \u00b7 Suhbat: ${escapeHtml(e.interviewScore ?? '\u2014')}</div>`
+            : '';
         html += `<div class="p-item ${cls[i]}">
             <div class="medal">${medal[i]}</div>
             <div class="p-name">${escapeHtml(e.fullName)}</div>
             <div class="p-score">${escapeHtml(e.score)} ball</div>
             <div class="p-school">${escapeHtml(e.maktab)}</div>
+            ${breakdown}
         </div>`;
     });
     html += '</div>';
@@ -49,9 +53,12 @@ function renderBoard(lb) {
     if (rest.length) {
         html += '<div class="rest-list">';
         rest.forEach((e) => {
+            const breakdown = e.testScore != null || e.interviewScore != null
+                ? `<div class="n2">Test: ${escapeHtml(e.testScore ?? '\u2014')} \u00b7 Suhbat: ${escapeHtml(e.interviewScore ?? '\u2014')}</div>`
+                : '';
             html += `<div class="rest-row">
                 <div class="rk">${e.rank}</div>
-                <div class="nm"><div class="n1">${escapeHtml(e.fullName)}</div><div class="n2">${escapeHtml(e.maktab)}</div></div>
+                <div class="nm"><div class="n1">${escapeHtml(e.fullName)}</div><div class="n2">${escapeHtml(e.maktab)}</div>${breakdown}</div>
                 <div class="sc">${escapeHtml(e.score)}</div>
             </div>`;
         });
