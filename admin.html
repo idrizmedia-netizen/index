@@ -179,7 +179,17 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <label>Sinflar (ixtiyoriy, bo'sh qoldirsangiz — hammaga ochiq)</label>
         <input type="text" id="c-grades" placeholder="masalan: 5,6,7,8,9 yoki 5-9">
       </div>
+      <div class="row2">
+        <div class="field"><label>Ro'yxatdan o'tish boshlanish sanasi</label><input type="date" id="c-reg-start"></div>
+        <div class="field"><label>Ro'yxatdan o'tish tugash sanasi</label><input type="date" id="c-reg-end"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Test sanasi va vaqti</label><input type="datetime-local" id="c-test-date"></div>
+        <div class="field"><label>Suhbat sanasi va vaqti</label><input type="datetime-local" id="c-interview-date"></div>
+      </div>
+      <input type="hidden" id="c-edit-id" value="">
       <button class="btn btn-primary" id="c-create-btn"><i class="fas fa-check"></i> Yaratish va e'lon qilish</button>
+      <button class="btn" id="c-cancel-edit-btn" style="display:none;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-xmark"></i> Bekor qilish</button>
     </div>
     <div class="card">
       <h3><i class="fas fa-list"></i> Barcha tanlovlar</h3>
@@ -213,10 +223,15 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <select id="t-contest-select"><option value="">— tanlov tanlang —</option></select>
       </div>
       <div class="field"><label>Test nomi</label><input type="text" id="t-title" placeholder="Masalan: Fizika — 1-bosqich testi"></div>
-      <div class="field"><label>Vaqt chegarasi (daqiqa)</label><input type="number" id="t-time-limit" value="20" min="1"></div>
+      <div class="row2">
+        <div class="field"><label>Vaqt chegarasi (daqiqa)</label><input type="number" id="t-time-limit" value="20" min="1"></div>
+        <div class="field"><label>Ishtirokchiga nechta savol beriladi (bo'sh — hammasi)</label><input type="number" id="t-questions-per-attempt" min="1" placeholder="masalan: 10"></div>
+      </div>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Savollar bazasida xohlagancha savol bo'lishi mumkin — har bir ishtirokchiga shu yerda ko'rsatilgan sondagi savol tasodifiy va aralashtirilgan holda beriladi.</p>
       <div class="field">
         <label>Savollar (quyidagi formatda kiriting)</label>
         <textarea id="t-questions" rows="12" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="Nyutonning 1-qonuni haqida nima deyiladi?
+Rasm: https://... (ixtiyoriy, savol rasmi bo'lsa)
 A) Jism tezlanadi
 B) Kuch ta'sir etmasa, jism tinch yoki notekis harakatda qoladi
 C) Har doim tortishish kuchi bor
@@ -229,9 +244,16 @@ B) variant
 C) variant
 D) variant
 Javob: A"></textarea>
-        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Har birida 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart.</p>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Har birida 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart. Rasmli savol uchun ixtiyoriy "Rasm: &lt;havola&gt;" qatorini savol matnidan keyin qo'shing (masalan Imgur havolasi).</p>
+        <div class="field" style="margin-top:10px">
+          <label>Yoki: kursorni savol ichiga qo'yib, rasmni shu yerdan yuklang</label>
+          <input type="file" id="t-image-upload" accept="image/*">
+          <p id="t-image-upload-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+        </div>
       </div>
+      <input type="hidden" id="t-edit-id" value="">
       <button class="btn btn-primary" id="t-create-btn"><i class="fas fa-check"></i> Testni yaratish va e'lon qilish</button>
+      <button class="btn" id="t-cancel-edit-btn" style="display:none;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-xmark"></i> Bekor qilish</button>
     </div>
 
     <div class="card">
