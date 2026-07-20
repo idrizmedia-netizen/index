@@ -13,6 +13,7 @@ import {
     runTransaction,
     serverTimestamp,
     increment,
+    arrayUnion,
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -266,6 +267,7 @@ async function openContest(contest, showBack) {
                         name: `${familiya} ${ism} ${sharif}`.trim() || 'Foydalanuvchi',
                         joinedAt: serverTimestamp(),
                     });
+                    await setDoc(doc(db, 'users', authInst.currentUser.uid), { groupIds: arrayUnion(groupDoc.id) }, { merge: true });
                 }
             } catch (groupErr) {
                 console.error("Guruhga avtomatik qo'shishda xatolik:", groupErr);
