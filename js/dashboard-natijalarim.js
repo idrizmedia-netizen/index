@@ -48,7 +48,7 @@
             const { getAuth, onAuthStateChanged } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js'
             );
-            const { getFirestore, collection, query, where, getDocs } = await import(
+            const { getFirestore, collection, query, where, getDocs, doc, getDoc } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
             );
             const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -71,23 +71,51 @@
                 return;
             }
 
+            const regs = [];
+            snap.forEach((d) => regs.push(d.data()));
+
+            // Har bir tanlovning test/suhbat sanalarini olish uchun kontestlarni bitta marta yuklaymiz
+            const contestIds = [...new Set(regs.map((r) => r.contestId).filter(Boolean))];
+            const contestDates = {};
+            await Promise.all(
+                contestIds.map(async (cid) => {
+                    try {
+                        const cSnap = await getDoc(doc(db, 'contests', cid));
+                        if (cSnap.exists()) contestDates[cid] = cSnap.data();
+                    } catch (err) {
+                        console.error('Tanlov ma\u2019lumotini yuklashda xatolik:', err);
+                    }
+                })
+            );
+
+            function fmtDate(iso) {
+                if (!iso) return null;
+                const d2 = new Date(iso);
+                if (isNaN(d2.getTime())) return iso;
+                return d2.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+
             let html = '';
-            snap.forEach((d) => {
-                const r = d.data();
+            regs.forEach((r) => {
                 const hasScore = r.score !== null && r.score !== undefined;
                 const hasInterview = r.interviewScore !== null && r.interviewScore !== undefined;
                 const hasRank = r.rank !== null && r.rank !== undefined;
                 const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
                 const total = (r.score ?? 0) + (r.interviewScore ?? 0);
+                const c = contestDates[r.contestId] || {};
+                const dateBits = [];
+                if (c.testDate) dateBits.push('Test kuni: ' + fmtDate(c.testDate));
+                if (c.interviewDate) dateBits.push('Suhbat kuni: ' + fmtDate(c.interviewDate));
                 html += `<div class="activity-row">
                     <div class="act-icon" style="background:#fdf2f8;font-size:16px">${medal}</div>
                     <div style="flex:1">
                         <div class="act-label">${esc(r.contestTitle)}</div>
                         <div class="act-time">ID: ${esc(r.customId)}${hasScore ? ' \u00b7 Test: ' + esc(r.score) : ''}${hasInterview ? ' \u00b7 Suhbat: ' + esc(r.interviewScore) : ''}</div>
+                        ${dateBits.length ? `<div class="act-time" style="color:var(--primary)">${esc(dateBits.join(' \u00b7 '))}</div>` : ''}
                         ${hasRank ? `<div style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:11px;font-weight:800">${esc(r.rank)}-o\u2018rin</div>` : ''}
                     </div>
-                    <div style="font-weight:800;color:${hasScore || hasInterview ? 'var(--primary)' : 'var(--muted)'}">
-                        ${hasScore || hasInterview ? esc(total) + ' ball' : 'Kutilmoqda'}
+                    <div style="font-weight:800;color:${hasScore || hasInterview ? 'var(--primary)' : 'var(--muted)'};text-align:right">
+                        ${hasScore || hasInterview ? esc(total) + ' ball<br><span style=\'font-size:11px;font-weight:600;color:var(--muted)\'>jami</span>' : 'Kutilmoqda'}
                     </div>
                 </div>`;
             });
