@@ -62,6 +62,13 @@ function escapeHtml(str) {
     return d.innerHTML;
 }
 
+function formatDateTime(isoStr) {
+    if (!isoStr) return '\u2014';
+    const d = new Date(isoStr);
+    if (isNaN(d.getTime())) return isoStr;
+    return d.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 /* ── KIRISHNI TEKSHIRISH ── */
 async function boot(isAdmin) {
     if (!isAdmin) {
@@ -152,6 +159,8 @@ async function loadStats() {
 }
 
 /* ── TANLOVLAR ── */
+let contestsCache = {};
+
 async function loadContests() {
     const listEl = document.getElementById('contestsList');
     const selectEl = document.getElementById('reg-contest-select');
@@ -163,22 +172,30 @@ async function loadContests() {
         }
         let listHtml = '';
         let selectHtml = '<option value="">— tanlov tanlang —</option>';
+        contestsCache = {};
         snap.forEach((d) => {
             const c = d.data();
+            contestsCache[d.id] = c;
             const isOpen = c.status === 'open';
             const restrictions = [];
             if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}–${c.maxAge || '∞'}`);
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
+            const dates = [];
+            if (c.regStartDate || c.regEndDate) dates.push(`Ro'yxat: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
+            if (c.testDate) dates.push(`Test: ${formatDateTime(c.testDate)}`);
+            if (c.interviewDate) dates.push(`Suhbat: ${formatDateTime(c.interviewDate)}`);
             listHtml += `<div class="contest-item">
                 <div>
                     <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span></div>
                     <div class="d">${escapeHtml(c.description || '')}</div>
                     ${restrictions.length ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-filter"></i> ${escapeHtml(restrictions.join(' · '))}</div>` : ''}
+                    ${dates.length ? `<div class="d" style="color:var(--primary);margin-top:2px"><i class="fas fa-calendar-days"></i> ${escapeHtml(dates.join(' · '))}</div>` : ''}
                 </div>
                 <div style="display:flex;gap:8px">
                     <button class="btn ${isOpen ? 'btn-red' : 'btn-green'}" data-toggle="${d.id}" data-next="${isOpen ? 'closed' : 'open'}">
                         <i class="fas ${isOpen ? 'fa-lock' : 'fa-unlock'}"></i> ${isOpen ? 'Yopish' : 'Ochish'}
                     </button>
+                    <button class="btn btn-primary" data-edit-contest="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
                     <button class="btn btn-red" data-delete-contest="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`;
@@ -208,6 +225,26 @@ async function loadContests() {
             });
         });
 
+        listEl.querySelectorAll('[data-edit-contest]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const c = contestsCache[btn.dataset.editContest];
+                if (!c) return;
+                document.getElementById('c-edit-id').value = btn.dataset.editContest;
+                document.getElementById('c-title').value = c.title || '';
+                document.getElementById('c-desc').value = c.description || '';
+                document.getElementById('c-min-age').value = c.minAge ?? '';
+                document.getElementById('c-max-age').value = c.maxAge ?? '';
+                document.getElementById('c-grades').value = (c.grades && c.grades.length) ? c.grades.join(',') : '';
+                document.getElementById('c-reg-start').value = c.regStartDate || '';
+                document.getElementById('c-reg-end').value = c.regEndDate || '';
+                document.getElementById('c-test-date').value = c.testDate || '';
+                document.getElementById('c-interview-date').value = c.interviewDate || '';
+                document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
+                document.getElementById('c-cancel-edit-btn').style.display = '';
+                document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+
         listEl.querySelectorAll('[data-delete-contest]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 if (!confirm('Bu tanlovni butunlay o\u2018chirmoqchimisiz? Ro\u2018yxatdan o\u2018tganlar ma\u2019lumoti saqlanib qoladi, lekin tanlov ro\u2018yxatdan yo\u2018qoladi.')) return;
@@ -229,12 +266,34 @@ async function loadContests() {
     }
 }
 
+function resetContestForm() {
+    document.getElementById('c-edit-id').value = '';
+    document.getElementById('c-title').value = '';
+    document.getElementById('c-desc').value = '';
+    document.getElementById('c-min-age').value = '';
+    document.getElementById('c-max-age').value = '';
+    document.getElementById('c-grades').value = '';
+    document.getElementById('c-reg-start').value = '';
+    document.getElementById('c-reg-end').value = '';
+    document.getElementById('c-test-date').value = '';
+    document.getElementById('c-interview-date').value = '';
+    document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish va e\u2018lon qilish';
+    document.getElementById('c-cancel-edit-btn').style.display = 'none';
+}
+
+document.getElementById('c-cancel-edit-btn')?.addEventListener('click', resetContestForm);
+
 document.getElementById('c-create-btn').addEventListener('click', async () => {
+    const editId = document.getElementById('c-edit-id').value;
     const title = document.getElementById('c-title').value.trim();
     const desc = document.getElementById('c-desc').value.trim();
     const minAgeRaw = document.getElementById('c-min-age').value.trim();
     const maxAgeRaw = document.getElementById('c-max-age').value.trim();
     const gradesRaw = document.getElementById('c-grades').value.trim();
+    const regStartDate = document.getElementById('c-reg-start').value || null;
+    const regEndDate = document.getElementById('c-reg-end').value || null;
+    const testDate = document.getElementById('c-test-date').value || null;
+    const interviewDate = document.getElementById('c-interview-date').value || null;
     if (!title) {
         setStatus('Tanlov nomini kiriting.', 'error');
         return;
@@ -259,22 +318,30 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const btn = document.getElementById('c-create-btn');
     btn.disabled = true;
     try {
-        const ref = doc(collection(db, 'contests'));
-        await setDoc(ref, {
+        const payload = {
             title,
             description: desc,
-            status: 'open',
             minAge: minAgeRaw ? parseInt(minAgeRaw, 10) : null,
             maxAge: maxAgeRaw ? parseInt(maxAgeRaw, 10) : null,
             grades,
-            createdAt: serverTimestamp(),
-        });
-        document.getElementById('c-title').value = '';
-        document.getElementById('c-desc').value = '';
-        document.getElementById('c-min-age').value = '';
-        document.getElementById('c-max-age').value = '';
-        document.getElementById('c-grades').value = '';
-        setStatus('Tanlov yaratildi va e\u2018lon qilindi!', 'success');
+            regStartDate,
+            regEndDate,
+            testDate,
+            interviewDate,
+        };
+        if (editId) {
+            await updateDoc(doc(db, 'contests', editId), payload);
+            setStatus('Tanlov ma\u2019lumotlari yangilandi!', 'success');
+        } else {
+            const ref = doc(collection(db, 'contests'));
+            await setDoc(ref, {
+                ...payload,
+                status: 'open',
+                createdAt: serverTimestamp(),
+            });
+            setStatus('Tanlov yaratildi va e\u2018lon qilindi!', 'success');
+        }
+        resetContestForm();
         loadContests();
         loadStats();
     } catch (err) {
@@ -328,7 +395,8 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         let rows = '';
         list.forEach((r, i) => {
             const total = (r.score ?? 0) + (r.interviewScore ?? 0);
-            rows += `<tr>
+            const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
+            rows += `<tr data-row="${r.id}">
                 <td>${i + 1}</td>
                 <td>${escapeHtml(r.fullName)}</td>
                 <td><b>${escapeHtml(r.customId)}</b></td>
@@ -337,9 +405,15 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
                 <td>${escapeHtml(r.telefon)}</td>
                 <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" style="width:64px"></td>
                 <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" style="width:64px"></td>
-                <td><b>${total || '\u2014'}</b></td>
-                <td><button class="btn btn-primary" data-save="${r.id}"><i class="fas fa-save"></i></button></td>
-            </tr>`;
+                <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
+                <td style="white-space:nowrap">
+                    <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
+                    <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
+                </td>
+            </tr>
+            <tr data-retake-info="${r.id}"><td colspan="10" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
+                <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
+            </td></tr>`;
         });
         tableEl.innerHTML = `<table>
             <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Jami</th><th></th></tr></thead>
@@ -356,7 +430,44 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
                 btn.disabled = true;
                 try {
                     await updateDoc(doc(db, 'registrations', id), { score, interviewScore });
+                    // Jami ustunini sahifani qayta yuklamasdan darhol yangilaymiz
+                    const totalEl = tableEl.querySelector(`[data-total="${id}"]`);
+                    const newTotal = (score ?? 0) + (interviewScore ?? 0);
+                    if (totalEl) totalEl.textContent = newTotal || '\u2014';
+                    const cached = currentRegistrants.find((x) => x.id === id);
+                    if (cached) {
+                        cached.score = score;
+                        cached.interviewScore = interviewScore;
+                    }
                     setStatus('Ballar saqlandi.', 'success');
+                } catch (err) {
+                    console.error(err);
+                    setStatus('Xatolik yuz berdi.', 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        tableEl.querySelectorAll('[data-retake]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.retake;
+                const input = prompt('Ishtirokchi testni qaysi sanagacha qayta topshira olishi mumkin? (masalan: 2026-08-15 18:00). Bekor qilish uchun bo\u2018sh qoldirib OK bosing.');
+                if (input === null) return;
+                let retakeUntil = input.trim() || null;
+                if (retakeUntil && !retakeUntil.includes('T')) {
+                    // "YYYY-MM-DD HH:mm" ko'rinishini test.js bilan bir xil formatga keltiramiz
+                    retakeUntil = retakeUntil.replace(' ', 'T');
+                    if (!/T\d{2}:\d{2}/.test(retakeUntil)) retakeUntil += 'T23:59';
+                }
+                btn.disabled = true;
+                try {
+                    await updateDoc(doc(db, 'registrations', id), { retakeUntil });
+                    const labelEl = tableEl.querySelector(`[data-retake-label="${id}"]`);
+                    if (labelEl) labelEl.textContent = retakeUntil ? `Ruxsat: ${formatDateTime(retakeUntil)}` : 'Yo\u2018q';
+                    const cached = currentRegistrants.find((x) => x.id === id);
+                    if (cached) cached.retakeUntil = retakeUntil;
+                    setStatus(retakeUntil ? 'Qayta topshirish ruxsati berildi.' : 'Qayta topshirish ruxsati bekor qilindi.', 'success');
                 } catch (err) {
                     console.error(err);
                     setStatus('Xatolik yuz berdi.', 'error');
@@ -588,9 +699,15 @@ function parseQuestions(raw) {
         const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
         if (lines.length < 6) return; // savol + 4 variant + javob
         const text = lines[0];
+        let imageUrl = null;
         const options = [];
         let correctIndex = -1;
         lines.slice(1).forEach((line) => {
+            const imgMatch = line.match(/^Rasm:\s*(\S+)/i);
+            if (imgMatch) {
+                imageUrl = imgMatch[1].trim();
+                return;
+            }
             const optMatch = line.match(/^([A-D])\)\s*(.+)$/i);
             if (optMatch) {
                 options.push(optMatch[2].trim());
@@ -602,16 +719,93 @@ function parseQuestions(raw) {
             }
         });
         if (text && options.length === 4 && correctIndex >= 0) {
-            questions.push({ id: 'q' + idx, text, options, correctIndex });
+            const q = { id: 'q' + idx, text, options, correctIndex };
+            if (imageUrl) q.imageUrl = imageUrl;
+            questions.push(q);
         }
     });
     return questions;
 }
 
+// Saqlangan savollar tuzilmasidan tahrirlash uchun matn qayta tiklanadi
+function questionsToRaw(questions) {
+    return questions
+        .map((q) => {
+            const lines = [q.text];
+            if (q.imageUrl) lines.push(`Rasm: ${q.imageUrl}`);
+            q.options.forEach((opt, i) => lines.push(`${'ABCD'[i]}) ${opt}`));
+            lines.push(`Javob: ${'ABCD'[q.correctIndex] || 'A'}`);
+            return lines.join('\n');
+        })
+        .join('\n---\n');
+}
+
+function resetTestForm() {
+    document.getElementById('t-edit-id').value = '';
+    document.getElementById('t-title').value = '';
+    document.getElementById('t-questions').value = '';
+    document.getElementById('t-time-limit').value = '20';
+    document.getElementById('t-questions-per-attempt').value = '';
+    document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> Testni yaratish va e\u2018lon qilish';
+    document.getElementById('t-cancel-edit-btn').style.display = 'none';
+}
+
+document.getElementById('t-cancel-edit-btn')?.addEventListener('click', resetTestForm);
+
+/* ── SAVOL RASMINI FAYLDAN YUKLASH ── */
+document.getElementById('t-image-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    const statusEl = document.getElementById('t-image-upload-status');
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        statusEl.textContent = 'Faqat rasm fayllarini yuklash mumkin.';
+        statusEl.style.color = 'var(--red)';
+        return;
+    }
+    statusEl.textContent = 'Yuklanmoqda va siqilmoqda...';
+    statusEl.style.color = 'var(--muted)';
+
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => {
+        img.onload = () => {
+            // Firestore hujjat hajmi cheklangani uchun rasmni kichraytirib, siqib olamiz
+            const maxWidth = 700;
+            const scale = Math.min(1, maxWidth / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
+            const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
+
+            const textarea = document.getElementById('t-questions');
+            const start = textarea.selectionStart ?? textarea.value.length;
+            const end = textarea.selectionEnd ?? textarea.value.length;
+            const line = `Rasm: ${dataUrl}\n`;
+            textarea.value = textarea.value.slice(0, start) + line + textarea.value.slice(end);
+            textarea.selectionStart = textarea.selectionEnd = start + line.length;
+
+            statusEl.textContent = `Rasm qo\u2018shildi (\u2248${sizeKb} KB). Kursor qo\u2018yilgan joyga "Rasm:" qatori yozildi \u2014 uni savol matnidan keyin, variantlardan oldin joylashganiga ishonch hosil qiling.`;
+            statusEl.style.color = 'var(--green)';
+            if (sizeKb > 250) {
+                statusEl.textContent += ' Diqqat: rasm biroz katta, juda ko\u2018p rasmli savol bir testda hujjat hajmi chegarasiga tegishi mumkin \u2014 iloji boricha kichikroq/aniqroq rasm tanlang.';
+                statusEl.style.color = 'var(--orange)';
+            }
+            document.getElementById('t-image-upload').value = '';
+        };
+        img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+});
+
 document.getElementById('t-create-btn')?.addEventListener('click', async () => {
+    const editId = document.getElementById('t-edit-id').value;
     const contestId = document.getElementById('t-contest-select').value;
     const title = document.getElementById('t-title').value.trim();
     const timeLimitMinutes = parseInt(document.getElementById('t-time-limit').value, 10) || 20;
+    const perAttemptRaw = document.getElementById('t-questions-per-attempt').value.trim();
     const rawQuestions = document.getElementById('t-questions').value;
 
     if (!contestId) {
@@ -627,20 +821,25 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
         setStatus('Savollar formatida xatolik bor. Namunani tekshiring.', 'error');
         return;
     }
+    const questionsPerAttempt = perAttemptRaw ? Math.max(1, parseInt(perAttemptRaw, 10)) : null;
 
     const btn = document.getElementById('t-create-btn');
     btn.disabled = true;
     try {
-        await setDoc(doc(db, 'tests', contestId), {
+        // Testlar tanlov ID'si bo'yicha saqlanadi (bir tanlov — bitta savollar bazasi),
+        // lekin har bir ishtirokchiga shu bazadan tasodifiy tanlangan savollar beriladi.
+        const testDocId = editId || contestId;
+        await setDoc(doc(db, 'tests', testDocId), {
+            contestId,
             title,
             timeLimitMinutes,
+            questionsPerAttempt,
             questions,
             published: true,
             createdAt: serverTimestamp(),
-        });
-        setStatus(`Test yaratildi! ${questions.length} ta savol qo\u2018shildi.`, 'success');
-        document.getElementById('t-title').value = '';
-        document.getElementById('t-questions').value = '';
+        }, { merge: true });
+        setStatus(editId ? 'Test yangilandi!' : `Test yaratildi! ${questions.length} ta savol qo\u2018shildi.`, 'success');
+        resetTestForm();
         loadTests();
     } catch (err) {
         console.error(err);
@@ -650,21 +849,45 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
     }
 });
 
+let testsCache = {};
+
 async function loadTests() {
     const listEl = document.getElementById('testsList');
     try {
         const snap = await getDocs(collection(db, 'tests'));
         if (snap.empty) {
             listEl.innerHTML = '<div class="empty">Hali test yaratilmagan.</div>';
+            testsCache = {};
             return;
         }
+        testsCache = {};
         let html = '';
         snap.forEach((d) => {
             const t = d.data();
-            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol, ${t.timeLimitMinutes} daqiqa</span>
-                <button class="btn btn-red" data-del-test="${d.id}"><i class="fas fa-trash"></i></button></div>`;
+            testsCache[d.id] = t;
+            const perAttempt = t.questionsPerAttempt ? `${t.questionsPerAttempt} ta beriladi` : 'hammasi beriladi';
+            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttempt)}), ${t.timeLimitMinutes} daqiqa</span>
+                <span style="display:flex;gap:8px">
+                    <button class="btn btn-primary" data-edit-test="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
+                    <button class="btn btn-red" data-del-test="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
+                </span></div>`;
         });
         listEl.innerHTML = html;
+        listEl.querySelectorAll('[data-edit-test]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const t = testsCache[btn.dataset.editTest];
+                if (!t) return;
+                document.getElementById('t-edit-id').value = btn.dataset.editTest;
+                document.getElementById('t-contest-select').value = t.contestId || btn.dataset.editTest;
+                document.getElementById('t-title').value = t.title || '';
+                document.getElementById('t-time-limit').value = t.timeLimitMinutes || 20;
+                document.getElementById('t-questions-per-attempt').value = t.questionsPerAttempt || '';
+                document.getElementById('t-questions').value = questionsToRaw(t.questions || []);
+                document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
+                document.getElementById('t-cancel-edit-btn').style.display = '';
+                document.getElementById('t-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
         listEl.querySelectorAll('[data-del-test]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 if (!confirm('Bu testni o\u2018chirmoqchimisiz?')) return;
