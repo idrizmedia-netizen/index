@@ -94,6 +94,7 @@ async function boot(isAdmin) {
     loadUsers();
     loadSiteContent();
     loadTests();
+    loadMeetLinks();
     if (window.ZiyomapIsOwner) loadAdmins();
 }
 
@@ -182,8 +183,8 @@ async function loadContests() {
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
             const dates = [];
             if (c.regStartDate || c.regEndDate) dates.push(`Ro'yxat: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
-            if (c.testDate) dates.push(`Test: ${formatDateTime(c.testDate)}`);
-            if (c.interviewDate) dates.push(`Suhbat: ${formatDateTime(c.interviewDate)}`);
+            if (c.testWindowStart || c.testWindowEnd) dates.push(`Test: ${formatDateTime(c.testWindowStart)} \u2013 ${formatDateTime(c.testWindowEnd)}`);
+            if (c.interviewWindowStart || c.interviewWindowEnd) dates.push(`Suhbat: ${formatDateTime(c.interviewWindowStart)} \u2013 ${formatDateTime(c.interviewWindowEnd)}`);
             listHtml += `<div class="contest-item">
                 <div>
                     <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span></div>
@@ -237,8 +238,14 @@ async function loadContests() {
                 document.getElementById('c-grades').value = (c.grades && c.grades.length) ? c.grades.join(',') : '';
                 document.getElementById('c-reg-start').value = c.regStartDate || '';
                 document.getElementById('c-reg-end').value = c.regEndDate || '';
-                document.getElementById('c-test-date').value = c.testDate || '';
-                document.getElementById('c-interview-date').value = c.interviewDate || '';
+                document.getElementById('c-test-window-start').value = c.testWindowStart || '';
+                document.getElementById('c-test-window-end').value = c.testWindowEnd || '';
+                document.getElementById('c-test-slot-minutes').value = c.testSlotMinutes || 30;
+                document.getElementById('c-test-slot-capacity').value = c.testSlotCapacity || 15;
+                document.getElementById('c-interview-window-start').value = c.interviewWindowStart || '';
+                document.getElementById('c-interview-window-end').value = c.interviewWindowEnd || '';
+                document.getElementById('c-interview-slot-minutes').value = c.interviewSlotMinutes || 15;
+                document.getElementById('c-interview-slot-capacity').value = c.interviewSlotCapacity || 1;
                 document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
                 document.getElementById('c-cancel-edit-btn').style.display = '';
                 document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -275,8 +282,14 @@ function resetContestForm() {
     document.getElementById('c-grades').value = '';
     document.getElementById('c-reg-start').value = '';
     document.getElementById('c-reg-end').value = '';
-    document.getElementById('c-test-date').value = '';
-    document.getElementById('c-interview-date').value = '';
+    document.getElementById('c-test-window-start').value = '';
+    document.getElementById('c-test-window-end').value = '';
+    document.getElementById('c-test-slot-minutes').value = '30';
+    document.getElementById('c-test-slot-capacity').value = '15';
+    document.getElementById('c-interview-window-start').value = '';
+    document.getElementById('c-interview-window-end').value = '';
+    document.getElementById('c-interview-slot-minutes').value = '15';
+    document.getElementById('c-interview-slot-capacity').value = '1';
     document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish va e\u2018lon qilish';
     document.getElementById('c-cancel-edit-btn').style.display = 'none';
 }
@@ -292,8 +305,14 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const gradesRaw = document.getElementById('c-grades').value.trim();
     const regStartDate = document.getElementById('c-reg-start').value || null;
     const regEndDate = document.getElementById('c-reg-end').value || null;
-    const testDate = document.getElementById('c-test-date').value || null;
-    const interviewDate = document.getElementById('c-interview-date').value || null;
+    const testWindowStart = document.getElementById('c-test-window-start').value || null;
+    const testWindowEnd = document.getElementById('c-test-window-end').value || null;
+    const testSlotMinutes = parseInt(document.getElementById('c-test-slot-minutes').value, 10) || 30;
+    const testSlotCapacity = parseInt(document.getElementById('c-test-slot-capacity').value, 10) || 15;
+    const interviewWindowStart = document.getElementById('c-interview-window-start').value || null;
+    const interviewWindowEnd = document.getElementById('c-interview-window-end').value || null;
+    const interviewSlotMinutes = parseInt(document.getElementById('c-interview-slot-minutes').value, 10) || 15;
+    const interviewSlotCapacity = parseInt(document.getElementById('c-interview-slot-capacity').value, 10) || 1;
     if (!title) {
         setStatus('Tanlov nomini kiriting.', 'error');
         return;
@@ -326,8 +345,14 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             grades,
             regStartDate,
             regEndDate,
-            testDate,
-            interviewDate,
+            testWindowStart,
+            testWindowEnd,
+            testSlotMinutes,
+            testSlotCapacity,
+            interviewWindowStart,
+            interviewWindowEnd,
+            interviewSlotMinutes,
+            interviewSlotCapacity,
         };
         if (editId) {
             await updateDoc(doc(db, 'contests', editId), payload);
@@ -363,16 +388,22 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
     const tableEl = document.getElementById('registrantsTable');
     const exportBtn = document.getElementById('export-excel-btn');
     const publishBtn = document.getElementById('publish-leaderboard-btn');
+    const autoScheduleBtn = document.getElementById('auto-schedule-btn');
+    const autoScheduleStatus = document.getElementById('auto-schedule-status');
     currentContestId = contestId;
     if (!contestId) {
         tableEl.innerHTML = '<div class="empty">Yuqorida tanlov tanlang</div>';
         if (exportBtn) exportBtn.style.display = 'none';
         if (publishBtn) publishBtn.style.display = 'none';
+        if (autoScheduleBtn) autoScheduleBtn.style.display = 'none';
+        if (autoScheduleStatus) autoScheduleStatus.textContent = '';
         return;
     }
     tableEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
     if (exportBtn) exportBtn.style.display = 'none';
     if (publishBtn) publishBtn.style.display = 'none';
+    if (autoScheduleBtn) autoScheduleBtn.style.display = 'none';
+    if (autoScheduleStatus) autoScheduleStatus.textContent = '';
     try {
         const snap = await getDocs(
             query(collection(db, 'registrations'), where('contestId', '==', contestId))
@@ -391,6 +422,7 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         currentContestTitle = contestTitle;
         if (exportBtn) exportBtn.style.display = '';
         if (publishBtn) publishBtn.style.display = '';
+        if (autoScheduleBtn) autoScheduleBtn.style.display = '';
 
         let rows = '';
         list.forEach((r, i) => {
@@ -479,6 +511,99 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
     } catch (err) {
         console.error(err);
         tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+});
+
+function toLocalInputValue(d) {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// windowStart/windowEnd - "YYYY-MM-DDTHH:mm" ko'rinishidagi qatorlar (datetime-local formati)
+// Har bir ishtirokchiga navbat bilan slot beriladi; bitta slotda "capacity" tagacha kishi bo'lishi mumkin.
+// Agar ishtirokchilar soni oynani to'ldirib yuborsa, slotlar oyna tugagandan keyin ham davom etadi (bu holda ogohlantirish beriladi).
+function buildScheduleAssignments(windowStartStr, windowEndStr, slotMinutes, capacity, count) {
+    const assignments = [];
+    if (!windowStartStr || !count) return { assignments, overflowed: false };
+    const windowStart = new Date(windowStartStr);
+    const windowEnd = windowEndStr ? new Date(windowEndStr) : null;
+    const slotMs = Math.max(5, slotMinutes) * 60000;
+    let slotStart = new Date(windowStart);
+    let overflowed = false;
+    let idx = 0;
+    while (idx < count) {
+        const slotEnd = new Date(slotStart.getTime() + slotMs);
+        if (windowEnd && slotStart >= windowEnd) overflowed = true;
+        for (let c = 0; c < Math.max(1, capacity) && idx < count; c++, idx++) {
+            assignments.push({ start: toLocalInputValue(slotStart), end: toLocalInputValue(slotEnd) });
+        }
+        slotStart = slotEnd;
+    }
+    return { assignments, overflowed };
+}
+
+document.getElementById('auto-schedule-btn')?.addEventListener('click', async () => {
+    if (!currentContestId || !currentRegistrants.length) return;
+    const statusEl = document.getElementById('auto-schedule-status');
+    const btn = document.getElementById('auto-schedule-btn');
+    btn.disabled = true;
+    statusEl.textContent = 'Hisoblanmoqda...';
+    try {
+        const contestSnap = await getDoc(doc(db, 'contests', currentContestId));
+        if (!contestSnap.exists()) throw new Error('Tanlov topilmadi');
+        const c = contestSnap.data();
+        if (!c.testWindowStart && !c.interviewWindowStart) {
+            statusEl.textContent = 'Avval "Tanlovlar" bo\u2018limida test va/yoki suhbat vaqti oynasini kiriting.';
+            statusEl.style.color = 'var(--red)';
+            btn.disabled = false;
+            return;
+        }
+
+        const n = currentRegistrants.length;
+        const testResult = buildScheduleAssignments(c.testWindowStart, c.testWindowEnd, c.testSlotMinutes || 30, c.testSlotCapacity || 15, n);
+        const interviewResult = buildScheduleAssignments(c.interviewWindowStart, c.interviewWindowEnd, c.interviewSlotMinutes || 15, c.interviewSlotCapacity || 1, n);
+
+        // Ishtirokchilarni ro'yxatdan o'tgan tartibda (eng birinchi bo'lib o'tganlar birinchi slotlarga) taqsimlaymiz
+        const chunks = [];
+        for (let i = 0; i < n; i += 400) chunks.push(currentRegistrants.slice(i, i + 400));
+
+        let written = 0;
+        for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach((r, localIdx) => {
+                const globalIdx = written + localIdx;
+                const payload = {};
+                if (testResult.assignments[globalIdx]) {
+                    payload.assignedTestStart = testResult.assignments[globalIdx].start;
+                    payload.assignedTestEnd = testResult.assignments[globalIdx].end;
+                }
+                if (interviewResult.assignments[globalIdx]) {
+                    payload.assignedInterviewStart = interviewResult.assignments[globalIdx].start;
+                    payload.assignedInterviewEnd = interviewResult.assignments[globalIdx].end;
+                }
+                if (Object.keys(payload).length) batch.update(doc(db, 'registrations', r.id), payload);
+                Object.assign(r, payload); // mahalliy keshni ham yangilaymiz
+            });
+            await batch.commit();
+            written += chunk.length;
+        }
+
+        let msg = `${n} ta ishtirokchiga vaqt biriktirildi.`;
+        if (testResult.assignments.length) msg += ` Test uchun ${Math.ceil(n / (c.testSlotCapacity || 15))} ta slot ishlatildi.`;
+        if (interviewResult.assignments.length) msg += ` Suhbat uchun ${Math.ceil(n / (c.interviewSlotCapacity || 1))} ta slot ishlatildi.`;
+        if (testResult.overflowed || interviewResult.overflowed) {
+            msg += ' Diqqat: ishtirokchilar soni ko\u2018pligi sababli ba\u2018zi slotlar belgilangan oyna tugash vaqtidan keyin ham davom etdi \u2014 oynani kengaytirishni yoki slot sig\u2018imini oshirishni ko\u2018rib chiqing.';
+            statusEl.style.color = 'var(--orange)';
+        } else {
+            statusEl.style.color = 'var(--green)';
+        }
+        statusEl.textContent = msg;
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Xatolik yuz berdi.';
+        statusEl.style.color = 'var(--red)';
+    } finally {
+        btn.disabled = false;
     }
 });
 
@@ -977,11 +1102,16 @@ document.getElementById('t-sync-scores-btn')?.addEventListener('click', async ()
 document.getElementById('meet-contest-select')?.addEventListener('change', async (e) => {
     const contestId = e.target.value;
     const input = document.getElementById('meet-link-input');
+    const enabledInput = document.getElementById('meet-enabled-input');
     input.value = '';
+    enabledInput.checked = true;
     if (!contestId) return;
     try {
         const snap = await getDoc(doc(db, 'contests', contestId));
-        if (snap.exists()) input.value = snap.data().meetLink || '';
+        if (snap.exists()) {
+            input.value = snap.data().meetLink || '';
+            enabledInput.checked = snap.data().meetLinkEnabled !== false;
+        }
     } catch (err) {
         console.error(err);
     }
@@ -990,6 +1120,7 @@ document.getElementById('meet-contest-select')?.addEventListener('change', async
 document.getElementById('meet-save-btn')?.addEventListener('click', async () => {
     const contestId = document.getElementById('meet-contest-select').value;
     const meetLink = document.getElementById('meet-link-input').value.trim();
+    const meetLinkEnabled = document.getElementById('meet-enabled-input').checked;
     if (!contestId) {
         setStatus('Tanlovni tanlang.', 'error');
         return;
@@ -997,8 +1128,9 @@ document.getElementById('meet-save-btn')?.addEventListener('click', async () => 
     const btn = document.getElementById('meet-save-btn');
     btn.disabled = true;
     try {
-        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null });
+        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null, meetLinkEnabled });
         setStatus('Suhbat havolasi saqlandi!', 'success');
+        loadMeetLinks();
     } catch (err) {
         console.error(err);
         setStatus('Xatolik yuz berdi.', 'error');
@@ -1006,6 +1138,57 @@ document.getElementById('meet-save-btn')?.addEventListener('click', async () => 
         btn.disabled = false;
     }
 });
+
+async function loadMeetLinks() {
+    const listEl = document.getElementById('meetLinksList');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+    try {
+        const snap = await getDocs(collection(db, 'contests'));
+        let html = '';
+        snap.forEach((d) => {
+            const c = d.data();
+            if (!c.meetLink) return;
+            const enabled = c.meetLinkEnabled !== false;
+            html += `<div class="admin-row">
+                <span><b>${escapeHtml(c.title)}</b><br><a href="${escapeHtml(c.meetLink)}" target="_blank" rel="noopener" style="font-size:0.8rem">${escapeHtml(c.meetLink)}</a>
+                    <span class="badge ${enabled ? 'open' : 'closed'}" style="margin-left:6px">${enabled ? 'OCHIQ' : 'YOPIQ'}</span></span>
+                <span style="display:flex;gap:8px">
+                    <button class="btn ${enabled ? 'btn-red' : 'btn-green'}" data-toggle-meet="${d.id}" data-next="${!enabled}" title="${enabled ? 'Yopish' : 'Ochish'}"><i class="fas ${enabled ? 'fa-lock' : 'fa-unlock'}"></i></button>
+                    <button class="btn btn-primary" data-edit-meet="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
+                    <button class="btn btn-red" data-delete-meet="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
+                </span>
+            </div>`;
+        });
+        listEl.innerHTML = html || '<div class="empty">Hali birorta suhbat havolasi qo\u2018shilmagan.</div>';
+
+        listEl.querySelectorAll('[data-toggle-meet]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const next = btn.dataset.next === 'true';
+                await updateDoc(doc(db, 'contests', btn.dataset.toggleMeet), { meetLinkEnabled: next });
+                loadMeetLinks();
+            });
+        });
+        listEl.querySelectorAll('[data-edit-meet]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const select = document.getElementById('meet-contest-select');
+                select.value = btn.dataset.editMeet;
+                select.dispatchEvent(new Event('change'));
+                select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        });
+        listEl.querySelectorAll('[data-delete-meet]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Bu suhbat havolasini o\u2018chirmoqchimisiz?')) return;
+                await updateDoc(doc(db, 'contests', btn.dataset.deleteMeet), { meetLink: null, meetLinkEnabled: null });
+                loadMeetLinks();
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+}
 
 /* ── ADMINLAR (faqat owner) ── */
 document.getElementById('a-add-btn')?.addEventListener('click', async () => {
