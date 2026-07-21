@@ -163,6 +163,11 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
       <h3><i class="fas fa-chart-column"></i> Bo'limlar bo'yicha ishlatilish</h3>
       <div id="usageStatsList"><div class="empty">Yuklanmoqda...</div></div>
     </div>
+    <div class="card">
+      <h3><i class="fas fa-chart-simple"></i> Tanlov bo'yicha statistika</h3>
+      <select id="stats-contest-select"><option value="">— tanlov tanlang —</option></select>
+      <div id="contestStatsBox" style="margin-top:18px"></div>
+    </div>
   </div>
 
   <!-- TANLOVLAR -->
@@ -251,12 +256,15 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
       <div class="field">
         <label>Savollar (quyidagi formatda kiriting)</label>
         <textarea id="t-questions" rows="12" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="Nyutonning 1-qonuni haqida nima deyiladi?
-Rasm: https://... (ixtiyoriy, savol rasmi bo'lsa)
+Daraja: o'rta (ixtiyoriy: oson / o'rta / qiyin)
 A) Jism tezlanadi
 B) Kuch ta'sir etmasa, jism tinch yoki notekis harakatda qoladi
 C) Har doim tortishish kuchi bor
 D) Energiya yo'qoladi
 Javob: B
+---
+Fikringizcha, gravitatsiya nima uchun muhim?
+Turi: ochiq
 ---
 Ikkinchi savol matni?
 A) variant
@@ -264,7 +272,7 @@ B) variant
 C) variant
 D) variant
 Javob: A"></textarea>
-        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Har birida 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart. Rasmli savol uchun ixtiyoriy "Rasm: &lt;havola&gt;" qatorini savol matnidan keyin qo'shing (masalan Imgur havolasi).</p>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Oddiy (test) savolda 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart. Rasmli savol uchun ixtiyoriy "Rasm: &lt;havola&gt;" qatorini qo'shing. Qiyinlik darajasini "Daraja: oson/o'rta/qiyin" bilan belgilang (bo'lmasa "o'rta" deb olinadi) — tizim savol berayotganda darajalar bo'yicha muvozanatlab tanlaydi. Ochiq (erkin javobli, qo'lda baholanadigan) savol uchun variant/javob yozmasdan "Turi: ochiq" qatorini qo'shing.</p>
         <div class="field" style="margin-top:10px">
           <label>Yoki: kursorni savol ichiga qo'yib, rasmni shu yerdan yuklang</label>
           <input type="file" id="t-image-upload" accept="image/*">
