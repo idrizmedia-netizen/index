@@ -226,10 +226,18 @@ async function openContest(contest, showBack) {
         const familiya = document.getElementById('f-familiya').value.trim();
         const ism = document.getElementById('f-ism').value.trim();
         const sharif = document.getElementById('f-sharif').value.trim();
+        const viloyat = document.getElementById('f-viloyat').value;
+        const tuman = document.getElementById('f-tuman').value;
         const maktab = document.getElementById('f-maktab').value.trim();
         const yosh = parseInt(document.getElementById('f-yosh').value, 10);
         const sinf = document.getElementById('f-sinf').value ? parseInt(document.getElementById('f-sinf').value, 10) : null;
         const telefon = document.getElementById('f-tel').value.trim();
+
+        if (!viloyat || !tuman) {
+            setStatus('Iltimos, viloyat va tuman/shaharni tanlang.', 'error');
+            submitBtn.disabled = false;
+            return;
+        }
 
         if (contest.minAge && yosh < contest.minAge) {
             setStatus(`Bu tanlov uchun yosh chegarasi: ${contest.minAge} dan boshlab.`, 'error');
@@ -259,6 +267,8 @@ async function openContest(contest, showBack) {
                 ism,
                 sharif,
                 fullName: `${familiya} ${ism} ${sharif}`.trim(),
+                viloyat,
+                tuman,
                 maktab,
                 yosh,
                 sinf,
@@ -381,6 +391,34 @@ async function showAlreadyRegistered(customId, cId, regData) {
         console.error('Test tekshirishda xatolik:', err);
     }
 }
+
+// ── Viloyat / Tuman tanlash (statik ma'lumot, Firebase kerak emas) ──
+function setupHududSelects() {
+    const viloyatSelect = document.getElementById('f-viloyat');
+    const tumanSelect = document.getElementById('f-tuman');
+    if (!viloyatSelect || !tumanSelect || !window.UZ_HUDUDLAR) return;
+
+    Object.keys(window.UZ_HUDUDLAR).forEach((viloyat) => {
+        const opt = document.createElement('option');
+        opt.value = viloyat;
+        opt.textContent = viloyat;
+        viloyatSelect.appendChild(opt);
+    });
+
+    viloyatSelect.addEventListener('change', () => {
+        const tumanlar = window.UZ_HUDUDLAR[viloyatSelect.value] || [];
+        tumanSelect.innerHTML = tumanlar.length
+            ? '<option value="">— tanlang —</option>'
+            : '<option value="">— avval viloyatni tanlang —</option>';
+        tumanlar.forEach((tuman) => {
+            const opt = document.createElement('option');
+            opt.value = tuman;
+            opt.textContent = tuman;
+            tumanSelect.appendChild(opt);
+        });
+    });
+}
+setupHududSelects();
 
 async function init() {
     hideAll();
