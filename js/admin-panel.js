@@ -423,95 +423,119 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         if (exportBtn) exportBtn.style.display = '';
         if (publishBtn) publishBtn.style.display = '';
         if (autoScheduleBtn) autoScheduleBtn.style.display = '';
+        const searchInput = document.getElementById('registrants-search');
+        if (searchInput) searchInput.value = '';
 
-        let rows = '';
-        list.forEach((r, i) => {
-            const total = (r.score ?? 0) + (r.interviewScore ?? 0);
-            const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
-            rows += `<tr data-row="${r.id}">
-                <td>${i + 1}</td>
-                <td>${escapeHtml(r.fullName)}</td>
-                <td><b>${escapeHtml(r.customId)}</b></td>
-                <td>${escapeHtml(r.maktab)}</td>
-                <td>${escapeHtml(r.yosh)}</td>
-                <td>${escapeHtml(r.telefon)}</td>
-                <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" style="width:64px"></td>
-                <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" style="width:64px"></td>
-                <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
-                <td style="white-space:nowrap">
-                    <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
-                    <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
-                </td>
-            </tr>
-            <tr data-retake-info="${r.id}"><td colspan="10" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
-                <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
-            </td></tr>`;
-        });
-        tableEl.innerHTML = `<table>
-            <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Jami</th><th></th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table>`;
-
-        tableEl.querySelectorAll('[data-save]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const id = btn.dataset.save;
-                const scoreInput = tableEl.querySelector(`[data-score="${id}"]`);
-                const interviewInput = tableEl.querySelector(`[data-interview="${id}"]`);
-                const score = scoreInput.value === '' ? null : parseFloat(scoreInput.value);
-                const interviewScore = interviewInput.value === '' ? null : parseFloat(interviewInput.value);
-                btn.disabled = true;
-                try {
-                    await updateDoc(doc(db, 'registrations', id), { score, interviewScore });
-                    // Jami ustunini sahifani qayta yuklamasdan darhol yangilaymiz
-                    const totalEl = tableEl.querySelector(`[data-total="${id}"]`);
-                    const newTotal = (score ?? 0) + (interviewScore ?? 0);
-                    if (totalEl) totalEl.textContent = newTotal || '\u2014';
-                    const cached = currentRegistrants.find((x) => x.id === id);
-                    if (cached) {
-                        cached.score = score;
-                        cached.interviewScore = interviewScore;
-                    }
-                    setStatus('Ballar saqlandi.', 'success');
-                } catch (err) {
-                    console.error(err);
-                    setStatus('Xatolik yuz berdi.', 'error');
-                } finally {
-                    btn.disabled = false;
-                }
-            });
-        });
-
-        tableEl.querySelectorAll('[data-retake]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const id = btn.dataset.retake;
-                const input = prompt('Ishtirokchi testni qaysi sanagacha qayta topshira olishi mumkin? (masalan: 2026-08-15 18:00). Bekor qilish uchun bo\u2018sh qoldirib OK bosing.');
-                if (input === null) return;
-                let retakeUntil = input.trim() || null;
-                if (retakeUntil && !retakeUntil.includes('T')) {
-                    // "YYYY-MM-DD HH:mm" ko'rinishini test.js bilan bir xil formatga keltiramiz
-                    retakeUntil = retakeUntil.replace(' ', 'T');
-                    if (!/T\d{2}:\d{2}/.test(retakeUntil)) retakeUntil += 'T23:59';
-                }
-                btn.disabled = true;
-                try {
-                    await updateDoc(doc(db, 'registrations', id), { retakeUntil });
-                    const labelEl = tableEl.querySelector(`[data-retake-label="${id}"]`);
-                    if (labelEl) labelEl.textContent = retakeUntil ? `Ruxsat: ${formatDateTime(retakeUntil)}` : 'Yo\u2018q';
-                    const cached = currentRegistrants.find((x) => x.id === id);
-                    if (cached) cached.retakeUntil = retakeUntil;
-                    setStatus(retakeUntil ? 'Qayta topshirish ruxsati berildi.' : 'Qayta topshirish ruxsati bekor qilindi.', 'success');
-                } catch (err) {
-                    console.error(err);
-                    setStatus('Xatolik yuz berdi.', 'error');
-                } finally {
-                    btn.disabled = false;
-                }
-            });
-        });
+        renderRegistrantsTable(list);
     } catch (err) {
         console.error(err);
         tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
     }
+});
+
+function renderRegistrantsTable(list) {
+    const tableEl = document.getElementById('registrantsTable');
+    if (!list.length) {
+        tableEl.innerHTML = '<div class="empty">Mos ishtirokchi topilmadi.</div>';
+        return;
+    }
+    let rows = '';
+    list.forEach((r, i) => {
+        const total = (r.score ?? 0) + (r.interviewScore ?? 0);
+        const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
+        rows += `<tr data-row="${r.id}">
+            <td>${i + 1}</td>
+            <td>${escapeHtml(r.fullName)}</td>
+            <td><b>${escapeHtml(r.customId)}</b></td>
+            <td>${escapeHtml(r.maktab)}${(r.viloyat || r.tuman) ? `<br><span style="color:var(--muted);font-size:0.75rem">${escapeHtml([r.tuman, r.viloyat].filter(Boolean).join(', '))}</span>` : ''}</td>
+            <td>${escapeHtml(r.yosh)}</td>
+            <td>${escapeHtml(r.telefon)}</td>
+            <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" style="width:64px"></td>
+            <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" style="width:64px"></td>
+            <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
+            <td style="white-space:nowrap">
+                <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
+                <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
+            </td>
+        </tr>
+        <tr data-retake-info="${r.id}"><td colspan="10" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
+            <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
+        </td></tr>`;
+    });
+    tableEl.innerHTML = `<table>
+        <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Jami</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+
+    tableEl.querySelectorAll('[data-save]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.save;
+            const scoreInput = tableEl.querySelector(`[data-score="${id}"]`);
+            const interviewInput = tableEl.querySelector(`[data-interview="${id}"]`);
+            const score = scoreInput.value === '' ? null : parseFloat(scoreInput.value);
+            const interviewScore = interviewInput.value === '' ? null : parseFloat(interviewInput.value);
+            btn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'registrations', id), { score, interviewScore });
+                // Jami ustunini sahifani qayta yuklamasdan darhol yangilaymiz
+                const totalEl = tableEl.querySelector(`[data-total="${id}"]`);
+                const newTotal = (score ?? 0) + (interviewScore ?? 0);
+                if (totalEl) totalEl.textContent = newTotal || '\u2014';
+                const cached = currentRegistrants.find((x) => x.id === id);
+                if (cached) {
+                    cached.score = score;
+                    cached.interviewScore = interviewScore;
+                }
+                setStatus('Ballar saqlandi.', 'success');
+            } catch (err) {
+                console.error(err);
+                setStatus('Xatolik yuz berdi.', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+
+    tableEl.querySelectorAll('[data-retake]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.retake;
+            const input = prompt('Ishtirokchi testni qaysi sanagacha qayta topshira olishi mumkin? (masalan: 2026-08-15 18:00). Bekor qilish uchun bo\u2018sh qoldirib OK bosing.');
+            if (input === null) return;
+            let retakeUntil = input.trim() || null;
+            if (retakeUntil && !retakeUntil.includes('T')) {
+                // "YYYY-MM-DD HH:mm" ko'rinishini test.js bilan bir xil formatga keltiramiz
+                retakeUntil = retakeUntil.replace(' ', 'T');
+                if (!/T\d{2}:\d{2}/.test(retakeUntil)) retakeUntil += 'T23:59';
+            }
+            btn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'registrations', id), { retakeUntil });
+                const labelEl = tableEl.querySelector(`[data-retake-label="${id}"]`);
+                if (labelEl) labelEl.textContent = retakeUntil ? `Ruxsat: ${formatDateTime(retakeUntil)}` : 'Yo\u2018q';
+                const cached = currentRegistrants.find((x) => x.id === id);
+                if (cached) cached.retakeUntil = retakeUntil;
+                setStatus(retakeUntil ? 'Qayta topshirish ruxsati berildi.' : 'Qayta topshirish ruxsati bekor qilindi.', 'success');
+            } catch (err) {
+                console.error(err);
+                setStatus('Xatolik yuz berdi.', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    });
+}
+
+document.getElementById('registrants-search')?.addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    if (!currentRegistrants.length) return;
+    if (!q) {
+        renderRegistrantsTable(currentRegistrants);
+        return;
+    }
+    const filtered = currentRegistrants.filter((r) =>
+        [r.fullName, r.customId, r.maktab, r.viloyat, r.tuman, r.telefon].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))
+    );
+    renderRegistrantsTable(filtered);
 });
 
 function toLocalInputValue(d) {
@@ -660,6 +684,8 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
         '№': i + 1,
         'F.I.Sh': r.fullName,
         ID: r.customId,
+        Viloyat: r.viloyat || '',
+        'Tuman/shahar': r.tuman || '',
         Maktabi: r.maktab,
         Yoshi: r.yosh,
         'Telefon raqami': r.telefon,
@@ -668,7 +694,7 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
         Jami: (r.score ?? 0) + (r.interviewScore ?? 0),
     }));
     const ws = window.XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb, ws, 'Ishtirokchilar');
     const safeTitle = (currentContestTitle || 'tanlov').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40);
