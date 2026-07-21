@@ -21,6 +21,32 @@
         return d.innerHTML;
     }
 
+    function updateCountdowns(container) {
+        if (!container) return;
+        container.querySelectorAll('.countdown-timer').forEach((el) => {
+            const target = new Date(el.dataset.countdownTarget);
+            const label = el.dataset.countdownLabel || '';
+            const diffMs = target.getTime() - Date.now();
+            if (isNaN(target.getTime())) {
+                el.textContent = '';
+                return;
+            }
+            if (diffMs <= 0) {
+                el.textContent = `${label} vaqti keldi!`;
+                return;
+            }
+            const totalMinutes = Math.floor(diffMs / 60000);
+            const days = Math.floor(totalMinutes / 1440);
+            const hours = Math.floor((totalMinutes % 1440) / 60);
+            const minutes = totalMinutes % 60;
+            const parts = [];
+            if (days) parts.push(`${days} kun`);
+            if (hours || days) parts.push(`${hours} soat`);
+            parts.push(`${minutes} daqiqa`);
+            el.textContent = `\u23f0 ${label}: ${parts.join(' ')} qoldi`;
+        });
+    }
+
     function buildPanel() {
         const wrap = document.querySelector('.dash-wrap');
         if (!wrap) return null;
@@ -95,13 +121,31 @@
                 return d2.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
             }
 
+            function pickCountdown(effTestStart, effTestEnd, effInterviewStart, effInterviewEnd, testEnded) {
+                const now = new Date();
+                if (!testEnded && effTestStart && now < new Date(effTestStart)) {
+                    return { target: effTestStart, label: 'Testgacha' };
+                }
+                if (!testEnded && effTestEnd && effTestStart && now >= new Date(effTestStart) && now < new Date(effTestEnd)) {
+                    return { target: effTestEnd, label: 'Test tugashiga' };
+                }
+                if (testEnded && effInterviewStart && now < new Date(effInterviewStart)) {
+                    return { target: effInterviewStart, label: 'Suhbatgacha' };
+                }
+                if (testEnded && effInterviewEnd && effInterviewStart && now < new Date(effInterviewEnd)) {
+                    return { target: effInterviewEnd, label: 'Suhbat tugashiga' };
+                }
+                return null;
+            }
+
             let html = '';
             regs.forEach((r) => {
                 const hasScore = r.score !== null && r.score !== undefined;
                 const hasInterview = r.interviewScore !== null && r.interviewScore !== undefined;
+                const hasOpen = r.openScore !== null && r.openScore !== undefined;
                 const hasRank = r.rank !== null && r.rank !== undefined;
                 const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
-                const total = (r.score ?? 0) + (r.interviewScore ?? 0);
+                const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
                 const c = contestDates[r.contestId] || {};
 
                 // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy oynasini olamiz
@@ -123,20 +167,26 @@
                     dateBits.push(`Test vaqti: ${effTestStart ? fmtDate(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDate(effTestEnd) : ''}`);
                 }
 
+                const countdown = pickCountdown(effTestStart, effTestEnd, effInterviewStart, effInterviewEnd, testEnded);
+
                 html += `<div class="activity-row">
                     <div class="act-icon" style="background:#fdf2f8;font-size:16px">${medal}</div>
                     <div style="flex:1">
                         <div class="act-label">${esc(r.contestTitle)}</div>
-                        <div class="act-time">ID: ${esc(r.customId)}${hasScore ? ' \u00b7 Test: ' + esc(r.score) : ''}${hasInterview ? ' \u00b7 Suhbat: ' + esc(r.interviewScore) : ''}</div>
+                        <div class="act-time">ID: ${esc(r.customId)}${hasScore ? ' \u00b7 Test: ' + esc(r.score) : ''}${hasInterview ? ' \u00b7 Suhbat: ' + esc(r.interviewScore) : ''}${hasOpen ? ' \u00b7 Ochiq savollar: ' + esc(r.openScore) : ''}</div>
                         ${dateBits.length ? `<div class="act-time" style="color:var(--primary)">${esc(dateBits.join(' \u00b7 '))}</div>` : ''}
+                        ${countdown ? `<div class="act-time countdown-timer" data-countdown-target="${esc(countdown.target)}" data-countdown-label="${esc(countdown.label)}" style="color:#ea580c;font-weight:700"></div>` : ''}
                         ${hasRank ? `<div style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:11px;font-weight:800">${esc(r.rank)}-o\u2018rin</div>` : ''}
                     </div>
-                    <div style="font-weight:800;color:${hasScore || hasInterview ? 'var(--primary)' : 'var(--muted)'};text-align:right">
-                        ${hasScore || hasInterview ? esc(total) + ' ball<br><span style=\'font-size:11px;font-weight:600;color:var(--muted)\'>jami</span>' : 'Kutilmoqda'}
+                    <div style="font-weight:800;color:${hasScore || hasInterview || hasOpen ? 'var(--primary)' : 'var(--muted)'};text-align:right">
+                        ${hasScore || hasInterview || hasOpen ? esc(total) + ' ball<br><span style=\'font-size:11px;font-weight:600;color:var(--muted)\'>jami</span>' : 'Kutilmoqda'}
                     </div>
                 </div>`;
             });
             target.innerHTML = html;
+            updateCountdowns(target);
+            clearInterval(window.__ziyomapCountdownInterval);
+            window.__ziyomapCountdownInterval = setInterval(() => updateCountdowns(target), 30000);
         } catch (err) {
             console.error('Natijalarni yuklashda xatolik:', err);
             target.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Yuklashda xatolik yuz berdi.</div>';
