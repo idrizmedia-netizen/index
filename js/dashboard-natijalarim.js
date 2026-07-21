@@ -103,9 +103,26 @@
                 const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
                 const total = (r.score ?? 0) + (r.interviewScore ?? 0);
                 const c = contestDates[r.contestId] || {};
+
+                // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy oynasini olamiz
+                const effTestStart = r.assignedTestStart || c.testWindowStart || null;
+                const effTestEnd = r.assignedTestEnd || c.testWindowEnd || null;
+                const effInterviewStart = r.assignedInterviewStart || c.interviewWindowStart || null;
+                const effInterviewEnd = r.assignedInterviewEnd || c.interviewWindowEnd || null;
+
+                // Ketma-ketlik: test hali tugamagan yoki topshirilmagan bo'lsa — test vaqti ko'rsatiladi;
+                // test oynasi tugagandan keyin — suhbat vaqti ko'rsatiladi.
+                const now = new Date();
+                const testEnded = effTestEnd ? now > new Date(effTestEnd) : false;
                 const dateBits = [];
-                if (c.testDate) dateBits.push('Test kuni: ' + fmtDate(c.testDate));
-                if (c.interviewDate) dateBits.push('Suhbat kuni: ' + fmtDate(c.interviewDate));
+                if (!testEnded && (effTestStart || effTestEnd)) {
+                    dateBits.push(`Test vaqti: ${effTestStart ? fmtDate(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDate(effTestEnd) : ''}`);
+                } else if (effInterviewStart || effInterviewEnd) {
+                    dateBits.push(`Suhbat vaqti: ${effInterviewStart ? fmtDate(effInterviewStart) : '\u2014'}${effInterviewEnd ? ' \u2013 ' + fmtDate(effInterviewEnd) : ''}`);
+                } else if (effTestStart || effTestEnd) {
+                    dateBits.push(`Test vaqti: ${effTestStart ? fmtDate(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDate(effTestEnd) : ''}`);
+                }
+
                 html += `<div class="activity-row">
                     <div class="act-icon" style="background:#fdf2f8;font-size:16px">${medal}</div>
                     <div style="flex:1">
