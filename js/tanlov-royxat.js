@@ -193,7 +193,7 @@ async function openContest(contest, showBack) {
     }
 
     if (existing.exists()) {
-        showAlreadyRegistered(existing.data().customId, contest.id);
+        showAlreadyRegistered(existing.data().customId, contest.id, existing.data());
         return;
     }
 
@@ -276,7 +276,7 @@ async function openContest(contest, showBack) {
             }
 
             regForm.style.display = 'none';
-            showAlreadyRegistered(customId, contest.id);
+            showAlreadyRegistered(customId, contest.id, {});
             setStatus('Muvaffaqiyatli ro\u2018yxatdan o\u2018tdingiz!', 'success');
         } catch (err) {
             console.error('Ro\u2018yxatdan o\u2018tish xatoligi:', err.code, err.message, err);
@@ -287,30 +287,83 @@ async function openContest(contest, showBack) {
     };
 }
 
-async function showAlreadyRegistered(customId, cId) {
+async function showAlreadyRegistered(customId, cId, regData) {
     alreadyBox.style.display = 'block';
     alreadyId.textContent = customId || '\u2014';
+    regData = regData || {};
 
     const testLink = document.getElementById('start-test-link');
     const meetLink = document.getElementById('meet-link-display');
     const datesBox = document.getElementById('already-dates');
+    const meetStatusBox = document.getElementById('meet-status-message');
     if (testLink) testLink.style.display = 'none';
     if (meetLink) meetLink.style.display = 'none';
+    if (meetStatusBox) {
+        meetStatusBox.style.display = 'none';
+        meetStatusBox.textContent = '';
+    }
+
+    const fmtDT = (iso) => {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        return d.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
 
     try {
         const contestSnap = await getDoc(doc(db, 'contests', cId));
         if (contestSnap.exists()) {
             const c = contestSnap.data();
-            if (c.meetLink && meetLink) {
-                meetLink.href = c.meetLink;
-                meetLink.style.display = 'inline-flex';
-            }
+
+            // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy oynasini ko'rsatamiz
+            const effTestStart = regData.assignedTestStart || c.testWindowStart || null;
+            const effTestEnd = regData.assignedTestEnd || c.testWindowEnd || null;
+            const effInterviewStart = regData.assignedInterviewStart || c.interviewWindowStart || null;
+            const effInterviewEnd = regData.assignedInterviewEnd || c.interviewWindowEnd || null;
+
             if (datesBox) {
                 const bits = [];
-                if (c.testDate) bits.push(`Test sanasi: ${new Date(c.testDate).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
-                if (c.interviewDate) bits.push(`Suhbat sanasi: ${new Date(c.interviewDate).toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`);
+                if (effTestStart || effTestEnd) {
+                    bits.push(`Test vaqtingiz: ${effTestStart ? fmtDT(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDT(effTestEnd) : ''}`);
+                }
+                if (effInterviewStart || effInterviewEnd) {
+                    bits.push(`Suhbat vaqtingiz: ${effInterviewStart ? fmtDT(effInterviewStart) : '\u2014'}${effInterviewEnd ? ' \u2013 ' + fmtDT(effInterviewEnd) : ''}`);
+                }
                 datesBox.textContent = bits.join(' \u00b7 ');
                 datesBox.style.display = bits.length ? 'block' : 'none';
+            }
+
+            // Suhbat linkini ko'rsatish qoidasi: admin uni yopgan bo'lmasligi kerak,
+            // va agar suhbat vaqti belgilangan bo'lsa — faqat shu oraliqda ko'rinadi.
+            // Agar hech qanday sana belgilanmagan bo'lsa — cheklovsiz ko'rsatiladi (avvalgi xato aynan shu yerda edi).
+            if (c.meetLink && meetLink) {
+                const meetEnabled = c.meetLinkEnabled !== false;
+                if (!meetEnabled) {
+                    if (meetStatusBox) {
+                        meetStatusBox.textContent = 'Suhbat havolasi hozircha admin tomonidan yopilgan.';
+                        meetStatusBox.style.display = 'block';
+                    }
+                } else if (effInterviewStart || effInterviewEnd) {
+                    const now = new Date();
+                    const start = effInterviewStart ? new Date(effInterviewStart) : null;
+                    const end = effInterviewEnd ? new Date(effInterviewEnd) : null;
+                    if (start && now < start) {
+                        if (meetStatusBox) {
+                            meetStatusBox.textContent = `Suhbat hali boshlanmagan. Sizning suhbat vaqtingiz: ${fmtDT(effInterviewStart)}.`;
+                            meetStatusBox.style.display = 'block';
+                        }
+                    } else if (end && now > end) {
+                        if (meetStatusBox) {
+                            meetStatusBox.textContent = 'Sizga belgilangan suhbat vaqti o\u2018tib ketgan. Qo\u2018shimcha ma\u2019lumot uchun admin bilan bog\u2018laning.';
+                            meetStatusBox.style.display = 'block';
+                        }
+                    } else {
+                        meetLink.href = c.meetLink;
+                        meetLink.style.display = 'inline-flex';
+                    }
+                } else {
+                    meetLink.href = c.meetLink;
+                    meetLink.style.display = 'inline-flex';
+                }
             }
         }
     } catch (err) {
