@@ -194,16 +194,48 @@ async function init() {
     document.getElementById('startBtn').addEventListener('click', startNewAttempt);
 }
 
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 function buildQuestionOrder() {
     const total = testData.questions.length;
-    const indices = Array.from({ length: total }, (_, i) => i);
-    // Fisher-Yates aralashtirish — har bir ishtirokchiga boshqacha tartib/savollar tushishi uchun
-    for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
     const n = testData.questionsPerAttempt && testData.questionsPerAttempt > 0 ? Math.min(testData.questionsPerAttempt, total) : total;
-    return indices.slice(0, n);
+
+    if (n >= total) {
+        return shuffleArray(Array.from({ length: total }, (_, i) => i));
+    }
+
+    // Qiyinlik darajasi bo'yicha guruhlab, har birining ulushiga mos son tanlaymiz
+    // — bu orqali ishtirokchiga tasodifiy ravishda faqat oson yoki faqat qiyin savollar tushib qolmaydi.
+    const groups = { oson: [], "o'rta": [], qiyin: [] };
+    testData.questions.forEach((q, i) => {
+        const d = groups[q.difficulty] ? q.difficulty : "o'rta";
+        groups[d].push(i);
+    });
+    Object.values(groups).forEach(shuffleArray);
+
+    const tiers = Object.keys(groups).filter((k) => groups[k].length);
+    let selected = [];
+    let remaining = n;
+    tiers.forEach((tier, idx) => {
+        const isLast = idx === tiers.length - 1;
+        const share = isLast ? remaining : Math.round((groups[tier].length / total) * n);
+        const take = Math.min(share, groups[tier].length, remaining);
+        selected = selected.concat(groups[tier].slice(0, take));
+        remaining -= take;
+    });
+    if (remaining > 0) {
+        const usedSet = new Set(selected);
+        const leftover = Array.from({ length: total }, (_, i) => i).filter((i) => !usedSet.has(i));
+        shuffleArray(leftover);
+        selected = selected.concat(leftover.slice(0, remaining));
+    }
+    return shuffleArray(selected);
 }
 
 async function startNewAttempt() {
@@ -245,11 +277,15 @@ function renderQuestions() {
     let html = '';
     questionOrder.forEach((origIdx, qi) => {
         const q = testData.questions[origIdx];
+        const isOpen = q.type === 'open';
         html += `<div class="card q-block">
-            <div class="q-num">${qi + 1}-savol / ${questionOrder.length}</div>
+            <div class="q-num">${qi + 1}-savol / ${questionOrder.length}${isOpen ? ' \u2014 ochiq savol' : ''}</div>
             <div class="q-text">${esc(q.text)}</div>
             ${q.imageUrl ? `<img src="${esc(q.imageUrl)}" alt="Savol rasmi" style="max-width:100%;border-radius:12px;margin:10px 0">` : ''}
-            <div class="opts" data-qi="${qi}">
+            ${
+                isOpen
+                    ? `<textarea class="open-answer" data-qi="${qi}" rows="4" placeholder="Javobingizni shu yerga yozing..." style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);font-family:inherit;font-size:14px;resize:vertical">${esc(answers[qi] || '')}</textarea>`
+                    : `<div class="opts" data-qi="${qi}">
                 ${q.options
                     .map(
                         (opt, oi) => `<label class="opt ${answers[qi] === oi ? 'selected' : ''}" data-oi="${oi}">
@@ -258,7 +294,8 @@ function renderQuestions() {
                     </label>`
                     )
                     .join('')}
-            </div>
+            </div>`
+            }
         </div>`;
     });
     html += `<div class="card center-card">
@@ -280,8 +317,18 @@ function renderQuestions() {
         });
     });
 
+    let openSaveTimeout = null;
+    questionsCard.querySelectorAll('.open-answer').forEach((textareaEl) => {
+        const qi = parseInt(textareaEl.dataset.qi, 10);
+        textareaEl.addEventListener('input', () => {
+            answers[qi] = textareaEl.value;
+            clearTimeout(openSaveTimeout);
+            openSaveTimeout = setTimeout(saveProgress, 800);
+        });
+    });
+
     document.getElementById('submitBtn').addEventListener('click', () => {
-        const answered = answers.filter((a) => a !== null).length;
+        const answered = answers.filter((a) => a !== null && a !== '').length;
         const total = questionOrder.length;
         const msg =
             answered < total
@@ -350,8 +397,15 @@ async function submitTest() {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
 
     let score = 0;
+    let mcCount = 0;
+    let openCount = 0;
     questionOrder.forEach((origIdx, qi) => {
         const q = testData.questions[origIdx];
+        if (q.type === 'open') {
+            openCount++;
+            return; // ochiq savollar administrator tomonidan qo'lda baholanadi
+        }
+        mcCount++;
         if (answers[qi] === q.correctIndex) score++;
     });
 
@@ -359,7 +413,8 @@ async function submitTest() {
         await updateDoc(attemptRef, {
             answers,
             score,
-            totalQuestions: questionOrder.length,
+            totalQuestions: mcCount,
+            openQuestionsCount: openCount,
             status: 'submitted',
             submittedAt: serverTimestamp(),
         });
@@ -374,7 +429,13 @@ async function submitTest() {
     topBar.style.display = 'none';
     questionsCard.style.display = 'none';
     resultCard.style.display = 'block';
-    document.getElementById('resultScoreText').textContent = `${score}/${questionOrder.length}`;
+    document.getElementById('resultScoreText').textContent = mcCount ? `${score}/${mcCount}` : '\u2014';
+    if (openCount) {
+        const noteEl = document.createElement('p');
+        noteEl.style.cssText = 'color:var(--muted);font-size:0.85rem;margin-top:10px';
+        noteEl.textContent = `Bundan tashqari, ${openCount} ta ochiq savolga bergan javobingiz qabul qilindi \u2014 ular administrator tomonidan alohida ko\u2018rib chiqiladi va ballaringizga qo\u2018shiladi.`;
+        document.getElementById('resultScoreText').insertAdjacentElement('afterend', noteEl);
+    }
 }
 
 if (document.readyState === 'loading') {
