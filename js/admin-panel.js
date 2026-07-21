@@ -159,6 +159,74 @@ async function loadStats() {
     }
 }
 
+/* ── TANLOV BO'YICHA STATISTIKA ── */
+function renderBarChart(items, maxItems = 8) {
+    // items: [{label, value}], eng katta qiymatga nisbatan foiz bo'yicha chiziladi
+    if (!items.length) return '<div class="empty">Ma\u2019lumot yo\u2018q.</div>';
+    const sorted = [...items].sort((a, b) => b.value - a.value).slice(0, maxItems);
+    const max = Math.max(...sorted.map((i) => i.value), 1);
+    return sorted
+        .map(
+            (i) => `<div style="margin-bottom:10px">
+                <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px">
+                    <span>${escapeHtml(i.label)}</span><b>${i.value}</b>
+                </div>
+                <div style="background:var(--primary-light);border-radius:6px;height:10px;overflow:hidden">
+                    <div style="width:${Math.round((i.value / max) * 100)}%;background:var(--primary);height:100%;border-radius:6px"></div>
+                </div>
+            </div>`
+        )
+        .join('');
+}
+
+document.getElementById('stats-contest-select')?.addEventListener('change', async (e) => {
+    const contestId = e.target.value;
+    const box = document.getElementById('contestStatsBox');
+    if (!contestId) {
+        box.innerHTML = '';
+        return;
+    }
+    box.innerHTML = '<div class="empty">Hisoblanmoqda...</div>';
+    try {
+        const snap = await getDocs(query(collection(db, 'registrations'), where('contestId', '==', contestId)));
+        const list = [];
+        snap.forEach((d) => list.push(d.data()));
+
+        const total = list.length;
+        const testedCount = list.filter((r) => r.score !== null && r.score !== undefined).length;
+        const interviewedCount = list.filter((r) => r.interviewScore !== null && r.interviewScore !== undefined).length;
+        const scores = list.map((r) => r.score).filter((s) => s !== null && s !== undefined);
+        const interviewScores = list.map((r) => r.interviewScore).filter((s) => s !== null && s !== undefined);
+        const avg = (arr) => (arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : '\u2014');
+
+        const viloyatCounts = {};
+        const maktabCounts = {};
+        list.forEach((r) => {
+            if (r.viloyat) viloyatCounts[r.viloyat] = (viloyatCounts[r.viloyat] || 0) + 1;
+            if (r.maktab) maktabCounts[r.maktab] = (maktabCounts[r.maktab] || 0) + 1;
+        });
+        const viloyatItems = Object.entries(viloyatCounts).map(([label, value]) => ({ label, value }));
+        const maktabItems = Object.entries(maktabCounts).map(([label, value]) => ({ label, value }));
+
+        box.innerHTML = `
+            <div class="stats-grid" style="margin-bottom:10px">
+                <div class="stat-card"><div class="v">${total}</div><div class="k">Ro'yxatdan o'tganlar</div></div>
+                <div class="stat-card"><div class="v">${testedCount}</div><div class="k">Test topshirganlar</div></div>
+                <div class="stat-card"><div class="v">${interviewedCount}</div><div class="k">Suhbatdan o'tganlar</div></div>
+                <div class="stat-card"><div class="v">${avg(scores)}</div><div class="k">O'rtacha test bali</div></div>
+                <div class="stat-card"><div class="v">${avg(interviewScores)}</div><div class="k">O'rtacha suhbat bali</div></div>
+            </div>
+            <h4 style="margin:16px 0 8px">Viloyatlar bo'yicha taqsimot</h4>
+            ${renderBarChart(viloyatItems)}
+            <h4 style="margin:16px 0 8px">Eng ko'p ishtirokchi bergan maktablar (top 8)</h4>
+            ${renderBarChart(maktabItems)}
+        `;
+    } catch (err) {
+        console.error(err);
+        box.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+});
+
 /* ── TANLOVLAR ── */
 let contestsCache = {};
 
@@ -207,9 +275,11 @@ async function loadContests() {
         const tSelect = document.getElementById('t-contest-select');
         const trSelect = document.getElementById('tr-contest-select');
         const meetSelect = document.getElementById('meet-contest-select');
+        const statsSelect = document.getElementById('stats-contest-select');
         if (tSelect) tSelect.innerHTML = selectHtml;
         if (trSelect) trSelect.innerHTML = selectHtml;
         if (meetSelect) meetSelect.innerHTML = selectHtml;
+        if (statsSelect) statsSelect.innerHTML = selectHtml;
 
         listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -441,7 +511,7 @@ function renderRegistrantsTable(list) {
     }
     let rows = '';
     list.forEach((r, i) => {
-        const total = (r.score ?? 0) + (r.interviewScore ?? 0);
+        const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
         rows += `<tr data-row="${r.id}">
             <td>${i + 1}</td>
@@ -452,18 +522,23 @@ function renderRegistrantsTable(list) {
             <td>${escapeHtml(r.telefon)}</td>
             <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" style="width:64px"></td>
             <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" style="width:64px"></td>
+            <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" style="width:64px"></td>
             <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
             <td style="white-space:nowrap">
                 <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
+                <button class="btn" data-view-open="${r.id}" title="Ochiq savollarga javoblarni ko'rish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-eye"></i></button>
                 <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
             </td>
         </tr>
-        <tr data-retake-info="${r.id}"><td colspan="10" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
+        <tr data-retake-info="${r.id}"><td colspan="11" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
             <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
+        </td></tr>
+        <tr data-open-answers-row="${r.id}" style="display:none"><td colspan="11" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
+            <div data-open-answers-content="${r.id}">Yuklanmoqda...</div>
         </td></tr>`;
     });
     tableEl.innerHTML = `<table>
-        <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Jami</th><th></th></tr></thead>
+        <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Ochiq</th><th>Jami</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
     </table>`;
 
@@ -472,19 +547,22 @@ function renderRegistrantsTable(list) {
             const id = btn.dataset.save;
             const scoreInput = tableEl.querySelector(`[data-score="${id}"]`);
             const interviewInput = tableEl.querySelector(`[data-interview="${id}"]`);
+            const openInput = tableEl.querySelector(`[data-open="${id}"]`);
             const score = scoreInput.value === '' ? null : parseFloat(scoreInput.value);
             const interviewScore = interviewInput.value === '' ? null : parseFloat(interviewInput.value);
+            const openScore = openInput.value === '' ? null : parseFloat(openInput.value);
             btn.disabled = true;
             try {
-                await updateDoc(doc(db, 'registrations', id), { score, interviewScore });
+                await updateDoc(doc(db, 'registrations', id), { score, interviewScore, openScore });
                 // Jami ustunini sahifani qayta yuklamasdan darhol yangilaymiz
                 const totalEl = tableEl.querySelector(`[data-total="${id}"]`);
-                const newTotal = (score ?? 0) + (interviewScore ?? 0);
+                const newTotal = (score ?? 0) + (interviewScore ?? 0) + (openScore ?? 0);
                 if (totalEl) totalEl.textContent = newTotal || '\u2014';
                 const cached = currentRegistrants.find((x) => x.id === id);
                 if (cached) {
                     cached.score = score;
                     cached.interviewScore = interviewScore;
+                    cached.openScore = openScore;
                 }
                 setStatus('Ballar saqlandi.', 'success');
             } catch (err) {
@@ -492,6 +570,52 @@ function renderRegistrantsTable(list) {
                 setStatus('Xatolik yuz berdi.', 'error');
             } finally {
                 btn.disabled = false;
+            }
+        });
+    });
+
+    tableEl.querySelectorAll('[data-view-open]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.viewOpen;
+            const row = tableEl.querySelector(`[data-open-answers-row="${id}"]`);
+            const content = tableEl.querySelector(`[data-open-answers-content="${id}"]`);
+            if (!row) return;
+            const isHidden = row.style.display === 'none';
+            row.style.display = isHidden ? '' : 'none';
+            if (!isHidden || content.dataset.loaded) return;
+            content.dataset.loaded = '1';
+            try {
+                const reg = currentRegistrants.find((x) => x.id === id);
+                if (!reg) throw new Error('Ishtirokchi topilmadi');
+                const [testSnap, attemptSnap] = await Promise.all([
+                    getDoc(doc(db, 'tests', reg.contestId)),
+                    getDoc(doc(db, 'test-attempts', id)),
+                ]);
+                if (!attemptSnap.exists() || !attemptSnap.data().questionOrder) {
+                    content.innerHTML = '<span style="color:var(--muted)">Bu ishtirokchi testni hali topshirmagan.</span>';
+                    return;
+                }
+                const attempt = attemptSnap.data();
+                const testDoc = testSnap.exists() ? testSnap.data() : { questions: [] };
+                const openPairs = [];
+                (attempt.questionOrder || []).forEach((origIdx, qi) => {
+                    const q = testDoc.questions?.[origIdx];
+                    if (q && q.type === 'open') {
+                        openPairs.push({ text: q.text, answer: attempt.answers?.[qi] || '' });
+                    }
+                });
+                if (!openPairs.length) {
+                    content.innerHTML = '<span style="color:var(--muted)">Bu testda ochiq savol yo\u2018q edi.</span>';
+                    return;
+                }
+                content.innerHTML = openPairs
+                    .map(
+                        (p, idx) => `<div style="margin-bottom:8px"><b>${idx + 1}. ${escapeHtml(p.text)}</b><br><span style="color:var(--text)">${escapeHtml(p.answer) || '<i style="color:var(--muted)">(javob berilmagan)</i>'}</span></div>`
+                    )
+                    .join('');
+            } catch (err) {
+                console.error(err);
+                content.innerHTML = '<span style="color:var(--red)">Yuklashda xatolik yuz berdi.</span>';
             }
         });
     });
@@ -635,7 +759,7 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
     if (!currentRegistrants.length || !currentContestId) return;
 
     const withTotal = currentRegistrants
-        .map((r) => ({ ...r, total: (r.score ?? null) === null && (r.interviewScore ?? null) === null ? null : (r.score ?? 0) + (r.interviewScore ?? 0) }))
+        .map((r) => ({ ...r, total: (r.score ?? null) === null && (r.interviewScore ?? null) === null && (r.openScore ?? null) === null ? null : (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0) }))
         .filter((r) => r.total !== null);
     if (!withTotal.length) {
         setStatus('Hech kimga ball qo\u2018yilmagan. Avval test yoki suhbat ballini kiriting.', 'error');
@@ -691,10 +815,11 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
         'Telefon raqami': r.telefon,
         Test: r.score ?? '',
         Suhbat: r.interviewScore ?? '',
-        Jami: (r.score ?? 0) + (r.interviewScore ?? 0),
+        'Ochiq savollar': r.openScore ?? '',
+        Jami: (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0),
     }));
     const ws = window.XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb, ws, 'Ishtirokchilar');
     const safeTitle = (currentContestTitle || 'tanlov').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40);
@@ -848,15 +973,28 @@ function parseQuestions(raw) {
     const questions = [];
     blocks.forEach((block, idx) => {
         const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
-        if (lines.length < 6) return; // savol + 4 variant + javob
+        if (lines.length < 2) return;
         const text = lines[0];
         let imageUrl = null;
+        let difficulty = "o'rta";
+        let isOpen = false;
         const options = [];
         let correctIndex = -1;
         lines.slice(1).forEach((line) => {
             const imgMatch = line.match(/^Rasm:\s*(\S+)/i);
             if (imgMatch) {
                 imageUrl = imgMatch[1].trim();
+                return;
+            }
+            const typeMatch = line.match(/^Turi:\s*(ochiq|yopiq)/i);
+            if (typeMatch) {
+                isOpen = typeMatch[1].toLowerCase() === 'ochiq';
+                return;
+            }
+            const diffMatch = line.match(/^Daraja:\s*(oson|o'rta|o\u2018rta|orta|qiyin)/i);
+            if (diffMatch) {
+                let d = diffMatch[1].toLowerCase().replace('o\u2018rta', "o'rta").replace('orta', "o'rta");
+                difficulty = d;
                 return;
             }
             const optMatch = line.match(/^([A-D])\)\s*(.+)$/i);
@@ -869,8 +1007,14 @@ function parseQuestions(raw) {
                 correctIndex = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
             }
         });
-        if (text && options.length === 4 && correctIndex >= 0) {
-            const q = { id: 'q' + idx, text, options, correctIndex };
+
+        if (!text) return;
+        if (isOpen) {
+            const q = { id: 'q' + idx, text, type: 'open', difficulty };
+            if (imageUrl) q.imageUrl = imageUrl;
+            questions.push(q);
+        } else if (options.length === 4 && correctIndex >= 0) {
+            const q = { id: 'q' + idx, text, type: 'mc', options, correctIndex, difficulty };
             if (imageUrl) q.imageUrl = imageUrl;
             questions.push(q);
         }
@@ -884,8 +1028,13 @@ function questionsToRaw(questions) {
         .map((q) => {
             const lines = [q.text];
             if (q.imageUrl) lines.push(`Rasm: ${q.imageUrl}`);
-            q.options.forEach((opt, i) => lines.push(`${'ABCD'[i]}) ${opt}`));
-            lines.push(`Javob: ${'ABCD'[q.correctIndex] || 'A'}`);
+            if (q.difficulty && q.difficulty !== "o'rta") lines.push(`Daraja: ${q.difficulty}`);
+            if (q.type === 'open') {
+                lines.push('Turi: ochiq');
+            } else {
+                q.options.forEach((opt, i) => lines.push(`${'ABCD'[i]}) ${opt}`));
+                lines.push(`Javob: ${'ABCD'[q.correctIndex] || 'A'}`);
+            }
             return lines.join('\n');
         })
         .join('\n---\n');
