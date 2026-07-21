@@ -107,29 +107,35 @@ async function init() {
         console.error('Tanlov ma\u2019lumotini yuklashda xatolik:', err);
     }
 
-    if (contestData && contestData.testDate) {
-        const testDay = new Date(contestData.testDate);
-        const dayStart = new Date(testDay.getFullYear(), testDay.getMonth(), testDay.getDate(), 0, 0, 0);
-        const dayEnd = new Date(testDay.getFullYear(), testDay.getMonth(), testDay.getDate(), 23, 59, 59);
-        const now = new Date();
-        const retakeUntil = regData.retakeUntil ? new Date(regData.retakeUntil) : null;
-        const withinRetake = retakeUntil && now <= retakeUntil;
+    if (contestData) {
+        // Ustuvorlik: ishtirokchiga avtomatik biriktirilgan shaxsiy vaqt > tanlovning umumiy test oynasi.
+        // Agar ikkalasi ham belgilanmagan bo'lsa — hech qanday cheklov qo'yilmaydi (bepul kirish).
+        const effectiveStart = regData.assignedTestStart || contestData.testWindowStart || null;
+        const effectiveEnd = regData.assignedTestEnd || contestData.testWindowEnd || null;
 
-        // Agar attempt allaqachon topshirilgan bo'lsa, sana tekshiruvi keraksiz (natija ko'rsatiladi)
-        let alreadySubmitted = false;
-        try {
-            const attemptCheck = await getDoc(doc(db, 'test-attempts', `${contestId}_${currentUser.uid}`));
-            alreadySubmitted = attemptCheck.exists() && attemptCheck.data().status === 'submitted';
-        } catch (err) { /* e'tiborsiz qoldiriladi, quyida qayta tekshiriladi */ }
+        if (effectiveStart || effectiveEnd) {
+            const now = new Date();
+            const start = effectiveStart ? new Date(effectiveStart) : null;
+            const end = effectiveEnd ? new Date(effectiveEnd) : null;
+            const retakeUntil = regData.retakeUntil ? new Date(regData.retakeUntil) : null;
+            const withinRetake = retakeUntil && now <= retakeUntil;
 
-        if (!alreadySubmitted) {
-            if (now < dayStart && !withinRetake) {
-                showMsg('Test hali boshlanmagan', `Bu tanlov uchun test sanasi: ${testDay.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}. Shu kunda qayta kiring.`);
-                return;
-            }
-            if (now > dayEnd && !withinRetake) {
-                showMsg('Test vaqti tugagan', 'Belgilangan test kuni o\u2018tib ketgan. Agar test topshira olmagan bo\u2018lsangiz, admin bilan bog\u2018lanib qayta topshirish uchun ruxsat so\u2018rang.');
-                return;
+            // Agar attempt allaqachon topshirilgan bo'lsa, sana tekshiruvi keraksiz (natija ko'rsatiladi)
+            let alreadySubmitted = false;
+            try {
+                const attemptCheck = await getDoc(doc(db, 'test-attempts', `${contestId}_${currentUser.uid}`));
+                alreadySubmitted = attemptCheck.exists() && attemptCheck.data().status === 'submitted';
+            } catch (err) { /* e'tiborsiz qoldiriladi, quyida qayta tekshiriladi */ }
+
+            if (!alreadySubmitted) {
+                if (start && now < start && !withinRetake) {
+                    showMsg('Test hali boshlanmagan', `Sizning test vaqtingiz: ${start.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}. Shu vaqtda qayta kiring.`);
+                    return;
+                }
+                if (end && now > end && !withinRetake) {
+                    showMsg('Test vaqti tugagan', 'Sizga belgilangan test vaqti o\u2018tib ketgan. Agar test topshira olmagan bo\u2018lsangiz, admin bilan bog\u2018lanib qayta topshirish uchun ruxsat so\u2018rang.');
+                    return;
+                }
             }
         }
     }
