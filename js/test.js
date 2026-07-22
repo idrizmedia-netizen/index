@@ -396,7 +396,7 @@ async function submitTest() {
     window.removeEventListener('beforeunload', handleBeforeUnload);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
 
-    let score = 0;
+    let correctCount = 0;
     let mcCount = 0;
     let openCount = 0;
     questionOrder.forEach((origIdx, qi) => {
@@ -406,13 +406,17 @@ async function submitTest() {
             return; // ochiq savollar administrator tomonidan qo'lda baholanadi
         }
         mcCount++;
-        if (answers[qi] === q.correctIndex) score++;
+        if (answers[qi] === q.correctIndex) correctCount++;
     });
+    const pointsPerCorrect = testData.pointsPerCorrect || 1;
+    const score = +(correctCount * pointsPerCorrect).toFixed(2);
+    const maxScore = +(mcCount * pointsPerCorrect).toFixed(2);
 
     try {
         await updateDoc(attemptRef, {
             answers,
             score,
+            correctCount,
             totalQuestions: mcCount,
             openQuestionsCount: openCount,
             status: 'submitted',
@@ -429,7 +433,7 @@ async function submitTest() {
     topBar.style.display = 'none';
     questionsCard.style.display = 'none';
     resultCard.style.display = 'block';
-    document.getElementById('resultScoreText').textContent = mcCount ? `${score}/${mcCount}` : '\u2014';
+    document.getElementById('resultScoreText').textContent = mcCount ? `${score}/${maxScore} ball (${correctCount}/${mcCount} to\u2018g\u2018ri)` : '\u2014';
     if (openCount) {
         const noteEl = document.createElement('p');
         noteEl.style.cssText = 'color:var(--muted);font-size:0.85rem;margin-top:10px';
