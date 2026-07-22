@@ -214,25 +214,41 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <div class="field"><label>Hisob/karta raqami</label><input type="text" id="c-payment-account" placeholder="8600 xxxx xxxx xxxx"></div>
         <div class="field"><label>Qabul qiluvchi F.I.Sh</label><input type="text" id="c-payment-receiver" placeholder="Masalan: Aliyev Vali"></div>
       </div>
-      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-pen"></i> Test vaqti oynasi</h4>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-pen"></i> Test vaqti jadvali</h4>
       <div class="row2">
-        <div class="field"><label>Test boshlanish vaqti</label><input type="datetime-local" id="c-test-window-start"></div>
-        <div class="field"><label>Test tugash vaqti</label><input type="datetime-local" id="c-test-window-end"></div>
+        <div class="field"><label>Test kunlari — dan</label><input type="date" id="c-test-date-start"></div>
+        <div class="field"><label>Test kunlari — gacha</label><input type="date" id="c-test-date-end"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Har kuni soat — dan</label><input type="time" id="c-test-daily-start" value="08:00"></div>
+        <div class="field"><label>Har kuni soat — gacha</label><input type="time" id="c-test-daily-end" value="18:00"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Tanaffus — dan (ixtiyoriy)</label><input type="time" id="c-test-break-start"></div>
+        <div class="field"><label>Tanaffus — gacha (ixtiyoriy)</label><input type="time" id="c-test-break-end"></div>
       </div>
       <div class="row2">
         <div class="field"><label>Har bir slot davomiyligi (daqiqa)</label><input type="number" id="c-test-slot-minutes" value="30" min="5"></div>
         <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-test-slot-capacity" value="15" min="1"></div>
       </div>
-      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-video"></i> Suhbat vaqti oynasi</h4>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-video"></i> Suhbat vaqti jadvali</h4>
       <div class="row2">
-        <div class="field"><label>Suhbat boshlanish vaqti</label><input type="datetime-local" id="c-interview-window-start"></div>
-        <div class="field"><label>Suhbat tugash vaqti</label><input type="datetime-local" id="c-interview-window-end"></div>
+        <div class="field"><label>Suhbat kunlari — dan</label><input type="date" id="c-interview-date-start"></div>
+        <div class="field"><label>Suhbat kunlari — gacha</label><input type="date" id="c-interview-date-end"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Har kuni soat — dan</label><input type="time" id="c-interview-daily-start" value="09:00"></div>
+        <div class="field"><label>Har kuni soat — gacha</label><input type="time" id="c-interview-daily-end" value="17:00"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Tanaffus — dan (ixtiyoriy, masalan tushlik)</label><input type="time" id="c-interview-break-start" value="12:00"></div>
+        <div class="field"><label>Tanaffus — gacha (ixtiyoriy)</label><input type="time" id="c-interview-break-end" value="13:00"></div>
       </div>
       <div class="row2">
         <div class="field"><label>Har bir slot davomiyligi (daqiqa)</label><input type="number" id="c-interview-slot-minutes" value="15" min="5"></div>
         <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-interview-slot-capacity" value="1" min="1"></div>
       </div>
-      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Bu oynalarni saqlagandan so'ng, "Ishtirokchilar" bo'limida "Vaqtlarni avtomatik taqsimlash" tugmasi orqali har bir ishtirokchiga alohida test/suhbat vaqti biriktiriladi — shu bilan barcha ishtirokchi bir vaqtda kirmay, sayt ortiqcha yuklanmaydi.</p>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Masalan: test 25.07.2026–30.07.2026 kunlari, har kuni 08:00–18:00 oralig'ida; suhbat shu kunlarda 09:00–17:00 oralig'ida, lekin 12:00–13:00 tanaffus hisobga olinadi (bu oraliqqa hech kim taqsimlanmaydi). Bularni saqlagandan so'ng, "Ishtirokchilar" bo'limida "Vaqtlarni avtomatik taqsimlash" tugmasi orqali har bir ishtirokchiga alohida vaqt biriktiriladi.</p>
       <input type="hidden" id="c-edit-id" value="">
       <button class="btn btn-primary" id="c-create-btn"><i class="fas fa-check"></i> Yaratish va e'lon qilish</button>
       <button class="btn" id="c-cancel-edit-btn" style="display:none;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-xmark"></i> Bekor qilish</button>
@@ -294,6 +310,11 @@ Bilet 2
 4. Savol
 5. Savol"></textarea>
         <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir biletni "---" bilan ajrating. Birinchi qator "Bilet N" bo'lsin, keyingi 5 qator savollar (raqamlash ixtiyoriy).</p>
+        <div class="field" style="margin-top:10px">
+          <label>Yoki: tayyor fayldan biletlarni yuklang (.txt yoki .docx, yuqoridagi format bilan yozilgan bo'lsin)</label>
+          <input type="file" id="ticket-questions-file" accept=".txt,.docx">
+          <p id="ticket-questions-file-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+        </div>
       </div>
       <button class="btn btn-primary" id="ticket-save-btn"><i class="fas fa-check"></i> Biletlarni saqlash</button>
       <p id="ticket-save-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
@@ -390,6 +411,7 @@ Javob: A"></textarea>
     <div class="card">
       <h3><i class="fas fa-table"></i> Ro'yxat</h3>
       <button class="btn btn-green" id="export-excel-btn" style="display:none;margin-bottom:14px"><i class="fas fa-file-excel"></i> Excelga yuklash</button>
+      <button class="btn" id="photo-roster-btn" style="display:none;margin-bottom:14px;margin-left:8px;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-images"></i> Rasmli ro'yxatni chop etish</button>
       <button class="btn btn-primary" id="publish-leaderboard-btn" style="display:none;margin-bottom:14px;margin-left:8px"><i class="fas fa-medal"></i> G'oliblarni e'lon qilish</button>
       <button class="btn" id="auto-schedule-btn" style="display:none;margin-bottom:14px;margin-left:8px;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-clock"></i> Test/suhbat vaqtlarini avtomatik taqsimlash</button>
       <p id="auto-schedule-status" style="color:var(--muted);font-size:0.8rem;margin:-8px 0 14px"></p>
