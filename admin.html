@@ -186,8 +186,33 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <input type="text" id="c-grades" placeholder="masalan: 5,6,7,8,9 yoki 5-9">
       </div>
       <div class="row2">
+        <div class="field">
+          <label>Hudud cheklovi — Viloyat (ixtiyoriy, bo'sh — hammaga ochiq)</label>
+          <select id="c-restrict-viloyat"><option value="">— cheklovsiz (barcha viloyatlar) —</option></select>
+        </div>
+        <div class="field">
+          <label>Hudud cheklovi — Tuman/shahar (ixtiyoriy)</label>
+          <select id="c-restrict-tuman"><option value="">— cheklovsiz (barcha tumanlar) —</option></select>
+        </div>
+      </div>
+      <div class="row2">
         <div class="field"><label>Ro'yxatdan o'tish boshlanish sanasi</label><input type="date" id="c-reg-start"></div>
         <div class="field"><label>Ro'yxatdan o'tish tugash sanasi</label><input type="date" id="c-reg-end"></div>
+      </div>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-money-bill-wave"></i> To'lov turi</h4>
+      <div class="row2">
+        <div class="field">
+          <label>Tanlov turi</label>
+          <select id="c-payment-type">
+            <option value="free">Bepul tanlov</option>
+            <option value="paid">Pullik tanlov</option>
+          </select>
+        </div>
+        <div class="field"><label>Summa (so'm)</label><input type="number" id="c-payment-amount" min="0" placeholder="masalan: 50000" disabled></div>
+      </div>
+      <div class="row2" id="c-payment-details-row" style="display:none">
+        <div class="field"><label>Hisob/karta raqami</label><input type="text" id="c-payment-account" placeholder="8600 xxxx xxxx xxxx"></div>
+        <div class="field"><label>Qabul qiluvchi F.I.Sh</label><input type="text" id="c-payment-receiver" placeholder="Masalan: Aliyev Vali"></div>
       </div>
       <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-pen"></i> Test vaqti oynasi</h4>
       <div class="row2">
@@ -242,6 +267,41 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
       <button class="btn btn-primary" id="meet-save-btn"><i class="fas fa-check"></i> Saqlash</button>
       <h4 style="margin:20px 0 10px">Barcha bog'langan suhbat havolalari</h4>
       <div id="meetLinksList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-ticket"></i> Suhbat biletlari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Har bir bilet 5 tadan savoldan iborat bo'ladi. Ishtirokchilarga bu biletlar suhbat vaqtidan 10 daqiqa oldin avtomatik biriktiriladi va ko'rsatiladi — ular suhbatda bilet raqamini aytib, savollarni o'qib javob beradi.
+      </p>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="ticket-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field">
+        <label>Biletlar (quyidagi formatda kiriting)</label>
+        <textarea id="ticket-questions" rows="10" style="min-height:180px;font-family:monospace;font-size:13px" placeholder="Bilet 1
+1. Birinchi savol
+2. Ikkinchi savol
+3. Uchinchi savol
+4. To'rtinchi savol
+5. Beshinchi savol
+---
+Bilet 2
+1. Savol
+2. Savol
+3. Savol
+4. Savol
+5. Savol"></textarea>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir biletni "---" bilan ajrating. Birinchi qator "Bilet N" bo'lsin, keyingi 5 qator savollar (raqamlash ixtiyoriy).</p>
+      </div>
+      <button class="btn btn-primary" id="ticket-save-btn"><i class="fas fa-check"></i> Biletlarni saqlash</button>
+      <p id="ticket-save-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-ticket"></i> Suhbat biletlari (yuklangan)</h3>
+      <div id="ticketsList"><div class="empty">Tanlov tanlanmagan.</div></div>
     </div>
   </div>
 
@@ -407,6 +467,7 @@ Javob: A"></textarea>
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/admin-guard.js"></script>
+<script src="js/hududlar.js"></script>
 <script type="module" src="js/admin-panel.js"></script>
 <script>
 (function () {
