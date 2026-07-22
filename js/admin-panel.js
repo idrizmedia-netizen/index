@@ -227,6 +227,37 @@ document.getElementById('stats-contest-select')?.addEventListener('change', asyn
     }
 });
 
+// ── Hudud cheklovi (Viloyat/Tuman) tanlash ──
+function setupContestHududSelects() {
+    const viloyatSelect = document.getElementById('c-restrict-viloyat');
+    const tumanSelect = document.getElementById('c-restrict-tuman');
+    if (!viloyatSelect || !tumanSelect || !window.UZ_HUDUDLAR) return;
+    Object.keys(window.UZ_HUDUDLAR).forEach((viloyat) => {
+        const opt = document.createElement('option');
+        opt.value = viloyat;
+        opt.textContent = viloyat;
+        viloyatSelect.appendChild(opt);
+    });
+    viloyatSelect.addEventListener('change', () => {
+        const tumanlar = window.UZ_HUDUDLAR[viloyatSelect.value] || [];
+        tumanSelect.innerHTML = '<option value="">— cheklovsiz (barcha tumanlar) —</option>';
+        tumanlar.forEach((tuman) => {
+            const opt = document.createElement('option');
+            opt.value = tuman;
+            opt.textContent = tuman;
+            tumanSelect.appendChild(opt);
+        });
+    });
+}
+setupContestHududSelects();
+
+// ── To'lov turi (bepul/pullik) maydonlarini ko'rsatish/yashirish ──
+document.getElementById('c-payment-type')?.addEventListener('change', (e) => {
+    const isPaid = e.target.value === 'paid';
+    document.getElementById('c-payment-amount').disabled = !isPaid;
+    document.getElementById('c-payment-details-row').style.display = isPaid ? '' : 'none';
+});
+
 /* ── TANLOVLAR ── */
 let contestsCache = {};
 
@@ -249,13 +280,17 @@ async function loadContests() {
             const restrictions = [];
             if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}–${c.maxAge || '∞'}`);
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
+            if (c.restrictViloyat) restrictions.push(`Hudud: ${c.restrictTuman || c.restrictViloyat}`);
             const dates = [];
             if (c.regStartDate || c.regEndDate) dates.push(`Ro'yxat: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
             if (c.testWindowStart || c.testWindowEnd) dates.push(`Test: ${formatDateTime(c.testWindowStart)} \u2013 ${formatDateTime(c.testWindowEnd)}`);
             if (c.interviewWindowStart || c.interviewWindowEnd) dates.push(`Suhbat: ${formatDateTime(c.interviewWindowStart)} \u2013 ${formatDateTime(c.interviewWindowEnd)}`);
+            const paymentBadge = c.isPaid
+                ? `<span class="badge" style="background:#fef3c7;color:#92400e;margin-left:6px"><i class="fas fa-money-bill-wave"></i> PULLIK: ${escapeHtml(c.paymentAmount || '?')} so\u2018m</span>`
+                : `<span class="badge" style="background:#e0f2fe;color:#075985;margin-left:6px">BEPUL</span>`;
             listHtml += `<div class="contest-item">
                 <div>
-                    <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span></div>
+                    <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span>${paymentBadge}</div>
                     <div class="d">${escapeHtml(c.description || '')}</div>
                     ${restrictions.length ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-filter"></i> ${escapeHtml(restrictions.join(' · '))}</div>` : ''}
                     ${dates.length ? `<div class="d" style="color:var(--primary);margin-top:2px"><i class="fas fa-calendar-days"></i> ${escapeHtml(dates.join(' · '))}</div>` : ''}
@@ -276,10 +311,12 @@ async function loadContests() {
         const trSelect = document.getElementById('tr-contest-select');
         const meetSelect = document.getElementById('meet-contest-select');
         const statsSelect = document.getElementById('stats-contest-select');
+        const ticketSelect = document.getElementById('ticket-contest-select');
         if (tSelect) tSelect.innerHTML = selectHtml;
         if (trSelect) trSelect.innerHTML = selectHtml;
         if (meetSelect) meetSelect.innerHTML = selectHtml;
         if (statsSelect) statsSelect.innerHTML = selectHtml;
+        if (ticketSelect) ticketSelect.innerHTML = selectHtml;
 
         listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -306,6 +343,14 @@ async function loadContests() {
                 document.getElementById('c-min-age').value = c.minAge ?? '';
                 document.getElementById('c-max-age').value = c.maxAge ?? '';
                 document.getElementById('c-grades').value = (c.grades && c.grades.length) ? c.grades.join(',') : '';
+                document.getElementById('c-restrict-viloyat').value = c.restrictViloyat || '';
+                document.getElementById('c-restrict-viloyat').dispatchEvent(new Event('change'));
+                document.getElementById('c-restrict-tuman').value = c.restrictTuman || '';
+                document.getElementById('c-payment-type').value = c.isPaid ? 'paid' : 'free';
+                document.getElementById('c-payment-type').dispatchEvent(new Event('change'));
+                document.getElementById('c-payment-amount').value = c.paymentAmount || '';
+                document.getElementById('c-payment-account').value = c.paymentAccount || '';
+                document.getElementById('c-payment-receiver').value = c.paymentReceiver || '';
                 document.getElementById('c-reg-start').value = c.regStartDate || '';
                 document.getElementById('c-reg-end').value = c.regEndDate || '';
                 document.getElementById('c-test-window-start').value = c.testWindowStart || '';
@@ -350,6 +395,14 @@ function resetContestForm() {
     document.getElementById('c-min-age').value = '';
     document.getElementById('c-max-age').value = '';
     document.getElementById('c-grades').value = '';
+    document.getElementById('c-restrict-viloyat').value = '';
+    document.getElementById('c-restrict-viloyat').dispatchEvent(new Event('change'));
+    document.getElementById('c-restrict-tuman').value = '';
+    document.getElementById('c-payment-type').value = 'free';
+    document.getElementById('c-payment-type').dispatchEvent(new Event('change'));
+    document.getElementById('c-payment-amount').value = '';
+    document.getElementById('c-payment-account').value = '';
+    document.getElementById('c-payment-receiver').value = '';
     document.getElementById('c-reg-start').value = '';
     document.getElementById('c-reg-end').value = '';
     document.getElementById('c-test-window-start').value = '';
@@ -383,6 +436,12 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const interviewWindowEnd = document.getElementById('c-interview-window-end').value || null;
     const interviewSlotMinutes = parseInt(document.getElementById('c-interview-slot-minutes').value, 10) || 15;
     const interviewSlotCapacity = parseInt(document.getElementById('c-interview-slot-capacity').value, 10) || 1;
+    const restrictViloyat = document.getElementById('c-restrict-viloyat').value || null;
+    const restrictTuman = document.getElementById('c-restrict-tuman').value || null;
+    const isPaid = document.getElementById('c-payment-type').value === 'paid';
+    const paymentAmount = isPaid ? parseFloat(document.getElementById('c-payment-amount').value) || null : null;
+    const paymentAccount = isPaid ? document.getElementById('c-payment-account').value.trim() || null : null;
+    const paymentReceiver = isPaid ? document.getElementById('c-payment-receiver').value.trim() || null : null;
     if (!title) {
         setStatus('Tanlov nomini kiriting.', 'error');
         return;
@@ -423,6 +482,12 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             interviewWindowEnd,
             interviewSlotMinutes,
             interviewSlotCapacity,
+            restrictViloyat,
+            restrictTuman,
+            isPaid,
+            paymentAmount,
+            paymentAccount,
+            paymentReceiver,
         };
         if (editId) {
             await updateDoc(doc(db, 'contests', editId), payload);
@@ -546,9 +611,11 @@ function renderRegistrantsTable(list) {
     list.forEach((r, i) => {
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
+        const hasPayment = r.paymentStatus !== null && r.paymentStatus !== undefined;
+        const isPaid = r.paymentStatus === 'paid';
         rows += `<tr data-row="${r.id}">
             <td>${i + 1}</td>
-            <td>${escapeHtml(r.fullName)}</td>
+            <td>${r.photoUrl ? `<img src="${r.photoUrl}" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px">` : ''}${escapeHtml(r.fullName)}</td>
             <td><b>${escapeHtml(r.customId)}</b></td>
             <td>${escapeHtml(r.maktab)}${(r.viloyat || r.tuman) ? `<br><span style="color:var(--muted);font-size:0.75rem">${escapeHtml([r.tuman, r.viloyat].filter(Boolean).join(', '))}</span>` : ''}</td>
             <td>${escapeHtml(r.yosh)}</td>
@@ -557,21 +624,22 @@ function renderRegistrantsTable(list) {
             <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" title="${meta.interviewMaxScore ? 'Maksimal: ' + meta.interviewMaxScore : ''}" style="width:64px"></td>
             <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" title="${meta.openMax ? 'Maksimal: ' + meta.openMax : ''}" style="width:64px"></td>
             <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
+            <td>${hasPayment ? `<button class="btn ${isPaid ? 'btn-green' : 'btn-red'}" data-toggle-payment="${r.id}" data-next="${isPaid ? 'kutilmoqda' : 'paid'}" style="font-size:11px;padding:6px 10px">${isPaid ? '\u2705 To\u2018landi' : '\u23f3 Kutilmoqda'}</button>` : '\u2014'}</td>
             <td style="white-space:nowrap">
                 <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
                 <button class="btn" data-view-open="${r.id}" title="Ochiq savollarga javoblarni ko'rish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-eye"></i></button>
                 <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
             </td>
         </tr>
-        <tr data-retake-info="${r.id}"><td colspan="11" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
+        <tr data-retake-info="${r.id}"><td colspan="12" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
             <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
         </td></tr>
-        <tr data-open-answers-row="${r.id}" style="display:none"><td colspan="11" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
+        <tr data-open-answers-row="${r.id}" style="display:none"><td colspan="12" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
             <div data-open-answers-content="${r.id}">Yuklanmoqda...</div>
         </td></tr>`;
     });
     tableEl.innerHTML = `${metaLine}<table>
-        <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Ochiq</th><th>Jami</th><th></th></tr></thead>
+        <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Ochiq</th><th>Jami</th><th>To'lov</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
     </table>`;
 
@@ -649,6 +717,25 @@ function renderRegistrantsTable(list) {
             } catch (err) {
                 console.error(err);
                 content.innerHTML = '<span style="color:var(--red)">Yuklashda xatolik yuz berdi.</span>';
+            }
+        });
+    });
+
+    tableEl.querySelectorAll('[data-toggle-payment]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.togglePayment;
+            const next = btn.dataset.next;
+            btn.disabled = true;
+            try {
+                await updateDoc(doc(db, 'registrations', id), { paymentStatus: next });
+                const cached = currentRegistrants.find((x) => x.id === id);
+                if (cached) cached.paymentStatus = next;
+                renderRegistrantsTable(currentRegistrants);
+                setStatus(next === 'paid' ? 'To\u2018lov tasdiqlandi.' : 'To\u2018lov holati "kutilmoqda"ga qaytarildi.', 'success');
+            } catch (err) {
+                console.error(err);
+                setStatus('Xatolik yuz berdi.', 'error');
+                btn.disabled = false;
             }
         });
     });
@@ -744,6 +831,17 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
         const testResult = buildScheduleAssignments(c.testWindowStart, c.testWindowEnd, c.testSlotMinutes || 30, c.testSlotCapacity || 15, n);
         const interviewResult = buildScheduleAssignments(c.interviewWindowStart, c.interviewWindowEnd, c.interviewSlotMinutes || 15, c.interviewSlotCapacity || 1, n);
 
+        // Suhbat biletlari (agar yuklangan bo'lsa) — navbat bilan (round-robin) taqsimlanadi
+        let ticketNumbers = [];
+        try {
+            const ticketsSnap = await getDoc(doc(db, 'interview-tickets', currentContestId));
+            if (ticketsSnap.exists() && ticketsSnap.data().tickets?.length) {
+                ticketNumbers = ticketsSnap.data().tickets.map((t) => t.number);
+            }
+        } catch (err) {
+            console.error('Biletlarni yuklashda xatolik:', err);
+        }
+
         // Ishtirokchilarni ro'yxatdan o'tgan tartibda (eng birinchi bo'lib o'tganlar birinchi slotlarga) taqsimlaymiz
         const chunks = [];
         for (let i = 0; i < n; i += 400) chunks.push(currentRegistrants.slice(i, i + 400));
@@ -762,6 +860,9 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
                     payload.assignedInterviewStart = interviewResult.assignments[globalIdx].start;
                     payload.assignedInterviewEnd = interviewResult.assignments[globalIdx].end;
                 }
+                if (ticketNumbers.length) {
+                    payload.assignedTicketNumber = ticketNumbers[globalIdx % ticketNumbers.length];
+                }
                 if (Object.keys(payload).length) batch.update(doc(db, 'registrations', r.id), payload);
                 Object.assign(r, payload); // mahalliy keshni ham yangilaymiz
             });
@@ -772,6 +873,7 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
         let msg = `${n} ta ishtirokchiga vaqt biriktirildi.`;
         if (testResult.assignments.length) msg += ` Test uchun ${Math.ceil(n / (c.testSlotCapacity || 15))} ta slot ishlatildi.`;
         if (interviewResult.assignments.length) msg += ` Suhbat uchun ${Math.ceil(n / (c.interviewSlotCapacity || 1))} ta slot ishlatildi.`;
+        if (ticketNumbers.length) msg += ` Suhbat biletlari ham ${ticketNumbers.length} tadan navbat bilan biriktirildi.`;
         if (testResult.overflowed || interviewResult.overflowed) {
             msg += ' Diqqat: ishtirokchilar soni ko\u2018pligi sababli ba\u2018zi slotlar belgilangan oyna tugash vaqtidan keyin ham davom etdi \u2014 oynani kengaytirishni yoki slot sig\u2018imini oshirishni ko\u2018rib chiqing.';
             statusEl.style.color = 'var(--orange)';
@@ -850,9 +952,10 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
         Suhbat: r.interviewScore ?? '',
         'Ochiq savollar': r.openScore ?? '',
         Jami: (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0),
+        'To\'lov holati': r.paymentStatus === 'paid' ? 'To\'landi' : r.paymentStatus ? 'Kutilmoqda' : '',
     }));
     const ws = window.XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }];
+    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 12 }];
     const wb = window.XLSX.utils.book_new();
     window.XLSX.utils.book_append_sheet(wb, ws, 'Ishtirokchilar');
     const safeTitle = (currentContestTitle || 'tanlov').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40);
@@ -1117,7 +1220,102 @@ function resetTestForm() {
 
 document.getElementById('t-cancel-edit-btn')?.addEventListener('click', resetTestForm);
 
-/* ── TAYYOR FAYLDAN SAVOLLARNI YUKLASH (.txt / .docx) ── */
+/* ── SUHBAT BILETLARI ── */
+function parseTickets(raw) {
+    const blocks = raw
+        .split(/^---$/m)
+        .map((b) => b.trim())
+        .filter(Boolean);
+    return blocks
+        .map((block, idx) => {
+            const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
+            if (!lines.length) return null;
+            let number = idx + 1;
+            let startIdx = 0;
+            const headerMatch = lines[0].match(/^Bilet\s*(\d+)/i);
+            if (headerMatch) {
+                number = parseInt(headerMatch[1], 10);
+                startIdx = 1;
+            }
+            const questions = lines
+                .slice(startIdx)
+                .map((l) => l.replace(/^\d+[.)]\s*/, '').trim())
+                .filter(Boolean);
+            return questions.length ? { number, questions } : null;
+        })
+        .filter(Boolean);
+}
+
+document.getElementById('ticket-save-btn')?.addEventListener('click', async () => {
+    const contestId = document.getElementById('ticket-contest-select').value;
+    const raw = document.getElementById('ticket-questions').value;
+    const statusEl = document.getElementById('ticket-save-status');
+    if (!contestId) {
+        setStatus('Tanlovni tanlang.', 'error');
+        return;
+    }
+    const tickets = parseTickets(raw);
+    if (!tickets.length) {
+        statusEl.textContent = 'Biletlar formatida xatolik bor. Namunani tekshiring.';
+        statusEl.style.color = 'var(--red)';
+        return;
+    }
+    const btn = document.getElementById('ticket-save-btn');
+    btn.disabled = true;
+    try {
+        await setDoc(doc(db, 'interview-tickets', contestId), { tickets, updatedAt: serverTimestamp() });
+        statusEl.textContent = `${tickets.length} ta bilet saqlandi.`;
+        statusEl.style.color = 'var(--green)';
+        loadTickets(contestId);
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Xatolik yuz berdi.';
+        statusEl.style.color = 'var(--red)';
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+async function loadTickets(contestId) {
+    const listEl = document.getElementById('ticketsList');
+    if (!listEl) return;
+    if (!contestId) {
+        listEl.innerHTML = '<div class="empty">Tanlov tanlanmagan.</div>';
+        return;
+    }
+    listEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+    try {
+        const snap = await getDoc(doc(db, 'interview-tickets', contestId));
+        if (!snap.exists() || !snap.data().tickets?.length) {
+            listEl.innerHTML = '<div class="empty">Bu tanlov uchun hali bilet yuklanmagan.</div>';
+            return;
+        }
+        const tickets = snap.data().tickets;
+        listEl.innerHTML = tickets
+            .map(
+                (t) => `<div class="admin-row"><span><b>Bilet ${escapeHtml(t.number)}</b> — ${t.questions.length} ta savol</span>
+                <button class="btn btn-red" data-del-ticket="${t.number}" title="O'chirish"><i class="fas fa-trash"></i></button></div>`
+            )
+            .join('');
+        listEl.querySelectorAll('[data-del-ticket]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Bu biletni o\u2018chirmoqchimisiz?')) return;
+                const remaining = tickets.filter((t) => String(t.number) !== btn.dataset.delTicket);
+                await setDoc(doc(db, 'interview-tickets', contestId), { tickets: remaining, updatedAt: serverTimestamp() });
+                loadTickets(contestId);
+            });
+        });
+    } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+}
+
+document.getElementById('ticket-contest-select')?.addEventListener('change', (e) => {
+    document.getElementById('ticket-questions').value = '';
+    document.getElementById('ticket-save-status').textContent = '';
+    loadTickets(e.target.value);
+});
 document.getElementById('t-questions-file')?.addEventListener('change', async (e) => {
     const file = e.target.files && e.target.files[0];
     const statusEl = document.getElementById('t-questions-file-status');
