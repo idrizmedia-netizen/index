@@ -184,9 +184,16 @@ async function init() {
     }
 
     // Hali boshlanmagan — kirish oynasi
-    const totalToShow = testData.questionsPerAttempt && testData.questionsPerAttempt < testData.questions.length
-        ? testData.questionsPerAttempt
-        : testData.questions.length;
+    const mcTotal = testData.questions.filter((q) => q.type !== 'open').length;
+    const openTotal = testData.questions.filter((q) => q.type === 'open').length;
+    let totalToShow;
+    if (testData.mcQuestionsPerAttempt == null && testData.openQuestionsPerAttempt == null && testData.questionsPerAttempt) {
+        totalToShow = Math.min(testData.questionsPerAttempt, testData.questions.length);
+    } else {
+        const mcShow = testData.mcQuestionsPerAttempt ? Math.min(testData.mcQuestionsPerAttempt, mcTotal) : mcTotal;
+        const openShow = testData.openQuestionsPerAttempt ? Math.min(testData.openQuestionsPerAttempt, openTotal) : openTotal;
+        totalToShow = mcShow + openShow;
+    }
     introCard.style.display = 'block';
     document.getElementById('introTitle').textContent = testData.title;
     document.getElementById('introDesc').textContent =
@@ -203,18 +210,35 @@ function shuffleArray(arr) {
 }
 
 function buildQuestionOrder() {
-    const total = testData.questions.length;
-    const n = testData.questionsPerAttempt && testData.questionsPerAttempt > 0 ? Math.min(testData.questionsPerAttempt, total) : total;
+    const allIndices = testData.questions.map((_, i) => i);
+    const mcIndices = allIndices.filter((i) => testData.questions[i].type !== 'open');
+    const openIndices = allIndices.filter((i) => testData.questions[i].type === 'open');
 
-    if (n >= total) {
-        return shuffleArray(Array.from({ length: total }, (_, i) => i));
+    // Eski testlar uchun orqaga moslik: agar yangi (mc/open) sozlamalar bo'lmasa,
+    // eski "questionsPerAttempt" bo'yicha butun bazadan (turi aralash) tanlanadi.
+    if (testData.mcQuestionsPerAttempt == null && testData.openQuestionsPerAttempt == null && testData.questionsPerAttempt) {
+        return buildBalancedSelection(allIndices, testData.questionsPerAttempt);
     }
 
-    // Qiyinlik darajasi bo'yicha guruhlab, har birining ulushiga mos son tanlaymiz
-    // — bu orqali ishtirokchiga tasodifiy ravishda faqat oson yoki faqat qiyin savollar tushib qolmaydi.
+    const mcSelected = testData.mcQuestionsPerAttempt
+        ? buildBalancedSelection(mcIndices, testData.mcQuestionsPerAttempt)
+        : shuffleArray([...mcIndices]);
+    const openSelected = testData.openQuestionsPerAttempt
+        ? shuffleArray([...openIndices]).slice(0, Math.min(testData.openQuestionsPerAttempt, openIndices.length))
+        : shuffleArray([...openIndices]);
+
+    return shuffleArray(mcSelected.concat(openSelected));
+}
+
+// Berilgan indekslar to'plamidan "n" tasini qiyinlik darajasi bo'yicha muvozanatlab tanlaydi
+function buildBalancedSelection(indices, desiredN) {
+    const total = indices.length;
+    const n = desiredN && desiredN > 0 ? Math.min(desiredN, total) : total;
+    if (n >= total) return shuffleArray([...indices]);
+
     const groups = { oson: [], "o'rta": [], qiyin: [] };
-    testData.questions.forEach((q, i) => {
-        const d = groups[q.difficulty] ? q.difficulty : "o'rta";
+    indices.forEach((i) => {
+        const d = groups[testData.questions[i].difficulty] ? testData.questions[i].difficulty : "o'rta";
         groups[d].push(i);
     });
     Object.values(groups).forEach(shuffleArray);
@@ -231,7 +255,7 @@ function buildQuestionOrder() {
     });
     if (remaining > 0) {
         const usedSet = new Set(selected);
-        const leftover = Array.from({ length: total }, (_, i) => i).filter((i) => !usedSet.has(i));
+        const leftover = indices.filter((i) => !usedSet.has(i));
         shuffleArray(leftover);
         selected = selected.concat(leftover.slice(0, remaining));
     }
