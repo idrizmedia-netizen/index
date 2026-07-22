@@ -108,6 +108,19 @@ async function init() {
     }
 
     if (contestData) {
+        // To'lov tekshiruvi: agar tanlov pullik bo'lsa va admin hali "to'landi" deb tasdiqlamagan bo'lsa,
+        // ishtirokchi testga kira olmaydi.
+        if (contestData.isPaid && regData.paymentStatus !== 'paid') {
+            let deadlineText = '';
+            if (contestData.testWindowStart) {
+                const deadline = new Date(contestData.testWindowStart);
+                deadline.setDate(deadline.getDate() - 1);
+                deadlineText = ` To\u2018lov muddati: ${deadline.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.`;
+            }
+            showMsg('To\u2018lov amalga oshirilmagan', `Bu tanlov pullik. Testga kirish uchun to\u2018lovni amalga oshiring va admin tasdiqlashini kuting.${deadlineText} Kvitansiyani ro\u2018yxatdan o\u2018tish sahifasidan ko\u2018rishingiz mumkin.`);
+            return;
+        }
+
         // Ustuvorlik: ishtirokchiga avtomatik biriktirilgan shaxsiy vaqt > tanlovning umumiy test oynasi.
         // Agar ikkalasi ham belgilanmagan bo'lsa — hech qanday cheklov qo'yilmaydi (bepul kirish).
         const effectiveStart = regData.assignedTestStart || contestData.testWindowStart || null;
