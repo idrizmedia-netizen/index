@@ -338,6 +338,12 @@ async function showAlreadyRegistered(customId, cId, regData) {
                 if (effInterviewStart || effInterviewEnd) {
                     bits.push(`Suhbat vaqtingiz: ${effInterviewStart ? fmtDT(effInterviewStart) : '\u2014'}${effInterviewEnd ? ' \u2013 ' + fmtDT(effInterviewEnd) : ''}`);
                 }
+                if (c.interviewQuestionsCount || c.interviewMaxScore) {
+                    const parts = [];
+                    if (c.interviewQuestionsCount) parts.push(`${c.interviewQuestionsCount} ta savol so\u2018raladi`);
+                    if (c.interviewMaxScore) parts.push(`umumiy ${c.interviewMaxScore} ball`);
+                    bits.push(`Suhbat haqida: ${parts.join(', ')}`);
+                }
                 datesBox.textContent = bits.join(' \u00b7 ');
                 datesBox.style.display = bits.length ? 'block' : 'none';
             }
