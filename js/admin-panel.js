@@ -511,9 +511,10 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
                 const t = testSnap.data();
                 const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
                 const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
-                const servedMc = t.questionsPerAttempt ? Math.min(t.questionsPerAttempt, mcCount) : mcCount;
+                const servedMc = t.mcQuestionsPerAttempt ? Math.min(t.mcQuestionsPerAttempt, mcCount) : mcCount;
+                const servedOpen = t.openQuestionsPerAttempt ? Math.min(t.openQuestionsPerAttempt, openCount) : openCount;
                 currentContestMeta.testMax = mcCount ? +(servedMc * (t.pointsPerCorrect || 1)).toFixed(2) : null;
-                currentContestMeta.openMax = openCount ? +(openCount * (t.openMaxPointsPerQuestion || 5)).toFixed(2) : null;
+                currentContestMeta.openMax = openCount ? +(servedOpen * (t.openMaxPointsPerQuestion || 5)).toFixed(2) : null;
             }
         } catch (err) {
             console.error('Ball chegaralarini yuklashda xatolik:', err);
@@ -1078,29 +1079,35 @@ function updatePointsPreview() {
     const raw = document.getElementById('t-questions').value;
     const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
     const openMax = parseFloat(document.getElementById('t-open-max-points').value) || 5;
+    const mcPerAttemptRaw = document.getElementById('t-mc-per-attempt').value.trim();
+    const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
     const questions = parseQuestions(raw);
     if (!questions.length) {
         previewEl.textContent = '';
         return;
     }
-    const mcCount = questions.filter((q) => q.type !== 'open').length;
-    const openCount = questions.filter((q) => q.type === 'open').length;
+    const mcTotal = questions.filter((q) => q.type !== 'open').length;
+    const openTotal = questions.filter((q) => q.type === 'open').length;
+    const mcServed = mcPerAttemptRaw ? Math.min(parseInt(mcPerAttemptRaw, 10), mcTotal) : mcTotal;
+    const openServed = openPerAttemptRaw ? Math.min(parseInt(openPerAttemptRaw, 10), openTotal) : openTotal;
     const bits = [];
-    if (mcCount) bits.push(`${mcCount} ta yopiq savol \u00d7 ${pointsPerCorrect} ball = jami ${(mcCount * pointsPerCorrect).toFixed(1).replace(/\.0$/, '')} ball`);
-    if (openCount) bits.push(`${openCount} ta ochiq savol \u00d7 max ${openMax} ball = maksimal ${(openCount * openMax).toFixed(1).replace(/\.0$/, '')} ball`);
-    previewEl.textContent = bits.join(' \u00b7 ') + (document.getElementById('t-questions-per-attempt').value ? ' (agar savollar cheklangan bo\u2018lsa, haqiqiy son ishtirokchiga qarab farq qilishi mumkin)' : '');
+    if (mcTotal) bits.push(`${mcServed} ta yopiq savol beriladi (bazada ${mcTotal} ta) \u00d7 ${pointsPerCorrect} ball = jami ${(mcServed * pointsPerCorrect).toFixed(1).replace(/\.0$/, '')} ball`);
+    if (openTotal) bits.push(`${openServed} ta ochiq savol beriladi (bazada ${openTotal} ta) \u00d7 max ${openMax} ball = maksimal ${(openServed * openMax).toFixed(1).replace(/\.0$/, '')} ball`);
+    previewEl.textContent = bits.join(' \u00b7 ');
 }
 document.getElementById('t-questions')?.addEventListener('input', updatePointsPreview);
 document.getElementById('t-points-per-correct')?.addEventListener('input', updatePointsPreview);
 document.getElementById('t-open-max-points')?.addEventListener('input', updatePointsPreview);
-document.getElementById('t-questions-per-attempt')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-mc-per-attempt')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-open-per-attempt')?.addEventListener('input', updatePointsPreview);
 
 function resetTestForm() {
     document.getElementById('t-edit-id').value = '';
     document.getElementById('t-title').value = '';
     document.getElementById('t-questions').value = '';
     document.getElementById('t-time-limit').value = '20';
-    document.getElementById('t-questions-per-attempt').value = '';
+    document.getElementById('t-mc-per-attempt').value = '';
+    document.getElementById('t-open-per-attempt').value = '';
     document.getElementById('t-points-per-correct').value = '1';
     document.getElementById('t-open-max-points').value = '5';
     document.getElementById('t-points-preview').textContent = '';
@@ -1109,6 +1116,57 @@ function resetTestForm() {
 }
 
 document.getElementById('t-cancel-edit-btn')?.addEventListener('click', resetTestForm);
+
+/* ── TAYYOR FAYLDAN SAVOLLARNI YUKLASH (.txt / .docx) ── */
+document.getElementById('t-questions-file')?.addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    const statusEl = document.getElementById('t-questions-file-status');
+    const textarea = document.getElementById('t-questions');
+    if (!file) return;
+    statusEl.textContent = 'O\u2018qilmoqda...';
+    statusEl.style.color = 'var(--muted)';
+    try {
+        let text = '';
+        if (file.name.toLowerCase().endsWith('.docx')) {
+            if (!window.mammoth) throw new Error('Fayl o\u2018qish kutubxonasi yuklanmadi. Internetga ulanishni tekshiring.');
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await window.mammoth.extractRawText({ arrayBuffer });
+            text = result.value;
+        } else {
+            text = await file.text();
+        }
+        const existing = textarea.value.trim();
+        textarea.value = existing ? `${existing}\n---\n${text.trim()}` : text.trim();
+        const parsed = parseQuestions(textarea.value);
+        updatePointsPreview();
+        statusEl.textContent = `Fayldan o\u2018qildi. Hozircha jami ${parsed.length} ta to\u2018g\u2018ri formatdagi savol aniqlandi \u2014 pastdagi matnni tekshirib chiqing.`;
+        statusEl.style.color = parsed.length ? 'var(--green)' : 'var(--red)';
+        document.getElementById('t-questions-file').value = '';
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Faylni o\u2018qishda xatolik: ' + err.message;
+        statusEl.style.color = 'var(--red)';
+    }
+});
+
+document.getElementById('t-download-questions-btn')?.addEventListener('click', () => {
+    const text = document.getElementById('t-questions').value;
+    if (!text.trim()) {
+        setStatus('Yuklab olish uchun avval savollar kiriting yoki mavjud testni tahrirlashni oching.', 'error');
+        return;
+    }
+    const titleRaw = document.getElementById('t-title').value.trim() || 'savollar';
+    const safeTitle = titleRaw.replace(/[^a-zA-Z0-9\u0400-\u04FF\u0080-\u024F\-_ ]/g, '').trim() || 'savollar';
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeTitle}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+});
 
 /* ── SAVOL RASMINI FAYLDAN YUKLASH ── */
 document.getElementById('t-image-upload')?.addEventListener('change', (e) => {
@@ -1163,7 +1221,8 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
     const contestId = document.getElementById('t-contest-select').value;
     const title = document.getElementById('t-title').value.trim();
     const timeLimitMinutes = parseInt(document.getElementById('t-time-limit').value, 10) || 20;
-    const perAttemptRaw = document.getElementById('t-questions-per-attempt').value.trim();
+    const mcPerAttemptRaw = document.getElementById('t-mc-per-attempt').value.trim();
+    const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
     const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
     const openMaxPointsPerQuestion = parseFloat(document.getElementById('t-open-max-points').value) || 5;
     const rawQuestions = document.getElementById('t-questions').value;
@@ -1181,7 +1240,8 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
         setStatus('Savollar formatida xatolik bor. Namunani tekshiring.', 'error');
         return;
     }
-    const questionsPerAttempt = perAttemptRaw ? Math.max(1, parseInt(perAttemptRaw, 10)) : null;
+    const mcQuestionsPerAttempt = mcPerAttemptRaw ? Math.max(1, parseInt(mcPerAttemptRaw, 10)) : null;
+    const openQuestionsPerAttempt = openPerAttemptRaw ? Math.max(1, parseInt(openPerAttemptRaw, 10)) : null;
 
     const btn = document.getElementById('t-create-btn');
     btn.disabled = true;
@@ -1193,7 +1253,8 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
             contestId,
             title,
             timeLimitMinutes,
-            questionsPerAttempt,
+            mcQuestionsPerAttempt,
+            openQuestionsPerAttempt,
             pointsPerCorrect,
             openMaxPointsPerQuestion,
             questions,
@@ -1227,13 +1288,15 @@ async function loadTests() {
         snap.forEach((d) => {
             const t = d.data();
             testsCache[d.id] = t;
-            const perAttempt = t.questionsPerAttempt ? `${t.questionsPerAttempt} ta beriladi` : 'hammasi beriladi';
             const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
             const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
+            const perAttemptBits = [];
+            if (mcCount) perAttemptBits.push(t.mcQuestionsPerAttempt ? `${t.mcQuestionsPerAttempt} ta yopiq beriladi` : 'barcha yopiq beriladi');
+            if (openCount) perAttemptBits.push(t.openQuestionsPerAttempt ? `${t.openQuestionsPerAttempt} ta ochiq beriladi` : 'barcha ochiq beriladi');
             const pointsInfo = [];
             if (mcCount) pointsInfo.push(`yopiq: ${t.pointsPerCorrect || 1} ball/savol`);
             if (openCount) pointsInfo.push(`ochiq: max ${t.openMaxPointsPerQuestion || 5} ball/savol`);
-            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttempt)}), ${t.timeLimitMinutes} daqiqa${pointsInfo.length ? ', ' + escapeHtml(pointsInfo.join(', ')) : ''}</span>
+            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttemptBits.join(', '))}), ${t.timeLimitMinutes} daqiqa${pointsInfo.length ? ', ' + escapeHtml(pointsInfo.join(', ')) : ''}</span>
                 <span style="display:flex;gap:8px">
                     <button class="btn btn-primary" data-edit-test="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
                     <button class="btn btn-red" data-del-test="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
@@ -1248,7 +1311,8 @@ async function loadTests() {
                 document.getElementById('t-contest-select').value = t.contestId || btn.dataset.editTest;
                 document.getElementById('t-title').value = t.title || '';
                 document.getElementById('t-time-limit').value = t.timeLimitMinutes || 20;
-                document.getElementById('t-questions-per-attempt').value = t.questionsPerAttempt || '';
+                document.getElementById('t-mc-per-attempt').value = t.mcQuestionsPerAttempt || '';
+                document.getElementById('t-open-per-attempt').value = t.openQuestionsPerAttempt || '';
                 document.getElementById('t-points-per-correct').value = t.pointsPerCorrect || 1;
                 document.getElementById('t-open-max-points').value = t.openMaxPointsPerQuestion || 5;
                 document.getElementById('t-questions').value = questionsToRaw(t.questions || []);
