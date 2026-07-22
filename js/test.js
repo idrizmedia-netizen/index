@@ -108,12 +108,17 @@ async function init() {
     }
 
     if (contestData) {
+        // Fallback (agar shaxsiy vaqt hali biriktirilmagan bo'lsa): butun kunlar oralig'ining
+        // birinchi kuni boshlanish soati va oxirgi kuni tugash soati.
+        const fallbackTestStart = contestData.testDateStart ? `${contestData.testDateStart}T${contestData.testDailyStart || '00:00'}` : null;
+        const fallbackTestEnd = contestData.testDateEnd ? `${contestData.testDateEnd}T${contestData.testDailyEnd || '23:59'}` : null;
+
         // To'lov tekshiruvi: agar tanlov pullik bo'lsa va admin hali "to'landi" deb tasdiqlamagan bo'lsa,
         // ishtirokchi testga kira olmaydi.
         if (contestData.isPaid && regData.paymentStatus !== 'paid') {
             let deadlineText = '';
-            if (contestData.testWindowStart) {
-                const deadline = new Date(contestData.testWindowStart);
+            if (fallbackTestStart) {
+                const deadline = new Date(fallbackTestStart);
                 deadline.setDate(deadline.getDate() - 1);
                 deadlineText = ` To\u2018lov muddati: ${deadline.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.`;
             }
@@ -121,10 +126,10 @@ async function init() {
             return;
         }
 
-        // Ustuvorlik: ishtirokchiga avtomatik biriktirilgan shaxsiy vaqt > tanlovning umumiy test oynasi.
+        // Ustuvorlik: ishtirokchiga avtomatik biriktirilgan shaxsiy vaqt > tanlovning umumiy kunlar oralig'i.
         // Agar ikkalasi ham belgilanmagan bo'lsa — hech qanday cheklov qo'yilmaydi (bepul kirish).
-        const effectiveStart = regData.assignedTestStart || contestData.testWindowStart || null;
-        const effectiveEnd = regData.assignedTestEnd || contestData.testWindowEnd || null;
+        const effectiveStart = regData.assignedTestStart || fallbackTestStart;
+        const effectiveEnd = regData.assignedTestEnd || fallbackTestEnd;
 
         if (effectiveStart || effectiveEnd) {
             const now = new Date();
