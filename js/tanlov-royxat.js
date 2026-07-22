@@ -129,6 +129,7 @@ function showContestChoice(contests) {
             const restrictions = [];
             if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}\u2013${c.maxAge || '\u221e'}`);
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
+            if (c.restrictViloyat) restrictions.push(`Hudud: ${c.restrictTuman || c.restrictViloyat}`);
             const grad = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
             return `<div class="contest-pick" data-pick="${c.id}" style="background:${grad}">
                 <span class="cp-live">FAOL</span>
@@ -157,6 +158,8 @@ async function openContest(contest, showBack) {
     const restrictions = [];
     if (contest.minAge || contest.maxAge) restrictions.push(`Yosh: ${contest.minAge || '0'}\u2013${contest.maxAge || '\u221e'}`);
     if (contest.grades && contest.grades.length) restrictions.push(`Sinflar: ${contest.grades.join(', ')}`);
+    if (contest.restrictViloyat) restrictions.push(`Hudud: ${contest.restrictTuman || contest.restrictViloyat}`);
+    if (contest.isPaid) restrictions.push(`\u{1F4B0} Pullik tanlov: ${contest.paymentAmount || '?'} so\u2018m`);
     if (contest.regStartDate || contest.regEndDate) {
         restrictions.push(`Ro'yxatdan o'tish muddati: ${contest.regStartDate || '\u2014'} \u2013 ${contest.regEndDate || '\u2014'}`);
     }
@@ -238,6 +241,11 @@ async function openContest(contest, showBack) {
             submitBtn.disabled = false;
             return;
         }
+        if (!selectedPhotoDataUrl) {
+            setStatus('Iltimos, rasmingizni yuklang.', 'error');
+            submitBtn.disabled = false;
+            return;
+        }
 
         if (contest.minAge && yosh < contest.minAge) {
             setStatus(`Bu tanlov uchun yosh chegarasi: ${contest.minAge} dan boshlab.`, 'error');
@@ -254,10 +262,21 @@ async function openContest(contest, showBack) {
             submitBtn.disabled = false;
             return;
         }
+        if (contest.restrictViloyat && viloyat !== contest.restrictViloyat) {
+            setStatus(`Bu tanlov faqat ${contest.restrictViloyat} ishtirokchilari uchun.`, 'error');
+            submitBtn.disabled = false;
+            return;
+        }
+        if (contest.restrictTuman && tuman !== contest.restrictTuman) {
+            setStatus(`Bu tanlov faqat ${contest.restrictTuman} ishtirokchilari uchun.`, 'error');
+            submitBtn.disabled = false;
+            return;
+        }
 
         try {
             const customId = await nextRegistrationId();
 
+            const fullName = `${familiya} ${ism} ${sharif}`.trim();
             await setDoc(doc(db, 'registrations', regId), {
                 contestId: contest.id,
                 contestTitle: contest.title || '',
@@ -266,16 +285,18 @@ async function openContest(contest, showBack) {
                 familiya,
                 ism,
                 sharif,
-                fullName: `${familiya} ${ism} ${sharif}`.trim(),
+                fullName,
                 viloyat,
                 tuman,
                 maktab,
+                photoUrl: selectedPhotoDataUrl,
                 yosh,
                 sinf,
                 telefon,
                 customId,
                 score: null,
                 rank: null,
+                paymentStatus: contest.isPaid ? 'kutilmoqda' : null,
                 createdAt: serverTimestamp(),
             });
 
@@ -286,7 +307,7 @@ async function openContest(contest, showBack) {
             }
 
             regForm.style.display = 'none';
-            showAlreadyRegistered(customId, contest.id, {});
+            showAlreadyRegistered(customId, contest.id, { fullName, paymentStatus: contest.isPaid ? 'kutilmoqda' : null });
             setStatus('Muvaffaqiyatli ro\u2018yxatdan o\u2018tdingiz!', 'success');
         } catch (err) {
             console.error('Ro\u2018yxatdan o\u2018tish xatoligi:', err.code, err.message, err);
@@ -348,6 +369,74 @@ async function showAlreadyRegistered(customId, cId, regData) {
                 datesBox.style.display = bits.length ? 'block' : 'none';
             }
 
+            // To'lov holati (agar tanlov pullik bo'lsa)
+            const paymentBox = document.getElementById('payment-box');
+            if (c.isPaid && paymentBox) {
+                paymentBox.style.display = 'block';
+                const paid = regData.paymentStatus === 'paid';
+                let deadlineDate = null;
+                if (c.testWindowStart) {
+                    deadlineDate = new Date(c.testWindowStart);
+                    deadlineDate.setDate(deadlineDate.getDate() - 1);
+                }
+                const deadlineText = deadlineDate ? fmtDT(deadlineDate.toISOString()) : 'belgilanmagan';
+                document.getElementById('payment-status-text').textContent = paid
+                    ? '\u2705 To\u2018lovingiz admin tomonidan tasdiqlangan.'
+                    : `\u23f3 To\u2018lov holati: kutilmoqda. To\u2018lov muddati: ${deadlineText}. Iltimos, kvitansiyadagi ma\u2019lumotlar bo\u2018yicha o\u2018tkazma qiling.`;
+
+                const showReceiptBtn = document.getElementById('show-receipt-btn');
+                if (showReceiptBtn) {
+                    showReceiptBtn.onclick = () => {
+                        const receiptBox = document.getElementById('receipt-box');
+                        document.getElementById('r-contest-title').textContent = c.title || '';
+                        document.getElementById('r-full-name').textContent = regData.fullName || '';
+                        document.getElementById('r-custom-id').textContent = customId || '';
+                        document.getElementById('r-amount').textContent = c.paymentAmount || '?';
+                        document.getElementById('r-account').textContent = c.paymentAccount || '\u2014';
+                        document.getElementById('r-receiver').textContent = c.paymentReceiver || '\u2014';
+                        document.getElementById('r-deadline').textContent = deadlineText;
+                        const qrEl = document.getElementById('r-qr');
+                        qrEl.innerHTML = '';
+                        const qrText = `To'lov: ${c.paymentAmount || ''} so'm | Kimga: ${c.paymentReceiver || ''} | Hisob: ${c.paymentAccount || ''} | ID: ${customId}`;
+                        if (window.QRCode) {
+                            new window.QRCode(qrEl, { text: qrText, width: 160, height: 160 });
+                        }
+                        receiptBox.style.display = 'block';
+                        receiptBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    };
+                }
+            } else if (paymentBox) {
+                paymentBox.style.display = 'none';
+            }
+
+            // Suhbat bileti: suhbat boshlanishidan 10 daqiqa oldin va suhbat davomida ko'rsatiladi
+            const ticketBox = document.getElementById('ticket-box');
+            if (ticketBox) {
+                ticketBox.style.display = 'none';
+                if (regData.assignedTicketNumber && effInterviewStart) {
+                    const now = new Date();
+                    const showFrom = new Date(new Date(effInterviewStart).getTime() - 10 * 60000);
+                    const showUntil = effInterviewEnd ? new Date(effInterviewEnd) : new Date(new Date(effInterviewStart).getTime() + 60 * 60000);
+                    if (now >= showFrom && now <= showUntil) {
+                        try {
+                            const ticketsSnap = await getDoc(doc(db, 'interview-tickets', cId));
+                            if (ticketsSnap.exists()) {
+                                const ticket = (ticketsSnap.data().tickets || []).find((t) => String(t.number) === String(regData.assignedTicketNumber));
+                                if (ticket) {
+                                    document.getElementById('ticket-number').textContent = ticket.number;
+                                    document.getElementById('ticket-questions-list').innerHTML = ticket.questions
+                                        .map((q) => `<li>${q.replace(/</g, '&lt;')}</li>`)
+                                        .join('');
+                                    ticketBox.style.display = 'block';
+                                }
+                            }
+                        } catch (err) {
+                            console.error('Biletni yuklashda xatolik:', err);
+                        }
+                    }
+                }
+            }
+
             // Suhbat linkini ko'rsatish qoidasi: admin uni yopgan bo'lmasligi kerak,
             // va agar suhbat vaqti belgilangan bo'lsa — faqat shu oraliqda ko'rinadi.
             // Agar hech qanday sana belgilanmagan bo'lsa — cheklovsiz ko'rsatiladi (avvalgi xato aynan shu yerda edi).
@@ -398,6 +487,8 @@ async function showAlreadyRegistered(customId, cId, regData) {
     }
 }
 
+document.getElementById('print-receipt-btn')?.addEventListener('click', () => window.print());
+
 // ── Viloyat / Tuman tanlash (statik ma'lumot, Firebase kerak emas) ──
 function setupHududSelects() {
     const viloyatSelect = document.getElementById('f-viloyat');
@@ -425,6 +516,44 @@ function setupHududSelects() {
     });
 }
 setupHududSelects();
+
+// ── Rasm yuklash (kompressiya qilib, ro'yxatdan o'tish hujjatiga qo'shiladi) ──
+let selectedPhotoDataUrl = null;
+document.getElementById('f-photo')?.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    const statusEl = document.getElementById('f-photo-status');
+    const previewBox = document.getElementById('f-photo-preview');
+    const previewImg = document.getElementById('f-photo-preview-img');
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        statusEl.textContent = 'Faqat rasm fayllarini yuklash mumkin.';
+        statusEl.style.color = '#dc2626';
+        return;
+    }
+    statusEl.textContent = 'Yuklanmoqda...';
+    statusEl.style.color = 'var(--muted)';
+
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => {
+        img.onload = () => {
+            const maxSize = 400;
+            const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            selectedPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            previewImg.src = selectedPhotoDataUrl;
+            previewBox.style.display = 'block';
+            statusEl.textContent = 'Rasm qabul qilindi.';
+            statusEl.style.color = '#059669';
+        };
+        img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+});
 
 async function init() {
     hideAll();
