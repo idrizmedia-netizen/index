@@ -148,11 +148,15 @@
                 const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
                 const c = contestDates[r.contestId] || {};
 
-                // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy oynasini olamiz
-                const effTestStart = r.assignedTestStart || c.testWindowStart || null;
-                const effTestEnd = r.assignedTestEnd || c.testWindowEnd || null;
-                const effInterviewStart = r.assignedInterviewStart || c.interviewWindowStart || null;
-                const effInterviewEnd = r.assignedInterviewEnd || c.interviewWindowEnd || null;
+                // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy kunlar oralig'ini olamiz
+                const fallbackTestStart = c.testDateStart ? `${c.testDateStart}T${c.testDailyStart || '00:00'}` : null;
+                const fallbackTestEnd = c.testDateEnd ? `${c.testDateEnd}T${c.testDailyEnd || '23:59'}` : null;
+                const fallbackInterviewStart = c.interviewDateStart ? `${c.interviewDateStart}T${c.interviewDailyStart || '00:00'}` : null;
+                const fallbackInterviewEnd = c.interviewDateEnd ? `${c.interviewDateEnd}T${c.interviewDailyEnd || '23:59'}` : null;
+                const effTestStart = r.assignedTestStart || fallbackTestStart;
+                const effTestEnd = r.assignedTestEnd || fallbackTestEnd;
+                const effInterviewStart = r.assignedInterviewStart || fallbackInterviewStart;
+                const effInterviewEnd = r.assignedInterviewEnd || fallbackInterviewEnd;
 
                 // Ketma-ketlik: test hali tugamagan yoki topshirilmagan bo'lsa — test vaqti ko'rsatiladi;
                 // test oynasi tugagandan keyin — suhbat vaqti ko'rsatiladi.
