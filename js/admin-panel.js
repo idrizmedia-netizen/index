@@ -451,6 +451,7 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
 let currentRegistrants = [];
 let currentContestTitle = '';
 let currentContestId = '';
+let currentContestMeta = {};
 
 document.getElementById('reg-contest-select').addEventListener('change', async (e) => {
     const contestId = e.target.value;
@@ -496,6 +497,28 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         const searchInput = document.getElementById('registrants-search');
         if (searchInput) searchInput.value = '';
 
+        currentContestMeta = {};
+        try {
+            const [contestSnap, testSnap] = await Promise.all([
+                getDoc(doc(db, 'contests', contestId)),
+                getDoc(doc(db, 'tests', contestId)),
+            ]);
+            if (contestSnap.exists()) {
+                const c = contestSnap.data();
+                currentContestMeta.interviewMaxScore = c.interviewMaxScore || null;
+            }
+            if (testSnap.exists()) {
+                const t = testSnap.data();
+                const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
+                const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
+                const servedMc = t.questionsPerAttempt ? Math.min(t.questionsPerAttempt, mcCount) : mcCount;
+                currentContestMeta.testMax = mcCount ? +(servedMc * (t.pointsPerCorrect || 1)).toFixed(2) : null;
+                currentContestMeta.openMax = openCount ? +(openCount * (t.openMaxPointsPerQuestion || 5)).toFixed(2) : null;
+            }
+        } catch (err) {
+            console.error('Ball chegaralarini yuklashda xatolik:', err);
+        }
+
         renderRegistrantsTable(list);
     } catch (err) {
         console.error(err);
@@ -509,6 +532,15 @@ function renderRegistrantsTable(list) {
         tableEl.innerHTML = '<div class="empty">Mos ishtirokchi topilmadi.</div>';
         return;
     }
+    const meta = currentContestMeta || {};
+    const metaBits = [];
+    if (meta.testMax) metaBits.push(`Test uchun maksimal: ${meta.testMax} ball`);
+    if (meta.openMax) metaBits.push(`Ochiq savollar uchun maksimal: ${meta.openMax} ball`);
+    if (meta.interviewMaxScore) metaBits.push(`Suhbat uchun maksimal: ${meta.interviewMaxScore} ball`);
+    const metaLine = metaBits.length
+        ? `<p style="color:var(--muted);font-size:0.78rem;margin:-4px 0 12px">${escapeHtml(metaBits.join(' \u00b7 '))}</p>`
+        : '';
+
     let rows = '';
     list.forEach((r, i) => {
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
@@ -520,9 +552,9 @@ function renderRegistrantsTable(list) {
             <td>${escapeHtml(r.maktab)}${(r.viloyat || r.tuman) ? `<br><span style="color:var(--muted);font-size:0.75rem">${escapeHtml([r.tuman, r.viloyat].filter(Boolean).join(', '))}</span>` : ''}</td>
             <td>${escapeHtml(r.yosh)}</td>
             <td>${escapeHtml(r.telefon)}</td>
-            <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" style="width:64px"></td>
-            <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" style="width:64px"></td>
-            <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" style="width:64px"></td>
+            <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" title="${meta.testMax ? 'Maksimal: ' + meta.testMax : ''}" style="width:64px"></td>
+            <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" title="${meta.interviewMaxScore ? 'Maksimal: ' + meta.interviewMaxScore : ''}" style="width:64px"></td>
+            <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" title="${meta.openMax ? 'Maksimal: ' + meta.openMax : ''}" style="width:64px"></td>
             <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
             <td style="white-space:nowrap">
                 <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
@@ -537,7 +569,7 @@ function renderRegistrantsTable(list) {
             <div data-open-answers-content="${r.id}">Yuklanmoqda...</div>
         </td></tr>`;
     });
-    tableEl.innerHTML = `<table>
+    tableEl.innerHTML = `${metaLine}<table>
         <thead><tr><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Ochiq</th><th>Jami</th><th></th></tr></thead>
         <tbody>${rows}</tbody>
     </table>`;
@@ -1040,12 +1072,38 @@ function questionsToRaw(questions) {
         .join('\n---\n');
 }
 
+function updatePointsPreview() {
+    const previewEl = document.getElementById('t-points-preview');
+    if (!previewEl) return;
+    const raw = document.getElementById('t-questions').value;
+    const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
+    const openMax = parseFloat(document.getElementById('t-open-max-points').value) || 5;
+    const questions = parseQuestions(raw);
+    if (!questions.length) {
+        previewEl.textContent = '';
+        return;
+    }
+    const mcCount = questions.filter((q) => q.type !== 'open').length;
+    const openCount = questions.filter((q) => q.type === 'open').length;
+    const bits = [];
+    if (mcCount) bits.push(`${mcCount} ta yopiq savol \u00d7 ${pointsPerCorrect} ball = jami ${(mcCount * pointsPerCorrect).toFixed(1).replace(/\.0$/, '')} ball`);
+    if (openCount) bits.push(`${openCount} ta ochiq savol \u00d7 max ${openMax} ball = maksimal ${(openCount * openMax).toFixed(1).replace(/\.0$/, '')} ball`);
+    previewEl.textContent = bits.join(' \u00b7 ') + (document.getElementById('t-questions-per-attempt').value ? ' (agar savollar cheklangan bo\u2018lsa, haqiqiy son ishtirokchiga qarab farq qilishi mumkin)' : '');
+}
+document.getElementById('t-questions')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-points-per-correct')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-open-max-points')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-questions-per-attempt')?.addEventListener('input', updatePointsPreview);
+
 function resetTestForm() {
     document.getElementById('t-edit-id').value = '';
     document.getElementById('t-title').value = '';
     document.getElementById('t-questions').value = '';
     document.getElementById('t-time-limit').value = '20';
     document.getElementById('t-questions-per-attempt').value = '';
+    document.getElementById('t-points-per-correct').value = '1';
+    document.getElementById('t-open-max-points').value = '5';
+    document.getElementById('t-points-preview').textContent = '';
     document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> Testni yaratish va e\u2018lon qilish';
     document.getElementById('t-cancel-edit-btn').style.display = 'none';
 }
@@ -1106,6 +1164,8 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
     const title = document.getElementById('t-title').value.trim();
     const timeLimitMinutes = parseInt(document.getElementById('t-time-limit').value, 10) || 20;
     const perAttemptRaw = document.getElementById('t-questions-per-attempt').value.trim();
+    const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
+    const openMaxPointsPerQuestion = parseFloat(document.getElementById('t-open-max-points').value) || 5;
     const rawQuestions = document.getElementById('t-questions').value;
 
     if (!contestId) {
@@ -1134,6 +1194,8 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
             title,
             timeLimitMinutes,
             questionsPerAttempt,
+            pointsPerCorrect,
+            openMaxPointsPerQuestion,
             questions,
             published: true,
             createdAt: serverTimestamp(),
@@ -1166,7 +1228,12 @@ async function loadTests() {
             const t = d.data();
             testsCache[d.id] = t;
             const perAttempt = t.questionsPerAttempt ? `${t.questionsPerAttempt} ta beriladi` : 'hammasi beriladi';
-            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttempt)}), ${t.timeLimitMinutes} daqiqa</span>
+            const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
+            const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
+            const pointsInfo = [];
+            if (mcCount) pointsInfo.push(`yopiq: ${t.pointsPerCorrect || 1} ball/savol`);
+            if (openCount) pointsInfo.push(`ochiq: max ${t.openMaxPointsPerQuestion || 5} ball/savol`);
+            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttempt)}), ${t.timeLimitMinutes} daqiqa${pointsInfo.length ? ', ' + escapeHtml(pointsInfo.join(', ')) : ''}</span>
                 <span style="display:flex;gap:8px">
                     <button class="btn btn-primary" data-edit-test="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
                     <button class="btn btn-red" data-del-test="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
@@ -1182,10 +1249,13 @@ async function loadTests() {
                 document.getElementById('t-title').value = t.title || '';
                 document.getElementById('t-time-limit').value = t.timeLimitMinutes || 20;
                 document.getElementById('t-questions-per-attempt').value = t.questionsPerAttempt || '';
+                document.getElementById('t-points-per-correct').value = t.pointsPerCorrect || 1;
+                document.getElementById('t-open-max-points').value = t.openMaxPointsPerQuestion || 5;
                 document.getElementById('t-questions').value = questionsToRaw(t.questions || []);
                 document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
                 document.getElementById('t-cancel-edit-btn').style.display = '';
                 document.getElementById('t-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                updatePointsPreview();
             });
         });
         listEl.querySelectorAll('[data-del-test]').forEach((btn) => {
@@ -1278,14 +1348,21 @@ document.getElementById('meet-contest-select')?.addEventListener('change', async
     const contestId = e.target.value;
     const input = document.getElementById('meet-link-input');
     const enabledInput = document.getElementById('meet-enabled-input');
+    const questionsInput = document.getElementById('meet-questions-count');
+    const maxScoreInput = document.getElementById('meet-max-score');
     input.value = '';
     enabledInput.checked = true;
+    questionsInput.value = '';
+    maxScoreInput.value = '';
     if (!contestId) return;
     try {
         const snap = await getDoc(doc(db, 'contests', contestId));
         if (snap.exists()) {
-            input.value = snap.data().meetLink || '';
-            enabledInput.checked = snap.data().meetLinkEnabled !== false;
+            const c = snap.data();
+            input.value = c.meetLink || '';
+            enabledInput.checked = c.meetLinkEnabled !== false;
+            questionsInput.value = c.interviewQuestionsCount || '';
+            maxScoreInput.value = c.interviewMaxScore || '';
         }
     } catch (err) {
         console.error(err);
@@ -1296,6 +1373,8 @@ document.getElementById('meet-save-btn')?.addEventListener('click', async () => 
     const contestId = document.getElementById('meet-contest-select').value;
     const meetLink = document.getElementById('meet-link-input').value.trim();
     const meetLinkEnabled = document.getElementById('meet-enabled-input').checked;
+    const interviewQuestionsCount = parseInt(document.getElementById('meet-questions-count').value, 10) || null;
+    const interviewMaxScore = parseFloat(document.getElementById('meet-max-score').value) || null;
     if (!contestId) {
         setStatus('Tanlovni tanlang.', 'error');
         return;
@@ -1303,7 +1382,7 @@ document.getElementById('meet-save-btn')?.addEventListener('click', async () => 
     const btn = document.getElementById('meet-save-btn');
     btn.disabled = true;
     try {
-        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null, meetLinkEnabled });
+        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null, meetLinkEnabled, interviewQuestionsCount, interviewMaxScore });
         setStatus('Suhbat havolasi saqlandi!', 'success');
         loadMeetLinks();
     } catch (err) {
@@ -1325,9 +1404,13 @@ async function loadMeetLinks() {
             const c = d.data();
             if (!c.meetLink) return;
             const enabled = c.meetLinkEnabled !== false;
+            const meta = [];
+            if (c.interviewQuestionsCount) meta.push(`${c.interviewQuestionsCount} ta savol`);
+            if (c.interviewMaxScore) meta.push(`umumiy ${c.interviewMaxScore} ball`);
             html += `<div class="admin-row">
                 <span><b>${escapeHtml(c.title)}</b><br><a href="${escapeHtml(c.meetLink)}" target="_blank" rel="noopener" style="font-size:0.8rem">${escapeHtml(c.meetLink)}</a>
-                    <span class="badge ${enabled ? 'open' : 'closed'}" style="margin-left:6px">${enabled ? 'OCHIQ' : 'YOPIQ'}</span></span>
+                    <span class="badge ${enabled ? 'open' : 'closed'}" style="margin-left:6px">${enabled ? 'OCHIQ' : 'YOPIQ'}</span>
+                    ${meta.length ? `<div style="color:var(--muted);font-size:0.75rem;margin-top:2px">${escapeHtml(meta.join(' \u00b7 '))}</div>` : ''}</span>
                 <span style="display:flex;gap:8px">
                     <button class="btn ${enabled ? 'btn-red' : 'btn-green'}" data-toggle-meet="${d.id}" data-next="${!enabled}" title="${enabled ? 'Yopish' : 'Ochish'}"><i class="fas ${enabled ? 'fa-lock' : 'fa-unlock'}"></i></button>
                     <button class="btn btn-primary" data-edit-meet="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
