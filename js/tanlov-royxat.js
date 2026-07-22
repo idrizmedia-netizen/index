@@ -345,11 +345,15 @@ async function showAlreadyRegistered(customId, cId, regData) {
         if (contestSnap.exists()) {
             const c = contestSnap.data();
 
-            // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy oynasini ko'rsatamiz
-            const effTestStart = regData.assignedTestStart || c.testWindowStart || null;
-            const effTestEnd = regData.assignedTestEnd || c.testWindowEnd || null;
-            const effInterviewStart = regData.assignedInterviewStart || c.interviewWindowStart || null;
-            const effInterviewEnd = regData.assignedInterviewEnd || c.interviewWindowEnd || null;
+            // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy kunlar oralig'ini ko'rsatamiz
+            const fallbackTestStart = c.testDateStart ? `${c.testDateStart}T${c.testDailyStart || '00:00'}` : null;
+            const fallbackTestEnd = c.testDateEnd ? `${c.testDateEnd}T${c.testDailyEnd || '23:59'}` : null;
+            const fallbackInterviewStart = c.interviewDateStart ? `${c.interviewDateStart}T${c.interviewDailyStart || '00:00'}` : null;
+            const fallbackInterviewEnd = c.interviewDateEnd ? `${c.interviewDateEnd}T${c.interviewDailyEnd || '23:59'}` : null;
+            const effTestStart = regData.assignedTestStart || fallbackTestStart;
+            const effTestEnd = regData.assignedTestEnd || fallbackTestEnd;
+            const effInterviewStart = regData.assignedInterviewStart || fallbackInterviewStart;
+            const effInterviewEnd = regData.assignedInterviewEnd || fallbackInterviewEnd;
 
             if (datesBox) {
                 const bits = [];
@@ -375,8 +379,8 @@ async function showAlreadyRegistered(customId, cId, regData) {
                 paymentBox.style.display = 'block';
                 const paid = regData.paymentStatus === 'paid';
                 let deadlineDate = null;
-                if (c.testWindowStart) {
-                    deadlineDate = new Date(c.testWindowStart);
+                if (fallbackTestStart) {
+                    deadlineDate = new Date(fallbackTestStart);
                     deadlineDate.setDate(deadlineDate.getDate() - 1);
                 }
                 const deadlineText = deadlineDate ? fmtDT(deadlineDate.toISOString()) : 'belgilanmagan';
@@ -395,9 +399,10 @@ async function showAlreadyRegistered(customId, cId, regData) {
                         document.getElementById('r-account').textContent = c.paymentAccount || '\u2014';
                         document.getElementById('r-receiver').textContent = c.paymentReceiver || '\u2014';
                         document.getElementById('r-deadline').textContent = deadlineText;
+                        document.getElementById('r-code').textContent = `TOLOV-${customId}`;
                         const qrEl = document.getElementById('r-qr');
                         qrEl.innerHTML = '';
-                        const qrText = `To'lov: ${c.paymentAmount || ''} so'm | Kimga: ${c.paymentReceiver || ''} | Hisob: ${c.paymentAccount || ''} | ID: ${customId}`;
+                        const qrText = `To'lov: ${c.paymentAmount || ''} so'm | Kimga: ${c.paymentReceiver || ''} | Hisob: ${c.paymentAccount || ''} | Izoh: TOLOV-${customId}`;
                         if (window.QRCode) {
                             new window.QRCode(qrEl, { text: qrText, width: 160, height: 160 });
                         }
