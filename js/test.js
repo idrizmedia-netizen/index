@@ -436,6 +436,28 @@ function handleBeforeUnload(e) {
     e.returnValue = '';
 }
 
+// Ochiq savol javobini etalon javobga solishtirib, mosligini (0..1) hisoblaydi.
+// Bu so'zlar mosligiga asoslangan taxminiy usul — sun'iy intellekt emas, shuning uchun 100% aniq emas.
+function normalizeWords(s) {
+    return (s || '')
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+}
+
+function textSimilarity(a, b) {
+    const wordsA = new Set(normalizeWords(a));
+    const wordsB = new Set(normalizeWords(b));
+    if (!wordsA.size || !wordsB.size) return 0;
+    let common = 0;
+    wordsA.forEach((w) => {
+        if (wordsB.has(w)) common++;
+    });
+    const union = new Set([...wordsA, ...wordsB]).size;
+    return union ? common / union : 0;
+}
+
 async function submitTest() {
     if (submitted) return;
     submitted = true;
@@ -446,15 +468,24 @@ async function submitTest() {
     let correctCount = 0;
     let mcCount = 0;
     let openCount = 0;
+    let openScoreAuto = 0;
+    let openGradedCount = 0;
     questionOrder.forEach((origIdx, qi) => {
         const q = testData.questions[origIdx];
         if (q.type === 'open') {
             openCount++;
-            return; // ochiq savollar administrator tomonidan qo'lda baholanadi
+            if (q.expectedAnswer) {
+                const sim = textSimilarity(answers[qi], q.expectedAnswer);
+                const maxPerQ = testData.openMaxPointsPerQuestion || 5;
+                openScoreAuto += sim * maxPerQ;
+                openGradedCount++;
+            }
+            return; // ochiq savollar (etalon javobsizlari) administrator tomonidan qo'lda baholanadi
         }
         mcCount++;
         if (answers[qi] === q.correctIndex) correctCount++;
     });
+    openScoreAuto = +openScoreAuto.toFixed(2);
     const pointsPerCorrect = testData.pointsPerCorrect || 1;
     const score = +(correctCount * pointsPerCorrect).toFixed(2);
     const maxScore = +(mcCount * pointsPerCorrect).toFixed(2);
@@ -466,6 +497,8 @@ async function submitTest() {
             correctCount,
             totalQuestions: mcCount,
             openQuestionsCount: openCount,
+            openScoreAuto: openGradedCount ? openScoreAuto : null,
+            openGradedCount,
             status: 'submitted',
             submittedAt: serverTimestamp(),
         });
@@ -484,7 +517,11 @@ async function submitTest() {
     if (openCount) {
         const noteEl = document.createElement('p');
         noteEl.style.cssText = 'color:var(--muted);font-size:0.85rem;margin-top:10px';
-        noteEl.textContent = `Bundan tashqari, ${openCount} ta ochiq savolga bergan javobingiz qabul qilindi \u2014 ular administrator tomonidan alohida ko\u2018rib chiqiladi va ballaringizga qo\u2018shiladi.`;
+        const ungraded = openCount - openGradedCount;
+        let noteText = `Bundan tashqari, ${openCount} ta ochiq savolga bergan javobingiz qabul qilindi.`;
+        if (openGradedCount) noteText += ` ${openGradedCount} tasi avtomatik baholandi (~${openScoreAuto} ball).`;
+        if (ungraded) noteText += ` ${ungraded} tasi administrator tomonidan alohida ko\u2018rib chiqiladi.`;
+        noteEl.textContent = noteText;
         document.getElementById('resultScoreText').insertAdjacentElement('afterend', noteEl);
     }
 }
