@@ -369,6 +369,7 @@ async function loadContests() {
                 document.getElementById('c-interview-break-end').value = c.interviewBreakEnd || '';
                 document.getElementById('c-interview-slot-minutes').value = c.interviewSlotMinutes || 15;
                 document.getElementById('c-interview-slot-capacity').value = c.interviewSlotCapacity || 1;
+                document.getElementById('c-min-score-advance').value = c.minScoreToAdvance ?? '';
                 document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
                 document.getElementById('c-cancel-edit-btn').style.display = '';
                 document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -429,6 +430,7 @@ function resetContestForm() {
     document.getElementById('c-interview-break-end').value = '13:00';
     document.getElementById('c-interview-slot-minutes').value = '15';
     document.getElementById('c-interview-slot-capacity').value = '1';
+    document.getElementById('c-min-score-advance').value = '';
     document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish va e\u2018lon qilish';
     document.getElementById('c-cancel-edit-btn').style.display = 'none';
 }
@@ -460,6 +462,8 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const interviewBreakEnd = document.getElementById('c-interview-break-end').value || null;
     const interviewSlotMinutes = parseInt(document.getElementById('c-interview-slot-minutes').value, 10) || 15;
     const interviewSlotCapacity = parseInt(document.getElementById('c-interview-slot-capacity').value, 10) || 1;
+    const minScoreAdvanceRaw = document.getElementById('c-min-score-advance').value.trim();
+    const minScoreToAdvance = minScoreAdvanceRaw ? parseFloat(minScoreAdvanceRaw) : null;
     const restrictViloyat = document.getElementById('c-restrict-viloyat').value || null;
     const restrictTuman = document.getElementById('c-restrict-tuman').value || null;
     const isPaid = document.getElementById('c-payment-type').value === 'paid';
@@ -514,6 +518,7 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             interviewBreakEnd,
             interviewSlotMinutes,
             interviewSlotCapacity,
+            minScoreToAdvance,
             restrictViloyat,
             restrictTuman,
             isPaid,
@@ -866,16 +871,22 @@ function renderRegistrantsTable(list) {
                 (attempt.questionOrder || []).forEach((origIdx, qi) => {
                     const q = testDoc.questions?.[origIdx];
                     if (q && q.type === 'open') {
-                        openPairs.push({ text: q.text, answer: attempt.answers?.[qi] || '' });
+                        openPairs.push({ text: q.text, answer: attempt.answers?.[qi] || '', expectedAnswer: q.expectedAnswer || null });
                     }
                 });
                 if (!openPairs.length) {
                     content.innerHTML = '<span style="color:var(--muted)">Bu testda ochiq savol yo\u2018q edi.</span>';
                     return;
                 }
-                content.innerHTML = openPairs
+                const autoNote = attempt.openScoreAuto !== null && attempt.openScoreAuto !== undefined
+                    ? `<p style="color:var(--green);font-size:0.8rem;margin-bottom:8px"><i class="fas fa-robot"></i> Tizim ${attempt.openGradedCount || 0} ta savolni etalon javob bilan solishtirib, taxminan ${attempt.openScoreAuto} ball qo\u2018ydi (bu — taxminiy, so\u2018z mosligi asosida; iltimos pastdagi javoblarni ham ko\u2018zdan kechiring).</p>`
+                    : '';
+                content.innerHTML = autoNote + openPairs
                     .map(
-                        (p, idx) => `<div style="margin-bottom:8px"><b>${idx + 1}. ${escapeHtml(p.text)}</b><br><span style="color:var(--text)">${escapeHtml(p.answer) || '<i style="color:var(--muted)">(javob berilmagan)</i>'}</span></div>`
+                        (p, idx) => `<div style="margin-bottom:8px"><b>${idx + 1}. ${escapeHtml(p.text)}</b><br>
+                            <span style="color:var(--text)"><b>Javob:</b> ${escapeHtml(p.answer) || '<i style="color:var(--muted)">(javob berilmagan)</i>'}</span>
+                            ${p.expectedAnswer ? `<br><span style="color:var(--muted);font-size:0.8rem"><b>Etalon javob:</b> ${escapeHtml(p.expectedAnswer)}</span>` : ''}
+                        </div>`
                     )
                     .join('');
             } catch (err) {
@@ -1138,15 +1149,30 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
     btn.disabled = true;
     try {
         const sorted = [...withTotal].sort((a, b) => b.total - a.total);
-        const entries = sorted.map((r, i) => ({
-            rank: i + 1,
-            fullName: r.fullName,
-            maktab: r.maktab,
-            customId: r.customId,
-            score: r.total,
-            testScore: r.score ?? null,
-            interviewScore: r.interviewScore ?? null,
-        }));
+
+        // "1224" turdagi reyting: teng ball bo'lsa bir xil o'rin beriladi
+        // (masalan 2 kishi 1-o'rinda teng bo'lsa, keyingisi 3-o'rin bo'ladi, 2-o'rin bo'sh qoladi).
+        let rank = 0;
+        let prevTotal = null;
+        const ranked = sorted.map((r, i) => {
+            if (prevTotal === null || r.total < prevTotal) rank = i + 1;
+            prevTotal = r.total;
+            return { ...r, rank };
+        });
+
+        // Ommaviy g'oliblar sahifasida faqat TOP-5 o'rin ko'rsatiladi (agar tenglik bo'lsa, 5-o'rinda
+        // bir nechta kishi bo'lishi mumkin — bu holda ularning barchasi ko'rinadi).
+        const entries = ranked
+            .filter((r) => r.rank <= 5)
+            .map((r) => ({
+                rank: r.rank,
+                fullName: r.fullName,
+                maktab: r.maktab,
+                customId: r.customId,
+                score: r.total,
+                testScore: r.score ?? null,
+                interviewScore: r.interviewScore ?? null,
+            }));
 
         await setDoc(doc(db, 'leaderboards', currentContestId), {
             contestTitle: currentContestTitle,
@@ -1155,8 +1181,8 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
         });
 
         const batch = writeBatch(db);
-        sorted.forEach((r, i) => {
-            batch.update(doc(db, 'registrations', r.id), { rank: i + 1 });
+        ranked.forEach((r) => {
+            batch.update(doc(db, 'registrations', r.id), { rank: r.rank });
         });
         await batch.commit();
 
@@ -1377,7 +1403,7 @@ function parseQuestions(raw) {
         let difficulty = "o'rta";
         let isOpen = false;
         const options = [];
-        let correctIndex = -1;
+        let answerLineRaw = null;
         lines.slice(1).forEach((line) => {
             const imgMatch = line.match(/^Rasm:\s*(\S+)/i);
             if (imgMatch) {
@@ -1400,9 +1426,9 @@ function parseQuestions(raw) {
                 options.push(optMatch[2].trim());
                 return;
             }
-            const ansMatch = line.match(/^Javob:\s*([A-D])/i);
+            const ansMatch = line.match(/^Javob:\s*(.+)$/i);
             if (ansMatch) {
-                correctIndex = 'ABCD'.indexOf(ansMatch[1].toUpperCase());
+                answerLineRaw = ansMatch[1].trim();
             }
         });
 
@@ -1410,8 +1436,10 @@ function parseQuestions(raw) {
         if (isOpen) {
             const q = { id: 'q' + idx, text, type: 'open', difficulty };
             if (imageUrl) q.imageUrl = imageUrl;
+            if (answerLineRaw) q.expectedAnswer = answerLineRaw;
             questions.push(q);
-        } else if (options.length === 4 && correctIndex >= 0) {
+        } else if (options.length === 4 && answerLineRaw && /^[A-D]\b/i.test(answerLineRaw)) {
+            const correctIndex = 'ABCD'.indexOf(answerLineRaw[0].toUpperCase());
             const q = { id: 'q' + idx, text, type: 'mc', options, correctIndex, difficulty };
             if (imageUrl) q.imageUrl = imageUrl;
             questions.push(q);
@@ -1429,6 +1457,7 @@ function questionsToRaw(questions) {
             if (q.difficulty && q.difficulty !== "o'rta") lines.push(`Daraja: ${q.difficulty}`);
             if (q.type === 'open') {
                 lines.push('Turi: ochiq');
+                if (q.expectedAnswer) lines.push(`Javob: ${q.expectedAnswer}`);
             } else {
                 q.options.forEach((opt, i) => lines.push(`${'ABCD'[i]}) ${opt}`));
                 lines.push(`Javob: ${'ABCD'[q.correctIndex] || 'A'}`);
@@ -1920,7 +1949,9 @@ document.getElementById('t-sync-scores-btn')?.addEventListener('click', async ()
         currentTestAttempts.forEach((a) => {
             if (a.status !== 'submitted') return;
             const regId = `${currentTestContestId}_${a.uid}`;
-            batch.update(doc(db, 'registrations', regId), { score: a.score });
+            const payload = { score: a.score };
+            if (a.openScoreAuto !== null && a.openScoreAuto !== undefined) payload.openScore = a.openScoreAuto;
+            batch.update(doc(db, 'registrations', regId), payload);
             count++;
         });
         await batch.commit();
