@@ -377,16 +377,28 @@ async function showAlreadyRegistered(customId, cId, regData) {
             const paymentBox = document.getElementById('payment-box');
             if (c.isPaid && paymentBox) {
                 paymentBox.style.display = 'block';
-                const paid = regData.paymentStatus === 'paid';
+                const status = regData.paymentStatus;
                 let deadlineDate = null;
                 if (fallbackTestStart) {
                     deadlineDate = new Date(fallbackTestStart);
                     deadlineDate.setDate(deadlineDate.getDate() - 1);
                 }
                 const deadlineText = deadlineDate ? fmtDT(deadlineDate.toISOString()) : 'belgilanmagan';
-                document.getElementById('payment-status-text').textContent = paid
-                    ? '\u2705 To\u2018lovingiz admin tomonidan tasdiqlangan.'
-                    : `\u23f3 To\u2018lov holati: kutilmoqda. To\u2018lov muddati: ${deadlineText}. Iltimos, kvitansiyadagi ma\u2019lumotlar bo\u2018yicha o\u2018tkazma qiling.`;
+                const statusTextEl = document.getElementById('payment-status-text');
+                const confirmBox = document.getElementById('payment-confirm-box');
+                if (status === 'paid') {
+                    statusTextEl.textContent = '\u2705 To\u2018lovingiz admin tomonidan tasdiqlangan.';
+                    confirmBox.style.display = 'none';
+                } else if (status === 'tekshirilmoqda') {
+                    statusTextEl.textContent = `\u{1F4E4} To\u2018lovingiz haqida ma\u2019lumot qabul qilindi, tekshirilmoqda. Iltimos kuting \u2014 tez orada tasdiqlanadi. To\u2018lov muddati: ${deadlineText}.`;
+                    confirmBox.style.display = 'none';
+                } else if (status === 'bekor_qilindi') {
+                    statusTextEl.textContent = '\u274c Ro\u2018yxatingiz to\u2018lov muddati o\u2018tganligi sababli bekor qilingan. Savollar bo\u2018lsa admin bilan bog\u2018laning.';
+                    confirmBox.style.display = 'none';
+                } else {
+                    statusTextEl.textContent = `\u23f3 To\u2018lov holati: kutilmoqda. To\u2018lov muddati: ${deadlineText}. Iltimos, kvitansiyadagi ma\u2019lumotlar bo\u2018yicha o\u2018tkazma qiling, so\u2018ng pastdagi "Men to\u2018ladim" tugmasini bosing.`;
+                    confirmBox.style.display = 'block';
+                }
 
                 const showReceiptBtn = document.getElementById('show-receipt-btn');
                 if (showReceiptBtn) {
@@ -408,6 +420,58 @@ async function showAlreadyRegistered(customId, cId, regData) {
                         }
                         receiptBox.style.display = 'block';
                         receiptBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    };
+                }
+
+                const markPaidBtn = document.getElementById('mark-paid-self-btn');
+                if (markPaidBtn && status !== 'paid' && status !== 'tekshirilmoqda' && status !== 'bekor_qilindi') {
+                    markPaidBtn.onclick = async () => {
+                        const selfStatusEl = document.getElementById('payment-self-status');
+                        const fileInput = document.getElementById('payment-receipt-input');
+                        const file = fileInput.files && fileInput.files[0];
+                        markPaidBtn.disabled = true;
+                        selfStatusEl.textContent = 'Yuborilmoqda...';
+                        selfStatusEl.style.color = '#92400e';
+                        try {
+                            let receiptDataUrl = null;
+                            if (file) {
+                                receiptDataUrl = await new Promise((resolve, reject) => {
+                                    const img = new Image();
+                                    const reader = new FileReader();
+                                    reader.onload = () => {
+                                        img.onload = () => {
+                                            const maxSize = 700;
+                                            const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+                                            const canvas = document.createElement('canvas');
+                                            canvas.width = Math.round(img.width * scale);
+                                            canvas.height = Math.round(img.height * scale);
+                                            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                                        };
+                                        img.onerror = reject;
+                                        img.src = reader.result;
+                                    };
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                });
+                            }
+                            await updateDoc(doc(db, 'registrations', `${cId}_${authInst.currentUser.uid}`), {
+                                paymentStatus: 'tekshirilmoqda',
+                                paymentReceiptUrl: receiptDataUrl,
+                                paymentSubmittedAt: serverTimestamp(),
+                            });
+                            selfStatusEl.textContent = '\u2705 Ma\u2019lumot yuborildi! Admin tez orada tekshiradi.';
+                            selfStatusEl.style.color = '#059669';
+                            regData.paymentStatus = 'tekshirilmoqda';
+                            statusTextEl.textContent = '\u{1F4E4} To\u2018lovingiz haqida ma\u2019lumot qabul qilindi, tekshirilmoqda.';
+                            confirmBox.style.display = 'none';
+                        } catch (err) {
+                            console.error(err);
+                            selfStatusEl.textContent = 'Xatolik yuz berdi, qayta urinib ko\u2018ring.';
+                            selfStatusEl.style.color = '#dc2626';
+                        } finally {
+                            markPaidBtn.disabled = false;
+                        }
                     };
                 }
             } else if (paymentBox) {
