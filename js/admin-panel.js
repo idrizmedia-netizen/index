@@ -599,6 +599,7 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
         if (searchInput) searchInput.value = '';
 
         currentContestMeta = {};
+        let contestData = null;
         try {
             const [contestSnap, testSnap] = await Promise.all([
                 getDoc(doc(db, 'contests', contestId)),
@@ -606,6 +607,7 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
             ]);
             if (contestSnap.exists()) {
                 const c = contestSnap.data();
+                contestData = c;
                 currentContestMeta.interviewMaxScore = c.interviewMaxScore || null;
             }
             if (testSnap.exists()) {
@@ -619,6 +621,32 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
             }
         } catch (err) {
             console.error('Ball chegaralarini yuklashda xatolik:', err);
+        }
+
+        // To'lov muddati o'tgan, hali to'lamagan ishtirokchilarni avtomatik "bekor qilindi" deb belgilaymiz
+        // (bu panelni har safar ochganda tekshiriladi — chunki statik saytda fon rejimida ishlaydigan
+        // haqiqiy avtomatik/rejalashtirilgan tekshiruv uchun alohida server (Cloud Functions) kerak bo'lardi).
+        if (contestData?.isPaid && contestData.testDateStart) {
+            const deadline = new Date(`${contestData.testDateStart}T${contestData.testDailyStart || '00:00'}`);
+            deadline.setDate(deadline.getDate() - 1);
+            if (new Date() > deadline) {
+                const overdue = list.filter((r) => r.paymentStatus === 'kutilmoqda' || r.paymentStatus === 'tekshirilmoqda');
+                if (overdue.length) {
+                    try {
+                        const chunks = [];
+                        for (let i = 0; i < overdue.length; i += 400) chunks.push(overdue.slice(i, i + 400));
+                        for (const chunk of chunks) {
+                            const batch = writeBatch(db);
+                            chunk.forEach((r) => batch.update(doc(db, 'registrations', r.id), { paymentStatus: 'bekor_qilindi' }));
+                            await batch.commit();
+                        }
+                        overdue.forEach((r) => (r.paymentStatus = 'bekor_qilindi'));
+                        setStatus(`To\u2018lov muddati o\u2018tganligi sababli ${overdue.length} ta ishtirokchi ro\u2018yxati avtomatik bekor qilindi.`, 'success');
+                    } catch (err) {
+                        console.error('Muddati o\u2018tganlarni bekor qilishda xatolik:', err);
+                    }
+                }
+            }
         }
 
         renderRegistrantsTable(list);
@@ -665,8 +693,20 @@ function renderRegistrantsTable(list) {
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
         const hasPayment = r.paymentStatus !== null && r.paymentStatus !== undefined;
-        const isPaid = r.paymentStatus === 'paid';
         const paymentCode = hasPayment ? `TOLOV-${r.customId}` : '';
+        let paymentBtnHtml = '\u2014';
+        if (hasPayment) {
+            if (r.paymentStatus === 'paid') {
+                paymentBtnHtml = `<button class="btn btn-green" data-toggle-payment="${r.id}" data-next="kutilmoqda" style="font-size:11px;padding:6px 10px" title="Kod: ${paymentCode}">\u2705 To\u2018landi</button>`;
+            } else if (r.paymentStatus === 'tekshirilmoqda') {
+                paymentBtnHtml = `<button class="btn" data-view-receipt="${r.id}" style="font-size:11px;padding:6px 10px;background:#fef3c7;color:#92400e" title="Kod: ${paymentCode}">\u{1F4E4} Tekshirish</button>`;
+            } else if (r.paymentStatus === 'bekor_qilindi') {
+                paymentBtnHtml = `<button class="btn" data-toggle-payment="${r.id}" data-next="kutilmoqda" style="font-size:11px;padding:6px 10px;background:#e2e8f0;color:#334155" title="Kod: ${paymentCode}">\u274c Bekor qilingan</button>`;
+            } else {
+                paymentBtnHtml = `<button class="btn btn-red" data-toggle-payment="${r.id}" data-next="paid" style="font-size:11px;padding:6px 10px" title="Kod: ${paymentCode}">\u23f3 Kutilmoqda</button>`;
+            }
+            paymentBtnHtml += `<br><span style="font-size:10px;color:var(--muted)">${paymentCode}</span>`;
+        }
         rows += `<tr data-row="${r.id}">
             <td>${hasPayment ? `<input type="checkbox" class="payment-row-check" data-id="${r.id}" style="width:auto">` : ''}</td>
             <td>${i + 1}</td>
@@ -679,7 +719,7 @@ function renderRegistrantsTable(list) {
             <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" title="${meta.interviewMaxScore ? 'Maksimal: ' + meta.interviewMaxScore : ''}" style="width:64px"></td>
             <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" title="${meta.openMax ? 'Maksimal: ' + meta.openMax : ''}" style="width:64px"></td>
             <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
-            <td>${hasPayment ? `<button class="btn ${isPaid ? 'btn-green' : 'btn-red'}" data-toggle-payment="${r.id}" data-next="${isPaid ? 'kutilmoqda' : 'paid'}" style="font-size:11px;padding:6px 10px" title="Kod: ${paymentCode}">${isPaid ? '\u2705 To\u2018landi' : '\u23f3 Kutilmoqda'}</button><br><span style="font-size:10px;color:var(--muted)">${paymentCode}</span>` : '\u2014'}</td>
+            <td>${paymentBtnHtml}</td>
             <td style="white-space:nowrap">
                 <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
                 <button class="btn" data-view-open="${r.id}" title="Ochiq savollarga javoblarni ko'rish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-eye"></i></button>
@@ -688,6 +728,9 @@ function renderRegistrantsTable(list) {
         </tr>
         <tr data-retake-info="${r.id}"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
             <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
+        </td></tr>
+        <tr data-receipt-row="${r.id}" style="display:none"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
+            <div data-receipt-content="${r.id}"></div>
         </td></tr>
         <tr data-open-answers-row="${r.id}" style="display:none"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
             <div data-open-answers-content="${r.id}">Yuklanmoqda...</div>
@@ -839,6 +882,37 @@ function renderRegistrantsTable(list) {
                 console.error(err);
                 content.innerHTML = '<span style="color:var(--red)">Yuklashda xatolik yuz berdi.</span>';
             }
+        });
+    });
+
+    tableEl.querySelectorAll('[data-view-receipt]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.viewReceipt;
+            const row = tableEl.querySelector(`[data-receipt-row="${id}"]`);
+            const content = tableEl.querySelector(`[data-receipt-content="${id}"]`);
+            if (!row) return;
+            const isHidden = row.style.display === 'none';
+            row.style.display = isHidden ? '' : 'none';
+            if (!isHidden) return;
+            const r = currentRegistrants.find((x) => x.id === id);
+            content.innerHTML = `
+                ${r?.paymentReceiptUrl ? `<img src="${r.paymentReceiptUrl}" style="max-width:220px;border-radius:10px;border:1px solid var(--border);display:block;margin-bottom:10px">` : '<p style="color:var(--muted)">Ishtirokchi chek rasmini yuklamagan.</p>'}
+                <button class="btn btn-green" data-approve-payment="${id}" style="font-size:12px"><i class="fas fa-check"></i> Tasdiqlash</button>
+                <button class="btn btn-red" data-reject-payment="${id}" style="font-size:12px;margin-left:6px"><i class="fas fa-xmark"></i> Rad etish</button>
+            `;
+            content.querySelector(`[data-approve-payment="${id}"]`)?.addEventListener('click', async () => {
+                await updateDoc(doc(db, 'registrations', id), { paymentStatus: 'paid' });
+                if (r) r.paymentStatus = 'paid';
+                setStatus('To\u2018lov tasdiqlandi.', 'success');
+                renderRegistrantsTable(currentRegistrants);
+            });
+            content.querySelector(`[data-reject-payment="${id}"]`)?.addEventListener('click', async () => {
+                if (!confirm('To\u2018lovni rad etib, holatni "kutilmoqda"ga qaytarmoqchimisiz?')) return;
+                await updateDoc(doc(db, 'registrations', id), { paymentStatus: 'kutilmoqda' });
+                if (r) r.paymentStatus = 'kutilmoqda';
+                setStatus('To\u2018lov rad etildi.', 'success');
+                renderRegistrantsTable(currentRegistrants);
+            });
         });
     });
 
@@ -1140,7 +1214,7 @@ document.getElementById('export-excel-btn')?.addEventListener('click', () => {
         Suhbat: r.interviewScore ?? '',
         'Ochiq savollar': r.openScore ?? '',
         Jami: (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0),
-        'To\'lov holati': r.paymentStatus === 'paid' ? 'To\'landi' : r.paymentStatus ? 'Kutilmoqda' : '',
+        'To\'lov holati': { paid: 'To\'landi', kutilmoqda: 'Kutilmoqda', tekshirilmoqda: 'Tekshirilmoqda', bekor_qilindi: 'Bekor qilingan' }[r.paymentStatus] || '',
     }));
     const ws = window.XLSX.utils.json_to_sheet(rows);
     ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 12 }];
