@@ -30,18 +30,20 @@ function renderBoard(lb) {
         return;
     }
 
-    const top3 = entries.slice(0, 3);
-    const rest = entries.slice(3);
-    const medal = ['🥇', '🥈', '🥉'];
-    const cls = ['first', 'second', 'third'];
+    // Diqqat: tenglik (bir nechta kishi bir xil ball bilan bir o'rinda) bo'lishi mumkin,
+    // shuning uchun massiv indeksi emas, balki haqiqiy "rank" qiymati bo'yicha ajratamiz.
+    const top3 = entries.filter((e) => e.rank <= 3);
+    const rest = entries.filter((e) => e.rank > 3 && e.rank <= 5);
+    const medalByRank = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    const clsByRank = { 1: 'first', 2: 'second', 3: 'third' };
 
     let html = '<div class="podium">';
-    top3.forEach((e, i) => {
+    top3.forEach((e) => {
         const breakdown = e.testScore != null || e.interviewScore != null
             ? `<div class="p-school" style="margin-top:2px">Test: ${escapeHtml(e.testScore ?? '\u2014')} \u00b7 Suhbat: ${escapeHtml(e.interviewScore ?? '\u2014')}</div>`
             : '';
-        html += `<div class="p-item ${cls[i]}">
-            <div class="medal">${medal[i]}</div>
+        html += `<div class="p-item ${clsByRank[e.rank] || ''}">
+            <div class="medal">${medalByRank[e.rank] || e.rank + '-o\u2018rin'}</div>
             <div class="p-name">${escapeHtml(e.fullName)}</div>
             <div class="p-score">${escapeHtml(e.score)} ball</div>
             <div class="p-school">${escapeHtml(e.maktab)}</div>
@@ -64,6 +66,12 @@ function renderBoard(lb) {
         });
         html += '</div>';
     }
+
+    html += `<div style="text-align:center;margin-top:20px">
+        <a href="https://t.me/Ziyomap" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:#0088cc;color:#fff;padding:10px 20px;border-radius:10px;font-weight:700;text-decoration:none">
+            <i class="fab fa-telegram"></i> Batafsil natijalar uchun Ziyomap Telegram kanaliga o\u2018ting
+        </a>
+    </div>`;
 
     content.innerHTML = html;
 }
