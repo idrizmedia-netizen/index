@@ -159,19 +159,22 @@
                 const effInterviewEnd = r.assignedInterviewEnd || fallbackInterviewEnd;
 
                 // Ketma-ketlik: test hali tugamagan yoki topshirilmagan bo'lsa — test vaqti ko'rsatiladi;
-                // test oynasi tugagandan keyin — suhbat vaqti ko'rsatiladi.
+                // test oynasi tugagandan keyin — suhbat vaqti ko'rsatiladi (agar minimal ball talabi bo'lsa, shuni tekshiradi).
                 const now = new Date();
                 const testEnded = effTestEnd ? now > new Date(effTestEnd) : false;
+                const belowThreshold = testEnded && hasScore && c.minScoreToAdvance != null && r.score < c.minScoreToAdvance;
                 const dateBits = [];
                 if (!testEnded && (effTestStart || effTestEnd)) {
                     dateBits.push(`Test vaqti: ${effTestStart ? fmtDate(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDate(effTestEnd) : ''}`);
+                } else if (belowThreshold) {
+                    dateBits.push(`Suhbat bosqichiga o\u2018tish uchun minimal ball: ${c.minScoreToAdvance} (sizning balingiz: ${r.score}) \u2014 afsuski, bu safar suhbat bosqichiga o\u2018ta olmadingiz.`);
                 } else if (effInterviewStart || effInterviewEnd) {
                     dateBits.push(`Suhbat vaqti: ${effInterviewStart ? fmtDate(effInterviewStart) : '\u2014'}${effInterviewEnd ? ' \u2013 ' + fmtDate(effInterviewEnd) : ''}`);
                 } else if (effTestStart || effTestEnd) {
                     dateBits.push(`Test vaqti: ${effTestStart ? fmtDate(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDate(effTestEnd) : ''}`);
                 }
 
-                const countdown = pickCountdown(effTestStart, effTestEnd, effInterviewStart, effInterviewEnd, testEnded);
+                const countdown = belowThreshold ? null : pickCountdown(effTestStart, effTestEnd, effInterviewStart, effInterviewEnd, testEnded);
 
                 html += `<div class="activity-row">
                     <div class="act-icon" style="background:#fdf2f8;font-size:16px">${medal}</div>
