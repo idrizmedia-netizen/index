@@ -232,6 +232,10 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-test-slot-capacity" value="15" min="1"></div>
       </div>
       <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-video"></i> Suhbat vaqti jadvali</h4>
+      <div class="field">
+        <label>Suhbat bosqichiga o'tish uchun minimal test bali (ixtiyoriy, bo'sh — hammaga ochiq)</label>
+        <input type="number" id="c-min-score-advance" min="0" step="0.1" placeholder="masalan: 15">
+      </div>
       <div class="row2">
         <div class="field"><label>Suhbat kunlari — dan</label><input type="date" id="c-interview-date-start"></div>
         <div class="field"><label>Suhbat kunlari — gacha</label><input type="date" id="c-interview-date-end"></div>
@@ -359,6 +363,7 @@ Javob: B
 ---
 Fikringizcha, gravitatsiya nima uchun muhim?
 Turi: ochiq
+Javob: Gravitatsiya jismlarni Yerga tortadi va Quyosh tizimidagi sayyoralar harakatini boshqaradi
 ---
 Ikkinchi savol matni?
 A) variant
@@ -366,7 +371,7 @@ B) variant
 C) variant
 D) variant
 Javob: A"></textarea>
-        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Oddiy (test) savolda 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart. Rasmli savol uchun ixtiyoriy "Rasm: &lt;havola&gt;" qatorini qo'shing. Qiyinlik darajasini "Daraja: oson/o'rta/qiyin" bilan belgilang (bo'lmasa "o'rta" deb olinadi) — tizim savol berayotganda darajalar bo'yicha muvozanatlab tanlaydi. Ochiq (erkin javobli, qo'lda baholanadigan) savol uchun variant/javob yozmasdan "Turi: ochiq" qatorini qo'shing.</p>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Oddiy (test) savolda 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart. Rasmli savol uchun ixtiyoriy "Rasm: &lt;havola&gt;" qatorini qo'shing. Qiyinlik darajasini "Daraja: oson/o'rta/qiyin" bilan belgilang (bo'lmasa "o'rta" deb olinadi) — tizim savol berayotganda darajalar bo'yicha muvozanatlab tanlaydi. Ochiq (erkin javobli) savol uchun "Turi: ochiq" qatorini qo'shing — agar shundan keyin ixtiyoriy "Javob: &lt;aniq/etalon javob&gt;" qatorini ham qo'shsangiz, tizim ishtirokchining yozgan javobini shu etalon bilan solishtirib, mosligiga qarab ballni <b>avtomatik</b> qo'yadi (so'z mosligi asosida, taxminiy — 100% aniq emas, shuning uchun "Ishtirokchilar" bo'limida baribir tekshirib, kerak bo'lsa qo'lda tuzatishingiz mumkin). Agar "Javob:" qatorini qo'shmasangiz, ball to'liq qo'lda qo'yiladi (avvalgidek).</p>
         <div class="field" style="margin-top:10px">
           <label>Yoki: tayyor fayldan savollarni yuklang (.txt yoki .docx, yuqoridagi format bilan yozilgan bo'lsin)</label>
           <input type="file" id="t-questions-file" accept=".txt,.docx">
@@ -397,7 +402,8 @@ Javob: A"></textarea>
         <label>Qaysi tanlov testi</label>
         <select id="tr-contest-select"><option value="">— tanlov tanlang —</option></select>
       </div>
-      <button class="btn btn-green" id="t-sync-scores-btn" style="display:none;margin-bottom:14px"><i class="fas fa-arrows-rotate"></i> Ballarni ishtirokchilar ro'yxatiga ko'chirish</button>
+      <button class="btn btn-green" id="t-sync-scores-btn" style="display:none;margin-bottom:14px"><i class="fas fa-arrows-rotate"></i> Ballarni (yopiq + avto-baholangan ochiq) ishtirokchilar ro'yxatiga ko'chirish</button>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-8px 0 14px">Ochiq savollarga etalon javob kiritilgan bo'lsa, tizim ishtirokchi javobini solishtirib avtomatik taxminiy ball qo'yadi. Etalon javob bo'lmagan ochiq savollar "Ishtirokchilar" bo'limida qo'lda baholanadi.</p>
       <div class="table-scroll" id="testResultsTable"><div class="empty">Yuqorida tanlov tanlang</div></div>
     </div>
   </div>
