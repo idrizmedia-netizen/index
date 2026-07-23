@@ -354,16 +354,19 @@ async function showAlreadyRegistered(customId, cId, regData) {
             const effTestEnd = regData.assignedTestEnd || fallbackTestEnd;
             const effInterviewStart = regData.assignedInterviewStart || fallbackInterviewStart;
             const effInterviewEnd = regData.assignedInterviewEnd || fallbackInterviewEnd;
+            const belowThreshold = c.minScoreToAdvance != null && regData.score != null && regData.score < c.minScoreToAdvance;
 
             if (datesBox) {
                 const bits = [];
                 if (effTestStart || effTestEnd) {
                     bits.push(`Test vaqtingiz: ${effTestStart ? fmtDT(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDT(effTestEnd) : ''}`);
                 }
-                if (effInterviewStart || effInterviewEnd) {
+                if (belowThreshold) {
+                    bits.push(`Suhbat bosqichiga o\u2018tish uchun minimal ball: ${c.minScoreToAdvance} (sizning balingiz: ${regData.score}) \u2014 afsuski, bu safar suhbat bosqichiga o\u2018ta olmadingiz.`);
+                } else if (effInterviewStart || effInterviewEnd) {
                     bits.push(`Suhbat vaqtingiz: ${effInterviewStart ? fmtDT(effInterviewStart) : '\u2014'}${effInterviewEnd ? ' \u2013 ' + fmtDT(effInterviewEnd) : ''}`);
                 }
-                if (c.interviewQuestionsCount || c.interviewMaxScore) {
+                if (!belowThreshold && (c.interviewQuestionsCount || c.interviewMaxScore)) {
                     const parts = [];
                     if (c.interviewQuestionsCount) parts.push(`${c.interviewQuestionsCount} ta savol so\u2018raladi`);
                     if (c.interviewMaxScore) parts.push(`umumiy ${c.interviewMaxScore} ball`);
@@ -482,7 +485,7 @@ async function showAlreadyRegistered(customId, cId, regData) {
             const ticketBox = document.getElementById('ticket-box');
             if (ticketBox) {
                 ticketBox.style.display = 'none';
-                if (regData.assignedTicketNumber && effInterviewStart) {
+                if (regData.assignedTicketNumber && effInterviewStart && !belowThreshold) {
                     const now = new Date();
                     const showFrom = new Date(new Date(effInterviewStart).getTime() - 10 * 60000);
                     const showUntil = effInterviewEnd ? new Date(effInterviewEnd) : new Date(new Date(effInterviewStart).getTime() + 60 * 60000);
@@ -511,7 +514,12 @@ async function showAlreadyRegistered(customId, cId, regData) {
             // Agar hech qanday sana belgilanmagan bo'lsa — cheklovsiz ko'rsatiladi (avvalgi xato aynan shu yerda edi).
             if (c.meetLink && meetLink) {
                 const meetEnabled = c.meetLinkEnabled !== false;
-                if (!meetEnabled) {
+                if (belowThreshold) {
+                    if (meetStatusBox) {
+                        meetStatusBox.textContent = `Suhbat bosqichiga o\u2018tish uchun minimal ball: ${c.minScoreToAdvance} (sizning balingiz: ${regData.score}) \u2014 afsuski, bu safar suhbat bosqichiga o\u2018ta olmadingiz.`;
+                        meetStatusBox.style.display = 'block';
+                    }
+                } else if (!meetEnabled) {
                     if (meetStatusBox) {
                         meetStatusBox.textContent = 'Suhbat havolasi hozircha admin tomonidan yopilgan.';
                         meetStatusBox.style.display = 'block';
