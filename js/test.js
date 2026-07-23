@@ -116,13 +116,18 @@ async function init() {
         // To'lov tekshiruvi: agar tanlov pullik bo'lsa va admin hali "to'landi" deb tasdiqlamagan bo'lsa,
         // ishtirokchi testga kira olmaydi.
         if (contestData.isPaid && regData.paymentStatus !== 'paid') {
+            if (regData.paymentStatus === 'bekor_qilindi') {
+                showMsg('Ro\u2018yxat bekor qilingan', 'To\u2018lov muddati o\u2018tganligi sababli ro\u2018yxatingiz bekor qilingan. Savollar bo\u2018lsa admin bilan bog\u2018laning.');
+                return;
+            }
             let deadlineText = '';
             if (fallbackTestStart) {
                 const deadline = new Date(fallbackTestStart);
                 deadline.setDate(deadline.getDate() - 1);
                 deadlineText = ` To\u2018lov muddati: ${deadline.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.`;
             }
-            showMsg('To\u2018lov amalga oshirilmagan', `Bu tanlov pullik. Testga kirish uchun to\u2018lovni amalga oshiring va admin tasdiqlashini kuting.${deadlineText} Kvitansiyani ro\u2018yxatdan o\u2018tish sahifasidan ko\u2018rishingiz mumkin.`);
+            const statusNote = regData.paymentStatus === 'tekshirilmoqda' ? ' To\u2018lovingiz haqidagi ma\u2019lumot qabul qilingan, admin tekshirmoqda.' : '';
+            showMsg('To\u2018lov amalga oshirilmagan', `Bu tanlov pullik. Testga kirish uchun to\u2018lovni amalga oshiring va admin tasdiqlashini kuting.${statusNote}${deadlineText} Kvitansiyani ro\u2018yxatdan o\u2018tish sahifasidan ko\u2018rishingiz mumkin.`);
             return;
         }
 
