@@ -323,16 +323,8 @@ async function showAlreadyRegistered(customId, cId, regData) {
     alreadyId.textContent = customId || '\u2014';
     regData = regData || {};
 
-    const testLink = document.getElementById('start-test-link');
-    const meetLink = document.getElementById('meet-link-display');
     const datesBox = document.getElementById('already-dates');
-    const meetStatusBox = document.getElementById('meet-status-message');
-    if (testLink) testLink.style.display = 'none';
-    if (meetLink) meetLink.style.display = 'none';
-    if (meetStatusBox) {
-        meetStatusBox.style.display = 'none';
-        meetStatusBox.textContent = '';
-    }
+    const dashboardLinkBox = document.getElementById('dashboard-link-box');
 
     const fmtDT = (iso) => {
         const d = new Date(iso);
@@ -340,228 +332,26 @@ async function showAlreadyRegistered(customId, cId, regData) {
         return d.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
+    // Bu sahifada endi faqat umumiy (shaxsiylashtirilmagan) sanalar ko'rsatiladi.
+    // Test boshlash, suhbatga kirish, to'lov va bilet kabi shaxsiy harakatlar uchun Dashboard'ga o'ting.
     try {
         const contestSnap = await getDoc(doc(db, 'contests', cId));
         if (contestSnap.exists()) {
             const c = contestSnap.data();
-
-            // Shaxsiy (avtomatik taqsimlangan) vaqt bo'lsa o'shani, bo'lmasa tanlovning umumiy kunlar oralig'ini ko'rsatamiz
-            const fallbackTestStart = c.testDateStart ? `${c.testDateStart}T${c.testDailyStart || '00:00'}` : null;
-            const fallbackTestEnd = c.testDateEnd ? `${c.testDateEnd}T${c.testDailyEnd || '23:59'}` : null;
-            const fallbackInterviewStart = c.interviewDateStart ? `${c.interviewDateStart}T${c.interviewDailyStart || '00:00'}` : null;
-            const fallbackInterviewEnd = c.interviewDateEnd ? `${c.interviewDateEnd}T${c.interviewDailyEnd || '23:59'}` : null;
-            const effTestStart = regData.assignedTestStart || fallbackTestStart;
-            const effTestEnd = regData.assignedTestEnd || fallbackTestEnd;
-            const effInterviewStart = regData.assignedInterviewStart || fallbackInterviewStart;
-            const effInterviewEnd = regData.assignedInterviewEnd || fallbackInterviewEnd;
-            const belowThreshold = c.minScoreToAdvance != null && regData.score != null && regData.score < c.minScoreToAdvance;
-
             if (datesBox) {
                 const bits = [];
-                if (effTestStart || effTestEnd) {
-                    bits.push(`Test vaqtingiz: ${effTestStart ? fmtDT(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDT(effTestEnd) : ''}`);
-                }
-                if (belowThreshold) {
-                    bits.push(`Suhbat bosqichiga o\u2018tish uchun minimal ball: ${c.minScoreToAdvance} (sizning balingiz: ${regData.score}) \u2014 afsuski, bu safar suhbat bosqichiga o\u2018ta olmadingiz.`);
-                } else if (effInterviewStart || effInterviewEnd) {
-                    bits.push(`Suhbat vaqtingiz: ${effInterviewStart ? fmtDT(effInterviewStart) : '\u2014'}${effInterviewEnd ? ' \u2013 ' + fmtDT(effInterviewEnd) : ''}`);
-                }
-                if (!belowThreshold && (c.interviewQuestionsCount || c.interviewMaxScore)) {
-                    const parts = [];
-                    if (c.interviewQuestionsCount) parts.push(`${c.interviewQuestionsCount} ta savol so\u2018raladi`);
-                    if (c.interviewMaxScore) parts.push(`umumiy ${c.interviewMaxScore} ball`);
-                    bits.push(`Suhbat haqida: ${parts.join(', ')}`);
-                }
+                if (c.regStartDate || c.regEndDate) bits.push(`Ro\u2018yxatdan o\u2018tish: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
+                if (c.testDateStart || c.testDateEnd) bits.push(`Test kunlari: ${c.testDateStart || '\u2014'} \u2013 ${c.testDateEnd || '\u2014'} (${c.testDailyStart || '?'}\u2013${c.testDailyEnd || '?'})`);
+                if (c.interviewDateStart || c.interviewDateEnd) bits.push(`Suhbat kunlari: ${c.interviewDateStart || '\u2014'} \u2013 ${c.interviewDateEnd || '\u2014'} (${c.interviewDailyStart || '?'}\u2013${c.interviewDailyEnd || '?'})`);
                 datesBox.textContent = bits.join(' \u00b7 ');
                 datesBox.style.display = bits.length ? 'block' : 'none';
             }
-
-            // To'lov holati (agar tanlov pullik bo'lsa)
-            const paymentBox = document.getElementById('payment-box');
-            if (c.isPaid && paymentBox) {
-                paymentBox.style.display = 'block';
-                const status = regData.paymentStatus;
-                let deadlineDate = null;
-                if (fallbackTestStart) {
-                    deadlineDate = new Date(fallbackTestStart);
-                    deadlineDate.setDate(deadlineDate.getDate() - 1);
-                }
-                const deadlineText = deadlineDate ? fmtDT(deadlineDate.toISOString()) : 'belgilanmagan';
-                const statusTextEl = document.getElementById('payment-status-text');
-                const confirmBox = document.getElementById('payment-confirm-box');
-                if (status === 'paid') {
-                    statusTextEl.textContent = '\u2705 To\u2018lovingiz admin tomonidan tasdiqlangan.';
-                    confirmBox.style.display = 'none';
-                } else if (status === 'tekshirilmoqda') {
-                    statusTextEl.textContent = `\u{1F4E4} To\u2018lovingiz haqida ma\u2019lumot qabul qilindi, tekshirilmoqda. Iltimos kuting \u2014 tez orada tasdiqlanadi. To\u2018lov muddati: ${deadlineText}.`;
-                    confirmBox.style.display = 'none';
-                } else if (status === 'bekor_qilindi') {
-                    statusTextEl.textContent = '\u274c Ro\u2018yxatingiz to\u2018lov muddati o\u2018tganligi sababli bekor qilingan. Savollar bo\u2018lsa admin bilan bog\u2018laning.';
-                    confirmBox.style.display = 'none';
-                } else {
-                    statusTextEl.textContent = `\u23f3 To\u2018lov holati: kutilmoqda. To\u2018lov muddati: ${deadlineText}. Iltimos, kvitansiyadagi ma\u2019lumotlar bo\u2018yicha o\u2018tkazma qiling, so\u2018ng pastdagi "Men to\u2018ladim" tugmasini bosing.`;
-                    confirmBox.style.display = 'block';
-                }
-
-                const showReceiptBtn = document.getElementById('show-receipt-btn');
-                if (showReceiptBtn) {
-                    showReceiptBtn.onclick = () => {
-                        const receiptBox = document.getElementById('receipt-box');
-                        document.getElementById('r-contest-title').textContent = c.title || '';
-                        document.getElementById('r-full-name').textContent = regData.fullName || '';
-                        document.getElementById('r-custom-id').textContent = customId || '';
-                        document.getElementById('r-amount').textContent = c.paymentAmount || '?';
-                        document.getElementById('r-account').textContent = c.paymentAccount || '\u2014';
-                        document.getElementById('r-receiver').textContent = c.paymentReceiver || '\u2014';
-                        document.getElementById('r-deadline').textContent = deadlineText;
-                        document.getElementById('r-code').textContent = `TOLOV-${customId}`;
-                        const qrEl = document.getElementById('r-qr');
-                        qrEl.innerHTML = '';
-                        const qrText = `To'lov: ${c.paymentAmount || ''} so'm | Kimga: ${c.paymentReceiver || ''} | Hisob: ${c.paymentAccount || ''} | Izoh: TOLOV-${customId}`;
-                        if (window.QRCode) {
-                            new window.QRCode(qrEl, { text: qrText, width: 160, height: 160 });
-                        }
-                        receiptBox.style.display = 'block';
-                        receiptBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    };
-                }
-
-                const markPaidBtn = document.getElementById('mark-paid-self-btn');
-                if (markPaidBtn && status !== 'paid' && status !== 'tekshirilmoqda' && status !== 'bekor_qilindi') {
-                    markPaidBtn.onclick = async () => {
-                        const selfStatusEl = document.getElementById('payment-self-status');
-                        const fileInput = document.getElementById('payment-receipt-input');
-                        const file = fileInput.files && fileInput.files[0];
-                        markPaidBtn.disabled = true;
-                        selfStatusEl.textContent = 'Yuborilmoqda...';
-                        selfStatusEl.style.color = '#92400e';
-                        try {
-                            let receiptDataUrl = null;
-                            if (file) {
-                                receiptDataUrl = await new Promise((resolve, reject) => {
-                                    const img = new Image();
-                                    const reader = new FileReader();
-                                    reader.onload = () => {
-                                        img.onload = () => {
-                                            const maxSize = 700;
-                                            const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-                                            const canvas = document.createElement('canvas');
-                                            canvas.width = Math.round(img.width * scale);
-                                            canvas.height = Math.round(img.height * scale);
-                                            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                                            resolve(canvas.toDataURL('image/jpeg', 0.7));
-                                        };
-                                        img.onerror = reject;
-                                        img.src = reader.result;
-                                    };
-                                    reader.onerror = reject;
-                                    reader.readAsDataURL(file);
-                                });
-                            }
-                            await updateDoc(doc(db, 'registrations', `${cId}_${authInst.currentUser.uid}`), {
-                                paymentStatus: 'tekshirilmoqda',
-                                paymentReceiptUrl: receiptDataUrl,
-                                paymentSubmittedAt: serverTimestamp(),
-                            });
-                            selfStatusEl.textContent = '\u2705 Ma\u2019lumot yuborildi! Admin tez orada tekshiradi.';
-                            selfStatusEl.style.color = '#059669';
-                            regData.paymentStatus = 'tekshirilmoqda';
-                            statusTextEl.textContent = '\u{1F4E4} To\u2018lovingiz haqida ma\u2019lumot qabul qilindi, tekshirilmoqda.';
-                            confirmBox.style.display = 'none';
-                        } catch (err) {
-                            console.error(err);
-                            selfStatusEl.textContent = 'Xatolik yuz berdi, qayta urinib ko\u2018ring.';
-                            selfStatusEl.style.color = '#dc2626';
-                        } finally {
-                            markPaidBtn.disabled = false;
-                        }
-                    };
-                }
-            } else if (paymentBox) {
-                paymentBox.style.display = 'none';
-            }
-
-            // Suhbat bileti: suhbat boshlanishidan 10 daqiqa oldin va suhbat davomida ko'rsatiladi
-            const ticketBox = document.getElementById('ticket-box');
-            if (ticketBox) {
-                ticketBox.style.display = 'none';
-                if (regData.assignedTicketNumber && effInterviewStart && !belowThreshold) {
-                    const now = new Date();
-                    const showFrom = new Date(new Date(effInterviewStart).getTime() - 10 * 60000);
-                    const showUntil = effInterviewEnd ? new Date(effInterviewEnd) : new Date(new Date(effInterviewStart).getTime() + 60 * 60000);
-                    if (now >= showFrom && now <= showUntil) {
-                        try {
-                            const ticketsSnap = await getDoc(doc(db, 'interview-tickets', cId));
-                            if (ticketsSnap.exists()) {
-                                const ticket = (ticketsSnap.data().tickets || []).find((t) => String(t.number) === String(regData.assignedTicketNumber));
-                                if (ticket) {
-                                    document.getElementById('ticket-number').textContent = ticket.number;
-                                    document.getElementById('ticket-questions-list').innerHTML = ticket.questions
-                                        .map((q) => `<li>${q.replace(/</g, '&lt;')}</li>`)
-                                        .join('');
-                                    ticketBox.style.display = 'block';
-                                }
-                            }
-                        } catch (err) {
-                            console.error('Biletni yuklashda xatolik:', err);
-                        }
-                    }
-                }
-            }
-
-            // Suhbat linkini ko'rsatish qoidasi: admin uni yopgan bo'lmasligi kerak,
-            // va agar suhbat vaqti belgilangan bo'lsa — faqat shu oraliqda ko'rinadi.
-            // Agar hech qanday sana belgilanmagan bo'lsa — cheklovsiz ko'rsatiladi (avvalgi xato aynan shu yerda edi).
-            if (c.meetLink && meetLink) {
-                const meetEnabled = c.meetLinkEnabled !== false;
-                if (belowThreshold) {
-                    if (meetStatusBox) {
-                        meetStatusBox.textContent = `Suhbat bosqichiga o\u2018tish uchun minimal ball: ${c.minScoreToAdvance} (sizning balingiz: ${regData.score}) \u2014 afsuski, bu safar suhbat bosqichiga o\u2018ta olmadingiz.`;
-                        meetStatusBox.style.display = 'block';
-                    }
-                } else if (!meetEnabled) {
-                    if (meetStatusBox) {
-                        meetStatusBox.textContent = 'Suhbat havolasi hozircha admin tomonidan yopilgan.';
-                        meetStatusBox.style.display = 'block';
-                    }
-                } else if (effInterviewStart || effInterviewEnd) {
-                    const now = new Date();
-                    const start = effInterviewStart ? new Date(effInterviewStart) : null;
-                    const end = effInterviewEnd ? new Date(effInterviewEnd) : null;
-                    if (start && now < start) {
-                        if (meetStatusBox) {
-                            meetStatusBox.textContent = `Suhbat hali boshlanmagan. Sizning suhbat vaqtingiz: ${fmtDT(effInterviewStart)}.`;
-                            meetStatusBox.style.display = 'block';
-                        }
-                    } else if (end && now > end) {
-                        if (meetStatusBox) {
-                            meetStatusBox.textContent = 'Sizga belgilangan suhbat vaqti o\u2018tib ketgan. Qo\u2018shimcha ma\u2019lumot uchun admin bilan bog\u2018laning.';
-                            meetStatusBox.style.display = 'block';
-                        }
-                    } else {
-                        meetLink.href = c.meetLink;
-                        meetLink.style.display = 'inline-flex';
-                    }
-                } else {
-                    meetLink.href = c.meetLink;
-                    meetLink.style.display = 'inline-flex';
-                }
-            }
         }
     } catch (err) {
-        console.error('Suhbat havolasini tekshirishda xatolik:', err);
+        console.error('Tanlov ma\u2019lumotini yuklashda xatolik:', err);
     }
 
-    if (!testLink) return;
-    try {
-        const testSnap = await getDoc(doc(db, 'tests', cId));
-        if (testSnap.exists() && testSnap.data().published) {
-            testLink.href = `test.html?contest=${cId}`;
-            testLink.style.display = 'inline-flex';
-        }
-    } catch (err) {
-        console.error('Test tekshirishda xatolik:', err);
-    }
+    if (dashboardLinkBox) dashboardLinkBox.style.display = 'block';
 }
 
 document.getElementById('print-receipt-btn')?.addEventListener('click', () => window.print());
