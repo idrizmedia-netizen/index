@@ -173,6 +173,19 @@ body{
   display:flex;align-items:center;justify-content:center;
   font-size:16px;flex-shrink:0;
 }
+
+/* DASHBOARD ACTION BUTTONS & SUB-BOXES (test/suhbat/to'lov/bilet) */
+.dash-action-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 16px;border-radius:10px;color:#fff;
+  font-weight:700;font-size:13px;text-decoration:none;
+  border:none;cursor:pointer;transition:opacity .2s;
+}
+.dash-action-btn:hover{opacity:.9}
+.dash-sub-box{
+  margin:10px 0 0 52px;padding:14px;border-radius:12px;
+  font-size:13px;
+}
 .act-label{font-size:14px;font-weight:600;flex:1}
 .act-time{font-size:11px;color:var(--muted)}
 
@@ -350,6 +363,7 @@ body.dark-theme .ach-card.unlocked{background:#2e251a}
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/admin-guard.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="js/dashboard-natijalarim.js"></script>
 <script src="js/dashboard-test-natijalarim.js"></script>
 
