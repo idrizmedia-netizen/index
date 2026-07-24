@@ -222,49 +222,14 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
         <p style="margin-top:10px">Siz allaqachon shu tanlovga ro'yxatdan o'tgansiz. Sizning ID:</p>
         <div class="id-badge" id="already-id">—</div>
         <p id="already-dates" style="display:none;color:var(--primary);font-weight:700;font-size:0.85rem;margin-top:10px"></p>
-        <div id="payment-box" style="display:none;margin-top:14px;padding:14px;border-radius:12px;background:#fffbeb;border:1px solid #fde68a;text-align:left">
-            <p style="font-weight:800;color:#92400e;margin-bottom:6px"><i class="fas fa-money-bill-wave"></i> Bu tanlov pullik</p>
-            <p id="payment-status-text" style="font-size:0.85rem;color:#92400e"></p>
-            <button type="button" id="show-receipt-btn" class="btn-google" style="margin-top:8px;background:#f59e0b;color:#fff">
-                <i class="fas fa-receipt"></i> Kvitansiyani ko'rsatish
-            </button>
-            <div id="payment-confirm-box" style="display:none;margin-top:14px;padding-top:14px;border-top:1px dashed #fbbf24">
-                <p style="font-weight:700;font-size:0.85rem;color:#92400e;margin-bottom:8px">O'tkazmani amalga oshirgandan so'ng:</p>
-                <input type="file" id="payment-receipt-input" accept="image/*">
-                <p style="color:#92400e;font-size:0.75rem;margin-top:6px">Chek/o'tkazma skrinshotini yuklang (ixtiyoriy, lekin tezroq tasdiqlanishi uchun tavsiya etiladi).</p>
-                <button type="button" id="mark-paid-self-btn" class="btn-google" style="margin-top:10px;background:#059669">
-                    <i class="fas fa-check"></i> Men to'ladim
-                </button>
-                <p id="payment-self-status" style="font-size:0.78rem;margin-top:6px"></p>
-            </div>
+        <div id="dashboard-link-box" style="display:none;margin-top:18px">
+            <a href="dashboard.html" class="btn-google" style="background:var(--primary)">
+                <i class="fas fa-gauge"></i> Shaxsiy kabinetga o'tish
+            </a>
+            <p style="color:var(--muted);font-size:0.82rem;margin-top:10px">
+                Testni boshlash, suhbatga kirish, suhbat bileti va to'lov (agar tanlov pullik bo'lsa) — barchasi shu yerda, <b>shaxsiy kabinetingizda</b>.
+            </p>
         </div>
-        <div id="receipt-box" style="display:none;margin-top:14px;padding:18px;border-radius:14px;background:#fff;border:2px dashed var(--border);text-align:left" class="receipt-print-area">
-            <h3 style="margin-bottom:10px;text-align:center">To'lov kvitansiyasi</h3>
-            <p><b>Tanlov:</b> <span id="r-contest-title"></span></p>
-            <p><b>Ishtirokchi:</b> <span id="r-full-name"></span></p>
-            <p><b>ID:</b> <span id="r-custom-id"></span></p>
-            <p><b>Summa:</b> <span id="r-amount"></span> so'm</p>
-            <p><b>Hisob/karta raqami:</b> <span id="r-account"></span></p>
-            <p><b>Qabul qiluvchi:</b> <span id="r-receiver"></span></p>
-            <p><b>To'lov muddati:</b> <span id="r-deadline"></span></p>
-            <p style="background:#fef3c7;padding:10px;border-radius:8px;margin:10px 0"><b>\u26a0\ufe0f O'tkazma izohiga albatta shu kodni yozing:</b><br><span id="r-code" style="font-size:1.1rem;font-weight:800;color:#92400e"></span></p>
-            <div style="display:flex;justify-content:center;margin:14px 0"><div id="r-qr"></div></div>
-            <p style="color:var(--muted);font-size:0.78rem;text-align:center">O'tkazmani amalga oshirgach, admin tekshiruvidan so'ng holatingiz "To'landi" ga o'zgaradi.</p>
-            <button type="button" id="print-receipt-btn" class="btn-google" style="margin-top:10px;background:var(--primary)"><i class="fas fa-print"></i> Chop etish</button>
-        </div>
-        <a href="#" id="start-test-link" style="display:none;margin-top:16px" class="btn-google">
-            <i class="fas fa-file-pen"></i> Testni boshlash
-        </a>
-        <a href="#" id="meet-link-display" target="_blank" rel="noopener" style="display:none;margin-top:12px;background:#ecfdf5;color:#047857" class="btn-google">
-            <i class="fas fa-video"></i> Suhbatga qo'shilish (Google Meet)
-        </a>
-        <p id="meet-status-message" style="display:none;color:#c2410c;font-weight:600;font-size:0.85rem;margin-top:12px;background:#fff7ed;padding:10px 14px;border-radius:10px"></p>
-        <div id="ticket-box" style="display:none;margin-top:14px;padding:16px;border-radius:12px;background:#eef2ff;border:1px solid #c7d2fe;text-align:left">
-            <p style="font-weight:800;color:#3730a3;margin-bottom:8px"><i class="fas fa-ticket"></i> Sizning suhbat biletingiz: №<span id="ticket-number"></span></p>
-            <ol id="ticket-questions-list" style="padding-left:20px;color:#312e81;font-size:0.9rem"></ol>
-            <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Suhbat boshida admin/komissiyaga bilet raqamingizni ayting va shu savollarga javob bering.</p>
-        </div>
-        <p style="color:var(--muted);font-size:0.82rem;margin-top:14px">Natijalaringizni <a href="dashboard.html" style="color:var(--primary)">shaxsiy kabinetingizda</a> kuzatib boring.</p>
     </div>
 
     <!-- Ro'yxatdan o'tish formasi -->
