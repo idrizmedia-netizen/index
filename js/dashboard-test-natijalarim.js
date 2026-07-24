@@ -74,14 +74,16 @@
             snap.forEach((d) => {
                 const a = d.data();
                 const isSubmitted = a.status === 'submitted';
+                const hasOpen = a.openScoreAuto !== null && a.openScoreAuto !== undefined;
+                const total = isSubmitted ? +(((a.score || 0) + (hasOpen ? a.openScoreAuto : 0))).toFixed(2) : null;
                 html += `<div class="activity-row">
                     <div class="act-icon" style="background:#eff6ff">${isSubmitted ? '\ud83d\udcdd' : '\u23f3'}</div>
                     <div style="flex:1">
                         <div class="act-label">Test natijasi</div>
-                        <div class="act-time">${isSubmitted ? 'Topshirilgan' : 'Jarayonda'}</div>
+                        <div class="act-time">${isSubmitted ? `Yopiq: ${esc(a.score)} ball${hasOpen ? ` \u00b7 Ochiq: ${esc(a.openScoreAuto)} ball (avto)` : ''}` : 'Jarayonda'}</div>
                     </div>
                     <div style="font-weight:800;color:${isSubmitted ? 'var(--primary)' : 'var(--muted)'}">
-                        ${isSubmitted ? esc(a.score) + '/' + esc(a.totalQuestions) : '\u2014'}
+                        ${isSubmitted ? esc(total) + ' ball' : '\u2014'}
                     </div>
                 </div>`;
             });
