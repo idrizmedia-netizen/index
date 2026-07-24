@@ -614,6 +614,7 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
                 const c = contestSnap.data();
                 contestData = c;
                 currentContestMeta.interviewMaxScore = c.interviewMaxScore || null;
+                currentContestMeta.minScoreToAdvance = c.minScoreToAdvance ?? null;
             }
             if (testSnap.exists()) {
                 const t = testSnap.data();
@@ -721,7 +722,7 @@ function renderRegistrantsTable(list) {
             <td>${escapeHtml(r.yosh)}</td>
             <td>${escapeHtml(r.telefon)}</td>
             <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" title="${meta.testMax ? 'Maksimal: ' + meta.testMax : ''}" style="width:64px"></td>
-            <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" title="${meta.interviewMaxScore ? 'Maksimal: ' + meta.interviewMaxScore : ''}" style="width:64px"></td>
+            <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" title="${meta.interviewMaxScore ? 'Maksimal: ' + meta.interviewMaxScore : ''}" style="width:64px">${(meta.minScoreToAdvance != null && r.score != null && r.score < meta.minScoreToAdvance) ? `<br><span style="color:var(--red);font-size:10px;font-weight:700" title="Test balidan chegarani (${meta.minScoreToAdvance}) o'tolmagan">\u26a0\ufe0f chegaradan past</span>` : ''}</td>
             <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" title="${meta.openMax ? 'Maksimal: ' + meta.openMax : ''}" style="width:64px"></td>
             <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
             <td>${paymentBtnHtml}</td>
@@ -1150,12 +1151,12 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
     try {
         const sorted = [...withTotal].sort((a, b) => b.total - a.total);
 
-        // "1224" turdagi reyting: teng ball bo'lsa bir xil o'rin beriladi
-        // (masalan 2 kishi 1-o'rinda teng bo'lsa, keyingisi 3-o'rin bo'ladi, 2-o'rin bo'sh qoladi).
+        // "1223" turdagi zich reyting: teng ball bo'lsa bir xil o'rin beriladi,
+        // lekin keyingi o'rin BIR pog'ona ko'tariladi (2-o'rin tashlab ketilmaydi).
         let rank = 0;
         let prevTotal = null;
-        const ranked = sorted.map((r, i) => {
-            if (prevTotal === null || r.total < prevTotal) rank = i + 1;
+        const ranked = sorted.map((r) => {
+            if (prevTotal === null || r.total < prevTotal) rank++;
             prevTotal = r.total;
             return { ...r, rank };
         });
