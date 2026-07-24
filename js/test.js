@@ -193,12 +193,15 @@ async function init() {
 
     if (attemptSnap.exists() && attemptSnap.data().status === 'submitted') {
         const a = attemptSnap.data();
-        resultCard.style.display = 'block';
-        document.getElementById('resultScoreText').textContent = `${a.score}/${a.totalQuestions}`;
-        return;
-    }
-
-    if (attemptSnap.exists() && attemptSnap.data().status === 'in-progress') {
+        const retakeUntil = regData.retakeUntil ? new Date(regData.retakeUntil) : null;
+        const retakeActive = retakeUntil && new Date() <= retakeUntil;
+        if (!retakeActive) {
+            resultCard.style.display = 'block';
+            document.getElementById('resultScoreText').textContent = `${a.score}/${a.totalQuestions}`;
+            return;
+        }
+        // Aks holda (admin qayta topshirishga ruxsat bergan) — pastga o'tib, yangi urinish boshlash oynasini ko'rsatamiz.
+    } else if (attemptSnap.exists() && attemptSnap.data().status === 'in-progress') {
         const ad = attemptSnap.data();
         questionOrder = ad.questionOrder && ad.questionOrder.length ? ad.questionOrder : testData.questions.map((_, i) => i);
         answers = ad.answers || new Array(questionOrder.length).fill(null);
@@ -219,8 +222,9 @@ async function init() {
     }
     introCard.style.display = 'block';
     document.getElementById('introTitle').textContent = testData.title;
+    const isRetake = attemptSnap.exists() && attemptSnap.data().status === 'submitted';
     document.getElementById('introDesc').textContent =
-        `${totalToShow} ta savol \u2014 ${testData.timeLimitMinutes} daqiqa vaqt beriladi. Test boshlangandan so\u2018ng sahifadan chiqib ketmang \u2014 tizim buni kuzatib boradi.`;
+        `${isRetake ? '\u{1F504} Sizga qayta topshirish uchun ruxsat berilgan. ' : ''}${totalToShow} ta savol \u2014 ${testData.timeLimitMinutes} daqiqa vaqt beriladi. Test boshlangandan so\u2018ng sahifadan chiqib ketmang \u2014 tizim buni kuzatib boradi.`;
     document.getElementById('startBtn').addEventListener('click', startNewAttempt);
 }
 
