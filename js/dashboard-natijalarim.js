@@ -350,45 +350,124 @@
         return `${n}-o\u2018rin`;
     }
 
+    const UZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+    function fmtCertDate(d) {
+        return `${d.getFullYear()}-yil ${d.getDate()}-${UZ_MONTHS[d.getMonth()]}`;
+    }
+
     function buildCertificateHtml(r, c, isWinner) {
-        const today = new Date().toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' });
+        const today = fmtCertDate(new Date());
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
-        const title = isWinner ? 'DIPLOM' : 'SERTIFIKAT';
-        const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
+        const logoUrl = `${window.location.origin}/images/nav-icon.png`;
+        const certNumber = `ZM-${(r.customId || '').replace(/[^0-9A-Za-z]/g, '')}-${new Date().getFullYear()}`;
+
+        // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
+        // ishtirok sertifikati uchun brendga mos alohida ranglar.
+        const themes = {
+            1: { label: 'TILLA DIPLOM', bg: 'linear-gradient(160deg,#fffdf3 0%,#fdf3d0 55%,#faedb0 100%)', border: '#c99a1e', ring: '#f2c94c', text: '#7a5b0a', deep: '#8a6512', medal: '🥇' },
+            2: { label: 'KUMUSH DIPLOM', bg: 'linear-gradient(160deg,#fbfcfe 0%,#e9edf3 55%,#dbe1ea 100%)', border: '#8b96a3', ring: '#c3cdd8', text: '#3f4a56', deep: '#526071', medal: '🥈' },
+            3: { label: 'BRONZA DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '🥉' },
+        };
+        const defaultWinnerTheme = { label: 'DIPLOM', bg: 'linear-gradient(160deg,#f8f5ff 0%,#ece3fb 55%,#ddcdf7 100%)', border: '#7c3aed', ring: '#a78bfa', text: '#4c1d95', deep: '#5b21b6', medal: '🏆' };
+        const certTheme = { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '🎓' };
+
+        const theme = isWinner ? (themes[r.rank] || defaultWinnerTheme) : certTheme;
+
         const mainText = isWinner
-            ? `<b>${esc(r.contestTitle)}</b> tanlovida <b>${ordinalUz(r.rank)}ni</b> egallagani uchun taqdim etiladi`
+            ? `<b>${esc(r.contestTitle)}</b> tanlovida<br><span class="cert-rank">${ordinalUz(r.rank)}</span>ni egallagani uchun taqdim etiladi`
             : `<b>${esc(r.contestTitle)}</b> tanlovida faol ishtirok etganligi uchun taqdim etiladi`;
         const scoreLine = (r.score != null || r.interviewScore != null)
             ? `<div class="cert-score">Umumiy natija: <b>${esc(total)} ball</b></div>`
             : '';
         const signerName = c.responsibleName || c.organizer || 'Ziyomap';
-        return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${esc(title)} \u2014 ${esc(r.fullName)}</title>
+
+        return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${esc(theme.label)} \u2014 ${esc(r.fullName)}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
             @page { size: landscape; margin: 0; }
-            body{font-family:Georgia,'Times New Roman',serif;margin:0;padding:40px;background:#fdfbf6;color:#1e293b}
-            .cert-frame{border:10px double #b45309;border-radius:6px;padding:50px 60px;text-align:center;min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fffdf9}
-            .cert-medal{font-size:48px;margin-bottom:6px}
-            .cert-brand{color:#7c3aed;font-weight:800;font-size:20px;letter-spacing:2px;margin-bottom:18px}
-            .cert-title{font-size:44px;font-weight:800;letter-spacing:6px;color:#b45309;margin-bottom:22px}
-            .cert-name{font-size:34px;font-weight:800;color:#1e293b;border-bottom:2px solid #b45309;display:inline-block;padding:4px 30px 10px;margin-bottom:22px}
-            .cert-text{font-size:18px;line-height:1.6;max-width:700px;margin-bottom:16px}
-            .cert-score{font-size:16px;color:#7c3aed;margin-bottom:22px}
-            .cert-footer{display:flex;justify-content:space-between;width:100%;max-width:700px;margin-top:24px;font-size:14px;color:#64748b}
+            *{box-sizing:border-box}
+            body{
+                font-family:'Montserrat',sans-serif;margin:0;padding:36px;
+                background:#e7e2d8;color:${theme.text};
+            }
+            .cert-outer{
+                position:relative;overflow:hidden;
+                border:3px solid ${theme.border};border-radius:10px;
+                background:${theme.bg};
+                min-height:540px;padding:6px;
+            }
+            .cert-inner{
+                position:relative;height:100%;
+                border:2px solid ${theme.ring};border-radius:6px;
+                padding:44px 60px;text-align:center;
+                display:flex;flex-direction:column;align-items:center;justify-content:center;
+                min-height:520px;
+            }
+            .cert-watermark{
+                position:absolute;top:50%;left:50%;width:340px;height:340px;
+                transform:translate(-50%,-50%);opacity:0.06;pointer-events:none;
+                background-image:url('${logoUrl}');background-size:contain;background-repeat:no-repeat;background-position:center;
+            }
+            .cert-corner{position:absolute;width:40px;height:40px;border:3px solid ${theme.border};opacity:0.65}
+            .cc-tl{top:14px;left:14px;border-right:none;border-bottom:none;border-top-left-radius:6px}
+            .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
+            .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
+            .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
+            .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
+            .cert-brand{
+                font-family:'Playfair Display',serif;font-weight:700;font-size:15px;
+                letter-spacing:5px;color:${theme.deep};margin-bottom:20px;text-transform:uppercase;
+                display:flex;align-items:center;gap:10px;
+            }
+            .cert-brand::before,.cert-brand::after{content:'';width:36px;height:1px;background:${theme.border}}
+            .cert-title{
+                font-family:'Playfair Display',serif;font-weight:800;font-size:46px;
+                letter-spacing:4px;color:${theme.deep};margin-bottom:26px;text-transform:uppercase;
+                text-shadow:0 1px 0 rgba(255,255,255,0.5);
+            }
+            .cert-given-to{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:${theme.text};opacity:0.65;margin-bottom:10px}
+            .cert-name{
+                font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:${theme.deep};
+                padding:2px 36px 14px;margin-bottom:24px;position:relative;
+            }
+            .cert-name::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2px;background:${theme.border}}
+            .cert-text{font-size:17px;line-height:1.9;max-width:640px;margin-bottom:16px;color:${theme.text}}
+            .cert-rank{
+                font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:${theme.deep};
+            }
+            .cert-score{font-size:15px;color:${theme.deep};margin-bottom:26px;font-weight:600;letter-spacing:0.5px}
+            .cert-footer{
+                display:flex;justify-content:space-between;align-items:flex-end;
+                width:100%;max-width:640px;margin-top:20px;
+            }
+            .cert-footer-block{font-size:12.5px;color:${theme.text};opacity:0.85;text-align:center}
+            .cert-footer-line{border-top:1.5px solid ${theme.border};padding-top:6px;min-width:170px}
+            .cert-num{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1px;color:${theme.text};opacity:0.5}
         </style>
         </head><body>
-        <div class="cert-frame">
-            <div class="cert-medal">${medal}</div>
-            <div class="cert-brand">ZIYOMAP</div>
-            <div class="cert-title">${esc(title)}</div>
-            <div class="cert-name">${esc(r.fullName)}</div>
-            <div class="cert-text">${mainText}</div>
-            ${scoreLine}
-            <div class="cert-footer">
-                <span>Sana: ${esc(today)}</span>
-                <span>${esc(signerName)}</span>
+        <div class="cert-outer">
+            <div class="cert-inner">
+                <div class="cert-watermark"></div>
+                <div class="cert-corner cc-tl"></div>
+                <div class="cert-corner cc-tr"></div>
+                <div class="cert-corner cc-bl"></div>
+                <div class="cert-corner cc-br"></div>
+                <div class="cert-medal">${theme.medal}</div>
+                <div class="cert-brand">ZIYOMAP</div>
+                <div class="cert-title">${esc(theme.label)}</div>
+                <div class="cert-given-to">Ushbu hujjat quyidagi shaxsga taqdim etiladi</div>
+                <div class="cert-name">${esc(r.fullName)}</div>
+                <div class="cert-text">${mainText}</div>
+                ${scoreLine}
+                <div class="cert-footer">
+                    <div class="cert-footer-block"><div class="cert-footer-line">${esc(today)}</div>Berilgan sana</div>
+                    <div class="cert-footer-block"><div class="cert-footer-line">${esc(signerName)}</div>Mas\u2019ul shaxs</div>
+                </div>
+                <div class="cert-num">${esc(certNumber)}</div>
             </div>
         </div>
-        <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+        <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
         </body></html>`;
     }
 
