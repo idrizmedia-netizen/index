@@ -156,6 +156,7 @@
             );
 
             let html = '';
+            let historyHtml = '';
             regs.forEach((r) => {
                 const hasScore = r.score !== null && r.score !== undefined;
                 const hasInterview = r.interviewScore !== null && r.interviewScore !== undefined;
@@ -191,18 +192,25 @@
                         if (c.interviewMaxScore) parts.push(`umumiy ${c.interviewMaxScore} ball`);
                         dateBits.push(`Suhbat haqida: ${parts.join(', ')}`);
                     }
+                    if (c.interviewResponsibleEmail) {
+                        dateBits.push(`Bog\u2018lanish: ${c.interviewResponsibleEmail}`);
+                    }
                 } else if (effTestStart || effTestEnd) {
                     dateBits.push(`Test vaqti: ${effTestStart ? fmtDate(effTestStart) : '\u2014'}${effTestEnd ? ' \u2013 ' + fmtDate(effTestEnd) : ''}`);
                 }
                 if (c.regStartDate || c.regEndDate) {
                     dateBits.push(`Ro\u2018yxatdan o\u2018tish: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
                 }
+                const contactBits = [];
+                if (c.organizer) contactBits.push(`Tashkilotchi: ${c.organizer}`);
+                if (c.responsibleName) contactBits.push(`Mas\u2019ul shaxs: ${c.responsibleName}${c.responsiblePhone ? ' (' + c.responsiblePhone + ')' : ''}`);
 
                 const countdown = belowThreshold ? null : pickCountdown(effTestStart, effTestEnd, effInterviewStart, effInterviewEnd, testEnded);
 
                 // ── Harakat tugmalari: Testni boshlash / Suhbatga kirish ──
                 const actionBtns = [];
-                if (test && test.published) {
+                const retakeActive = r.retakeUntil && new Date() <= new Date(r.retakeUntil);
+                if (test && test.published && (!testEnded || retakeActive)) {
                     actionBtns.push(`<a href="test.html?contest=${r.contestId}" class="dash-action-btn" style="background:var(--primary)"><i class="fas fa-file-pen"></i> Testni boshlash</a>`);
                 }
                 const meetEnabled = c.meetLinkEnabled !== false;
@@ -283,13 +291,14 @@
                     </div>`;
                 }
 
-                html += `<div class="activity-row-wrap" style="border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:14px">
+                const rowHtml = `<div class="activity-row-wrap" style="border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:14px">
                     <div class="activity-row" style="border:none;padding:0;margin:0">
                         <div class="act-icon" style="background:#fdf2f8;font-size:16px">${medal}</div>
                         <div style="flex:1">
                             <div class="act-label">${esc(r.contestTitle)}</div>
                             <div class="act-time">ID: ${esc(r.customId)}${hasScore ? ' \u00b7 Test: ' + esc(r.score) : ''}${hasInterview ? ' \u00b7 Suhbat: ' + esc(r.interviewScore) : ''}${hasOpen ? ' \u00b7 Ochiq savollar: ' + esc(r.openScore) : ''}</div>
                             ${dateBits.length ? `<div class="act-time" style="color:var(--primary)">${esc(dateBits.join(' \u00b7 '))}</div>` : ''}
+                            ${contactBits.length ? `<div class="act-time" style="color:var(--muted)">${esc(contactBits.join(' \u00b7 '))}</div>` : ''}
                             ${countdown ? `<div class="act-time countdown-timer" data-countdown-target="${esc(countdown.target)}" data-countdown-label="${esc(countdown.label)}" style="color:#ea580c;font-weight:700"></div>` : ''}
                             ${hasRank ? `<div style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:11px;font-weight:800">${esc(r.rank)}-o\u2018rin</div>` : ''}
                         </div>
@@ -301,7 +310,24 @@
                     ${ticketHtml}
                     ${paymentHtml}
                 </div>`;
+
+                // Tanlov: ro'yxatdan o'tishdan boshlab, suhbat tugab, g'oliblar e'lon qilinmaguncha
+                // "faol" hisoblanadi. G'oliblar e'lon qilingach (rank belgilangach) — "Tanlov tarixi"ga o'tadi.
+                if (hasRank) {
+                    historyHtml += rowHtml;
+                } else {
+                    html += rowHtml;
+                }
             });
+            if (!html && historyHtml) {
+                html = '<div style="color:var(--muted);text-align:center;padding:14px;font-size:13px">Hozircha faol tanlovingiz yo\u2018q.</div>';
+            }
+            if (historyHtml) {
+                html += `<details style="margin-top:10px">
+                    <summary style="cursor:pointer;font-weight:700;color:var(--primary);font-size:0.9rem;padding:8px 0">📜 Tanlov tarixi (${historyHtml.split('activity-row-wrap').length - 1} ta yakunlangan)</summary>
+                    <div style="margin-top:8px">${historyHtml}</div>
+                </details>`;
+            }
             target.innerHTML = html;
             updateCountdowns(target);
             clearInterval(window.__ziyomapCountdownInterval);
