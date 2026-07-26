@@ -354,10 +354,6 @@ async function loadContests() {
                 document.getElementById('c-organizer').value = c.organizer || '';
                 document.getElementById('c-responsible-name').value = c.responsibleName || '';
                 document.getElementById('c-responsible-phone').value = c.responsiblePhone || '';
-                document.getElementById('c-interview-responsible-emails').value = c.interviewResponsibleEmails || '';
-                document.getElementById('c-organizers').value = c.organizers || '';
-                document.getElementById('c-organizer-name').value = c.organizerName || '';
-                document.getElementById('c-organizer-contact').value = c.organizerContact || '';
                 document.getElementById('c-min-age').value = c.minAge ?? '';
                 document.getElementById('c-max-age').value = c.maxAge ?? '';
                 document.getElementById('c-grades').value = (c.grades && c.grades.length) ? c.grades.join(',') : '';
@@ -422,10 +418,6 @@ function resetContestForm() {
     document.getElementById('c-organizer').value = '';
     document.getElementById('c-responsible-name').value = '';
     document.getElementById('c-responsible-phone').value = '';
-    document.getElementById('c-interview-responsible-emails').value = '';
-    document.getElementById('c-organizers').value = '';
-    document.getElementById('c-organizer-name').value = '';
-    document.getElementById('c-organizer-contact').value = '';
     document.getElementById('c-min-age').value = '';
     document.getElementById('c-max-age').value = '';
     document.getElementById('c-grades').value = '';
@@ -469,10 +461,6 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const organizer = document.getElementById('c-organizer').value.trim() || null;
     const responsibleName = document.getElementById('c-responsible-name').value.trim() || null;
     const responsiblePhone = document.getElementById('c-responsible-phone').value.trim() || null;
-    const interviewResponsibleEmails = document.getElementById('c-interview-responsible-emails').value.trim() || null;
-    const organizers = document.getElementById('c-organizers').value.trim() || null;
-    const organizerName = document.getElementById('c-organizer-name').value.trim() || null;
-    const organizerContact = document.getElementById('c-organizer-contact').value.trim() || null;
     const minAgeRaw = document.getElementById('c-min-age').value.trim();
     const maxAgeRaw = document.getElementById('c-max-age').value.trim();
     const gradesRaw = document.getElementById('c-grades').value.trim();
@@ -532,10 +520,6 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             organizer,
             responsibleName,
             responsiblePhone,
-            interviewResponsibleEmails,
-            organizers,
-            organizerName,
-            organizerContact,
             minAge: minAgeRaw ? parseInt(minAgeRaw, 10) : null,
             maxAge: maxAgeRaw ? parseInt(maxAgeRaw, 10) : null,
             grades,
