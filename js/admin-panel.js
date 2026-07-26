@@ -260,6 +260,15 @@ document.getElementById('c-payment-type')?.addEventListener('change', (e) => {
 
 /* ── TANLOVLAR ── */
 let contestsCache = {};
+let contestFilterMode = 'all';
+
+document.querySelectorAll('[data-contest-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        contestFilterMode = btn.dataset.contestFilter;
+        document.querySelectorAll('[data-contest-filter]').forEach((b) => b.classList.toggle('active', b === btn));
+        loadContests();
+    });
+});
 
 async function loadContests() {
     const listEl = document.getElementById('contestsList');
@@ -288,6 +297,9 @@ async function loadContests() {
             const paymentBadge = c.isPaid
                 ? `<span class="badge" style="background:#fef3c7;color:#92400e;margin-left:6px"><i class="fas fa-money-bill-wave"></i> PULLIK: ${escapeHtml(c.paymentAmount || '?')} so\u2018m</span>`
                 : `<span class="badge" style="background:#e0f2fe;color:#075985;margin-left:6px">BEPUL</span>`;
+            selectHtml += `<option value="${d.id}">${escapeHtml(c.title)}</option>`;
+            if (contestFilterMode === 'open' && !isOpen) return;
+            if (contestFilterMode === 'closed' && isOpen) return;
             listHtml += `<div class="contest-item">
                 <div>
                     <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span>${paymentBadge}</div>
@@ -303,9 +315,8 @@ async function loadContests() {
                     <button class="btn btn-red" data-delete-contest="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`;
-            selectHtml += `<option value="${d.id}">${escapeHtml(c.title)}</option>`;
         });
-        listEl.innerHTML = listHtml;
+        listEl.innerHTML = listHtml || '<div class="empty">Bu filtrga mos tanlov topilmadi.</div>';
         selectEl.innerHTML = selectHtml;
         const tSelect = document.getElementById('t-contest-select');
         const trSelect = document.getElementById('tr-contest-select');
@@ -340,6 +351,13 @@ async function loadContests() {
                 document.getElementById('c-edit-id').value = btn.dataset.editContest;
                 document.getElementById('c-title').value = c.title || '';
                 document.getElementById('c-desc').value = c.description || '';
+                document.getElementById('c-organizer').value = c.organizer || '';
+                document.getElementById('c-responsible-name').value = c.responsibleName || '';
+                document.getElementById('c-responsible-phone').value = c.responsiblePhone || '';
+                document.getElementById('c-interview-responsible-emails').value = c.interviewResponsibleEmails || '';
+                document.getElementById('c-organizers').value = c.organizers || '';
+                document.getElementById('c-organizer-name').value = c.organizerName || '';
+                document.getElementById('c-organizer-contact').value = c.organizerContact || '';
                 document.getElementById('c-min-age').value = c.minAge ?? '';
                 document.getElementById('c-max-age').value = c.maxAge ?? '';
                 document.getElementById('c-grades').value = (c.grades && c.grades.length) ? c.grades.join(',') : '';
@@ -401,6 +419,13 @@ function resetContestForm() {
     document.getElementById('c-edit-id').value = '';
     document.getElementById('c-title').value = '';
     document.getElementById('c-desc').value = '';
+    document.getElementById('c-organizer').value = '';
+    document.getElementById('c-responsible-name').value = '';
+    document.getElementById('c-responsible-phone').value = '';
+    document.getElementById('c-interview-responsible-emails').value = '';
+    document.getElementById('c-organizers').value = '';
+    document.getElementById('c-organizer-name').value = '';
+    document.getElementById('c-organizer-contact').value = '';
     document.getElementById('c-min-age').value = '';
     document.getElementById('c-max-age').value = '';
     document.getElementById('c-grades').value = '';
@@ -441,6 +466,13 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const editId = document.getElementById('c-edit-id').value;
     const title = document.getElementById('c-title').value.trim();
     const desc = document.getElementById('c-desc').value.trim();
+    const organizer = document.getElementById('c-organizer').value.trim() || null;
+    const responsibleName = document.getElementById('c-responsible-name').value.trim() || null;
+    const responsiblePhone = document.getElementById('c-responsible-phone').value.trim() || null;
+    const interviewResponsibleEmails = document.getElementById('c-interview-responsible-emails').value.trim() || null;
+    const organizers = document.getElementById('c-organizers').value.trim() || null;
+    const organizerName = document.getElementById('c-organizer-name').value.trim() || null;
+    const organizerContact = document.getElementById('c-organizer-contact').value.trim() || null;
     const minAgeRaw = document.getElementById('c-min-age').value.trim();
     const maxAgeRaw = document.getElementById('c-max-age').value.trim();
     const gradesRaw = document.getElementById('c-grades').value.trim();
@@ -497,6 +529,13 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
         const payload = {
             title,
             description: desc,
+            organizer,
+            responsibleName,
+            responsiblePhone,
+            interviewResponsibleEmails,
+            organizers,
+            organizerName,
+            organizerContact,
             minAge: minAgeRaw ? parseInt(minAgeRaw, 10) : null,
             maxAge: maxAgeRaw ? parseInt(maxAgeRaw, 10) : null,
             grades,
@@ -1505,6 +1544,7 @@ function resetTestForm() {
     document.getElementById('t-open-per-attempt').value = '';
     document.getElementById('t-points-per-correct').value = '1';
     document.getElementById('t-open-max-points').value = '5';
+    document.getElementById('t-max-tab-switches').value = '1';
     document.getElementById('t-points-preview').textContent = '';
     document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> Testni yaratish va e\u2018lon qilish';
     document.getElementById('t-cancel-edit-btn').style.display = 'none';
@@ -1780,6 +1820,7 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
     const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
     const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
     const openMaxPointsPerQuestion = parseFloat(document.getElementById('t-open-max-points').value) || 5;
+    const maxTabSwitches = parseInt(document.getElementById('t-max-tab-switches').value, 10) || 1;
     const rawQuestions = document.getElementById('t-questions').value;
 
     if (!contestId) {
@@ -1812,6 +1853,7 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
             openQuestionsPerAttempt,
             pointsPerCorrect,
             openMaxPointsPerQuestion,
+            maxTabSwitches,
             questions,
             published: true,
             createdAt: serverTimestamp(),
@@ -1870,6 +1912,7 @@ async function loadTests() {
                 document.getElementById('t-open-per-attempt').value = t.openQuestionsPerAttempt || '';
                 document.getElementById('t-points-per-correct').value = t.pointsPerCorrect || 1;
                 document.getElementById('t-open-max-points').value = t.openMaxPointsPerQuestion || 5;
+                document.getElementById('t-max-tab-switches').value = t.maxTabSwitches || 1;
                 document.getElementById('t-questions').value = questionsToRaw(t.questions || []);
                 document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
                 document.getElementById('t-cancel-edit-btn').style.display = '';
@@ -1971,10 +2014,12 @@ document.getElementById('meet-contest-select')?.addEventListener('change', async
     const enabledInput = document.getElementById('meet-enabled-input');
     const questionsInput = document.getElementById('meet-questions-count');
     const maxScoreInput = document.getElementById('meet-max-score');
+    const emailInput = document.getElementById('meet-responsible-email');
     input.value = '';
     enabledInput.checked = true;
     questionsInput.value = '';
     maxScoreInput.value = '';
+    emailInput.value = '';
     if (!contestId) return;
     try {
         const snap = await getDoc(doc(db, 'contests', contestId));
@@ -1984,6 +2029,7 @@ document.getElementById('meet-contest-select')?.addEventListener('change', async
             enabledInput.checked = c.meetLinkEnabled !== false;
             questionsInput.value = c.interviewQuestionsCount || '';
             maxScoreInput.value = c.interviewMaxScore || '';
+            emailInput.value = c.interviewResponsibleEmail || '';
         }
     } catch (err) {
         console.error(err);
@@ -1996,6 +2042,7 @@ document.getElementById('meet-save-btn')?.addEventListener('click', async () => 
     const meetLinkEnabled = document.getElementById('meet-enabled-input').checked;
     const interviewQuestionsCount = parseInt(document.getElementById('meet-questions-count').value, 10) || null;
     const interviewMaxScore = parseFloat(document.getElementById('meet-max-score').value) || null;
+    const interviewResponsibleEmail = document.getElementById('meet-responsible-email').value.trim() || null;
     if (!contestId) {
         setStatus('Tanlovni tanlang.', 'error');
         return;
@@ -2003,7 +2050,7 @@ document.getElementById('meet-save-btn')?.addEventListener('click', async () => 
     const btn = document.getElementById('meet-save-btn');
     btn.disabled = true;
     try {
-        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null, meetLinkEnabled, interviewQuestionsCount, interviewMaxScore });
+        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null, meetLinkEnabled, interviewQuestionsCount, interviewMaxScore, interviewResponsibleEmail });
         setStatus('Suhbat havolasi saqlandi!', 'success');
         loadMeetLinks();
     } catch (err) {
