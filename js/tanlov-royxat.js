@@ -73,9 +73,8 @@ function escapeHtml(str) {
     return d.innerHTML;
 }
 
-async function getOpenContests() {
-    const q = query(collection(db, 'contests'), where('status', '==', 'open'));
-    const snap = await getDocs(q);
+async function getAllContests() {
+    const snap = await getDocs(collection(db, 'contests'));
     const list = [];
     snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
     list.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
@@ -122,31 +121,86 @@ const CARD_GRADIENTS = [
     'linear-gradient(145deg,#a855f7,#7c3aed)',
 ];
 
+function formatRemainingText(deadlineStr) {
+    const deadline = new Date(deadlineStr);
+    if (isNaN(deadline.getTime())) return null;
+    const diffMs = deadline.getTime() - Date.now();
+    if (diffMs <= 0) return null;
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+    const parts = [];
+    if (days) parts.push(`${days} kun`);
+    if (hours || days) parts.push(`${hours} soat`);
+    parts.push(`${minutes} daqiqa`);
+    return parts.join(' ');
+}
+
+let allContestsCache = [];
+let contestFilterMode = 'open';
+
+function renderContestFilterTabs() {
+    const openCount = allContestsCache.filter((c) => c.status === 'open').length;
+    const closedCount = allContestsCache.filter((c) => c.status !== 'open').length;
+    return `<div class="contest-filter-tabs" style="display:flex;gap:8px;margin-bottom:16px">
+        <button type="button" class="cf-tab ${contestFilterMode === 'open' ? 'active' : ''}" data-filter="open">Faol (${openCount})</button>
+        <button type="button" class="cf-tab ${contestFilterMode === 'closed' ? 'active' : ''}" data-filter="closed">Faol emas (${closedCount})</button>
+    </div>`;
+}
+
 function showContestChoice(contests) {
+    allContestsCache = contests;
     contestSelectBox.style.display = 'block';
-    contestSelectList.innerHTML = contests
+    renderFilteredContests();
+}
+
+function renderFilteredContests() {
+    const filtered = allContestsCache.filter((c) => (contestFilterMode === 'open' ? c.status === 'open' : c.status !== 'open'));
+    const cardsHtml = filtered
         .map((c, i) => {
             const restrictions = [];
             if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}\u2013${c.maxAge || '\u221e'}`);
             if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
             if (c.restrictViloyat) restrictions.push(`Hudud: ${c.restrictTuman || c.restrictViloyat}`);
             const grad = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
+            const regDeadlineText = c.regEndDate ? formatRemainingText(`${c.regEndDate}T23:59`) : null;
+            const testStartStr = c.testDateStart ? `${c.testDateStart}T${c.testDailyStart || '00:00'}` : null;
+            const interviewStartStr = c.interviewDateStart ? `${c.interviewDateStart}T${c.interviewDailyStart || '00:00'}` : null;
+            const testRemainingText = testStartStr ? formatRemainingText(testStartStr) : null;
+            const interviewRemainingText = interviewStartStr ? formatRemainingText(interviewStartStr) : null;
+            const timeBadges = [];
+            if (regDeadlineText) timeBadges.push(`<span class="cp-badge" style="background:rgba(220,38,38,0.85)">\u23f0 Ro\u2018yxatdan o\u2018tishga ${regDeadlineText} qoldi</span>`);
+            if (testRemainingText) timeBadges.push(`<span class="cp-badge" style="background:rgba(37,99,235,0.85)">\u{1F4DD} Testgacha ${testRemainingText} qoldi</span>`);
+            if (interviewRemainingText) timeBadges.push(`<span class="cp-badge" style="background:rgba(5,150,105,0.85)">\u{1F4F9} Suhbatgacha ${interviewRemainingText} qoldi</span>`);
             return `<div class="contest-pick" data-pick="${c.id}" style="background:${grad}">
-                <span class="cp-live">FAOL</span>
+                <span class="cp-live">${c.status === 'open' ? 'FAOL' : 'YOPIQ'}</span>
                 <div class="cp-icon"><i class="fas fa-trophy"></i></div>
                 <div class="cp-body">
                     <div class="cp-t">${escapeHtml(c.title)}</div>
                     <div class="cp-d">${escapeHtml(c.description || '')}</div>
                     ${restrictions.length ? `<div class="cp-badges">${restrictions.map((r) => `<span class="cp-badge">${escapeHtml(r)}</span>`).join('')}</div>` : ''}
+                    ${timeBadges.length ? `<div class="cp-badges">${timeBadges.join('')}</div>` : ''}
                     <div class="cp-cta">Ro'yxatdan o'tish <i class="fas fa-arrow-right"></i></div>
                 </div>
             </div>`;
         })
         .join('');
 
+    contestSelectList.innerHTML =
+        renderContestFilterTabs() +
+        (cardsHtml || '<p style="color:rgba(255,255,255,0.85);text-align:center;padding:20px">Bu bo\u2018limda hozircha tanlov yo\u2018q.</p>');
+
+    contestSelectList.querySelectorAll('.cf-tab').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            contestFilterMode = btn.dataset.filter;
+            renderFilteredContests();
+        });
+    });
+
     contestSelectList.querySelectorAll('[data-pick]').forEach((el) => {
         el.addEventListener('click', () => {
-            const contest = contests.find((c) => c.id === el.dataset.pick);
+            const contest = allContestsCache.find((c) => c.id === el.dataset.pick);
             contestSelectBox.style.display = 'none';
             openContest(contest, true);
         });
@@ -160,8 +214,22 @@ async function openContest(contest, showBack) {
     if (contest.grades && contest.grades.length) restrictions.push(`Sinflar: ${contest.grades.join(', ')}`);
     if (contest.restrictViloyat) restrictions.push(`Hudud: ${contest.restrictTuman || contest.restrictViloyat}`);
     if (contest.isPaid) restrictions.push(`\u{1F4B0} Pullik tanlov: ${contest.paymentAmount || '?'} so\u2018m`);
+    if (contest.organizers) restrictions.push(`\u{1F465} ${contest.organizers.replace(/\n+/g, ' / ')}`);
     if (contest.regStartDate || contest.regEndDate) {
         restrictions.push(`Ro'yxatdan o'tish muddati: ${contest.regStartDate || '\u2014'} \u2013 ${contest.regEndDate || '\u2014'}`);
+    }
+    if (contest.organizerName) restrictions.push(`Tashkilotchi: ${contest.organizerName}`);
+    if (contest.organizerContact) restrictions.push(`Mas\u2019ul shaxs: ${contest.organizerContact}`);
+
+    let countdownHtml = '';
+    if (contest.regEndDate) {
+        const deadline = new Date(`${contest.regEndDate}T23:59:59`);
+        const diffMs = deadline.getTime() - Date.now();
+        if (diffMs > 0) {
+            const days = Math.floor(diffMs / 86400000);
+            const hours = Math.floor((diffMs % 86400000) / 3600000);
+            countdownHtml = `<div style="margin-top:8px;font-size:0.8rem;font-weight:700;color:#ea580c">\u23f0 Ro\u2018yxatdan o\u2018tishga: ${days} kun ${hours} soat qoldi</div>`;
+        }
     }
 
     contestInfo.style.display = 'block';
@@ -170,7 +238,8 @@ async function openContest(contest, showBack) {
         `<b>${escapeHtml(contest.title || 'Tanlov')}</b>${escapeHtml(contest.description || '')}` +
         (restrictions.length
             ? `<div style="margin-top:8px;font-size:0.78rem;color:#b45309"><i class="fas fa-circle-info"></i> ${escapeHtml(restrictions.join(' · '))}</div>`
-            : '');
+            : '') +
+        countdownHtml;
 
     const backLink = document.getElementById('back-to-list');
     if (backLink) {
@@ -178,7 +247,7 @@ async function openContest(contest, showBack) {
             e.preventDefault();
             hideAll();
             document.getElementById('tr-stats-row').style.display = 'grid';
-            getOpenContests().then((contests) => {
+            getAllContests().then((contests) => {
                 if (contests.length) showContestChoice(contests);
                 else closedBox.style.display = 'block';
             });
@@ -343,6 +412,8 @@ async function showAlreadyRegistered(customId, cId, regData) {
                 if (c.regStartDate || c.regEndDate) bits.push(`Ro\u2018yxatdan o\u2018tish: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
                 if (c.testDateStart || c.testDateEnd) bits.push(`Test kunlari: ${c.testDateStart || '\u2014'} \u2013 ${c.testDateEnd || '\u2014'} (${c.testDailyStart || '?'}\u2013${c.testDailyEnd || '?'})`);
                 if (c.interviewDateStart || c.interviewDateEnd) bits.push(`Suhbat kunlari: ${c.interviewDateStart || '\u2014'} \u2013 ${c.interviewDateEnd || '\u2014'} (${c.interviewDailyStart || '?'}\u2013${c.interviewDailyEnd || '?'})`);
+                if (c.organizer) bits.push(`Tashkilotchi: ${c.organizer}`);
+                if (c.responsibleName) bits.push(`Mas\u2019ul shaxs: ${c.responsibleName}${c.responsiblePhone ? ' (' + c.responsiblePhone + ')' : ''}`);
                 datesBox.textContent = bits.join(' \u00b7 ');
                 datesBox.style.display = bits.length ? 'block' : 'none';
             }
@@ -462,7 +533,7 @@ async function init() {
 
     let contests;
     try {
-        contests = await getOpenContests();
+        contests = await getAllContests();
     } catch (err) {
         console.error(err);
         setStatus('Ma\u2019lumotlarni yuklashda xatolik. Qayta urinib ko\u2018ring.', 'error');
