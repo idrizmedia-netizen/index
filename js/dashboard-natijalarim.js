@@ -221,6 +221,11 @@
                 if (c.meetLink && meetEnabled && !belowThreshold && withinInterviewWindow) {
                     actionBtns.push(`<a href="${esc(c.meetLink)}" target="_blank" rel="noopener" class="dash-action-btn" style="background:#059669"><i class="fas fa-video"></i> Suhbatga kirish</a>`);
                 }
+                if (hasRank) {
+                    actionBtns.push(`<button type="button" class="dash-action-btn" data-diploma="${r.id}" style="background:linear-gradient(135deg,#f59e0b,#ea580c)"><i class="fas fa-award"></i> Diplomni yuklab olish</button>`);
+                } else if (hasScore || hasInterview) {
+                    actionBtns.push(`<button type="button" class="dash-action-btn" data-certificate="${r.id}" style="background:#6366f1"><i class="fas fa-certificate"></i> Ishtirok sertifikati</button>`);
+                }
 
                 // ── Suhbat bileti: suhbatdan 10 daqiqa oldin va suhbat davomida ko'rinadi ──
                 let ticketHtml = '';
@@ -334,10 +339,73 @@
             window.__ziyomapCountdownInterval = setInterval(() => updateCountdowns(target), 30000);
 
             wirePaymentActions(target, regs, contestDates);
+            wireCertificateActions(target, regs, contestDates);
         } catch (err) {
             console.error('Natijalarni yuklashda xatolik:', err);
             target.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Yuklashda xatolik yuz berdi.</div>';
         }
+    }
+
+    function ordinalUz(n) {
+        return `${n}-o\u2018rin`;
+    }
+
+    function buildCertificateHtml(r, c, isWinner) {
+        const today = new Date().toLocaleDateString('uz-UZ', { day: '2-digit', month: 'long', year: 'numeric' });
+        const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
+        const title = isWinner ? 'DIPLOM' : 'SERTIFIKAT';
+        const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
+        const mainText = isWinner
+            ? `<b>${esc(r.contestTitle)}</b> tanlovida <b>${ordinalUz(r.rank)}ni</b> egallagani uchun taqdim etiladi`
+            : `<b>${esc(r.contestTitle)}</b> tanlovida faol ishtirok etganligi uchun taqdim etiladi`;
+        const scoreLine = (r.score != null || r.interviewScore != null)
+            ? `<div class="cert-score">Umumiy natija: <b>${esc(total)} ball</b></div>`
+            : '';
+        const signerName = c.responsibleName || c.organizer || 'Ziyomap';
+        return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${esc(title)} \u2014 ${esc(r.fullName)}</title>
+        <style>
+            @page { size: landscape; margin: 0; }
+            body{font-family:Georgia,'Times New Roman',serif;margin:0;padding:40px;background:#fdfbf6;color:#1e293b}
+            .cert-frame{border:10px double #b45309;border-radius:6px;padding:50px 60px;text-align:center;min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fffdf9}
+            .cert-medal{font-size:48px;margin-bottom:6px}
+            .cert-brand{color:#7c3aed;font-weight:800;font-size:20px;letter-spacing:2px;margin-bottom:18px}
+            .cert-title{font-size:44px;font-weight:800;letter-spacing:6px;color:#b45309;margin-bottom:22px}
+            .cert-name{font-size:34px;font-weight:800;color:#1e293b;border-bottom:2px solid #b45309;display:inline-block;padding:4px 30px 10px;margin-bottom:22px}
+            .cert-text{font-size:18px;line-height:1.6;max-width:700px;margin-bottom:16px}
+            .cert-score{font-size:16px;color:#7c3aed;margin-bottom:22px}
+            .cert-footer{display:flex;justify-content:space-between;width:100%;max-width:700px;margin-top:24px;font-size:14px;color:#64748b}
+        </style>
+        </head><body>
+        <div class="cert-frame">
+            <div class="cert-medal">${medal}</div>
+            <div class="cert-brand">ZIYOMAP</div>
+            <div class="cert-title">${esc(title)}</div>
+            <div class="cert-name">${esc(r.fullName)}</div>
+            <div class="cert-text">${mainText}</div>
+            ${scoreLine}
+            <div class="cert-footer">
+                <span>Sana: ${esc(today)}</span>
+                <span>${esc(signerName)}</span>
+            </div>
+        </div>
+        <script>window.onload = () => setTimeout(() => window.print(), 300);<\/script>
+        </body></html>`;
+    }
+
+    function wireCertificateActions(container, regs, contestDates) {
+        container.querySelectorAll('[data-diploma], [data-certificate]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const id = btn.dataset.diploma || btn.dataset.certificate;
+                const r = regs.find((x) => x.id === id);
+                if (!r) return;
+                const c = contestDates[r.contestId] || {};
+                const html = buildCertificateHtml(r, c, !!btn.dataset.diploma);
+                const w = window.open('', '_blank');
+                if (!w) return;
+                w.document.write(html);
+                w.document.close();
+            });
+        });
     }
 
     function wirePaymentActions(container, regs, contestDates) {
