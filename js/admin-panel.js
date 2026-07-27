@@ -1452,8 +1452,8 @@ document.getElementById('signature-image-upload')?.addEventListener('change', (e
             // Yorug' piksellar butunlay shaffoflanadi, o'ta ochiq-to'q oraliqdagilar yumshoq o'tish bilan.
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const d = imgData.data;
-            const LIGHT = 195; // shundan yorug'roq — to'liq shaffof
-            const DARK = 130; // shundan to'qroq — to'liq ko'rinadigan
+            const LIGHT = 215; // shundan yorug'roq — to'liq shaffof (qog'oz doni ham shu ichiga kiradi)
+            const DARK = 95; // shundan to'qroq — to'liq ko'rinadigan (faqat siyoh chizig'i)
             for (let i = 0; i < d.length; i += 4) {
                 const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
                 let alpha;
