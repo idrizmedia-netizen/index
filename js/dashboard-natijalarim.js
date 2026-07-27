@@ -462,7 +462,7 @@
             }
             .cert-score{font-size:14px;color:${theme.deep};margin-bottom:20px;font-weight:600;letter-spacing:0.5px}
             .cert-footer{
-                display:flex;justify-content:space-between;align-items:flex-end;
+                display:flex;justify-content:space-between;align-items:flex-start;
                 width:100%;max-width:660px;margin-top:16px;gap:14px;
             }
             .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
