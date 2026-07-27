@@ -467,7 +467,12 @@
             }
             .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
             .cert-footer-line{border-top:1.5px solid ${theme.border};padding-top:6px;min-width:150px;min-height:14px;display:flex;align-items:flex-end;justify-content:center}
-            .cert-signature-img{max-height:44px;max-width:150px;object-fit:contain;margin-bottom:-4px}
+            .cert-sig-block{display:flex;flex-direction:column;align-items:center}
+            .cert-sig-slot{height:42px;width:150px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px}
+            .cert-signature-img{max-height:42px;max-width:150px;object-fit:contain}
+            .cert-sig-line{width:150px;border-top:1.5px solid ${theme.border};margin-bottom:6px}
+            .cert-sig-name{font-weight:700;font-size:13px}
+            .cert-sig-org{font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin-top:2px;font-weight:600}
             .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
             #cert-qr{margin-bottom:4px}
             .cert-num{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1px;color:${theme.text};opacity:0.5}
@@ -490,7 +495,12 @@
                 <div class="cert-footer">
                     <div class="cert-footer-block"><div class="cert-footer-line">${esc(today)}</div>Berilgan sana</div>
                     <div class="cert-qr-block"><div id="cert-qr"></div>Haqiqiyligini tekshirish</div>
-                    <div class="cert-footer-block"><div class="cert-footer-line">${signatureImg}</div>${esc(signerName)}</div>
+                    <div class="cert-footer-block cert-sig-block">
+                        <div class="cert-sig-slot">${signatureImg}</div>
+                        <div class="cert-sig-line"></div>
+                        <div class="cert-sig-name">${esc(signerName)}</div>
+                        <div class="cert-sig-org">Ziyomap</div>
+                    </div>
                 </div>
                 <div class="cert-num">${esc(certNumber)}</div>
             </div>
