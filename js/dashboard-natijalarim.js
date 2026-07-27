@@ -19,7 +19,7 @@
         appId: '1:982123868162:web:6845723988c030fcd1f71b',
     };
 
-    let db, authInst, updateDocFn, docFn, serverTimestampFn;
+    let db, authInst, updateDocFn, docFn, setDocFn, serverTimestampFn;
 
     function esc(str) {
         const d = document.createElement('div');
@@ -104,7 +104,7 @@
             const { getAuth, onAuthStateChanged } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js'
             );
-            const { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, serverTimestamp } = await import(
+            const { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, setDoc, serverTimestamp } = await import(
                 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
             );
             const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -118,6 +118,7 @@
             db = getFirestore(app);
             docFn = doc;
             updateDocFn = updateDoc;
+            setDocFn = setDoc;
             serverTimestampFn = serverTimestamp;
             const queryUid = (authInst.currentUser && authInst.currentUser.uid) || user.uid;
 
@@ -154,6 +155,14 @@
                     }
                 })
             );
+
+            let signatureSettings = {};
+            try {
+                const sigSnap = await getDoc(doc(db, 'site-content', 'diploma-signature'));
+                if (sigSnap.exists()) signatureSettings = sigSnap.data();
+            } catch (err) {
+                console.error('Imzo ma\u2019lumotini yuklashda xatolik:', err);
+            }
 
             let html = '';
             let historyHtml = '';
@@ -339,7 +348,7 @@
             window.__ziyomapCountdownInterval = setInterval(() => updateCountdowns(target), 30000);
 
             wirePaymentActions(target, regs, contestDates);
-            wireCertificateActions(target, regs, contestDates);
+            wireCertificateActions(target, regs, contestDates, signatureSettings);
         } catch (err) {
             console.error('Natijalarni yuklashda xatolik:', err);
             target.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Yuklashda xatolik yuz berdi.</div>';
@@ -355,18 +364,28 @@
         return `${d.getFullYear()}-yil ${d.getDate()}-${UZ_MONTHS[d.getMonth()]}`;
     }
 
-    function buildCertificateHtml(r, c, isWinner) {
+    function formatOfficialName(name) {
+        if (!name) return '';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0];
+        const surname = parts[0];
+        const initials = parts.slice(1).map((p) => p[0].toUpperCase() + '.').join('');
+        return `${surname} ${initials}`;
+    }
+
+    function buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings) {
         const today = fmtCertDate(new Date());
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const logoUrl = `${window.location.origin}/images/nav-icon.png`;
-        const certNumber = `ZM-${(r.customId || '').replace(/[^0-9A-Za-z]/g, '')}-${new Date().getFullYear()}`;
+        const verifyUrl = `${window.location.origin}/tasdiqlash.html?id=${encodeURIComponent(certNumber)}`;
 
         // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
         // ishtirok sertifikati uchun brendga mos alohida ranglar.
+        const romanDegree = { 1: 'I', 2: 'II', 3: 'III' };
         const themes = {
-            1: { label: 'TILLA DIPLOM', bg: 'linear-gradient(160deg,#fffdf3 0%,#fdf3d0 55%,#faedb0 100%)', border: '#c99a1e', ring: '#f2c94c', text: '#7a5b0a', deep: '#8a6512', medal: '🥇' },
-            2: { label: 'KUMUSH DIPLOM', bg: 'linear-gradient(160deg,#fbfcfe 0%,#e9edf3 55%,#dbe1ea 100%)', border: '#8b96a3', ring: '#c3cdd8', text: '#3f4a56', deep: '#526071', medal: '🥈' },
-            3: { label: 'BRONZA DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '🥉' },
+            1: { label: 'I DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fffdf3 0%,#fdf3d0 55%,#faedb0 100%)', border: '#c99a1e', ring: '#f2c94c', text: '#7a5b0a', deep: '#8a6512', medal: '🥇' },
+            2: { label: 'II DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fbfcfe 0%,#e9edf3 55%,#dbe1ea 100%)', border: '#8b96a3', ring: '#c3cdd8', text: '#3f4a56', deep: '#526071', medal: '🥈' },
+            3: { label: 'III DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '🥉' },
         };
         const defaultWinnerTheme = { label: 'DIPLOM', bg: 'linear-gradient(160deg,#f8f5ff 0%,#ece3fb 55%,#ddcdf7 100%)', border: '#7c3aed', ring: '#a78bfa', text: '#4c1d95', deep: '#5b21b6', medal: '🏆' };
         const certTheme = { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '🎓' };
@@ -379,11 +398,16 @@
         const scoreLine = (r.score != null || r.interviewScore != null)
             ? `<div class="cert-score">Umumiy natija: <b>${esc(total)} ball</b></div>`
             : '';
-        const signerName = c.responsibleName || c.organizer || 'Ziyomap';
+        const rawSignerName = signatureSettings.signerName || c.responsibleName || c.organizer || 'Ziyomap';
+        const signerName = formatOfficialName(rawSignerName);
+        const signatureImg = signatureSettings.signatureImageUrl
+            ? `<img src="${signatureSettings.signatureImageUrl}" class="cert-signature-img" alt="">`
+            : '';
 
         return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${esc(theme.label)} \u2014 ${esc(r.fullName)}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
         <style>
             @page { size: landscape; margin: 0; }
             *{box-sizing:border-box}
@@ -395,14 +419,14 @@
                 position:relative;overflow:hidden;
                 border:3px solid ${theme.border};border-radius:10px;
                 background:${theme.bg};
-                min-height:540px;padding:6px;
+                min-height:560px;padding:6px;
             }
             .cert-inner{
                 position:relative;height:100%;
                 border:2px solid ${theme.ring};border-radius:6px;
-                padding:44px 60px;text-align:center;
+                padding:40px 60px 30px;text-align:center;
                 display:flex;flex-direction:column;align-items:center;justify-content:center;
-                min-height:520px;
+                min-height:540px;
             }
             .cert-watermark{
                 position:absolute;top:50%;left:50%;width:340px;height:340px;
@@ -422,27 +446,30 @@
             }
             .cert-brand::before,.cert-brand::after{content:'';width:36px;height:1px;background:${theme.border}}
             .cert-title{
-                font-family:'Playfair Display',serif;font-weight:800;font-size:46px;
-                letter-spacing:4px;color:${theme.deep};margin-bottom:26px;text-transform:uppercase;
+                font-family:'Playfair Display',serif;font-weight:800;font-size:42px;
+                letter-spacing:3px;color:${theme.deep};margin-bottom:24px;text-transform:uppercase;
                 text-shadow:0 1px 0 rgba(255,255,255,0.5);
             }
             .cert-given-to{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:${theme.text};opacity:0.65;margin-bottom:10px}
             .cert-name{
-                font-family:'Playfair Display',serif;font-size:38px;font-weight:700;color:${theme.deep};
-                padding:2px 36px 14px;margin-bottom:24px;position:relative;
+                font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:${theme.deep};
+                padding:2px 36px 14px;margin-bottom:22px;position:relative;
             }
             .cert-name::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2px;background:${theme.border}}
-            .cert-text{font-size:17px;line-height:1.9;max-width:640px;margin-bottom:16px;color:${theme.text}}
+            .cert-text{font-size:16px;line-height:1.8;max-width:640px;margin-bottom:14px;color:${theme.text}}
             .cert-rank{
-                font-family:'Playfair Display',serif;font-weight:700;font-size:22px;color:${theme.deep};
+                font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:${theme.deep};
             }
-            .cert-score{font-size:15px;color:${theme.deep};margin-bottom:26px;font-weight:600;letter-spacing:0.5px}
+            .cert-score{font-size:14px;color:${theme.deep};margin-bottom:20px;font-weight:600;letter-spacing:0.5px}
             .cert-footer{
                 display:flex;justify-content:space-between;align-items:flex-end;
-                width:100%;max-width:640px;margin-top:20px;
+                width:100%;max-width:660px;margin-top:16px;gap:14px;
             }
-            .cert-footer-block{font-size:12.5px;color:${theme.text};opacity:0.85;text-align:center}
-            .cert-footer-line{border-top:1.5px solid ${theme.border};padding-top:6px;min-width:170px}
+            .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
+            .cert-footer-line{border-top:1.5px solid ${theme.border};padding-top:6px;min-width:150px;min-height:14px;display:flex;align-items:flex-end;justify-content:center}
+            .cert-signature-img{max-height:44px;max-width:150px;object-fit:contain;margin-bottom:-4px}
+            .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
+            #cert-qr{margin-bottom:4px}
             .cert-num{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1px;color:${theme.text};opacity:0.5}
         </style>
         </head><body>
@@ -462,23 +489,48 @@
                 ${scoreLine}
                 <div class="cert-footer">
                     <div class="cert-footer-block"><div class="cert-footer-line">${esc(today)}</div>Berilgan sana</div>
-                    <div class="cert-footer-block"><div class="cert-footer-line">${esc(signerName)}</div>Mas\u2019ul shaxs</div>
+                    <div class="cert-qr-block"><div id="cert-qr"></div>Haqiqiyligini tekshirish</div>
+                    <div class="cert-footer-block"><div class="cert-footer-line">${signatureImg}</div>${esc(signerName)}</div>
                 </div>
                 <div class="cert-num">${esc(certNumber)}</div>
             </div>
         </div>
-        <script>window.onload = () => setTimeout(() => window.print(), 400);<\/script>
+        <script>
+            window.onload = () => {
+                try { new QRCode(document.getElementById('cert-qr'), { text: ${JSON.stringify(verifyUrl)}, width: 64, height: 64 }); } catch (e) {}
+                setTimeout(() => window.print(), 500);
+            };
+        <\/script>
         </body></html>`;
     }
 
-    function wireCertificateActions(container, regs, contestDates) {
+    function wireCertificateActions(container, regs, contestDates, signatureSettings) {
         container.querySelectorAll('[data-diploma], [data-certificate]').forEach((btn) => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const id = btn.dataset.diploma || btn.dataset.certificate;
                 const r = regs.find((x) => x.id === id);
                 if (!r) return;
                 const c = contestDates[r.contestId] || {};
-                const html = buildCertificateHtml(r, c, !!btn.dataset.diploma);
+                const isWinner = !!btn.dataset.diploma;
+                const certNumber = `ZM-${(r.customId || '').replace(/[^0-9A-Za-z]/g, '')}-${new Date().getFullYear()}`;
+
+                // Tasdiqlash uchun ommaviy o'qiladigan qisqa yozuv saqlanadi (QR shu yerga ishora qiladi)
+                try {
+                    await setDocFn(docFn(db, 'certificates', certNumber), {
+                        uid: (authInst.currentUser && authInst.currentUser.uid) || null,
+                        fullName: r.fullName,
+                        contestTitle: r.contestTitle,
+                        isWinner,
+                        rank: isWinner ? r.rank : null,
+                        score: (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0),
+                        issuedDateText: fmtCertDate(new Date()),
+                        issuedAt: serverTimestampFn(),
+                    }, { merge: true });
+                } catch (err) {
+                    console.error('Sertifikat yozuvini saqlashda xatolik:', err);
+                }
+
+                const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {});
                 const w = window.open('', '_blank');
                 if (!w) return;
                 w.document.write(html);
