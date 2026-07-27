@@ -1394,6 +1394,20 @@ async function loadSiteContent() {
     } catch (err) {
         console.error(err);
     }
+    try {
+        const sigSnap = await getDoc(doc(db, 'site-content', 'diploma-signature'));
+        if (sigSnap.exists()) {
+            const data = sigSnap.data();
+            document.getElementById('signer-full-name').value = data.signerName || '';
+            const preview = document.getElementById('signature-preview');
+            if (data.signatureImageUrl && preview) {
+                preview.src = data.signatureImageUrl;
+                preview.style.display = 'block';
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 document.getElementById('content-save-btn')?.addEventListener('click', async () => {
@@ -1404,6 +1418,53 @@ document.getElementById('content-save-btn')?.addEventListener('click', async () 
     try {
         await setDoc(doc(db, 'site-content', 'homepage'), { heroPhotoUrl, heroBio }, { merge: true });
         setStatus('Saqlandi! Bosh sahifada bir necha soniyada yangilanadi.', 'success');
+    } catch (err) {
+        console.error(err);
+        setStatus('Xatolik yuz berdi.', 'error');
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+/* ── DIPLOM IMZOSI ── */
+let signatureDataUrl = null;
+document.getElementById('signature-image-upload')?.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    const statusEl = document.getElementById('signature-upload-status');
+    const preview = document.getElementById('signature-preview');
+    if (!file) return;
+    statusEl.textContent = 'Yuklanmoqda...';
+    statusEl.style.color = 'var(--muted)';
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = () => {
+        img.onload = () => {
+            const maxW = 400;
+            const scale = Math.min(1, maxW / img.width);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            signatureDataUrl = canvas.toDataURL('image/png');
+            preview.src = signatureDataUrl;
+            preview.style.display = 'block';
+            statusEl.textContent = 'Rasm qabul qilindi. "Saqlash" tugmasini bosing.';
+            statusEl.style.color = 'var(--green)';
+        };
+        img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+document.getElementById('signature-save-btn')?.addEventListener('click', async () => {
+    const signerName = document.getElementById('signer-full-name').value.trim() || null;
+    const btn = document.getElementById('signature-save-btn');
+    btn.disabled = true;
+    try {
+        const payload = { signerName };
+        if (signatureDataUrl) payload.signatureImageUrl = signatureDataUrl;
+        await setDoc(doc(db, 'site-content', 'diploma-signature'), payload, { merge: true });
+        setStatus('Imzo ma\u2019lumotlari saqlandi!', 'success');
     } catch (err) {
         console.error(err);
         setStatus('Xatolik yuz berdi.', 'error');
