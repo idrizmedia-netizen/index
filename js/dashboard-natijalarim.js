@@ -468,9 +468,9 @@
             .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
             .cert-footer-line{border-top:1.5px solid ${theme.border};padding-top:6px;min-width:150px;min-height:14px;display:flex;align-items:flex-end;justify-content:center}
             .cert-sig-block{display:flex;flex-direction:column;align-items:center}
-            .cert-sig-slot{height:42px;width:150px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px}
-            .cert-signature-img{max-height:42px;max-width:150px;object-fit:contain}
-            .cert-sig-line{width:150px;border-top:1.5px solid ${theme.border};margin-bottom:6px}
+            .cert-sig-slot{height:42px;width:160px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:0}
+            .cert-signature-img{max-height:42px;max-width:160px;object-fit:contain}
+            .cert-sig-line{width:160px;height:0;border-top:2px solid ${theme.deep};margin-bottom:6px}
             .cert-sig-name{font-weight:700;font-size:13px}
             .cert-sig-org{font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin-top:2px;font-weight:600}
             .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
