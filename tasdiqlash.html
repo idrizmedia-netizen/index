@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Diplom/Sertifikatni tasdiqlash | Ziyomap</title>
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+:root {
+    --primary: #2563eb; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --page-bg: linear-gradient(160deg, #ede9fe 0%, #fce7f3 45%, #ffedd5 100%);
+}
+* { box-sizing: border-box; }
+body {
+    font-family: Inter, system-ui, sans-serif; margin: 0; min-height: 100dvh;
+    background: var(--page-bg); color: var(--text); padding: 16px 16px 40px;
+}
+.wrap { max-width: 520px; margin: 40px auto 0; }
+.brand { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 900; font-size: 1.15rem; margin-bottom: 24px; }
+.brand img { height: 34px; width: 34px; object-fit: contain; }
+.brand span.b { color: #00bcd4; }
+.card {
+    background: var(--card); border-radius: 20px; padding: 28px 24px; text-align: center;
+    box-shadow: 0 12px 32px rgba(124,58,237,0.12);
+}
+.state-icon { font-size: 3rem; margin-bottom: 14px; }
+.ok .state-icon { color: #059669; }
+.fail .state-icon { color: #dc2626; }
+h2 { margin: 0 0 8px; font-size: 1.25rem; }
+.row { text-align: left; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+.row:last-child { border-bottom: none; }
+.row b { color: var(--muted); font-weight: 600; display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.muted { color: var(--muted); font-size: 0.85rem; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <a href="index.html" class="brand"><img src="images/nav-icon.png" alt="Ziyomap"> Ziyo<span class="b">map</span></a>
+    <div class="card" id="result">
+        <div class="state-icon"><i class="fas fa-spinner fa-spin"></i></div>
+        <h2>Tekshirilmoqda...</h2>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+
+const firebaseConfig = {
+    apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
+    authDomain: 'ziyomap.firebaseapp.com',
+    projectId: 'ziyomap',
+    storageBucket: 'ziyomap.firebasestorage.app',
+    messagingSenderId: '982123868162',
+    appId: '1:982123868162:web:6845723988c030fcd1f71b',
+};
+
+function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str == null ? '' : String(str);
+    return d.innerHTML;
+}
+
+async function verify() {
+    const resultEl = document.getElementById('result');
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) {
+        resultEl.className = 'fail';
+        resultEl.innerHTML = '<div class="state-icon"><i class="fas fa-circle-question"></i></div><h2>Kod topilmadi</h2><p class="muted">Havolada tasdiqlash kodi yo\u2018q.</p>';
+        return;
+    }
+    try {
+        const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const snap = await getDoc(doc(db, 'certificates', id));
+        if (!snap.exists()) {
+            resultEl.className = 'fail';
+            resultEl.innerHTML = '<div class="state-icon"><i class="fas fa-triangle-exclamation"></i></div><h2>Hujjat topilmadi</h2><p class="muted">Bu kod bo\u2018yicha hech qanday diplom/sertifikat ro\u2018yxatda yo\u2018q. Hujjat soxta bo\u2018lishi mumkin.</p>';
+            return;
+        }
+        const c = snap.data();
+        resultEl.className = 'ok';
+        resultEl.innerHTML = `
+            <div class="state-icon"><i class="fas fa-circle-check"></i></div>
+            <h2>Hujjat haqiqiy \u2705</h2>
+            <div class="row"><b>Ism-familiya</b>${esc(c.fullName)}</div>
+            <div class="row"><b>Tanlov</b>${esc(c.contestTitle)}</div>
+            <div class="row"><b>Turi</b>${esc(c.isWinner ? (c.rank + '-o\u2018rin (diplom)') : 'Ishtirok sertifikati')}</div>
+            ${c.score != null ? `<div class="row"><b>Umumiy ball</b>${esc(c.score)}</div>` : ''}
+            <div class="row"><b>Berilgan sana</b>${esc(c.issuedDateText || '')}</div>
+            <div class="row"><b>Hujjat raqami</b>${esc(id)}</div>
+        `;
+    } catch (err) {
+        console.error(err);
+        resultEl.className = 'fail';
+        resultEl.innerHTML = '<div class="state-icon"><i class="fas fa-xmark"></i></div><h2>Xatolik yuz berdi</h2><p class="muted">Qayta urinib ko\u2018ring.</p>';
+    }
+}
+verify();
+</script>
+</body>
+</html>
