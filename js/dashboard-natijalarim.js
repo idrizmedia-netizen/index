@@ -501,7 +501,7 @@
                     </div>
                     <div class="cert-qr-block"><div id="cert-qr"></div>Haqiqiyligini tekshirish</div>
                     <div class="cert-footer-block">
-                        <div class="cert-sig-name">${esc(signerName)}</div>
+                        <div class="cert-sig-slot"><span class="cert-sig-name" style="margin-bottom:0">${esc(signerName)}</span></div>
                         <div class="cert-sig-line"></div>
                         <div class="cert-sig-org">Ziyomap</div>
                     </div>
