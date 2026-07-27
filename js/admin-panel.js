@@ -1402,6 +1402,7 @@ async function loadSiteContent() {
             const preview = document.getElementById('signature-preview');
             if (data.signatureImageUrl && preview) {
                 preview.src = data.signatureImageUrl;
+                preview.style.background = "repeating-conic-gradient(#e2e8f0 0% 25%, #fff 0% 50%) 50% / 14px 14px";
                 preview.style.display = 'block';
             }
         }
@@ -1433,22 +1434,45 @@ document.getElementById('signature-image-upload')?.addEventListener('change', (e
     const statusEl = document.getElementById('signature-upload-status');
     const preview = document.getElementById('signature-preview');
     if (!file) return;
-    statusEl.textContent = 'Yuklanmoqda...';
+    statusEl.textContent = 'Yuklanmoqda va fon olib tashlanmoqda...';
     statusEl.style.color = 'var(--muted)';
     const img = new Image();
     const reader = new FileReader();
     reader.onload = () => {
         img.onload = () => {
-            const maxW = 400;
+            const maxW = 500;
             const scale = Math.min(1, maxW / img.width);
             const canvas = document.createElement('canvas');
             canvas.width = Math.round(img.width * scale);
             canvas.height = Math.round(img.height * scale);
-            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Fonni (oq/och rangli qog'oz) shaffof qilib, faqat qora/to'q chiziqlarni (imzoning o'zini) qoldiramiz.
+            // Yorug' piksellar butunlay shaffoflanadi, o'ta ochiq-to'q oraliqdagilar yumshoq o'tish bilan.
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const d = imgData.data;
+            const LIGHT = 195; // shundan yorug'roq — to'liq shaffof
+            const DARK = 130; // shundan to'qroq — to'liq ko'rinadigan
+            for (let i = 0; i < d.length; i += 4) {
+                const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                let alpha;
+                if (lum >= LIGHT) alpha = 0;
+                else if (lum <= DARK) alpha = 255;
+                else alpha = Math.round(((LIGHT - lum) / (LIGHT - DARK)) * 255);
+                d[i + 3] = Math.min(d[i + 3], alpha);
+                // Chiziqni sof qora-jigarrang rangda ko'rsatamiz (qog'ozning sarg'ish/kulrang tusi aralashmasin)
+                d[i] = 30;
+                d[i + 1] = 27;
+                d[i + 2] = 24;
+            }
+            ctx.putImageData(imgData, 0, 0);
+
             signatureDataUrl = canvas.toDataURL('image/png');
             preview.src = signatureDataUrl;
             preview.style.display = 'block';
-            statusEl.textContent = 'Rasm qabul qilindi. "Saqlash" tugmasini bosing.';
+            preview.style.background = "repeating-conic-gradient(#e2e8f0 0% 25%, #fff 0% 50%) 50% / 14px 14px";
+            statusEl.textContent = 'Fon olib tashlandi. Pastda ko\u2018ring (shaxmat fon shaffofligini ko\u2018rsatadi uchun) \u2014 mos bo\u2018lsa "Saqlash" tugmasini bosing.';
             statusEl.style.color = 'var(--green)';
         };
         img.src = reader.result;
