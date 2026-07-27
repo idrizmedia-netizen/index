@@ -430,7 +430,7 @@
             }
             .cert-watermark{
                 position:absolute;top:50%;left:50%;width:340px;height:340px;
-                transform:translate(-50%,-50%);opacity:0.06;pointer-events:none;
+                transform:translate(-50%,-50%);opacity:0.14;pointer-events:none;
                 background-image:url('${logoUrl}');background-size:contain;background-repeat:no-repeat;background-position:center;
             }
             .cert-corner{position:absolute;width:40px;height:40px;border:3px solid ${theme.border};opacity:0.65}
@@ -468,10 +468,10 @@
             .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
             .cert-footer-line{border-top:1.5px solid ${theme.border};padding-top:6px;min-width:150px;min-height:14px;display:flex;align-items:flex-end;justify-content:center}
             .cert-sig-block{display:flex;flex-direction:column;align-items:center}
-            .cert-sig-slot{height:50px;width:170px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:0}
-            .cert-signature-img{max-height:50px;max-width:170px;object-fit:contain}
-            .cert-sig-line{width:170px;height:0;border-top:2px solid ${theme.deep};margin-bottom:6px}
-            .cert-sig-name{font-weight:700;font-size:13px}
+            .cert-sig-slot{height:62px;width:190px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:0}
+            .cert-signature-img{max-height:62px;max-width:190px;object-fit:contain}
+            .cert-sig-line{width:190px;height:0;border-top:2px solid ${theme.deep};margin-bottom:6px}
+            .cert-sig-name{font-weight:700;font-size:13px;margin-bottom:4px}
             .cert-sig-org{font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin-top:2px;font-weight:600}
             .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
             #cert-qr{margin-bottom:4px}
@@ -501,8 +501,8 @@
                     </div>
                     <div class="cert-qr-block"><div id="cert-qr"></div>Haqiqiyligini tekshirish</div>
                     <div class="cert-footer-block">
-                        <div class="cert-sig-line"></div>
                         <div class="cert-sig-name">${esc(signerName)}</div>
+                        <div class="cert-sig-line"></div>
                         <div class="cert-sig-org">Ziyomap</div>
                     </div>
                 </div>
