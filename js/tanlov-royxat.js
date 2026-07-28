@@ -47,6 +47,23 @@ const statusMsg = document.getElementById('status-msg');
 
 let currentUser = null;
 
+// ── Adminga Telegram orqali bildirishnoma yuborish (bot sozlangan bo'lsa) ──
+async function notifyTelegram(text) {
+    try {
+        const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        if (!snap.exists()) return;
+        const { botToken, chatId } = snap.data();
+        if (!botToken || !chatId) return;
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text }),
+        });
+    } catch (err) {
+        console.error('Telegram bildirishnomasini yuborishda xatolik:', err);
+    }
+}
+
 function setStatus(text, type) {
     if (!text) {
         statusMsg.className = '';
@@ -370,6 +387,8 @@ async function openContest(contest, showBack) {
             });
 
             await setDoc(doc(db, 'stats', 'public'), { totalRegistrations: increment(1) }, { merge: true });
+
+            notifyTelegram(`\u{1F195} Yangi ro\u2018yxatdan o\u2018tish!\nTanlov: ${contest.title || ''}\nF.I.Sh: ${fullName}\nID: ${customId}${contest.isPaid ? '\n\u{1F4B0} Pullik tanlov \u2014 to\u2018lov kutilmoqda' : ''}`);
 
             if (window.ZiyomapUsage) {
                 ZiyomapUsage.logUsage('tanlov-royxat', 'Tanlovga ro\u2018yxatdan o\u2018tish: ' + (contest.title || ''));
