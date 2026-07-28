@@ -1497,6 +1497,72 @@ document.getElementById('signature-save-btn')?.addEventListener('click', async (
     }
 });
 
+/* ── TELEGRAM BILDIRISHNOMALARI ── */
+async function loadTelegramSettings() {
+    try {
+        const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('telegram-bot-token').value = data.botToken || '';
+            document.getElementById('telegram-chat-id').value = data.chatId || '';
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+loadTelegramSettings();
+
+document.getElementById('telegram-save-btn')?.addEventListener('click', async () => {
+    const botToken = document.getElementById('telegram-bot-token').value.trim() || null;
+    const chatId = document.getElementById('telegram-chat-id').value.trim() || null;
+    const btn = document.getElementById('telegram-save-btn');
+    const statusEl = document.getElementById('telegram-status');
+    btn.disabled = true;
+    try {
+        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId }, { merge: true });
+        statusEl.textContent = 'Saqlandi!';
+        statusEl.style.color = 'var(--green)';
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Xatolik yuz berdi.';
+        statusEl.style.color = 'var(--red)';
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+document.getElementById('telegram-test-btn')?.addEventListener('click', async () => {
+    const botToken = document.getElementById('telegram-bot-token').value.trim();
+    const chatId = document.getElementById('telegram-chat-id').value.trim();
+    const statusEl = document.getElementById('telegram-status');
+    if (!botToken || !chatId) {
+        statusEl.textContent = 'Avval bot tokeni va Chat ID kiritib, saqlang.';
+        statusEl.style.color = 'var(--red)';
+        return;
+    }
+    statusEl.textContent = 'Yuborilmoqda...';
+    statusEl.style.color = 'var(--muted)';
+    try {
+        const resp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text: '\u2705 Ziyomap: test xabari muvaffaqiyatli yetib bordi!' }),
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            statusEl.textContent = 'Test xabari yuborildi! Telegram\u2018ni tekshiring.';
+            statusEl.style.color = 'var(--green)';
+        } else {
+            statusEl.textContent = 'Xatolik: ' + (data.description || 'noma\u2019lum xato');
+            statusEl.style.color = 'var(--red)';
+        }
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Xatolik yuz berdi \u2014 tokenni tekshiring.';
+        statusEl.style.color = 'var(--red)';
+    }
+});
+
 /* ── TESTLAR ── */
 function parseQuestions(raw) {
     const blocks = raw
