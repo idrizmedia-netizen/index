@@ -19,7 +19,24 @@
         appId: '1:982123868162:web:6845723988c030fcd1f71b',
     };
 
-    let db, authInst, updateDocFn, docFn, setDocFn, serverTimestampFn;
+    let db, authInst, updateDocFn, docFn, setDocFn, getDocFn, serverTimestampFn;
+
+    // ── Adminga Telegram orqali bildirishnoma yuborish (bot sozlangan bo'lsa) ──
+    async function notifyTelegram(text) {
+        try {
+            const snap = await getDocFn(docFn(db, 'site-content', 'telegram-settings'));
+            if (!snap.exists()) return;
+            const { botToken, chatId } = snap.data();
+            if (!botToken || !chatId) return;
+            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text }),
+            });
+        } catch (err) {
+            console.error('Telegram bildirishnomasini yuborishda xatolik:', err);
+        }
+    }
 
     function esc(str) {
         const d = document.createElement('div');
@@ -119,6 +136,7 @@
             docFn = doc;
             updateDocFn = updateDoc;
             setDocFn = setDoc;
+            getDocFn = getDoc;
             serverTimestampFn = serverTimestamp;
             const queryUid = (authInst.currentUser && authInst.currentUser.uid) || user.uid;
 
@@ -631,6 +649,10 @@
                         paymentReceiptUrl: receiptDataUrl,
                         paymentSubmittedAt: serverTimestampFn(),
                     });
+                    const paidReg = regs.find((x) => x.id === id);
+                    if (paidReg) {
+                        notifyTelegram(`\u{1F4B0} To\u2018lov xabari!\nF.I.Sh: ${paidReg.fullName}\nID: ${paidReg.customId}\nTanlov: ${paidReg.contestTitle}\n\u{1F449} Admin panelida tekshirib, tasdiqlang.`);
+                    }
                     statusEl.textContent = `\u2705 Ma\u2019lumot yuborildi! Admin tez orada tekshiradi.${imageWarning}`;
                     statusEl.style.color = imageWarning ? '#c2410c' : '#059669';
                 } catch (err) {
