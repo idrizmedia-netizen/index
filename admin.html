@@ -514,6 +514,38 @@ Javob: A"></textarea>
       </div>
       <button class="btn btn-primary" id="signature-save-btn"><i class="fas fa-check"></i> Saqlash</button>
     </div>
+
+    <div class="card">
+      <h3><i class="fab fa-telegram"></i> Telegram bildirishnomalari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Yangi ro'yxatdan o'tish va "Men to'ladim" xabarlari haqida sizga (yoki xodimlar guruhingizga) Telegram orqali darhol xabar keladi.
+      </p>
+      <p style="background:#fef3c7;color:#92400e;padding:12px 14px;border-radius:10px;font-size:0.8rem;margin-bottom:14px">
+        <b>⚠️ Xavfsizlik haqida muhim eslatma:</b> Sayt serversiz (faqat Firestore) ishlagani uchun, bot tokeni brauzer orqali yuboriladi va texnik jihatdan ko'rinishi mumkin. Shu sabab:
+        <br>1) <b>Faqat shu maqsad uchun alohida, yangi bot yarating</b> (boshqa joyda ishlatmang).
+        <br>2) Botga hech qanday moliyaviy yoki maxfiy funksiya bermang — u faqat xabar yuborish uchun ishlatiladi.
+        <br>3) Agar suiiste'mol sezsangiz, @BotFather orqali istalgan vaqtda tokenni bekor qilib, yangisini olishingiz mumkin.
+      </p>
+      <div class="field">
+        <label>1-qadam: Bot yaratish</label>
+        <p style="color:var(--muted);font-size:0.82rem">Telegram'da <a href="https://t.me/BotFather" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@BotFather</a>ga yozing → <code>/newbot</code> → nom bering → sizga bot tokeni beriladi (masalan <code>123456:ABC-DEF...</code>).</p>
+      </div>
+      <div class="field">
+        <label>Bot tokeni</label>
+        <input type="text" id="telegram-bot-token" placeholder="123456789:AAExampleTokenHere">
+      </div>
+      <div class="field">
+        <label>2-qadam: Chat ID topish</label>
+        <p style="color:var(--muted);font-size:0.82rem">Yaratgan botingizga birinchi xabarni (masalan "salom") yozib yuboring, so'ng <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@userinfobot</a>ga yozib o'z Chat ID'ingizni oling (yoki guruh yaratib, botni guruhga qo'shib, guruh ID'sini oling).</p>
+      </div>
+      <div class="field">
+        <label>Chat ID</label>
+        <input type="text" id="telegram-chat-id" placeholder="Masalan: 123456789">
+      </div>
+      <button class="btn btn-primary" id="telegram-save-btn"><i class="fas fa-check"></i> Saqlash</button>
+      <button class="btn" id="telegram-test-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-left:8px"><i class="fas fa-paper-plane"></i> Test xabar yuborish</button>
+      <p id="telegram-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
+    </div>
   </div>
 
   <!-- ADMINLAR -->
