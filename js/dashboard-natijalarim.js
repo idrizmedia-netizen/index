@@ -140,6 +140,31 @@
             serverTimestampFn = serverTimestamp;
             const queryUid = (authInst.currentUser && authInst.currentUser.uid) || user.uid;
 
+            let telegramBannerHtml = '';
+            try {
+                const [userSnap, tgSnap] = await Promise.all([
+                    getDoc(doc(db, 'users', queryUid)),
+                    getDoc(doc(db, 'site-content', 'telegram-settings')),
+                ]);
+                const alreadyLinked = userSnap.exists() && userSnap.data().telegramChatId;
+                const botUsername = tgSnap.exists() ? tgSnap.data().botUsername : null;
+                if (botUsername && !alreadyLinked) {
+                    const deepLink = `https://t.me/${botUsername}?start=${queryUid}`;
+                    telegramBannerHtml = `<div style="margin-bottom:20px;padding:16px;border-radius:14px;background:#e6f6ff;border:1px solid #bae6fd">
+                        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                            <div style="font-size:28px">💬</div>
+                            <div style="flex:1;min-width:200px">
+                                <div style="font-weight:800;margin-bottom:4px">Telegram orqali shaxsiy bildirishnoma oling</div>
+                                <div style="color:var(--muted);font-size:0.85rem">Test/suhbat vaqti yaqinlashganda, to'lov tasdiqlanganda va natijalar chiqqanda — saytga kirmasdan, to'g'ridan-to'g'ri Telegram'ga xabar keladi.</div>
+                            </div>
+                            <a href="${deepLink}" target="_blank" rel="noopener" class="dash-action-btn" style="background:#0088cc"><i class="fab fa-telegram"></i> Ulash</a>
+                        </div>
+                    </div>`;
+                }
+            } catch (err) {
+                console.error('Telegram ulanish holatini tekshirishda xatolik:', err);
+            }
+
             const snap = await getDocs(query(collection(db, 'registrations'), where('uid', '==', queryUid)));
 
             if (snap.empty) {
@@ -360,7 +385,7 @@
                     <div style="margin-top:8px">${historyHtml}</div>
                 </details>`;
             }
-            target.innerHTML = html;
+            target.innerHTML = telegramBannerHtml + html;
             updateCountdowns(target);
             clearInterval(window.__ziyomapCountdownInterval);
             window.__ziyomapCountdownInterval = setInterval(() => updateCountdowns(target), 30000);
