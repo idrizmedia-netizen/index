@@ -442,6 +442,20 @@ async function showAlreadyRegistered(customId, cId, regData) {
     }
 
     if (dashboardLinkBox) dashboardLinkBox.style.display = 'block';
+
+    // Telegram bog'lash tugmasi (agar admin bot username'ni sozlagan bo'lsa)
+    try {
+        const tgSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        const tgLink = document.getElementById('telegram-connect-link');
+        const tgHint = document.getElementById('telegram-connect-hint');
+        if (tgSnap.exists() && tgSnap.data().botUsername && tgLink && authInst.currentUser) {
+            tgLink.href = `https://t.me/${tgSnap.data().botUsername}?start=${authInst.currentUser.uid}`;
+            tgLink.style.display = 'inline-flex';
+            if (tgHint) tgHint.style.display = 'block';
+        }
+    } catch (err) {
+        console.error('Telegram sozlamalarini yuklashda xatolik:', err);
+    }
 }
 
 document.getElementById('print-receipt-btn')?.addEventListener('click', () => window.print());
