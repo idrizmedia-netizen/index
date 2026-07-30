@@ -536,15 +536,28 @@ Javob: A"></textarea>
       </div>
       <div class="field">
         <label>2-qadam: Chat ID topish</label>
-        <p style="color:var(--muted);font-size:0.82rem">Yaratgan botingizga birinchi xabarni (masalan "salom") yozib yuboring, so'ng <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@userinfobot</a>ga yozib o'z Chat ID'ingizni oling (yoki guruh yaratib, botni guruhga qo'shib, guruh ID'sini oling).</p>
+        <p style="color:var(--muted);font-size:0.82rem">Yaratgan botingizni Telegram'da topib, unga birinchi xabarni (masalan "salom") <b>albatta o'zingiz yozib yuboring</b> (bu shart — aks holda bot sizga xabar yubora olmaydi). So'ng <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@userinfobot</a>ga o'ting, unga ham xabar yozing — u sizga <b>sizning shaxsiy Chat ID'ingizni</b> qaytaradi.</p>
+        <p style="background:#fef2f2;color:#991b1b;padding:10px 12px;border-radius:8px;font-size:0.78rem;margin-top:8px">
+          ⚠️ <b>Keng tarqalgan xato:</b> Chat ID — bu bot tokenidagi birinchi raqamlar (":" belgisidan oldingi qism) <b>EMAS</b>! Masalan token <code>8282648949:AAHN...</code> bo'lsa, <code>8282648949</code>ni Chat ID sifatida yozmang — bu botning o'z ID'si, sizniki emas. Chat ID @userinfobot bergan <b>butunlay boshqa raqam</b> bo'lishi kerak.
+        </p>
       </div>
       <div class="field">
         <label>Chat ID</label>
         <input type="text" id="telegram-chat-id" placeholder="Masalan: 123456789">
       </div>
+      <div class="field">
+        <label>Bot username (ishtirokchilarga shaxsiy bildirishnoma yuborish uchun)</label>
+        <input type="text" id="telegram-bot-username" placeholder="Masalan: ZiyomapBildirishnoma_bot (@ belgisisiz)">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Bu username ishtirokchilarga "Telegram orqali bildirishnoma olish" havolasi (masalan ro'yxatdan o'tish va shaxsiy kabinet sahifalarida) yaratish uchun ishlatiladi.</p>
+      </div>
       <button class="btn btn-primary" id="telegram-save-btn"><i class="fas fa-check"></i> Saqlash</button>
       <button class="btn" id="telegram-test-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-left:8px"><i class="fas fa-paper-plane"></i> Test xabar yuborish</button>
       <p id="telegram-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
+
+      <h4 style="margin:20px 0 10px">Ishtirokchilar ulanishi</h4>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:10px">Ishtirokchi botga "Start" bosgach, uni tizimga ulash uchun shu tugmani bosing (sayt avtomatik, fon rejimida buni bajarolmaydi — chunki server yo'q, shu sabab vaqti-vaqti bilan qo'lda bosib turishingiz kerak).</p>
+      <button class="btn" id="telegram-sync-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i> Yangi ulanishlarni tekshirish</button>
+      <p id="telegram-sync-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
     </div>
   </div>
 
