@@ -420,6 +420,7 @@
         const today = fmtCertDate(new Date());
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const logoUrl = `${window.location.origin}/images/nav-icon.png`;
+        const rightLogoUrl = `${window.location.origin}/images/cert-icon-right.png`;
         const verifyUrl = `${window.location.origin}/tasdiqlash.html?id=${encodeURIComponent(certNumber)}`;
 
         // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
@@ -481,6 +482,9 @@
             .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
+            .cert-corner-logo{position:absolute;top:22px;width:34px;height:34px;object-fit:contain;border-radius:8px}
+            .cert-logo-tl{left:22px}
+            .cert-logo-tr{right:22px}
             .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
             .cert-brand{
                 font-family:'Playfair Display',serif;font-weight:700;font-size:15px;
@@ -528,6 +532,8 @@
                 <div class="cert-corner cc-tr"></div>
                 <div class="cert-corner cc-bl"></div>
                 <div class="cert-corner cc-br"></div>
+                <img src="${logoUrl}" class="cert-corner-logo cert-logo-tl" alt="">
+                <img src="${rightLogoUrl}" class="cert-corner-logo cert-logo-tr" alt="">
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
                 <div class="cert-title">${esc(theme.label)}</div>
