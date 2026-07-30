@@ -938,6 +938,7 @@ function renderRegistrantsTable(list) {
             content.querySelector(`[data-approve-payment="${id}"]`)?.addEventListener('click', async () => {
                 await updateDoc(doc(db, 'registrations', id), { paymentStatus: 'paid' });
                 if (r) r.paymentStatus = 'paid';
+                if (r) notifyParticipantTelegram(r.uid, `\u2705 "${r.contestTitle}" tanlovi uchun to\u2018lovingiz tasdiqlandi! Testni boshlashingiz mumkin.`);
                 setStatus('To\u2018lov tasdiqlandi.', 'success');
                 renderRegistrantsTable(currentRegistrants);
             });
@@ -960,6 +961,9 @@ function renderRegistrantsTable(list) {
                 await updateDoc(doc(db, 'registrations', id), { paymentStatus: next });
                 const cached = currentRegistrants.find((x) => x.id === id);
                 if (cached) cached.paymentStatus = next;
+                if (next === 'paid' && cached) {
+                    notifyParticipantTelegram(cached.uid, `\u2705 "${cached.contestTitle}" tanlovi uchun to\u2018lovingiz tasdiqlandi! Testni boshlashingiz mumkin.`);
+                }
                 renderRegistrantsTable(currentRegistrants);
                 setStatus(next === 'paid' ? 'To\u2018lov tasdiqlandi.' : 'To\u2018lov holati "kutilmoqda"ga qaytarildi.', 'success');
             } catch (err) {
@@ -1141,6 +1145,39 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
         if (testResult.assignments.length) msg += ` Test uchun ${testResult.totalSlots} ta mavjud slotdan foydalanildi.`;
         if (interviewResult.assignments.length) msg += ` Suhbat uchun ${interviewResult.totalSlots} ta mavjud slotdan foydalanildi.`;
         if (ticketNumbers.length) msg += ` Suhbat biletlari ham ${ticketNumbers.length} tadan navbat bilan biriktirildi.`;
+
+        // Telegram'ga ulangan ishtirokchilarga shaxsiy eslatma yuboramiz
+        try {
+            const tgSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+            const botToken = tgSnap.exists() ? tgSnap.data().botToken : null;
+            if (botToken) {
+                let notified = 0;
+                for (const r of currentRegistrants) {
+                    if (!r.uid) continue;
+                    try {
+                        const userSnap = await getDoc(doc(db, 'users', r.uid));
+                        const chatId = userSnap.exists() ? userSnap.data().telegramChatId : null;
+                        if (!chatId) continue;
+                        const lines = [`\u{1F4C5} "${c.title}" tanlovi bo\u2018yicha sizga vaqt biriktirildi:`];
+                        if (r.assignedTestStart) lines.push(`\u{1F4DD} Test vaqtingiz: ${formatDateTime(r.assignedTestStart)}${r.assignedTestEnd ? ' \u2013 ' + formatDateTime(r.assignedTestEnd) : ''}`);
+                        if (r.assignedInterviewStart) lines.push(`\u{1F3A4} Suhbat vaqtingiz: ${formatDateTime(r.assignedInterviewStart)}${r.assignedInterviewEnd ? ' \u2013 ' + formatDateTime(r.assignedInterviewEnd) : ''}`);
+                        if (r.assignedTicketNumber) lines.push(`\u{1F3AB} Suhbat biletingiz: №${r.assignedTicketNumber}`);
+                        lines.push('Batafsil: shaxsiy kabinetingizda (dashboard.html)');
+                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ chat_id: chatId, text: lines.join('\n') }),
+                        }).catch(() => {});
+                        notified++;
+                    } catch (err) {
+                        console.error('Foydalanuvchiga xabar yuborishda xatolik:', r.uid, err);
+                    }
+                }
+                if (notified) msg += ` ${notified} ta ishtirokchiga Telegram orqali ham shaxsiy xabar yuborildi.`;
+            }
+        } catch (err) {
+            console.error('Telegram sozlamalarini yuklashda xatolik:', err);
+        }
         if (testResult.overflowed || interviewResult.overflowed) {
             msg += ' Diqqat: ishtirokchilar soni belgilangan kun/soatlar doirasidagi barcha slotlardan ko\u2018p \u2014 ba\u2018zi ishtirokchilar oxirgi slotga zichlashtirildi. Kunlar oralig\u2018ini kengaytiring yoki slot sig\u2018imini oshiring.';
             statusEl.style.color = 'var(--orange)';
@@ -1209,6 +1246,18 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
             batch.update(doc(db, 'registrations', r.id), { rank: r.rank });
         });
         await batch.commit();
+
+        // Telegram'ga ulangan barcha ishtirokchilarga natijalari haqida shaxsiy xabar
+        (async () => {
+            for (const r of ranked) {
+                if (!r.uid) continue;
+                const medal = r.rank === 1 ? '\u{1F947}' : r.rank === 2 ? '\u{1F948}' : r.rank === 3 ? '\u{1F949}' : '\u{1F3C6}';
+                await notifyParticipantTelegram(
+                    r.uid,
+                    `${medal} "${currentContestTitle}" tanlovi natijalari e\u2018lon qilindi!\nSizning natijangiz: ${r.total} ball, ${r.rank}-o\u2018rin.\nBatafsil: shaxsiy kabinetingizda (dashboard.html) diplomingizni yuklab olishingiz mumkin.`
+                );
+            }
+        })();
 
         setStatus('G\u2018oliblar reytingi e\u2018lon qilindi!', 'success');
     } catch (err) {
@@ -1505,6 +1554,7 @@ async function loadTelegramSettings() {
             const data = snap.data();
             document.getElementById('telegram-bot-token').value = data.botToken || '';
             document.getElementById('telegram-chat-id').value = data.chatId || '';
+            document.getElementById('telegram-bot-username').value = data.botUsername || '';
         }
     } catch (err) {
         console.error(err);
@@ -1515,13 +1565,96 @@ loadTelegramSettings();
 document.getElementById('telegram-save-btn')?.addEventListener('click', async () => {
     const botToken = document.getElementById('telegram-bot-token').value.trim() || null;
     const chatId = document.getElementById('telegram-chat-id').value.trim() || null;
+    const botUsername = document.getElementById('telegram-bot-username').value.trim().replace(/^@/, '') || null;
     const btn = document.getElementById('telegram-save-btn');
     const statusEl = document.getElementById('telegram-status');
     btn.disabled = true;
     try {
-        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId }, { merge: true });
+        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId, botUsername }, { merge: true });
         statusEl.textContent = 'Saqlandi!';
         statusEl.style.color = 'var(--green)';
+    } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Xatolik yuz berdi.';
+        statusEl.style.color = 'var(--red)';
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+async function notifyParticipantTelegram(uid, text) {
+    if (!uid) return;
+    try {
+        const [tgSnap, userSnap] = await Promise.all([
+            getDoc(doc(db, 'site-content', 'telegram-settings')),
+            getDoc(doc(db, 'users', uid)),
+        ]);
+        const botToken = tgSnap.exists() ? tgSnap.data().botToken : null;
+        const chatId = userSnap.exists() ? userSnap.data().telegramChatId : null;
+        if (!botToken || !chatId) return;
+        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text }),
+        });
+    } catch (err) {
+        console.error('Ishtirokchiga Telegram xabar yuborishda xatolik:', err);
+    }
+}
+
+document.getElementById('telegram-sync-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('telegram-sync-btn');
+    const statusEl = document.getElementById('telegram-sync-status');
+    btn.disabled = true;
+    statusEl.textContent = 'Tekshirilmoqda...';
+    statusEl.style.color = 'var(--muted)';
+    try {
+        const settingsSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+        const botToken = settings.botToken;
+        if (!botToken) {
+            statusEl.textContent = 'Avval bot tokenini saqlang.';
+            statusEl.style.color = 'var(--red)';
+            btn.disabled = false;
+            return;
+        }
+        const lastUpdateId = settings.lastUpdateId || 0;
+        const resp = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&limit=100`);
+        const data = await resp.json();
+        if (!data.ok) {
+            statusEl.textContent = 'Xatolik: ' + (data.description || 'noma\u2019lum xato');
+            statusEl.style.color = 'var(--red)';
+            btn.disabled = false;
+            return;
+        }
+        const updates = data.result || [];
+        let linked = 0;
+        let maxUpdateId = lastUpdateId;
+        for (const upd of updates) {
+            if (upd.update_id > maxUpdateId) maxUpdateId = upd.update_id;
+            const msg = upd.message;
+            if (!msg || !msg.text) continue;
+            const match = msg.text.match(/^\/start\s+(\S+)/);
+            if (!match) continue;
+            const uid = match[1];
+            try {
+                await updateDoc(doc(db, 'users', uid), { telegramChatId: msg.chat.id });
+                linked++;
+                // Foydalanuvchiga ulanish muvaffaqiyatli bo'lgani haqida darhol tasdiq xabari
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: msg.chat.id, text: '\u2705 Ziyomap bildirishnomalari yoqildi! Endi test/suhbat vaqti, to\u2018lov holati va natijalar haqida shu yerga xabar keladi.' }),
+                }).catch(() => {});
+            } catch (err) {
+                console.error('Foydalanuvchini ulashda xatolik:', uid, err);
+            }
+        }
+        await setDoc(doc(db, 'site-content', 'telegram-settings'), { lastUpdateId: maxUpdateId }, { merge: true });
+        statusEl.textContent = linked
+            ? `${linked} ta yangi ishtirokchi Telegram\u2018ga ulandi!`
+            : 'Yangi ulanish topilmadi.';
+        statusEl.style.color = linked ? 'var(--green)' : 'var(--muted)';
     } catch (err) {
         console.error(err);
         statusEl.textContent = 'Xatolik yuz berdi.';
@@ -1540,6 +1673,12 @@ document.getElementById('telegram-test-btn')?.addEventListener('click', async ()
         statusEl.style.color = 'var(--red)';
         return;
     }
+    const botIdPrefix = botToken.split(':')[0];
+    if (botIdPrefix && chatId === botIdPrefix) {
+        statusEl.textContent = '\u274c Chat ID bot tokenidagi raqam bilan bir xil chiqdi \u2014 bu botning o\u2018z ID\u2018si, sizniki emas. Yuqoridagi ko\u2018rsatmaga qarab @userinfobot orqali o\u2018zingizning shaxsiy Chat ID\u2018ingizni oling.';
+        statusEl.style.color = 'var(--red)';
+        return;
+    }
     statusEl.textContent = 'Yuborilmoqda...';
     statusEl.style.color = 'var(--muted)';
     try {
@@ -1553,7 +1692,14 @@ document.getElementById('telegram-test-btn')?.addEventListener('click', async ()
             statusEl.textContent = 'Test xabari yuborildi! Telegram\u2018ni tekshiring.';
             statusEl.style.color = 'var(--green)';
         } else {
-            statusEl.textContent = 'Xatolik: ' + (data.description || 'noma\u2019lum xato');
+            const desc = data.description || '';
+            let friendly = 'Xatolik: ' + (desc || 'noma\u2019lum xato');
+            if (/forbidden|chat not found|bot was blocked/i.test(desc)) {
+                friendly = '\u274c Chat ID noto\u2018g\u2018ri yoki bot hali sizdan xabar olmagan. Avval botga o\u2018zingiz Telegram\u2018da "salom" deb yozing, so\u2018ng @userinfobot orqali olingan (bot tokenidagi raqamdan FARQLI) Chat ID\u2018ni qayta tekshirib kiriting.';
+            } else if (/not found/i.test(desc)) {
+                friendly = '\u274c Bot tokeni noto\u2018g\u2018ri ko\u2018rinadi \u2014 @BotFather bergan tokenni to\u2018liq, xatosiz nusxalab qayta kiriting.';
+            }
+            statusEl.textContent = friendly;
             statusEl.style.color = 'var(--red)';
         }
     } catch (err) {
