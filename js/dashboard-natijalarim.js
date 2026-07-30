@@ -482,9 +482,11 @@
             .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
-            .cert-corner-logo{position:absolute;top:22px;width:34px;height:34px;object-fit:contain;border-radius:8px}
-            .cert-logo-tl{left:22px}
-            .cert-logo-tr{right:22px}
+            .cert-logo-block{position:absolute;top:20px;display:flex;flex-direction:column;align-items:center;gap:4px}
+            .cert-logo-tl{left:24px}
+            .cert-logo-tr{right:24px}
+            .cert-corner-logo{width:46px;height:46px;object-fit:contain;border-radius:9px}
+            .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:11px;letter-spacing:1px;color:${theme.deep};text-transform:uppercase}
             .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
             .cert-brand{
                 font-family:'Playfair Display',serif;font-weight:700;font-size:15px;
@@ -532,8 +534,14 @@
                 <div class="cert-corner cc-tr"></div>
                 <div class="cert-corner cc-bl"></div>
                 <div class="cert-corner cc-br"></div>
-                <img src="${logoUrl}" class="cert-corner-logo cert-logo-tl" alt="">
-                <img src="${rightLogoUrl}" class="cert-corner-logo cert-logo-tr" alt="">
+                <div class="cert-logo-block cert-logo-tl">
+                    <img src="${logoUrl}" class="cert-corner-logo" alt="">
+                    <span class="cert-logo-caption">Ziyomap</span>
+                </div>
+                <div class="cert-logo-block cert-logo-tr">
+                    <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
+                    <span class="cert-logo-caption">Reja</span>
+                </div>
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
                 <div class="cert-title">${esc(theme.label)}</div>
