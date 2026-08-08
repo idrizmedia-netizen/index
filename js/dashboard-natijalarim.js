@@ -225,8 +225,9 @@
                 const fallbackInterviewEnd = c.interviewDateEnd ? `${c.interviewDateEnd}T${c.interviewDailyEnd || '23:59'}` : null;
                 const effTestStart = r.assignedTestStart || fallbackTestStart;
                 const effTestEnd = r.assignedTestEnd || fallbackTestEnd;
-                const effInterviewStart = r.assignedInterviewStart || fallbackInterviewStart;
-                const effInterviewEnd = r.assignedInterviewEnd || fallbackInterviewEnd;
+                const interviewEnabled = c.interviewEnabled !== false;
+                const effInterviewStart = interviewEnabled ? (r.assignedInterviewStart || fallbackInterviewStart) : null;
+                const effInterviewEnd = interviewEnabled ? (r.assignedInterviewEnd || fallbackInterviewEnd) : null;
 
                 const now = new Date();
                 const testEnded = effTestEnd ? now > new Date(effTestEnd) : false;
@@ -270,7 +271,7 @@
                 const withinInterviewWindow =
                     (!effInterviewStart || nowForMeet >= new Date(effInterviewStart)) &&
                     (!effInterviewEnd || nowForMeet <= new Date(effInterviewEnd));
-                if (c.meetLink && meetEnabled && !belowThreshold && withinInterviewWindow) {
+                if (c.meetLink && meetEnabled && interviewEnabled && !belowThreshold && withinInterviewWindow) {
                     actionBtns.push(`<a href="${esc(c.meetLink)}" target="_blank" rel="noopener" class="dash-action-btn" style="background:#059669"><i class="fas fa-video"></i> Suhbatga kirish</a>`);
                 }
                 if (hasRank) {
