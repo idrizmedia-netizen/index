@@ -40,6 +40,59 @@ const cancelResetBtn = document.getElementById('cancel-reset-btn');
 const params = new URLSearchParams(window.location.search);
 const Creds = window.ZiyomapCredentials;
 
+/* ── Kirish urinishlarini cheklash (bruteforce'ga qarshi, faqat shu brauzerda) ──
+   Haqiqiy server bo'lmagani uchun bu to'liq himoya emas, lekin ketma-ket
+   xato kirishlarni sekinlashtiradi. */
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_MINUTES = 5;
+const LOCK_KEY = 'ziyomap_login_lock_until';
+const FAIL_KEY = 'ziyomap_login_fail_count';
+
+function getLoginLockState() {
+    const lockUntil = parseInt(localStorage.getItem(LOCK_KEY) || '0', 10);
+    const remainingMs = lockUntil - Date.now();
+    if (remainingMs > 0) return { locked: true, remainingMs };
+    if (lockUntil) {
+        localStorage.removeItem(LOCK_KEY);
+        localStorage.removeItem(FAIL_KEY);
+    }
+    return { locked: false };
+}
+
+function recordFailedLoginAttempt() {
+    const count = parseInt(localStorage.getItem(FAIL_KEY) || '0', 10) + 1;
+    if (count >= MAX_LOGIN_ATTEMPTS) {
+        localStorage.setItem(LOCK_KEY, String(Date.now() + LOCK_MINUTES * 60000));
+        localStorage.setItem(FAIL_KEY, '0');
+    } else {
+        localStorage.setItem(FAIL_KEY, String(count));
+    }
+}
+
+function resetLoginAttempts() {
+    localStorage.removeItem(FAIL_KEY);
+    localStorage.removeItem(LOCK_KEY);
+}
+
+function formatLockRemaining(ms) {
+    const totalSec = Math.max(1, Math.ceil(ms / 1000));
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return min > 0 ? `${min} daqiqa ${sec} soniya` : `${sec} soniya`;
+}
+
+function checkAndWarnIfLocked() {
+    const state = getLoginLockState();
+    if (state.locked) {
+        setStatus(
+            `\u{1F512} Ko\u2018p marta xato urinildi. Xavfsizlik uchun kirish vaqtincha cheklandi. Yana ${formatLockRemaining(state.remainingMs)} dan so\u2018ng qayta urinib ko\u2018ring.`,
+            'error'
+        );
+        return true;
+    }
+    return false;
+}
+
 function redirectAfterLogin() {
     const ret = params.get('return');
     const safe =
@@ -140,13 +193,17 @@ async function handleGoogleCallback() {
         setStatus('Google tekshirilmoqda...', 'info');
         const credential = GoogleAuthProvider.credential(idToken);
         const result = await signInWithCredential(auth, credential);
+        resetLoginAttempts();
         saveFirebaseUser(result.user, 'Google orqali kirish');
         window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
         showLoggedInUI(ZiyomapUsage?.getUser());
         setStatus('Google orqali kirdingiz! Login va parol o‘rnatib, keyingi safar tezroq kiring.', 'success');
     } catch (error) {
         console.error(error);
-        setStatus('Google kirishda xatolik. Qayta urinib ko‘ring.', 'error');
+        recordFailedLoginAttempt();
+        if (!checkAndWarnIfLocked()) {
+            setStatus('Google kirishda xatolik. Qayta urinib ko‘ring.', 'error');
+        }
     }
 }
 
@@ -167,7 +224,10 @@ function startGoogleLogin() {
 }
 
 if (loginBtn) {
-    loginBtn.addEventListener('click', startGoogleLogin);
+    loginBtn.addEventListener('click', () => {
+        if (checkAndWarnIfLocked()) return;
+        startGoogleLogin();
+    });
 }
 
 /* Login yoki parolni unutgan foydalanuvchi — Google orqali qayta
@@ -203,15 +263,20 @@ if (cancelResetBtn) {
 if (localLoginForm) {
     localLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (checkAndWarnIfLocked()) return;
         const login = document.getElementById('local-login')?.value;
         const password = document.getElementById('local-password')?.value;
         if (!Creds) return;
         setStatus('Tekshirilmoqda...', 'info');
         const result = await Creds.loginWithCredentials(login, password);
         if (!result.ok) {
-            setStatus(result.error, 'error');
+            recordFailedLoginAttempt();
+            if (!checkAndWarnIfLocked()) {
+                setStatus(result.error, 'error');
+            }
             return;
         }
+        resetLoginAttempts();
         saveUser(result.user, 'local', 'Login va parol bilan kirish');
         setStatus('Muvaffaqiyatli kirdingiz!', 'success');
         setTimeout(redirectAfterLogin, 700);
@@ -271,6 +336,8 @@ if (logoutBtn) {
 const storedUser = window.ZiyomapUsage?.getUser();
 if (storedUser && !params.get('logout') && !window.location.hash.includes('id_token')) {
     showLoggedInUI(storedUser);
+} else {
+    checkAndWarnIfLocked();
 }
 
 onAuthStateChanged(auth, (user) => {
