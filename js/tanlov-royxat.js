@@ -183,7 +183,7 @@ function renderFilteredContests() {
             const grad = CARD_GRADIENTS[i % CARD_GRADIENTS.length];
             const regDeadlineText = c.regEndDate ? formatRemainingText(`${c.regEndDate}T23:59`) : null;
             const testStartStr = c.testDateStart ? `${c.testDateStart}T${c.testDailyStart || '00:00'}` : null;
-            const interviewStartStr = c.interviewDateStart ? `${c.interviewDateStart}T${c.interviewDailyStart || '00:00'}` : null;
+            const interviewStartStr = c.interviewEnabled !== false && c.interviewDateStart ? `${c.interviewDateStart}T${c.interviewDailyStart || '00:00'}` : null;
             const testRemainingText = testStartStr ? formatRemainingText(testStartStr) : null;
             const interviewRemainingText = interviewStartStr ? formatRemainingText(interviewStartStr) : null;
             const timeBadges = [];
@@ -430,7 +430,7 @@ async function showAlreadyRegistered(customId, cId, regData) {
                 const bits = [];
                 if (c.regStartDate || c.regEndDate) bits.push(`Ro\u2018yxatdan o\u2018tish: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
                 if (c.testDateStart || c.testDateEnd) bits.push(`Test kunlari: ${c.testDateStart || '\u2014'} \u2013 ${c.testDateEnd || '\u2014'} (${c.testDailyStart || '?'}\u2013${c.testDailyEnd || '?'})`);
-                if (c.interviewDateStart || c.interviewDateEnd) bits.push(`Suhbat kunlari: ${c.interviewDateStart || '\u2014'} \u2013 ${c.interviewDateEnd || '\u2014'} (${c.interviewDailyStart || '?'}\u2013${c.interviewDailyEnd || '?'})`);
+                if (c.interviewEnabled !== false && (c.interviewDateStart || c.interviewDateEnd)) bits.push(`Suhbat kunlari: ${c.interviewDateStart || '\u2014'} \u2013 ${c.interviewDateEnd || '\u2014'} (${c.interviewDailyStart || '?'}\u2013${c.interviewDailyEnd || '?'})`);
                 if (c.organizer) bits.push(`Tashkilotchi: ${c.organizer}`);
                 if (c.responsibleName) bits.push(`Mas\u2019ul shaxs: ${c.responsibleName}${c.responsiblePhone ? ' (' + c.responsiblePhone + ')' : ''}`);
                 datesBox.textContent = bits.join(' \u00b7 ');
