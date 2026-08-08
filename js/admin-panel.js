@@ -251,6 +251,10 @@ function setupContestHududSelects() {
 }
 setupContestHududSelects();
 
+document.getElementById('c-no-interview')?.addEventListener('change', (e) => {
+    document.getElementById('c-interview-fields').style.display = e.target.checked ? 'none' : '';
+});
+
 // ── To'lov turi (bepul/pullik) maydonlarini ko'rsatish/yashirish ──
 document.getElementById('c-payment-type')?.addEventListener('change', (e) => {
     const isPaid = e.target.value === 'paid';
@@ -384,6 +388,8 @@ async function loadContests() {
                 document.getElementById('c-interview-slot-minutes').value = c.interviewSlotMinutes || 15;
                 document.getElementById('c-interview-slot-capacity').value = c.interviewSlotCapacity || 1;
                 document.getElementById('c-min-score-advance').value = c.minScoreToAdvance ?? '';
+                document.getElementById('c-no-interview').checked = c.interviewEnabled === false;
+                document.getElementById('c-interview-fields').style.display = c.interviewEnabled === false ? 'none' : '';
                 document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
                 document.getElementById('c-cancel-edit-btn').style.display = '';
                 document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -448,6 +454,8 @@ function resetContestForm() {
     document.getElementById('c-interview-slot-minutes').value = '15';
     document.getElementById('c-interview-slot-capacity').value = '1';
     document.getElementById('c-min-score-advance').value = '';
+    document.getElementById('c-no-interview').checked = false;
+    document.getElementById('c-interview-fields').style.display = '';
     document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish va e\u2018lon qilish';
     document.getElementById('c-cancel-edit-btn').style.display = 'none';
 }
@@ -484,6 +492,7 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
     const interviewSlotCapacity = parseInt(document.getElementById('c-interview-slot-capacity').value, 10) || 1;
     const minScoreAdvanceRaw = document.getElementById('c-min-score-advance').value.trim();
     const minScoreToAdvance = minScoreAdvanceRaw ? parseFloat(minScoreAdvanceRaw) : null;
+    const interviewEnabled = !document.getElementById('c-no-interview').checked;
     const restrictViloyat = document.getElementById('c-restrict-viloyat').value || null;
     const restrictTuman = document.getElementById('c-restrict-tuman').value || null;
     const isPaid = document.getElementById('c-payment-type').value === 'paid';
@@ -542,6 +551,7 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             interviewSlotMinutes,
             interviewSlotCapacity,
             minScoreToAdvance,
+            interviewEnabled,
             restrictViloyat,
             restrictTuman,
             isPaid,
@@ -1100,7 +1110,9 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
 
         const n = currentRegistrants.length;
         const testResult = buildScheduleAssignments(c.testDateStart, c.testDateEnd, c.testDailyStart || '08:00', c.testDailyEnd || '18:00', c.testBreakStart, c.testBreakEnd, c.testSlotMinutes || 30, c.testSlotCapacity || 15, n);
-        const interviewResult = buildScheduleAssignments(c.interviewDateStart, c.interviewDateEnd, c.interviewDailyStart || '09:00', c.interviewDailyEnd || '17:00', c.interviewBreakStart, c.interviewBreakEnd, c.interviewSlotMinutes || 15, c.interviewSlotCapacity || 1, n);
+        const interviewResult = c.interviewEnabled === false
+            ? { assignments: [], overflowed: false, totalSlots: 0 }
+            : buildScheduleAssignments(c.interviewDateStart, c.interviewDateEnd, c.interviewDailyStart || '09:00', c.interviewDailyEnd || '17:00', c.interviewBreakStart, c.interviewBreakEnd, c.interviewSlotMinutes || 15, c.interviewSlotCapacity || 1, n);
 
         // Suhbat biletlari (agar yuklangan va yoqilgan bo'lsa) — navbat bilan (round-robin) taqsimlanadi
         let ticketNumbers = [];
