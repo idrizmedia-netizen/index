@@ -243,25 +243,30 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-test-slot-capacity" value="15" min="1"></div>
       </div>
       <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-video"></i> Suhbat vaqti jadvali</h4>
-      <div class="field">
-        <label>Suhbat bosqichiga o'tish uchun minimal test bali (ixtiyoriy, bo'sh — hammaga ochiq)</label>
-        <input type="number" id="c-min-score-advance" min="0" step="0.1" placeholder="masalan: 15">
-      </div>
-      <div class="row2">
-        <div class="field"><label>Suhbat kunlari — dan</label><input type="date" id="c-interview-date-start"></div>
-        <div class="field"><label>Suhbat kunlari — gacha</label><input type="date" id="c-interview-date-end"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>Har kuni soat — dan</label><input type="time" id="c-interview-daily-start" value="09:00"></div>
-        <div class="field"><label>Har kuni soat — gacha</label><input type="time" id="c-interview-daily-end" value="17:00"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>Tanaffus — dan (ixtiyoriy, masalan tushlik)</label><input type="time" id="c-interview-break-start" value="12:00"></div>
-        <div class="field"><label>Tanaffus — gacha (ixtiyoriy)</label><input type="time" id="c-interview-break-end" value="13:00"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>Har bir slot davomiyligi (daqiqa)</label><input type="number" id="c-interview-slot-minutes" value="15" min="5"></div>
-        <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-interview-slot-capacity" value="1" min="1"></div>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.88rem">
+        <input type="checkbox" id="c-no-interview" style="width:auto"> Bu tanlovda suhbat bosqichi bo'lmasin (faqat test orqali o'tkaziladi)
+      </label>
+      <div id="c-interview-fields">
+        <div class="field">
+          <label>Suhbat bosqichiga o'tish uchun minimal test bali (ixtiyoriy, bo'sh — hammaga ochiq)</label>
+          <input type="number" id="c-min-score-advance" min="0" step="0.1" placeholder="masalan: 15">
+        </div>
+        <div class="row2">
+          <div class="field"><label>Suhbat kunlari — dan</label><input type="date" id="c-interview-date-start"></div>
+          <div class="field"><label>Suhbat kunlari — gacha</label><input type="date" id="c-interview-date-end"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Har kuni soat — dan</label><input type="time" id="c-interview-daily-start" value="09:00"></div>
+          <div class="field"><label>Har kuni soat — gacha</label><input type="time" id="c-interview-daily-end" value="17:00"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Tanaffus — dan (ixtiyoriy, masalan tushlik)</label><input type="time" id="c-interview-break-start" value="12:00"></div>
+          <div class="field"><label>Tanaffus — gacha (ixtiyoriy)</label><input type="time" id="c-interview-break-end" value="13:00"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Har bir slot davomiyligi (daqiqa)</label><input type="number" id="c-interview-slot-minutes" value="15" min="5"></div>
+          <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-interview-slot-capacity" value="1" min="1"></div>
+        </div>
       </div>
       <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Masalan: test 25.07.2026–30.07.2026 kunlari, har kuni 08:00–18:00 oralig'ida; suhbat shu kunlarda 09:00–17:00 oralig'ida, lekin 12:00–13:00 tanaffus hisobga olinadi (bu oraliqqa hech kim taqsimlanmaydi). Bularni saqlagandan so'ng, "Ishtirokchilar" bo'limida "Vaqtlarni avtomatik taqsimlash" tugmasi orqali har bir ishtirokchiga alohida vaqt biriktiriladi.</p>
       <input type="hidden" id="c-edit-id" value="">
