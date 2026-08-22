@@ -2,7 +2,7 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
 <title>Doppler Effekti — Ziyomap</title>
    <link rel="icon" type="image/png" href="icon-192x192.png">
 <script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
@@ -58,6 +58,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .tabs{display:flex;gap:4px;margin-bottom:1rem;background:var(--bg3);border-radius:10px;padding:4px;}
 .tab-btn{flex:1;padding:6px;border-radius:7px;border:none;background:transparent;color:var(--text2);font-size:.75rem;font-weight:600;cursor:pointer;}
 .tab-btn.active{background:var(--accent);color:#fff;}
+
+/* ZY-RESPONSIVE-PATCH-V1 */
+.lab-wrap{display:block!important;position:relative;height:calc(100vh - 56px);grid-template-columns:none!important;grid-template-rows:none!important;}
+.canvas-area{width:100%!important;height:100%!important;}
+.canvas-area canvas{touch-action:none;}
+.control-panel{position:fixed!important;top:56px;right:0;bottom:0;width:340px;max-width:88vw;height:calc(100vh - 56px)!important;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:300;box-shadow:-12px 0 32px rgba(0,0,0,.4);border-left:1px solid rgba(255,255,255,.08);}
+.control-panel.open{transform:translateX(0);}
+.panel-backdrop{position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .3s;z-index:250;}
+.panel-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto;}
+.panel-toggle-btn{position:fixed;top:68px;right:16px;z-index:310;width:46px;height:46px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.2rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:.2s;}
+.panel-toggle-btn:hover{filter:brightness(1.12);transform:scale(1.06);}
+.panel-toggle-btn.active{background:var(--red,#ef4444);}
+@media(max-width:600px){
+  .top-nav{padding:0 .7rem;height:52px;}
+  .top-nav>span{font-size:.72rem!important;}
+  .nav-logo{font-size:.9rem!important;}
+  .nav-back{padding:5px 10px;font-size:.72rem;}
+  .canvas-overlay{top:8px;left:8px;gap:5px;max-width:58vw;}
+  .hud-badge{padding:4px 9px;font-size:.64rem;}
+  .canvas-tools{bottom:8px;gap:6px;flex-wrap:wrap;justify-content:center;width:94%;}
+  .tool-btn{padding:7px 11px;font-size:.7rem;}
+  .control-panel{top:52px;height:calc(100vh - 52px)!important;width:90vw;}
+  .panel-backdrop{top:52px;}
+  .panel-toggle-btn{top:60px;width:42px;height:42px;font-size:1rem;}
+}
 </style>
 </head>
 <body>
@@ -70,6 +95,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   </div>
 </nav>
 <div class="lab-wrap">
+<button class="panel-toggle-btn" id="panelToggleBtn" onclick="togglePanel()" title="Boshqaruv panelini ko'rsatish/yashirish" aria-label="Panel">⚙️</button>
+<div class="panel-backdrop" id="panelBackdrop" onclick="closePanel()"></div>
+
   <div class="canvas-area">
     <canvas id="dopp-canvas"></canvas>
     <div class="canvas-overlay">
@@ -83,7 +111,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <button class="tool-btn play" id="play-btn" onclick="togglePlay()">▶ Boshlash</button>
     </div>
   </div>
-  <div class="control-panel">
+  <div class="control-panel" id="controlPanel">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('params',this)">Parametrlar</button>
       <button class="tab-btn" onclick="switchTab('data',this)">Hisob</button>
@@ -310,6 +338,39 @@ function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-
 (function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
 window.addEventListener('resize',initCanvas);
 initCanvas();requestAnimationFrame(loop);
+</script>
+
+<script>
+/* ZY-RESPONSIVE-PATCH-V1: panel toggle + touch support */
+function setPanel(open){
+  var p=document.getElementById('controlPanel'),b=document.getElementById('panelBackdrop'),btn=document.getElementById('panelToggleBtn');
+  if(!p||!btn)return;
+  if(open){p.classList.add('open');if(b)b.classList.add('show');btn.classList.add('active');btn.textContent='✕';}
+  else{p.classList.remove('open');if(b)b.classList.remove('show');btn.classList.remove('active');btn.textContent='⚙️';}
+  try{localStorage.setItem('zy_panel_state',open?'1':'0');}catch(e){}
+}
+function togglePanel(){var p=document.getElementById('controlPanel');setPanel(!(p&&p.classList.contains('open')));}
+function closePanel(){setPanel(false);}
+(function(){
+  var st=null;try{st=localStorage.getItem('zy_panel_state');}catch(e){}
+  var open= st===null ? (window.innerWidth>900) : (st==='1');
+  setPanel(open);
+})();
+(function(){
+  function fire(el,type,t){
+    var evt;
+    try{evt=new MouseEvent(type,{clientX:t.clientX,clientY:t.clientY,bubbles:true,cancelable:true});}
+    catch(e){evt=document.createEvent('MouseEvent');evt.initMouseEvent(type,true,true,window,0,0,0,t.clientX,t.clientY,false,false,false,false,0,null);}
+    el.dispatchEvent(evt);
+  }
+  function wire(el){
+    if(!el||el.__zyTouch)return;el.__zyTouch=true;
+    el.addEventListener('touchstart',function(e){if(e.touches.length===1){fire(el,'mousedown',e.touches[0]);}},{passive:true});
+    el.addEventListener('touchmove',function(e){if(e.touches.length===1){fire(el,'mousemove',e.touches[0]);e.preventDefault();}},{passive:false});
+    el.addEventListener('touchend',function(e){var t=e.changedTouches[0];if(t){fire(el,'mouseup',t);fire(el,'click',t);}},{passive:true});
+  }
+  document.querySelectorAll('.canvas-area canvas').forEach(wire);
+})();
 </script>
 </body>
 </html>
