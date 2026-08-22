@@ -2,7 +2,7 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
 <title>Termodinamika — Ziyomap</title>
    <link rel="icon" type="image/png" href="icon-192x192.png">
 <script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
@@ -63,6 +63,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .proc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.5rem;}
 .proc-btn{padding:9px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:var(--bg3);color:var(--text2);font-size:.72rem;font-weight:600;cursor:pointer;text-align:center;transition:.15s;}
 .proc-btn.active{border-color:var(--accent);color:#60a5fa;background:rgba(59,130,246,.12);}
+
+/* ZY-RESPONSIVE-PATCH-V1 */
+.lab-wrap{display:block!important;position:relative;height:calc(100vh - 56px);grid-template-columns:none!important;grid-template-rows:none!important;}
+.canvas-area{width:100%!important;height:100%!important;}
+.canvas-area canvas{touch-action:none;}
+.control-panel{position:fixed!important;top:56px;right:0;bottom:0;width:340px;max-width:88vw;height:calc(100vh - 56px)!important;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:300;box-shadow:-12px 0 32px rgba(0,0,0,.4);border-left:1px solid rgba(255,255,255,.08);}
+.control-panel.open{transform:translateX(0);}
+.panel-backdrop{position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .3s;z-index:250;}
+.panel-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto;}
+.panel-toggle-btn{position:fixed;top:68px;right:16px;z-index:310;width:46px;height:46px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.2rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:.2s;}
+.panel-toggle-btn:hover{filter:brightness(1.12);transform:scale(1.06);}
+.panel-toggle-btn.active{background:var(--red,#ef4444);}
+@media(max-width:600px){
+  .top-nav{padding:0 .7rem;height:52px;}
+  .top-nav>span{font-size:.72rem!important;}
+  .nav-logo{font-size:.9rem!important;}
+  .nav-back{padding:5px 10px;font-size:.72rem;}
+  .canvas-overlay{top:8px;left:8px;gap:5px;max-width:58vw;}
+  .hud-badge{padding:4px 9px;font-size:.64rem;}
+  .canvas-tools{bottom:8px;gap:6px;flex-wrap:wrap;justify-content:center;width:94%;}
+  .tool-btn{padding:7px 11px;font-size:.7rem;}
+  .control-panel{top:52px;height:calc(100vh - 52px)!important;width:90vw;}
+  .panel-backdrop{top:52px;}
+  .panel-toggle-btn{top:60px;width:42px;height:42px;font-size:1rem;}
+}
 </style>
 </head>
 <body>
@@ -75,11 +100,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   </div>
 </nav>
 <div class="lab-wrap">
+<button class="panel-toggle-btn" id="panelToggleBtn" onclick="togglePanel()" title="Boshqaruv panelini ko'rsatish/yashirish" aria-label="Panel">⚙️</button>
+<div class="panel-backdrop" id="panelBackdrop" onclick="closePanel()"></div>
+
   <div class="canvas-area">
     <canvas id="thermo-canvas"></canvas>
     <div class="canvas-overlay">
       <div class="hud-badge" style="color:var(--red);">🌡️ T = <span id="hud-t">300</span> K</div>
-      <div class="hud-badge" style="color:var(--teal);">📦 V = <span id="hud-v">1.00</span> m³</div>
+      <div class="hud-badge" style="color:var(--teal);">📦 V = <span id="hud-v">1.00</span> L</div>
       <div class="hud-badge" style="color:var(--orange);">⬆️ P = <span id="hud-p">1.00</span> atm</div>
     </div>
     <div class="canvas-tools">
@@ -88,7 +116,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <button class="tool-btn reset" onclick="addHeat()">🔥 Issiqlik</button>
     </div>
   </div>
-  <div class="control-panel">
+  <div class="control-panel" id="controlPanel">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('process',this)">Jarayon</button>
       <button class="tab-btn" onclick="switchTab('data',this)">Ma'lumot</button>
@@ -115,7 +143,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <input type="range" min="0.1" max="10" step="0.1" value="1.0" oninput="setState('P0',this.value)">
         </div>
         <div class="slider-row">
-          <div class="slider-head"><span class="slider-name">Hajm V₀</span><span class="slider-val"><span id="v-v0">1.0</span> m³</span></div>
+          <div class="slider-head"><span class="slider-name">Hajm V₀</span><span class="slider-val"><span id="v-v0">1.0</span> L</span></div>
           <input type="range" min="0.1" max="5" step="0.1" value="1.0" oninput="setState('V0',this.value)">
         </div>
         <div class="slider-row">
@@ -132,7 +160,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <tbody>
             <tr><td>T (K)</td><td id="dT0">300</td><td id="dT">—</td></tr>
             <tr><td>P (atm)</td><td id="dP0">1.0</td><td id="dP">—</td></tr>
-            <tr><td>V (m³)</td><td id="dV0">1.0</td><td id="dV">—</td></tr>
+            <tr><td>V (L)</td><td id="dV0">1.0</td><td id="dV">—</td></tr>
             <tr><td>U (ichki E)</td><td>—</td><td id="dU">—</td></tr>
             <tr><td>ΔQ (issiqlik)</td><td>0</td><td id="dQ">—</td></tr>
             <tr><td>ΔA (ish)</td><td>0</td><td id="dA">—</td></tr>
@@ -205,38 +233,40 @@ function resetSim(){
 function step(dt){
   state.t+=dt*0.5;
   const process=state.process;
-  const R=0.0821;
+  const R=0.0821;    // L·atm/(mol·K) — matches P(atm)·V(L) equation of state below
+  const RJ=8.314;    // J/(mol·K) — used for energy (Q, A, U) so the displayed values are true Joules
   const n=state.n;
   const scale=state.t*2;
+  const Cv=RJ/(state.gamma-1); // molar heat capacity at constant volume, consistent with the chosen γ = Cp/Cv
 
   if(process==='isothermal'){
     // T=const → P*V = nRT₀
     state.V=Math.max(0.1,state.V0*(1+scale*0.3));
     state.P=(n*R*state.T0)/state.V;
     state.T=state.T0;
-    state.A=(n*R*state.T0)*Math.log(state.V/state.V0);
-    state.Q=state.A;
+    state.A=(n*RJ*state.T0)*Math.log(state.V/state.V0); // W=nRT·ln(V/V0) — dimensionless ratio, so this is already true Joules
+    state.Q=state.A; // ideal gas isotherm: ΔU=0 → Q=A
   } else if(process==='isobaric'){
     // P=const → V/T = const
     state.T=state.T0*(1+scale*0.3);
     state.V=state.V0*(state.T/state.T0);
     state.P=state.P0;
-    state.A=state.P0*(state.V-state.V0)*101325;
-    state.Q=state.A*state.gamma/(state.gamma-1);
+    state.A=state.P0*(state.V-state.V0)*101.325; // atm·L → J  (1 atm·L = 101.325 J)
+    state.Q=state.A*state.gamma/(state.gamma-1); // Q=n·Cp·ΔT = A·γ/(γ-1)
   } else if(process==='isochoric'){
     // V=const → P/T = const
     state.T=state.T0*(1+scale*0.4);
     state.P=state.P0*(state.T/state.T0);
     state.V=state.V0;
     state.A=0;
-    state.Q=n*1.5*R*(state.T-state.T0)*1000;
+    state.Q=n*Cv*(state.T-state.T0); // Q=n·Cv·ΔT, true Joules, Cv now tracks the γ slider
   } else if(process==='adiabatic'){
     // Q=0 → PV^γ = const
     state.V=Math.max(0.1,state.V0*(1+scale*0.3));
     state.P=state.P0*Math.pow(state.V0/state.V,state.gamma);
     state.T=state.T0*(state.P*state.V)/(state.P0*state.V0);
     state.Q=0;
-    state.A=-n*1.5*R*(state.T-state.T0)*1000;
+    state.A=-n*Cv*(state.T-state.T0); // A=-ΔU=-n·Cv·ΔT, true Joules
   }
 
   // Clamp
@@ -317,7 +347,7 @@ function draw(){
   ctx.strokeStyle=isDark?'rgba(255,255,255,.3)':'rgba(0,0,0,.3)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(pvInnerX,pvInnerY);ctx.lineTo(pvInnerX,pvInnerY+pvInnerH);ctx.lineTo(pvInnerX+pvInnerW,pvInnerY+pvInnerH);ctx.stroke();
   ctx.fillStyle=isDark?'rgba(255,255,255,.5)':'rgba(0,0,0,.5)';ctx.font='11px Segoe UI';
-  ctx.textAlign='center';ctx.fillText('V (m³)',pvInnerX+pvInnerW/2,pvInnerY+pvInnerH+24);
+  ctx.textAlign='center';ctx.fillText('V (L)',pvInnerX+pvInnerW/2,pvInnerY+pvInnerH+24);
   ctx.save();ctx.translate(pvInnerX-28,pvInnerY+pvInnerH/2);ctx.rotate(-Math.PI/2);
   ctx.fillText('P (atm)',0,0);ctx.restore();
   // Grid
@@ -381,8 +411,9 @@ function updateHUD(){
   document.getElementById('hud-p').textContent=state.P.toFixed(2);
   document.getElementById('dT').textContent=Math.round(state.T)+' K';
   document.getElementById('dP').textContent=state.P.toFixed(2)+' atm';
-  document.getElementById('dV').textContent=state.V.toFixed(2)+' m³';
-  document.getElementById('dU').textContent=(0.82*state.n*state.T).toFixed(1)+' J';
+  document.getElementById('dV').textContent=state.V.toFixed(2)+' L';
+  const Cv_disp=8.314/(state.gamma-1);
+  document.getElementById('dU').textContent=(state.n*Cv_disp*state.T).toFixed(1)+' J';
   document.getElementById('dQ').textContent=(state.Q||0).toFixed(1)+' J';
   document.getElementById('dA').textContent=(state.A||0).toFixed(1)+' J';
 }
@@ -408,6 +439,39 @@ function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-
 (function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
 window.addEventListener('resize',initCanvas);
 initCanvas();requestAnimationFrame(loop);
+</script>
+
+<script>
+/* ZY-RESPONSIVE-PATCH-V1: panel toggle + touch support */
+function setPanel(open){
+  var p=document.getElementById('controlPanel'),b=document.getElementById('panelBackdrop'),btn=document.getElementById('panelToggleBtn');
+  if(!p||!btn)return;
+  if(open){p.classList.add('open');if(b)b.classList.add('show');btn.classList.add('active');btn.textContent='✕';}
+  else{p.classList.remove('open');if(b)b.classList.remove('show');btn.classList.remove('active');btn.textContent='⚙️';}
+  try{localStorage.setItem('zy_panel_state',open?'1':'0');}catch(e){}
+}
+function togglePanel(){var p=document.getElementById('controlPanel');setPanel(!(p&&p.classList.contains('open')));}
+function closePanel(){setPanel(false);}
+(function(){
+  var st=null;try{st=localStorage.getItem('zy_panel_state');}catch(e){}
+  var open= st===null ? (window.innerWidth>900) : (st==='1');
+  setPanel(open);
+})();
+(function(){
+  function fire(el,type,t){
+    var evt;
+    try{evt=new MouseEvent(type,{clientX:t.clientX,clientY:t.clientY,bubbles:true,cancelable:true});}
+    catch(e){evt=document.createEvent('MouseEvent');evt.initMouseEvent(type,true,true,window,0,0,0,t.clientX,t.clientY,false,false,false,false,0,null);}
+    el.dispatchEvent(evt);
+  }
+  function wire(el){
+    if(!el||el.__zyTouch)return;el.__zyTouch=true;
+    el.addEventListener('touchstart',function(e){if(e.touches.length===1){fire(el,'mousedown',e.touches[0]);}},{passive:true});
+    el.addEventListener('touchmove',function(e){if(e.touches.length===1){fire(el,'mousemove',e.touches[0]);e.preventDefault();}},{passive:false});
+    el.addEventListener('touchend',function(e){var t=e.changedTouches[0];if(t){fire(el,'mouseup',t);fire(el,'click',t);}},{passive:true});
+  }
+  document.querySelectorAll('.canvas-area canvas').forEach(wire);
+})();
 </script>
 </body>
 </html>
