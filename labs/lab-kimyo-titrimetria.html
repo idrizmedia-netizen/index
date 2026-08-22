@@ -2,7 +2,7 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
 <title>Kislota-Ishqor Titrimetria — Ziyomap</title>
    <link rel="icon" type="image/png" href="icon-192x192.png">
 <script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
@@ -66,6 +66,31 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .ph-bar{height:20px;border-radius:10px;background:linear-gradient(90deg,#ef4444,#f97316,#facc15,#22c55e,#3b82f6,#8b5cf6);margin:8px 0;position:relative;overflow:visible;}
 .ph-indicator{position:absolute;top:-4px;width:6px;height:28px;background:#fff;border-radius:3px;transition:left .3s;box-shadow:0 0 8px rgba(255,255,255,.5);}
 .burette{position:absolute;top:0;right:80px;width:30px;cursor:pointer;}
+
+/* ZY-RESPONSIVE-PATCH-V1 */
+.lab-wrap{display:block!important;position:relative;height:calc(100vh - 56px);grid-template-columns:none!important;grid-template-rows:none!important;}
+.canvas-area{width:100%!important;height:100%!important;}
+.canvas-area canvas{touch-action:none;}
+.control-panel{position:fixed!important;top:56px;right:0;bottom:0;width:340px;max-width:88vw;height:calc(100vh - 56px)!important;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:300;box-shadow:-12px 0 32px rgba(0,0,0,.4);border-left:1px solid rgba(255,255,255,.08);}
+.control-panel.open{transform:translateX(0);}
+.panel-backdrop{position:fixed;top:56px;left:0;right:0;bottom:0;background:rgba(0,0,0,0);pointer-events:none;transition:background .3s;z-index:250;}
+.panel-backdrop.show{background:rgba(0,0,0,.45);pointer-events:auto;}
+.panel-toggle-btn{position:fixed;top:68px;right:16px;z-index:310;width:46px;height:46px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.2rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.4);transition:.2s;}
+.panel-toggle-btn:hover{filter:brightness(1.12);transform:scale(1.06);}
+.panel-toggle-btn.active{background:var(--red,#ef4444);}
+@media(max-width:600px){
+  .top-nav{padding:0 .7rem;height:52px;}
+  .top-nav>span{font-size:.72rem!important;}
+  .nav-logo{font-size:.9rem!important;}
+  .nav-back{padding:5px 10px;font-size:.72rem;}
+  .canvas-overlay{top:8px;left:8px;gap:5px;max-width:58vw;}
+  .hud-badge{padding:4px 9px;font-size:.64rem;}
+  .canvas-tools{bottom:8px;gap:6px;flex-wrap:wrap;justify-content:center;width:94%;}
+  .tool-btn{padding:7px 11px;font-size:.7rem;}
+  .control-panel{top:52px;height:calc(100vh - 52px)!important;width:90vw;}
+  .panel-backdrop{top:52px;}
+  .panel-toggle-btn{top:60px;width:42px;height:42px;font-size:1rem;}
+}
 </style>
 </head>
 <body>
@@ -78,6 +103,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   </div>
 </nav>
 <div class="lab-wrap">
+<button class="panel-toggle-btn" id="panelToggleBtn" onclick="togglePanel()" title="Boshqaruv panelini ko'rsatish/yashirish" aria-label="Panel">⚙️</button>
+<div class="panel-backdrop" id="panelBackdrop" onclick="closePanel()"></div>
+
   <div class="canvas-area">
     <canvas id="chem-canvas"></canvas>
     <div class="canvas-overlay">
@@ -91,7 +119,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <button class="tool-btn add" style="background:var(--green);" onclick="addDropFast()">💧💧 Ko'p</button>
     </div>
   </div>
-  <div class="control-panel">
+  <div class="control-panel" id="controlPanel">
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('setup',this)">Tajriba</button>
       <button class="tab-btn" onclick="switchTab('graph',this)">Grafik</button>
@@ -214,25 +242,34 @@ function calcPH(Vb){
   const Vtot=(state.Va+Vb)/1000;
   const isStrongAcid=acid.Ka>100;
   const isStrongBase=base.Kb>100;
+  const pKa=-Math.log10(acid.Ka);
+  const pKb=-Math.log10(base.Kb);
 
   if(Math.abs(na-nb)<1e-10){
-    // Ekvivalent nuqta
+    // Ekvivalent nuqta - qolgan modda faqat reaksiya tuzi (Ceq = na/Vtot)
+    const Ceq=Math.max(na/Vtot,1e-12);
     if(isStrongAcid&&isStrongBase) return 7.0;
-    if(!isStrongAcid&&isStrongBase) return 7+0.5*Math.log10(acid.Ka/1e-14*state.Ca)*-1;
-    return 7.0;
+    if(!isStrongAcid&&isStrongBase) return 7+0.5*(pKa+Math.log10(Ceq)); // A⁻ gidrolizi
+    if(isStrongAcid&&!isStrongBase) return 7-0.5*(pKb+Math.log10(Ceq)); // BH⁺ gidrolizi
+    return 7+0.5*(pKa-pKb); // kuchsiz-kuchsiz taxminiy (konsentratsiyaga deyarli bog'liq emas)
   }
   if(nb<na){
     // Kislota ortiqcha
     const excess_H=(na-nb)/Vtot;
     if(isStrongAcid) return -Math.log10(excess_H);
-    // Buffer region
+    // Buffer region (Henderson-Hasselbalch): [HA] ortiqcha, [A⁻] hosil bo'lgan
     const ratio=(na-nb)/nb;
-    return -Math.log10(acid.Ka)-Math.log10(ratio>0?ratio:0.001);
+    return pKa-Math.log10(ratio>0?ratio:0.001);
   } else {
     // Ishqor ortiqcha
     const excess_OH=(nb-na)/Vtot;
     if(isStrongBase){const pOH=-Math.log10(excess_OH);return 14-pOH;}
-    return 14+Math.log10(excess_OH);
+    // Buffer region (Henderson-Hasselbalch): [B] ortiqcha, [BH⁺] hosil bo'lgan -
+    // sof kuchsiz-asos ionlanish formulasi emas, chunki reaksiyadan hosil bo'lgan
+    // BH⁺ (masalan NH₄⁺) ham eritmada bor va uni hisobga olmaslik pH ni buzadi.
+    const ratioB=na/((nb-na)>0?(nb-na):0.001);
+    const pOH=pKb+Math.log10(ratioB);
+    return 14-pOH;
   }
 }
 
@@ -454,6 +491,39 @@ function toggleLabTheme(){var h=document.documentElement,c=h.getAttribute('data-
 (function(){var t=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('t-icon');var l=document.getElementById('t-lbl');if(i)i.textContent=t==='dark'?'☀️':'🌙';if(l)l.textContent=t==='dark'?'Kun':'Tun';})();
 window.addEventListener('resize',initCanvas);
 initCanvas();
+</script>
+
+<script>
+/* ZY-RESPONSIVE-PATCH-V1: panel toggle + touch support */
+function setPanel(open){
+  var p=document.getElementById('controlPanel'),b=document.getElementById('panelBackdrop'),btn=document.getElementById('panelToggleBtn');
+  if(!p||!btn)return;
+  if(open){p.classList.add('open');if(b)b.classList.add('show');btn.classList.add('active');btn.textContent='✕';}
+  else{p.classList.remove('open');if(b)b.classList.remove('show');btn.classList.remove('active');btn.textContent='⚙️';}
+  try{localStorage.setItem('zy_panel_state',open?'1':'0');}catch(e){}
+}
+function togglePanel(){var p=document.getElementById('controlPanel');setPanel(!(p&&p.classList.contains('open')));}
+function closePanel(){setPanel(false);}
+(function(){
+  var st=null;try{st=localStorage.getItem('zy_panel_state');}catch(e){}
+  var open= st===null ? (window.innerWidth>900) : (st==='1');
+  setPanel(open);
+})();
+(function(){
+  function fire(el,type,t){
+    var evt;
+    try{evt=new MouseEvent(type,{clientX:t.clientX,clientY:t.clientY,bubbles:true,cancelable:true});}
+    catch(e){evt=document.createEvent('MouseEvent');evt.initMouseEvent(type,true,true,window,0,0,0,t.clientX,t.clientY,false,false,false,false,0,null);}
+    el.dispatchEvent(evt);
+  }
+  function wire(el){
+    if(!el||el.__zyTouch)return;el.__zyTouch=true;
+    el.addEventListener('touchstart',function(e){if(e.touches.length===1){fire(el,'mousedown',e.touches[0]);}},{passive:true});
+    el.addEventListener('touchmove',function(e){if(e.touches.length===1){fire(el,'mousemove',e.touches[0]);e.preventDefault();}},{passive:false});
+    el.addEventListener('touchend',function(e){var t=e.changedTouches[0];if(t){fire(el,'mouseup',t);fire(el,'click',t);}},{passive:true});
+  }
+  document.querySelectorAll('.canvas-area canvas').forEach(wire);
+})();
 </script>
 </body>
 </html>
