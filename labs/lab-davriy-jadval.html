@@ -2,7 +2,7 @@
 <html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=1280, initial-scale=0.25, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"/>
 <title>Davriy Jadval — Ziyomap</title>
    <link rel="icon" type="image/png" href="icon-192x192.png">
 <script>(function(){var p=new URLSearchParams(location.search).get('theme');var s=p||localStorage.getItem('zy_theme')||'dark';document.documentElement.setAttribute('data-theme',s);if(p){localStorage.setItem('zy_theme',p);localStorage.setItem('theme',p);}})();</script>
@@ -46,6 +46,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .info-val{font-weight:600;}
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;}
 .legend-item{padding:4px 10px;border-radius:8px;font-size:.68rem;font-weight:600;background:var(--bg3);}
+/* ZY-RESPONSIVE-PATCH-V1 */
+@media(max-width:700px){
+  .main{padding:.75rem .75rem 1.5rem;}
+  .search-box{width:150px;font-size:.78rem;}
+  .filter-btn{padding:5px 11px;font-size:.7rem;}
+  .info-card{left:12px;right:12px;bottom:12px;width:auto;max-width:none;padding:1rem;}
+  .top-nav span{font-size:.75rem!important;}
+}
 </style>
 </head>
 <body>
