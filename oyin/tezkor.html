@@ -9,6 +9,7 @@
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
 <script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--orange:#f97316;--green:#22c55e;--red:#ef4444;--blue:#4f7cff;--yellow:#eab308}
@@ -203,11 +204,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
-// ── 🔄 GLOBAL TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH ──────────────────
-(function() {
-  const savedTheme = localStorage.getItem("zy_theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-})();
 
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
@@ -221,7 +217,7 @@ const FM=[
 ];
 
 let G={
-  user:localStorage.getItem("zy_user")||"O'yinchi",
+  user:zyGetUser(),
   sel:["fizika","matematika","informatika"],
   pool:[],cur:0,score:0,correct:0,wrong:0,streak:0,maxStreak:0,
   tInt:null,tLeft:60,
@@ -264,10 +260,10 @@ function buildFans(){
 function startGame(){
   let pool=[];
   G.sel.forEach(f=>(TEZKOR_QUESTIONS[f]||[]).forEach(q=>pool.push({...q,fan:f})));
-  pool=pool.sort(()=>Math.random()-.5);
+  pool=zyShuffle(pool);
   if(!pool.length){alert("Savollar topilmadi!");return;}
   while(pool.length<60) pool=[...pool,...pool];
-  G.pool=pool.sort(()=>Math.random()-.5);
+  G.pool=zyShuffle(pool);
   G.cur=0;G.score=0;G.correct=0;G.wrong=0;G.streak=0;G.maxStreak=0;
   G.tLeft=60;
   show("gameScreen");
@@ -294,14 +290,20 @@ function renderQ(){
 
 function handleKey(e){if(e.key==="Enter")submitAns();}
 
+function normAns(s){
+  return s.toLowerCase().trim().replace(/[ʻʼ'`’]/g,"'").replace(/\s+/g," ");
+}
 function submitAns(){
-  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   const inp=document.getElementById("ansInput");
-  const val=inp.value.trim().toLowerCase();
+  const val=normAns(inp.value);
   if(!val)return;
   const q=G.pool[G.cur];
-  const correct=q.a.toLowerCase().trim();
-  const ok=val===correct||correct.includes(val)||val.includes(correct)||(val.length>2&&correct.startsWith(val));
+  const correct=normAns(q.a);
+  // Require a meaningful minimum length before allowing partial/prefix matches -
+  // otherwise a single stray letter could match as a "substring" of almost any answer.
+  const minLen=Math.max(3,Math.ceil(correct.length*0.6));
+  const ok = val===correct
+    || (val.length>=minLen && (val.includes(correct)||correct.startsWith(val)));
   const fb=document.getElementById("feedback");
   if(ok){
     G.correct++;G.streak++;if(G.streak>G.maxStreak)G.maxStreak=G.streak;
@@ -346,6 +348,7 @@ function updTimer(t,max,full){
 function endGame(){
   const rec=parseInt(localStorage.getItem("zy_tezkor_rec")||0);
   if(G.score>rec){localStorage.setItem("zy_tezkor_rec",G.score);document.getElementById("hRecord").textContent=G.score;}
+  const total=zyAddPoints(G.score);
   document.getElementById("rEmoji").textContent=G.score>=100?"🏆":G.score>=60?"🎉":G.score>=30?"👍":"💪";
   document.getElementById("rPts").textContent=G.score;
   document.getElementById("rv1").textContent=G.correct;
@@ -379,5 +382,8 @@ function show(id){["setupScreen","gameScreen","resultScreen"].forEach(s=>documen
 function goSetup(){show("setupScreen");}
 buildFans();
 </script>
+<script src="../js/ziyomap-usage.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
 </body>
 </html>
