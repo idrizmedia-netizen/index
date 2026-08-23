@@ -9,6 +9,7 @@
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
 <script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--blue:#4f7cff;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--purple:#a855f7}
@@ -205,11 +206,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
-// 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH
-(function() {
-  const savedTheme = localStorage.getItem("zy_theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-})();
 
 const FANS_META = [
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
@@ -225,7 +221,7 @@ const DTIME = {easy:20,medium:15,hard:10,all:15};
 const DPTS  = {easy:10,medium:20,hard:35,all:15};
 
 let G = {
-  user: localStorage.getItem("zy_user")||"",
+  user: zyGetUser(),
   selFans: ["fizika","matematika","informatika","biologiya","kimyo","tarix","ingliz","geografiya"],
   diff:"easy", numQ:10,
   qs:[], cur:0, score:0, correct:0, wrong:0, answered:false,
@@ -233,7 +229,6 @@ let G = {
 };
 
 function init(){
-  if(!G.user){G.user=prompt("Ismingiz:")||"O'yinchi";localStorage.setItem("zy_user",G.user);}
   document.getElementById("hUser").textContent=G.user;
   document.getElementById("hScore").textContent=localStorage.getItem("zy_total")||0;
   buildFans(); renderLB("lbA");
@@ -270,7 +265,7 @@ function startQuiz(){
     if(!qs.length) qs=QUIZ_QUESTIONS[f]||[];
     qs.forEach(q=>pool.push({...q,fan:f}));
   });
-  pool=pool.sort(()=>Math.random()-.5).slice(0,G.numQ);
+  pool=zyShuffle(pool).slice(0,G.numQ);
   if(!pool.length){alert("Savollar topilmadi!");return;}
   G.qs=pool;G.cur=0;G.score=0;G.correct=0;G.wrong=0;G.combo=0;
   document.getElementById("qScore").textContent=0;
@@ -321,7 +316,7 @@ function renderQ(){
   });
   document.getElementById("expBox").style.display="none";
   document.getElementById("nxtBtn").style.display="none";
-  const mx=DTIME[G.diff]||15;
+  const mx=DTIME[q.d]||DTIME[G.diff]||15;
   startT(mx);
 }
 
@@ -347,7 +342,7 @@ function pick(idx){
   if(idx===q.a){
     document.querySelectorAll(".opt")[idx].classList.add("correct");
     G.correct++;G.combo++;
-    const pts=DPTS[G.diff]*(G.combo>=3?2:1);
+    const pts=(DPTS[q.d]||DPTS[G.diff])*(G.combo>=3?2:1);
     G.score+=pts;document.getElementById("qScore").textContent=G.score;
     if(G.combo>=3)showCombo();
   }else{
@@ -378,16 +373,12 @@ function showResult(){
   saveScore();show("resultScreen");renderLB("lbB");
 }
 function saveScore(){
-  const tot=parseInt(localStorage.getItem("zy_total")||0)+G.score;
-  localStorage.setItem("zy_total",tot);
+  const tot=zyAddPoints(G.score);
   document.getElementById("hScore").textContent=tot;
-  const lb=JSON.parse(localStorage.getItem("zy_quiz_lb")||"[]");
-  lb.push({name:G.user,score:G.score,date:Date.now(),diff:G.diff});
-  lb.sort((a,b)=>b.score-a.score);
-  localStorage.setItem("zy_quiz_lb",JSON.stringify(lb.slice(0,30)));
+  zySaveGameScore('quiz', G.score, { diff:G.diff, correct:G.correct, wrong:G.wrong });
 }
 function renderLB(elId){
-  const lb=JSON.parse(localStorage.getItem("zy_quiz_lb")||"[]");
+  const lb=JSON.parse(localStorage.getItem("zy_lb_quiz")||"[]");
   const el=document.getElementById(elId);
   if(!lb.length){el.innerHTML='<p style="color:#6b7280;text-align:center;padding:16px">Hali hech kim o\'ynamagan!</p>';return;}
   const colors=["#4f7cff","#22c55e","#ec4899","#eab308","#a855f7"];
@@ -403,5 +394,8 @@ function show(id){["setupScreen","quizScreen","resultScreen"].forEach(s=>documen
 function goSetup(){show("setupScreen");renderLB("lbA");}
 init();
 </script>
+<script src="../js/ziyomap-usage.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
 </body>
 </html>
