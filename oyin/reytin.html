@@ -6,19 +6,22 @@
 <title>Peshqadamlar Reytingi — Ziyomap Games</title>
    <link rel="icon" type="image/png" href="icon-192x192.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+<script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--yellow:#eab308;--blue:#4f7cff;--radius:16px}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px}
-.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:#fff}
+[data-theme="dark"]{--bg:#0f111a;--white:#161925;--text:#f3f4f6;--muted:#9ca3af;--border:#26293b}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;transition:background .3s,border-color .3s}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;text-decoration:none;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--white)}
 .main-container{max-width:600px;width:100%;margin:32px auto;padding:0 20px}
 .header-title{font-family:'Outfit',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:20px;text-align:center}
-.leaderboard-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.02)}
+.leaderboard-card{background:var(--white);border:1px solid var(--border);border-radius:24px;padding:16px;box-shadow:0 4px 6px rgba(0,0,0,0.02);transition:background .3s,border-color .3s}
 .lb-item{display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:16px;transition:all 0.2s;margin-bottom:8px}
 .lb-item:last-child{margin-bottom:0}
 .lb-item:hover{background:var(--bg)}
 .lb-item.user-row{background:#eff3ff;border:1px solid #bfdbfe}
+[data-theme="dark"] .lb-item.user-row{background:#1a233d;border-color:#2c3a5c}
 .rank{font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:800;width:30px;text-align:center}
 .avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0}
 .info{flex:1}
@@ -42,11 +45,13 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 <script>
 function renderLeaderboard() {
   // 1. Joriy kirgan foydalanuvchining ismi va umumiy balini aniqlaymiz
-  const userScore = parseInt(localStorage.getItem("ziyomap_total") || "0");
-  const userName = localStorage.getItem("ziyomap_user") || "Mehmon";
+  // (bular haqiqatda zy_total / zy_user kalitlarida saqlanadi - barcha
+  // o'yinlar oyin-common.js orqali shu joyga yozadi)
+  const userScore = parseInt(localStorage.getItem("zy_total") || "0");
+  const userName = zyGetUser();
 
   // 2. Global umumiy reyting ro'yxatini brauzer xotirasidan yuklab olamiz
-  let globalLeaders = JSON.parse(localStorage.getItem("ziyomap_global_leaderboard") || "[]");
+  let globalLeaders = JSON.parse(localStorage.getItem("zy_global_leaderboard") || "[]");
 
   // 3. Joriy o'quvchi xotiradagi ro'yxatda bor yoki yo'qligini tekshiramiz
   let playerExist = globalLeaders.find(p => p.name.toLowerCase() === userName.toLowerCase());
@@ -70,7 +75,7 @@ function renderLeaderboard() {
   }
 
   // 4. Yangilangan ro'yxatni qaytadan xotiraga saqlab qo'yamiz
-  localStorage.setItem("ziyomap_global_leaderboard", JSON.stringify(globalLeaders));
+  localStorage.setItem("zy_global_leaderboard", JSON.stringify(globalLeaders));
 
   // 5. O'quvchilarni ballari bo'yicha yuqoridan pastga qarab saralaymiz (Dinamik ko'tarilish)
   globalLeaders.sort((a, b) => b.score - a.score);
@@ -79,7 +84,7 @@ function renderLeaderboard() {
   container.innerHTML = "";
 
   // 6. Agar hali hech kim kirmagan bo'lsa, chiroyli xabarnoma chiqaradi
-  if (globalLeaders.length === 0 || (globalLeaders.length === 1 && globalLeaders[0].name === "Mehmon" && globalLeaders[0].score === 0)) {
+  if (globalLeaders.length === 0 || (globalLeaders.length === 1 && globalLeaders[0].score === 0)) {
     container.innerHTML = `<p style="color:var(--muted); text-align:center; padding:20px; font-weight:600;">Hali o'yinlarda o'quvchilar ro'yxatdan o'tmagan.</p>`;
     return;
   }
@@ -110,5 +115,8 @@ function renderLeaderboard() {
 // Sahifa yuklanganda funksiyani ishga tushiramiz
 renderLeaderboard();
 </script>
+<script src="../js/ziyomap-usage.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
 </body>
 </html>
