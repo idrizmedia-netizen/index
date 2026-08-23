@@ -38,6 +38,7 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 .btn{flex:1;padding:12px;border:none;border-radius:12px;font-weight:800;cursor:pointer;font-family:inherit}
 .btn-go{background:var(--indigo);color:#fff}
 .btn-reset{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+@keyframes shakeHint{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 </style>
 </head>
 <body>
@@ -112,7 +113,17 @@ function resetPick(){
   document.getElementById('picked').innerHTML='';
 }
 function submitOrder(){
-  if(locked||!pickOrder.length) return;
+  if(locked) return;
+  const total=rounds[ri].items.length;
+  if(pickOrder.length<total){
+    const poolEl=document.getElementById('pool');
+    poolEl.style.animation='none'; void poolEl.offsetWidth; poolEl.style.animation='shakeHint .4s';
+    const msg=document.getElementById('resultMsg');
+    msg.style.display='block'; msg.style.background='#fffbeb'; msg.style.color='#92400e';
+    msg.textContent=`⚠️ Avval barcha ${total} ta elementni tanlang (${pickOrder.length}/${total})`;
+    setTimeout(()=>{ msg.style.display='none'; },1400);
+    return;
+  }
   locked=true;
   const correct=rounds[ri].order;
   const ok=correct.length===pickOrder.length&&correct.every((v,i)=>v===pickOrder[i]);
