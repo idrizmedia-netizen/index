@@ -95,11 +95,12 @@ function showQ(){
   document.getElementById('btnYo').disabled=false;
   document.getElementById('btnHa').className='tf tf-ha';
   document.getElementById('btnYo').className='tf tf-yo';
-  tLeft=8; clearInterval(tInt);
+  let ticks=0; const maxTicks=80; clearInterval(tInt);
   tInt=setInterval(()=>{
-    tLeft-=0.1;
+    ticks++;
+    tLeft=8-ticks*0.1;
     document.getElementById('tFill').style.width=Math.max(0,tLeft/8*100)+'%';
-    if(tLeft<=0){ clearInterval(tInt); answer(null); }
+    if(ticks>=maxTicks){ clearInterval(tInt); answer(null); }
   },100);
 }
 function answer(val){
