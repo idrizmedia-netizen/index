@@ -28,6 +28,12 @@ body{font-family:Nunito,sans-serif;background:var(--bg);color:var(--text);min-he
 #game{display:none}
 .wheel-wrap{position:relative;width:min(300px,90vw);height:min(300px,90vw);margin:20px auto}
 canvas{border-radius:50%;box-shadow:0 12px 40px rgba(168,85,247,.25);max-width:100%}
+.pointer{position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:34px;height:44px;z-index:5;transition:transform .09s cubic-bezier(.34,1.56,.64,1);transform-origin:50% 10%;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35))}
+.pointer.tick{transform:translateX(-50%) rotate(-14deg)}
+.pointer svg{width:100%;height:100%;display:block}
+.wheel-rim{position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,#e9d5ff,#a855f7,#7c3aed,#a855f7,#e9d5ff);z-index:0;box-shadow:0 4px 18px rgba(124,58,237,.35)}
+[data-theme="dark"] .wheel-rim{background:conic-gradient(from 0deg,#4c1d95,#a855f7,#7c3aed,#a855f7,#4c1d95)}
+#wheel{position:relative;z-index:1}
 .spin-btn{margin-top:16px;padding:14px 32px;border:none;border-radius:14px;background:var(--purple);color:#fff;font-weight:800;font-size:1rem;cursor:pointer}
 .spin-btn:disabled{opacity:.5;cursor:not-allowed}
 .stats{display:flex;justify-content:center;gap:20px;margin:16px 0;font-weight:800}
@@ -65,7 +71,11 @@ canvas{border-radius:50%;box-shadow:0 12px 40px rgba(168,85,247,.25);max-width:1
   </div>
   <div id="game">
     <div class="stats"><span>⭐ <span id="score">0</span></span><span>🎯 <span id="spins">5</span> aylanish</span></div>
-    <div class="wheel-wrap"><canvas id="wheel" width="300" height="300"></canvas></div>
+    <div class="wheel-wrap">
+      <div class="wheel-rim"></div>
+      <canvas id="wheel" width="300" height="300"></canvas>
+      <div class="pointer" id="pointer"><svg viewBox="0 0 34 44"><defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#eab308"/></linearGradient></defs><path d="M17 44 L2 14 A15 15 0 1 1 32 14 Z" fill="url(#pg)" stroke="#a16207" stroke-width="1.5"/><circle cx="17" cy="15" r="6" fill="#fff8e1" stroke="#a16207" stroke-width="1.2"/></svg></div>
+    </div>
     <div class="result-display" id="resultDisplay">🎯 Charxni aylantiring!</div>
     <button class="spin-btn" id="spinBtn" onclick="spin()">Charxni aylantirish 🎡</button>
     <div class="q-box" id="qBox">
@@ -102,16 +112,35 @@ function drawWheel(rot){
   const cx=150,cy=150,r=140,n=segments.length,slice=2*Math.PI/n;
   ctx.clearRect(0,0,300,300);
   segments.forEach((s,i)=>{
+    const a0=i*slice+rot,a1=(i+1)*slice+rot;
     ctx.beginPath();ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,i*slice+rot,(i+1)*slice+rot);
-    ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    ctx.arc(cx,cy,r,a0,a1);
+    const grad=ctx.createRadialGradient(cx,cy,20,cx,cy,r);
+    const base=colors[i%colors.length];
+    grad.addColorStop(0,base);grad.addColorStop(1,shade(base,-14));
+    ctx.fillStyle=grad;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
     ctx.save();ctx.translate(cx,cy);ctx.rotate(i*slice+slice/2+rot);
     ctx.textAlign='right';ctx.fillStyle='#fff';ctx.font='bold 12px Nunito';
-    ctx.fillText(s.icon+' '+s.label.slice(0,7),r-10,5);ctx.restore();
+    ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=3;
+    ctx.fillText(s.icon+' '+s.label.slice(0,7),r-12,5);ctx.restore();
   });
-  ctx.beginPath();ctx.moveTo(150,0);ctx.lineTo(143,22);ctx.lineTo(157,22);ctx.closePath();
-  ctx.fillStyle='#334155';ctx.fill();
-  ctx.beginPath();ctx.arc(150,0,6,0,2*Math.PI);ctx.fillStyle='#334155';ctx.fill();
+  // Outer rim highlight
+  ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=3;ctx.stroke();
+  // Decorative center hub
+  const hub=ctx.createRadialGradient(cx-6,cy-8,2,cx,cy,20);
+  hub.addColorStop(0,'#fff8e1');hub.addColorStop(1,'#eab308');
+  ctx.beginPath();ctx.arc(cx,cy,18,0,2*Math.PI);
+  ctx.fillStyle=hub;ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=8;ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.beginPath();ctx.arc(cx,cy,18,0,2*Math.PI);ctx.strokeStyle='#a16207';ctx.lineWidth=2;ctx.stroke();
+}
+function shade(hex,pct){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.max(0,Math.min(255,(n>>16)+pct));
+  const g=Math.max(0,Math.min(255,((n>>8)&255)+pct));
+  const b=Math.max(0,Math.min(255,(n&255)+pct));
+  return '#'+(1<<24|r<<16|g<<8|b).toString(16).slice(1);
 }
 
 function startGame(){
@@ -132,6 +161,16 @@ function startGame(){
   drawWheel(0);
 }
 
+function segIndexAt(rotDeg){
+  const n=segments.length,sliceDeg=360/n;
+  const rot=((rotDeg%360)+360)%360;
+  // Pointer is fixed at the TOP of the wheel (canvas angle 270°/-90°) - segment
+  // selection must be measured from THAT angle, not from 0°, or the result
+  // silently disagrees with what the pointer is visually resting on.
+  const target=((270-rot)%360+360)%360;
+  return Math.floor(target/sliceDeg)%n;
+}
+
 function spin(){
   if(spinning||spinsLeft<=0) return;
   spinning=true;
@@ -141,11 +180,19 @@ function spin(){
   document.getElementById('resultDisplay').innerHTML='🔄 Aylanmoqda...';
   const extra=360*5+Math.random()*360;
   const start=angle; const end=angle+extra; const t0=performance.now();
+  let lastTickIdx=segIndexAt(start);
+  const pointerEl=document.getElementById('pointer');
   function anim(t){
     const p=Math.min(1,(t-t0)/4000);
     const ease=1-Math.pow(1-p,3.5);
     angle=start+(end-start)*ease;
     drawWheel(angle*Math.PI/180);
+    const curIdx=segIndexAt(angle);
+    if(curIdx!==lastTickIdx){
+      lastTickIdx=curIdx;
+      pointerEl.classList.add('tick');
+      setTimeout(()=>pointerEl.classList.remove('tick'),90);
+    }
     if(p<1) requestAnimationFrame(anim);
     else finishSpin();
   }
@@ -156,9 +203,7 @@ function finishSpin(){
   spinning=false;
   spinsLeft--;
   document.getElementById('spins').textContent=spinsLeft;
-  const n=segments.length;
-  const norm=((360-(angle%360))+360)%360;
-  const idx=Math.floor(((norm+360/n/2)%360)/(360/n))%n;
+  const idx=segIndexAt(angle);
   const seg=segments[idx];
   document.getElementById('resultDisplay').className='result-display';
   const rd=document.getElementById('resultDisplay');
