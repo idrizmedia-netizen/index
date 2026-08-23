@@ -9,6 +9,7 @@
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
 <script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--green:#22c55e;--blue:#4f7cff;--red:#ef4444}
@@ -146,6 +147,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="de" id="doneEmoji">🎉</div>
       <div class="dt">Tugatdingiz!</div>
       <p style="color:var(--muted)" id="doneSub"></p>
+      <p style="color:var(--muted);font-weight:700;margin:-8px 0 16px" id="donePts"></p>
       <div class="ds-grid">
         <div class="ds"><div class="dv" id="dv1">0</div><div class="dk">✅ Bilganlar</div></div>
         <div class="ds"><div class="dv" id="dv2">0</div><div class="dk">❌ Bilmaganlar</div></div>
@@ -160,11 +162,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 <script>
-// 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH (Eski kodlar daxlsiz saqlanadi)
-(function() {
-  const savedTheme = localStorage.getItem("zy_theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-})();
 
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
@@ -193,7 +190,7 @@ function buildFans(){
 function startCards(){
   let pool=[];
   S.sel.forEach(f=>(FLASHCARD_CARDS[f]||[]).forEach(c=>pool.push({...c,fan:f})));
-  pool=pool.sort(()=>Math.random()-.5);
+  pool=zyShuffle(pool);
   if(!pool.length){alert("Karta topilmadi!");return;}
   S.cards=pool;S.cur=0;S.know=0;S.again=0;S.skip=0;
   document.getElementById("setupScreen").style.display="none";
@@ -250,10 +247,18 @@ function showDone(){
   document.getElementById("dv1").textContent=S.know;
   document.getElementById("dv2").textContent=S.again;
   document.getElementById("dv3").textContent=pct+"%";
+  const pts=S.know*8;
+  const total=zyAddPoints(pts);
+  zySaveGameScore('flashcard', pts, { know:S.know, again:S.again, pct });
+  document.getElementById("knowC").textContent=S.know;
+  document.getElementById("donePts").textContent=`+${pts} ball (jami ${total})`;
 }
 
 function goSetup(){document.getElementById("doneScreen").style.display="none";document.getElementById("setupScreen").style.display="block";}
 buildFans();
 </script>
+<script src="../js/ziyomap-usage.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
 </body>
 </html>
