@@ -260,7 +260,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 function lsGet(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
 
 const GAME_META=[
-  {id:"quiz",       name:"Quiz",        icon:"❓", color:"#4f7cff", bg:"#eff3ff", lsKey:"zy_quiz_lb",       label:"eng yaxshi natija"},
+  {id:"quiz",       name:"Quiz",        icon:"❓", color:"#4f7cff", bg:"#eff3ff", lsKey:"zy_lb_quiz",       label:"eng yaxshi natija"},
+  {id:"flashcard",  name:"Flashcard",   icon:"🃏", color:"#22c55e", bg:"#f0fdf4", lsKey:"zy_lb_flashcard",  label:"eng yaxshi natija"},
   {id:"tezkor",     name:"Tezkor",      icon:"⚡", color:"#f97316", bg:"#fff7ed", lsKey:"zy_tezkor_lb",     label:"eng ko'p ball"},
   {id:"puzzle",     name:"So'z Topish", icon:"🔤", color:"#a855f7", bg:"#faf5ff", lsKey:"zy_puzzle_lb",     label:"eng yaxshi natija"},
   {id:"memory",     name:"Xotira",      icon:"🧠", color:"#ec4899", bg:"#fdf2f8", lsKey:"zy_mem_lb",        label:"eng ko'p ball"},
