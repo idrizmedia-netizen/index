@@ -76,10 +76,10 @@ function startGame(){
   score=0; opened=0; mult=1;
   const types=[];
   for(let i=0;i<qs.length;i++){
-    if(i%4===0) types.push('bonus');
+    if(i===qs.length-1&&qs.length>5) types.push('jackpot');
+    else if(i%4===0) types.push('bonus');
     else if(i%7===0) types.push('trap');
     else if(i%5===0) types.push('double');
-    else if(i===qs.length-1&&qs.length>5) types.push('jackpot');
     else types.push('quiz');
   }
   boxMeta=zyShuffle(types.map((t,i)=>({type:t, qi:i})));
