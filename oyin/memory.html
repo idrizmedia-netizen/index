@@ -9,6 +9,7 @@
 <script src="questions.js"></script>
 <script src="questions2.js"></script>
 <script src="questions-loader.js"></script>
+<script src="oyin-common.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#f7f8fc;--white:#fff;--text:#1a1d2e;--muted:#6b7280;--border:#e5e7eb;--pink:#ec4899;--green:#22c55e;--blue:#4f7cff;--yellow:#eab308;--red:#ef4444}
@@ -175,12 +176,6 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
-// 🔄 TUNGI REJIM ASOSIY SOZLAMASINI YUKLASH
-(function() {
-  const savedTheme = localStorage.getItem("zy_theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-})();
-
 const FM=[
   {id:"fizika",name:"Fizika",icon:"⚛️",color:"#4f7cff",bg:"#eff3ff"},
   {id:"matematika",name:"Matematika",icon:"📐",color:"#22c55e",bg:"#f0fdf4"},
@@ -193,7 +188,7 @@ const FM=[
 ];
 
 let G={
-  user:localStorage.getItem("zy_user")||"O'yinchi",
+  user:zyGetUser(),
   selFan:"fizika", numPairs:6,
   cards:[], flipped:[], matched:0, moves:0, canFlip:true,
   tInt:null, elapsed:0, score:0,
@@ -227,14 +222,14 @@ function pickN(btn){
 function startGame(){
   const pairs=(MEMORY_PAIRS[G.selFan]||[]);
   if(!pairs.length){alert("Bu fan uchun juftlar topilmadi!");return;}
-  const chosen=pairs.sort(()=>Math.random()-.5).slice(0,G.numPairs);
+  const chosen=zyShuffle(pairs).slice(0,G.numPairs);
   // create cards: term + definition
   let cards=[];
   chosen.forEach((p,i)=>{
     cards.push({id:i,type:"term",text:p.term,pairId:i});
     cards.push({id:i+G.numPairs,type:"def",text:p.definition,pairId:i});
   });
-  cards=cards.sort(()=>Math.random()-.5);
+  cards=zyShuffle(cards);
   G.cards=cards;G.flipped=[];G.matched=0;G.moves=0;G.score=0;G.elapsed=0;G.canFlip=true;
   document.getElementById("movesEl").textContent=0;
   document.getElementById("matchedEl").textContent=0;
@@ -333,13 +328,13 @@ function endGame(){
   // time bonus
   const timeBonus=Math.max(0,60-Math.floor(G.elapsed/2));
   G.score+=timeBonus;
-  const pct=Math.round((G.numPairs/(G.moves||1))*100);
   document.getElementById("rEmoji").textContent=G.moves<=G.numPairs+2?"🏆":G.moves<=G.numPairs*2?"🎉":"👍";
   document.getElementById("rPts").textContent=G.score;
   document.getElementById("rSub").textContent=`ball to'plandi (+${timeBonus} vaqt bonusi)`;
   document.getElementById("rv1").textContent=G.moves;
   document.getElementById("rv2").textContent=G.elapsed+"s";
   document.getElementById("rv3").textContent=G.score;
+  zyAddPoints(G.score);
   saveLB();show("resultScreen");renderLB();
 }
 
@@ -369,5 +364,8 @@ function show(id){["setupScreen","gameScreen","resultScreen"].forEach(s=>documen
 function goSetup(){clearInterval(G.tInt);show("setupScreen");}
 buildFans();
 </script>
+<script src="../js/ziyomap-usage.js"></script>
+<script src="../js/auth-guard.js"></script>
+<script>ZiyomapAuthGuard.protectPage();</script>
 </body>
 </html>
