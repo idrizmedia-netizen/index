@@ -29,6 +29,10 @@
     <!-- Chart.js — grafiklar -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+    <!-- jsPDF + html2canvas — chiroyli PDF eksport uchun -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
     <!-- Existing CSS -->
     <link rel="stylesheet" href="css/ai-chat.css">
     <link rel="stylesheet" href="css/mobile.css">
@@ -284,13 +288,13 @@
     .chat-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(56,189,248,.15);flex-wrap:wrap;background:var(--card-bg);flex-shrink:0}
     #chat-search-input,#font-size-select{padding:6px 10px;border-radius:8px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);font-size:.85rem;font-family:inherit}
     #chat-search-input{flex:1;min-width:100px}
-    #export-chat-btn{border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;padding:6px 10px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+    #export-chat-btn,#export-pdf-btn{border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;padding:6px 10px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
     #rate-limit-label{display:none;font-size:.72rem;color:var(--text-color);opacity:.6;white-space:nowrap}
 
     #drop-overlay{display:none;position:absolute;inset:0;background:rgba(37,99,235,.1);border:3px dashed var(--primary-color);align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:var(--primary-color);z-index:20;pointer-events:none;border-radius:16px}
 
-    #mic-btn,#stop-btn{border:none;background:transparent;color:var(--primary-color);font-size:1.15rem;cursor:pointer;padding:6px 8px;flex-shrink:0}
-    #mic-btn.active{color:#ef4444;animation:ziyoPulse 1s infinite}
+    #mic-btn,#stop-btn,#tutor-mic-btn{border:none;background:transparent;color:var(--primary-color);font-size:1.15rem;cursor:pointer;padding:6px 8px;flex-shrink:0}
+    #mic-btn.active,#tutor-mic-btn.active{color:#ef4444;animation:ziyoPulse 1s infinite}
     #stop-btn{color:#ef4444;display:none}
     @keyframes ziyoPulse{0%,100%{opacity:1}50%{opacity:.4}}
 
@@ -303,6 +307,71 @@
     .file-preview-item .preview-remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:.68rem;line-height:1;border:none;cursor:pointer}
 
     @media(max-width:768px){ #chat-sidebar{width:85vw} #chat-search-input{font-size:16px} }
+
+    /* ══════════════════════════════════════
+       2-BOSQICH QO'SHIMCHALARI
+    ══════════════════════════════════════ */
+
+    /* — Tez javob chip'lari — */
+    .quick-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .quick-chip{padding:4px 10px;border-radius:14px;border:1px solid rgba(56,189,248,.35);background:transparent;color:var(--primary-color);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit}
+    .quick-chip:hover{background:var(--primary-color);color:#fff}
+
+    /* — Timestamp — */
+    .msg-time{font-size:.65rem;opacity:.55;margin-top:4px}
+
+    /* — Solishtirish (compare) — */
+    .compare-wrap{display:flex;flex-direction:column;gap:8px;width:100%}
+    .compare-col{border:1px dashed rgba(56,189,248,.3);border-radius:10px;padding:8px}
+    .compare-label{font-size:.68rem;font-weight:800;opacity:.6;margin-bottom:4px;text-transform:uppercase}
+
+    /* — Sidebar: rename/pin/category — */
+    .session-item .session-actions{display:flex;gap:2px;flex-shrink:0}
+    .session-actions button{border:none;background:transparent;color:#94a3b8;cursor:pointer;padding:2px 4px;font-size:.78rem}
+    .session-actions button:hover{color:var(--primary-color)}
+    .session-actions button.pinned{color:#f59e0b}
+    .session-group-label{font-size:.68rem;font-weight:800;opacity:.5;text-transform:uppercase;padding:10px 8px 4px}
+    #session-category-select{margin:0 10px 6px;padding:6px;border-radius:8px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);font-size:.78rem;font-family:inherit;width:calc(100% - 20px)}
+
+    /* — Scroll-to-bottom — */
+    #scroll-bottom-btn{position:absolute;bottom:78px;right:16px;width:38px;height:38px;border-radius:50%;background:var(--primary-color);color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:15}
+
+    /* — Dark mode tugmasi — */
+    #theme-toggle-btn{border:none;background:transparent;color:var(--primary-color);font-size:1rem;cursor:pointer;padding:6px 8px}
+
+    /* — Difficulty / essay-type chip qatorlari (tutor/essay) — */
+    .level-row{padding:8px 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid rgba(56,189,248,.1);flex-shrink:0}
+
+    /* — Tutor stats bar — */
+    .tutor-stats{display:flex;gap:14px;padding:6px 14px;font-size:.72rem;opacity:.7;border-bottom:1px solid rgba(56,189,248,.08);flex-shrink:0;flex-wrap:wrap}
+
+    /* — Step-by-step "Keyingi" tugmasi — */
+    .step-next-btn{margin-top:10px;padding:8px 14px;border-radius:8px;border:none;background:var(--primary-color);color:#fff;font-weight:700;cursor:pointer;font-size:.8rem;font-family:inherit}
+
+    /* — MCQ (interaktiv test) — */
+    .mcq-box{background:var(--card-bg);border:1px solid rgba(56,189,248,.2);border-radius:12px;padding:12px;margin-top:6px}
+    .mcq-question{font-weight:700;margin-bottom:8px}
+    .mcq-option{display:block;width:100%;text-align:left;padding:8px 12px;margin-bottom:6px;border-radius:8px;border:1.5px solid rgba(56,189,248,.25);background:transparent;color:var(--text-color);font-size:.85rem;cursor:pointer;font-family:inherit}
+    .mcq-option:hover{border-color:var(--primary-color)}
+    .mcq-option.correct{background:rgba(22,163,74,.15);border-color:#16a34a;color:#16a34a;font-weight:700}
+    .mcq-option.wrong{background:rgba(220,38,38,.15);border-color:#dc2626;color:#dc2626;font-weight:700}
+
+    /* — Flashcards — */
+    .flash-wrap{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 12px}
+    .flash-card{flex-shrink:0;width:200px;height:130px;perspective:800px;cursor:pointer}
+    .flash-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+    .flash-card.flipped .flash-inner{transform:rotateY(180deg)}
+    .flash-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px;border:1px solid rgba(56,189,248,.25);background:var(--card-bg);display:flex;align-items:center;justify-content:center;padding:10px;text-align:center;font-size:.82rem}
+    .flash-face.back{transform:rotateY(180deg);background:rgba(37,99,235,.08);font-weight:600}
+
+    /* — Essay: inline highlight, rewrite, word-count — */
+    .essay-highlighted{background:var(--light-bg);border:1px solid rgba(56,189,248,.2);border-radius:10px;padding:12px;line-height:1.9;font-size:.88rem}
+    .essay-highlighted mark.err-imlo{background:rgba(220,38,38,.25);border-radius:3px}
+    .essay-highlighted mark.err-gram{background:rgba(217,119,6,.28);border-radius:3px}
+    .essay-word-count{font-size:.72rem;opacity:.6;text-align:right;margin-top:4px}
+    .essay-rewrite-box{background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.25);border-radius:10px;padding:12px;font-size:.85rem;line-height:1.7}
+    .essay-history-chart-wrap{background:var(--card-bg);border:1px solid rgba(56,189,248,.2);border-radius:14px;padding:12px}
+    .essay-pdf-btn,.essay-mic-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit}
     </style>
 </head>
 <body>
@@ -310,6 +379,15 @@
     <div id="sidebar-backdrop"></div>
     <aside id="chat-sidebar">
         <button type="button" id="new-chat-btn"><i class="fas fa-plus"></i> Yangi suhbat</button>
+        <select id="session-category-select" title="Kategoriya bo'yicha filtrlash">
+            <option value="">🔎 Barcha kategoriyalar</option>
+            <option value="umumiy">🌐 Umumiy</option>
+            <option value="fizika">⚛️ Fizika</option>
+            <option value="matematika">📐 Matematika</option>
+            <option value="kimyo">🧪 Kimyo</option>
+            <option value="tarix">📜 Tarix</option>
+            <option value="boshqa">📁 Boshqa</option>
+        </select>
         <div id="session-list"></div>
     </aside>
 
@@ -358,7 +436,9 @@
                         <option value="md" selected>O'rta</option>
                         <option value="lg">Katta</option>
                     </select>
-                    <button type="button" id="export-chat-btn" title="Suhbatni yuklab olish"><i class="fas fa-file-export"></i></button>
+                    <button type="button" id="export-chat-btn" title="Suhbatni .txt yuklab olish"><i class="fas fa-file-export"></i></button>
+                    <button type="button" id="export-pdf-btn" title="Suhbatni PDF yuklab olish"><i class="fas fa-file-pdf"></i></button>
+                    <button type="button" id="theme-toggle-btn" title="Qorong'i/yorug' rejim" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
                     <span id="rate-limit-label"></span>
                 </div>
 
@@ -370,6 +450,7 @@
                         </span>
                     </div>
                 </div>
+                <button type="button" id="scroll-bottom-btn" title="Pastga o'tish"><i class="fas fa-arrow-down"></i></button>
                 <div id="image-preview-box" style="display:none;padding:8px 14px;border-top:1px solid rgba(56,189,248,.1);flex-shrink:0;flex-wrap:wrap;gap:8px;align-items:center;">
                 </div>
                 <div class="chat-input-area" style="padding:8px 12px;flex-shrink:0;border-top:1px solid rgba(56,189,248,.15);background:var(--card-bg);">
@@ -410,6 +491,17 @@
                     <button class="mode-btn"        data-mode="exam"    onclick="selectMode(this)">📝 Imtihon</button>
                     <button class="mode-btn"        data-mode="qa"      onclick="selectMode(this)">❓ Savol-Javob</button>
                     <button class="mode-btn"        data-mode="step"    onclick="selectMode(this)">🪜 Bosqichma</button>
+                    <button class="mode-btn"        data-mode="flash"   onclick="selectMode(this)">🗂️ Fleshkartalar</button>
+                </div>
+                <div class="level-row">
+                    <span class="mode-lbl">Daraja:</span>
+                    <button class="mode-btn active" data-level="boshlangich" onclick="selectTutorLevel(this)">🌱 Boshlang'ich</button>
+                    <button class="mode-btn" data-level="ortacha" onclick="selectTutorLevel(this)">🌿 O'rta</button>
+                    <button class="mode-btn" data-level="chuqur" onclick="selectTutorLevel(this)">🌳 Chuqur</button>
+                </div>
+                <div class="tutor-stats" id="tutorStats">
+                    <span><i class="fas fa-fire"></i> Streak: <b id="tutorStreak">0</b> kun</span>
+                    <span><i class="fas fa-book"></i> Bugun: <b id="tutorTodayCount">0</b> ta savol</span>
                 </div>
                 <div class="chat-shell" style="flex:1;min-height:0;border-radius:0 0 14px 14px;">
                     <div id="tutor-messages" style="flex:1;min-height:0;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:10px;font-size:.92rem;">
@@ -420,6 +512,7 @@
                     </div>
                     <div class="chat-input-area" style="padding:8px 12px;flex-shrink:0;border-top:1px solid rgba(56,189,248,.15);background:var(--card-bg);">
                         <div style="display:flex;gap:8px;align-items:center;">
+                            <button type="button" id="tutor-mic-btn" title="Ovozli kiritish"><i class="fas fa-microphone"></i></button>
                             <input type="text" id="tutor-input" placeholder="Mavzu yoki savol yozing..."
                                 style="flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);outline:none;font-size:16px;font-family:inherit;">
                             <button type="button" id="tutor-send-btn" onclick="sendTutorMessage()" title="Yuborish"
@@ -445,7 +538,19 @@
                 </div>
                 <div class="essay-box">
                     <label>✏️ Insho yoki matn:</label>
+                    <div class="essay-lang-row" style="margin-bottom:8px">
+                        <button type="button" class="essay-mic-btn" id="essayMicBtn"><i class="fas fa-microphone"></i> Diktant</button>
+                    </div>
                     <textarea class="essay-textarea" id="essayText" placeholder="Matningizni yozing..."></textarea>
+                    <div class="essay-word-count" id="essayWordCount">0 ta so'z</div>
+                </div>
+                <div class="essay-box">
+                    <label>📑 Insho turi:</label>
+                    <div class="essay-lang-row">
+                        <button class="essay-lang-btn active" data-type="argument"  onclick="selectEssayType(this)">⚖️ Argumentativ</button>
+                        <button class="essay-lang-btn"        data-type="narrativ"  onclick="selectEssayType(this)">📖 Hikoya</button>
+                        <button class="essay-lang-btn"        data-type="tasvir"    onclick="selectEssayType(this)">🎨 Tasviriy</button>
+                    </div>
                 </div>
                 <div class="essay-box">
                     <label>🎯 Tekshirish darajasi:</label>
@@ -461,6 +566,15 @@
                 <div class="essay-result" id="essayResult">
                     <div class="essay-score" id="essayScore"></div>
                     <div id="essayResultContent"></div>
+                    <div class="essay-lang-row" style="margin-top:10px">
+                        <button type="button" class="essay-pdf-btn" id="essayPdfBtn"><i class="fas fa-file-pdf"></i> PDF hisobot</button>
+                    </div>
+                </div>
+                <div class="essay-box" id="essayHistoryBox" style="display:none">
+                    <label>📈 Tekshiruvlar tarixi:</label>
+                    <div class="essay-history-chart-wrap">
+                        <canvas id="essayHistoryChart" height="140"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -611,13 +725,13 @@
         if(p){ const b=document.querySelector(`.ai-tab[data-tab="${p}"]`); if(b) switchTab(p,b); }
     })();
 
-    let tutorSubject='fizika', tutorMode='explain';
-    function selectSubject(el){ document.querySelectorAll('.subj-chip').forEach(b=>b.classList.remove('active')); el.classList.add('active'); tutorSubject=el.dataset.subj; }
-    function selectMode(el){ document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); tutorMode=el.dataset.mode; }
+    window.tutorSubject='fizika'; window.tutorMode='explain';
+    function selectSubject(el){ document.querySelectorAll('.subj-chip').forEach(b=>b.classList.remove('active')); el.classList.add('active'); window.tutorSubject=el.dataset.subj; }
+    function selectMode(el){ document.querySelectorAll('.mode-btn[data-mode]').forEach(b=>b.classList.remove('active')); el.classList.add('active'); window.tutorMode=el.dataset.mode; }
 
-    let essayLang='uz', essayLevel='standard';
-    function selectEssayLang(el){ document.querySelectorAll('.essay-lang-btn[data-lang]').forEach(b=>b.classList.remove('active')); el.classList.add('active'); essayLang=el.dataset.lang; }
-    function selectEssayLevel(el){ document.querySelectorAll('.essay-lang-btn[data-level]').forEach(b=>b.classList.remove('active')); el.classList.add('active'); essayLevel=el.dataset.level; }
+    window.essayLang='uz'; window.essayLevel='standard';
+    function selectEssayLang(el){ document.querySelectorAll('.essay-lang-btn[data-lang]').forEach(b=>b.classList.remove('active')); el.classList.add('active'); window.essayLang=el.dataset.lang; }
+    function selectEssayLevel(el){ document.querySelectorAll('.essay-lang-btn[data-level]').forEach(b=>b.classList.remove('active')); el.classList.add('active'); window.essayLevel=el.dataset.level; }
 
     document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();if(window.ZiyomapSearch)ZiyomapSearch.open();} });
     </script>
@@ -655,6 +769,9 @@
     const rateLimitLabel = document.getElementById('rate-limit-label');
     const dropOverlay = document.getElementById('drop-overlay');
     const chatShell = document.querySelector('#tab-chat .chat-shell');
+    const exportPdfBtn = document.getElementById('export-pdf-btn');
+    const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
+    const categorySelect = document.getElementById('session-category-select');
 
     let currentFiles = []; // [{base64, mimeType, name, dataUrl}]
     let sessions = [];
@@ -664,6 +781,10 @@
     let recognizing = false;
     let speechRecognition = null;
     let currentUtterance = null;
+    let categoryFilter = '';
+    const DRAFT_KEY_PREFIX = 'ziyomap_draft_';
+
+    const QUICK_REPLIES = ["Davom et", "Soddaroq tushuntir", "Misol ber"];
 
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -699,11 +820,34 @@
     function getCurrentSession(){ return sessions.find(s=>s.id===currentSessionId); }
 
     function createNewSession(render){
-        const session = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), title:'Yangi suhbat', messages:[], createdAt:Date.now() };
+        const session = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), title:'Yangi suhbat', messages:[], createdAt:Date.now(), pinned:false, category:'' };
         sessions.unshift(session);
         currentSessionId = session.id;
         saveSessionsToStorage();
         if(render !== false){ renderChatFromSession(); renderSidebar(); }
+    }
+    function renameSession(id){
+        const session = sessions.find(s=>s.id===id); if(!session) return;
+        const newTitle = prompt("Suhbat nomini kiriting:", session.title);
+        if(newTitle && newTitle.trim()){ session.title = newTitle.trim().slice(0,60); saveSessionsToStorage(); renderSidebar(); }
+    }
+    function togglePin(id){
+        const session = sessions.find(s=>s.id===id); if(!session) return;
+        session.pinned = !session.pinned;
+        saveSessionsToStorage(); renderSidebar();
+    }
+    function cycleCategory(id){
+        const cats = ['', 'umumiy','fizika','matematika','kimyo','tarix','boshqa'];
+        const session = sessions.find(s=>s.id===id); if(!session) return;
+        const idx = cats.indexOf(session.category||'');
+        session.category = cats[(idx+1) % cats.length];
+        saveSessionsToStorage(); renderSidebar();
+    }
+    function categoryIcon(cat){
+        return { umumiy:'🌐', fizika:'⚛️', matematika:'📐', kimyo:'🧪', tarix:'📜', boshqa:'📁' }[cat] || '🏷️';
+    }
+    function categoryLabel(cat){
+        return { umumiy:'Umumiy', fizika:'Fizika', matematika:'Matematika', kimyo:'Kimyo', tarix:'Tarix', boshqa:'Boshqa' }[cat] || 'Kategoriyasiz';
     }
     function switchSession(id){
         currentSessionId = id;
@@ -711,6 +855,8 @@
         renderChatFromSession();
         renderSidebar();
         toggleSidebar(false);
+        if(userInputAi) userInputAi.value = '';
+        restoreDraft();
     }
     function deleteSession(id){
         sessions = sessions.filter(s=>s.id!==id);
@@ -723,15 +869,46 @@
     function renderSidebar(){
         if(!sessionListEl) return;
         sessionListEl.innerHTML = '';
-        sessions.forEach(s=>{
-            const item = document.createElement('div');
-            item.className = 'session-item' + (s.id===currentSessionId?' active':'');
-            item.innerHTML = `<span class="session-title">${esc(s.title||'Yangi suhbat')}</span><button type="button" class="session-delete-btn" title="O'chirish"><i class="fas fa-trash"></i></button>`;
-            item.querySelector('.session-title').addEventListener('click', ()=>switchSession(s.id));
-            item.querySelector('.session-delete-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(confirm("Ushbu suhbatni o'chirishni tasdiqlaysizmi?")) deleteSession(s.id); });
-            sessionListEl.appendChild(item);
-        });
+
+        let list = sessions.slice();
+        if(categoryFilter) list = list.filter(s => (s.category||'') === categoryFilter);
+
+        const pinned = list.filter(s=>s.pinned);
+        const rest = list.filter(s=>!s.pinned);
+
+        function renderGroup(items){
+            items.forEach(s=>{
+                const item = document.createElement('div');
+                item.className = 'session-item' + (s.id===currentSessionId?' active':'');
+                item.innerHTML = `
+                    <span class="session-title" title="${esc(s.title||'Yangi suhbat')}">${s.pinned?'📌 ':''}${categoryIcon(s.category)} ${esc(s.title||'Yangi suhbat')}</span>
+                    <span class="session-actions">
+                        <button type="button" class="pin-btn ${s.pinned?'pinned':''}" title="Pin"><i class="fas fa-thumbtack"></i></button>
+                        <button type="button" class="rename-btn" title="Nomini o'zgartirish"><i class="fas fa-pen"></i></button>
+                        <button type="button" class="category-btn" title="Kategoriya"><i class="fas fa-tag"></i></button>
+                        <button type="button" class="session-delete-btn" title="O'chirish"><i class="fas fa-trash"></i></button>
+                    </span>`;
+                item.querySelector('.session-title').addEventListener('click', ()=>switchSession(s.id));
+                item.querySelector('.pin-btn').addEventListener('click', (e)=>{ e.stopPropagation(); togglePin(s.id); });
+                item.querySelector('.rename-btn').addEventListener('click', (e)=>{ e.stopPropagation(); renameSession(s.id); });
+                item.querySelector('.category-btn').addEventListener('click', (e)=>{ e.stopPropagation(); cycleCategory(s.id); });
+                item.querySelector('.session-delete-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(confirm("Ushbu suhbatni o'chirishni tasdiqlaysizmi?")) deleteSession(s.id); });
+                sessionListEl.appendChild(item);
+            });
+        }
+
+        if(pinned.length){
+            const lbl = document.createElement('div'); lbl.className='session-group-label'; lbl.textContent="📌 Qadalgan";
+            sessionListEl.appendChild(lbl);
+            renderGroup(pinned);
+        }
+        if(!categoryFilter){
+            const lbl = document.createElement('div'); lbl.className='session-group-label'; lbl.textContent='Barchasi';
+            sessionListEl.appendChild(lbl);
+        }
+        renderGroup(rest);
     }
+    if(categorySelect) categorySelect.addEventListener('change', ()=>{ categoryFilter = categorySelect.value; renderSidebar(); });
     function toggleSidebar(force){
         if(!sidebarEl) return;
         const isOpen = typeof force==='boolean' ? force : !sidebarEl.classList.contains('open');
@@ -772,15 +949,50 @@
             d.innerHTML = esc(msg.text).replace(/\n/g,'<br>'); // XSS himoyasi: escape qilingan
             wrap.appendChild(d);
             addUserActions(wrap, msg);
+            appendTimestamp(wrap, msg);
         } else if(msg.text === '__loading__'){
             wrap.innerHTML='<div style="display:flex;gap:5px;align-items:center;padding:2px 0"><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .0s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .2s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .4s infinite"></span></div>';
+        } else if(msg.compare){
+            wrap.appendChild(renderCompareBlock(msg.compare));
+            appendTimestamp(wrap, msg);
         } else {
             wrap.appendChild(renderContent(msg.text));
             addAiActions(wrap, msg);
+            addQuickReplies(wrap);
+            appendTimestamp(wrap, msg);
         }
         chatMessages.appendChild(wrap);
         chatMessages.scrollTop = chatMessages.scrollHeight;
         return wrap;
+    }
+
+    function appendTimestamp(wrap, msg){
+        const t = document.createElement('div'); t.className='msg-time';
+        const d = new Date(msg.ts || Date.now());
+        t.textContent = d.toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+        wrap.appendChild(t);
+    }
+
+    function addQuickReplies(wrap){
+        const box = document.createElement('div'); box.className='quick-chips';
+        QUICK_REPLIES.forEach(q=>{
+            const chip = document.createElement('button'); chip.type='button'; chip.className='quick-chip'; chip.textContent = q;
+            chip.onclick = ()=>{ userInputAi.value = q; sendAiMessage(); };
+            box.appendChild(chip);
+        });
+        wrap.appendChild(box);
+    }
+
+    function renderCompareBlock(compare){
+        const box = document.createElement('div'); box.className='compare-wrap';
+        const oldCol = document.createElement('div'); oldCol.className='compare-col';
+        oldCol.innerHTML = '<div class="compare-label">Eski javob</div>';
+        oldCol.appendChild(renderContent(compare.oldText));
+        const newCol = document.createElement('div'); newCol.className='compare-col';
+        newCol.innerHTML = '<div class="compare-label">Yangi javob</div>';
+        newCol.appendChild(renderContent(compare.newText));
+        box.appendChild(oldCol); box.appendChild(newCol);
+        return box;
     }
 
     if(!document.getElementById('dotPulseStyle')){
@@ -875,13 +1087,14 @@
     function regenerateMessage(aiMsgId){
         const session = getCurrentSession(); if(!session) return;
         const idx = session.messages.findIndex(m=>m.id===aiMsgId); if(idx===-1) return;
+        const oldMsg = session.messages[idx];
         let userMsg = null;
         for(let i=idx-1;i>=0;i--){ if(session.messages[i].role==='user'){ userMsg=session.messages[i]; break; } }
         if(!userMsg) return;
         session.messages = session.messages.slice(0, idx);
         saveSessionsToStorage();
         renderChatFromSession();
-        performSend(userMsg.text, []);
+        performSend(userMsg.text, [], oldMsg.text);
     }
 
     function toggleSpeak(text){
@@ -1011,7 +1224,7 @@
         }
     }
 
-    async function performSend(text, files){
+    async function performSend(text, files, compareWithOld){
         if(isSending) return;
         isSending = true;
         if(sendBtnAi) sendBtnAi.disabled = true;
@@ -1054,7 +1267,15 @@
                 let aiReply = (data && (data.reply || data.error)) || 'Javob olinmadi.';
                 if(data && data.truncated) aiReply += "\n\n*(Javob uzunligi chegarasiga yetdi)*";
 
-                updateMessage(loadingId, aiReply);
+                if(compareWithOld){
+                    const session2 = getCurrentSession();
+                    const msg2 = session2 && session2.messages.find(m=>m.id===loadingId);
+                    if(msg2){ msg2.text = aiReply; msg2.compare = { oldText: compareWithOld, newText: aiReply }; }
+                    const el2 = document.getElementById(loadingId);
+                    if(el2){ el2.innerHTML=''; el2.appendChild(renderCompareBlock({oldText:compareWithOld,newText:aiReply})); appendTimestamp(el2, msg2||{ts:Date.now()}); }
+                } else {
+                    updateMessage(loadingId, aiReply);
+                }
                 saveSessionsToStorage();
                 renderSidebarTitleIfNeeded();
                 renderSidebar();
@@ -1101,6 +1322,7 @@
         if(!text && !currentFiles.length) return;
         const files = currentFiles;
         userInputAi.value = '';
+        clearDraft();
         window.cancelImage();
         await performSend(text, files);
     }
@@ -1109,10 +1331,76 @@
     if(sendBtnAi) sendBtnAi.addEventListener('click', sendAiMessage);
     if(userInputAi) userInputAi.addEventListener('keypress', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendAiMessage(); } });
 
+    // ---------- SCROLL-TO-BOTTOM ----------
+    if(chatMessages && scrollBottomBtn){
+        chatMessages.addEventListener('scroll', ()=>{
+            const nearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 60;
+            scrollBottomBtn.style.display = nearBottom ? 'none' : 'flex';
+        });
+        scrollBottomBtn.addEventListener('click', ()=>{
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            scrollBottomBtn.style.display = 'none';
+        });
+    }
+
+    // ---------- QORALAMA AVTOSAQLASH ----------
+    function draftKey(){ return DRAFT_KEY_PREFIX + currentSessionId; }
+    if(userInputAi){
+        userInputAi.addEventListener('input', ()=>{
+            try{ localStorage.setItem(draftKey(), userInputAi.value); }catch(e){}
+        });
+    }
+    function restoreDraft(){
+        try{
+            const d = localStorage.getItem(draftKey());
+            if(d && userInputAi) userInputAi.value = d;
+        }catch(e){}
+    }
+    function clearDraft(){ try{ localStorage.removeItem(draftKey()); }catch(e){} }
+
+    // ---------- PDF EKSPORT ----------
+    if(exportPdfBtn){
+        exportPdfBtn.addEventListener('click', async ()=>{
+            if(!window.html2canvas || !window.jspdf){ notifyError("PDF kutubxonasi yuklanmadi."); return; }
+            const session = getCurrentSession();
+            if(!session || !session.messages.length){ notifyError("Eksport qilish uchun suhbat bo'sh."); return; }
+            exportPdfBtn.disabled = true;
+            const oldIcon = exportPdfBtn.innerHTML;
+            exportPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try{
+                const canvas = await html2canvas(chatMessages, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--light-bg') || '#fff', scale: 2 });
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const imgWidth = pageWidth - 40;
+                const imgHeight = canvas.height * (imgWidth / canvas.width);
+                let heightLeft = imgHeight;
+                let position = 20;
+                const imgData = canvas.toDataURL('image/png');
+                pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+                heightLeft -= (pdf.internal.pageSize.getHeight() - 40);
+                while(heightLeft > 0){
+                    position = heightLeft - imgHeight + 20;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
+                    heightLeft -= pdf.internal.pageSize.getHeight();
+                }
+                pdf.save(`Ziyomap_Suhbat_${session.id}.pdf`);
+            }catch(e){
+                console.error(e);
+                notifyError("PDF yaratishda xatolik yuz berdi.");
+            }finally{
+                exportPdfBtn.disabled = false;
+                exportPdfBtn.innerHTML = oldIcon;
+            }
+        });
+    }
+
     // ---------- ISHGA TUSHIRISH ----------
     loadSessionsFromStorage();
     renderChatFromSession();
     renderSidebar();
+    restoreDraft();
     })();
     </script>
 
@@ -1121,22 +1409,117 @@
     ══════════════════════════════ -->
     <script>
     (function(){
-        const tutorHistory=[];
         const SUBJ={
             fizika:'Fizika',matematika:'Matematika',kimyo:'Kimyo',biologiya:'Biologiya',
             informatika:'Informatika',tarix:'Tarix',ingliz:'Ingliz tili',umumiy:'Umumiy fanlar'
         };
-        const MODE={
-            explain:'Murakkab tushunchalarni oddiy misollarda tushuntir. Har tushunchadan keyin "Savolingiz bormi?" de.',
-            exam:'Avval mavzuni so\'ra, keyin 4 variantli mini-test tuz. Javoblarni alohida ber.',
-            qa:'Savolga aniq va qisqa javob ber.',
-            step:'Mavzuni kichik bo\'laklarga bo\'l: Nazariya → Misol → Mashq → Tekshirish.',
+        const LEVEL_TXT = {
+            boshlangich: "Juda oddiy tilda, kundalik hayotdan misollar bilan tushuntir. Murakkab atamalardan qoching.",
+            ortacha: "O'rta maktab darajasida, formulalar va aniq misollar bilan tushuntir.",
+            chuqur: "Chuqur, akademik darajada, formulalarning kelib chiqishi va isboti bilan tushuntir.",
         };
+        window.tutorLevel = 'boshlangich';
+        function selectTutorLevel(el){
+            document.querySelectorAll('.level-row .mode-btn').forEach(b=>b.classList.remove('active'));
+            el.classList.add('active');
+            window.tutorLevel = el.dataset.level;
+        }
+        window.selectTutorLevel = selectTutorLevel;
+
+        // ---------- Fan bo'yicha alohida tarix ----------
+        const TUTOR_HIST_PREFIX = 'ziyomap_tutor_hist_';
+        function getTutorHistory(){
+            try{ return JSON.parse(localStorage.getItem(TUTOR_HIST_PREFIX + (window.tutorSubject||'umumiy'))||'[]'); }
+            catch{ return []; }
+        }
+        function saveTutorHistory(hist){
+            try{ localStorage.setItem(TUTOR_HIST_PREFIX + (window.tutorSubject||'umumiy'), JSON.stringify(hist.slice(-30))); }catch(e){}
+        }
+        let tutorHistory = getTutorHistory();
+
+        const origSelectSubject = window.selectSubject;
+        window.selectSubject = function(el){
+            origSelectSubject(el);
+            tutorHistory = getTutorHistory();
+            renderTutorHistoryFromStorage();
+        };
+
+        function renderTutorHistoryFromStorage(){
+            const wrap = document.getElementById('tutor-messages'); if(!wrap) return;
+            wrap.innerHTML='';
+            if(!tutorHistory.length){
+                wrap.innerHTML = `<div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:12px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:92%;">🎓 <strong>AI Tutor</strong> — ${esc(SUBJ[window.tutorSubject||'umumiy']||'Umumiy')} fani bo'yicha savol bering.</div>`;
+                return;
+            }
+            tutorHistory.forEach(h=>{
+                if(h.role==='user'){
+                    const d=document.createElement('div'); d.className='message-content'; d.innerHTML=esc(h.content);
+                    addBubble('user', d);
+                } else {
+                    addBubble('bot', renderContent(h.content));
+                }
+            });
+        }
+
+        // ---------- Statistika / streak ----------
+        const STATS_KEY = 'ziyomap_tutor_stats';
+        function getStats(){
+            try{ return JSON.parse(localStorage.getItem(STATS_KEY)||'{}'); }catch{ return {}; }
+        }
+        function bumpStats(){
+            const stats = getStats();
+            const today = new Date().toISOString().slice(0,10);
+            if(stats.lastDate !== today){
+                const yest = new Date(Date.now()-86400000).toISOString().slice(0,10);
+                stats.streak = (stats.lastDate === yest) ? (stats.streak||0)+1 : 1;
+                stats.lastDate = today;
+                stats.todayCount = 0;
+            }
+            stats.todayCount = (stats.todayCount||0)+1;
+            localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+            renderStats();
+        }
+        function renderStats(){
+            const stats = getStats();
+            const today = new Date().toISOString().slice(0,10);
+            const streakEl = document.getElementById('tutorStreak');
+            const countEl = document.getElementById('tutorTodayCount');
+            if(streakEl) streakEl.textContent = stats.lastDate===today ? (stats.streak||0) : 0;
+            if(countEl) countEl.textContent = stats.lastDate===today ? (stats.todayCount||0) : 0;
+        }
 
         function buildSystem(){
             const s=SUBJ[window.tutorSubject||'umumiy']||'Umumiy';
-            const m=MODE[window.tutorMode||'explain']||MODE.explain;
-            return `Sen Ziyomap AI Tutorisan. Fan: ${s}. ${m}
+            const lvl = LEVEL_TXT[window.tutorLevel||'boshlangich'];
+            const mode = window.tutorMode||'explain';
+            let modeInstruction;
+            if(mode==='explain'){
+                modeInstruction = 'Murakkab tushunchalarni oddiy misollarda tushuntir. Oxirida "Savolingiz bormi?" de.';
+            } else if(mode==='qa'){
+                modeInstruction = 'Savolga aniq va qisqa javob ber.';
+            } else if(mode==='step'){
+                modeInstruction = 'Mavzuni ANIQ 3-5 ta bosqichga bo\'l (Nazariya, Misol, Mashq, Tekshirish kabi). HAR BIR bosqichni "\\n---STEP---\\n" belgisi bilan ajrat. Boshqa hech qanday izoh qo\'shma, faqat bosqichlarni ber.';
+            } else if(mode==='exam'){
+                modeInstruction = `Mavzu bo'yicha ANIQ 3 ta 4-variantli test savoli tuz. FAQAT quyidagi formatda javob ber, boshqa hech narsa yozma:
+SAVOL: <savol matni>
+A) <variant>
+B) <variant>
+C) <variant>
+D) <variant>
+JAVOB: <to'g'ri variant harfi, masalan A>
+===
+(shu formatda yana 2 ta savol, "===" bilan ajratilgan)`;
+            } else if(mode==='flash'){
+                modeInstruction = `Mavzu bo'yicha 5 ta fleshkarta tuz. FAQAT quyidagi formatda javob ber:
+TERMIN: <atama yoki savol>
+TA'RIF: <ta'rif yoki javob>
+===
+(shu formatda yana 4 ta, "===" bilan ajratilgan)`;
+            } else {
+                modeInstruction = 'Savolga aniq javob ber.';
+            }
+            return `Sen Ziyomap AI Tutorisan. Fan: ${s}. Daraja: ${lvl}
+${modeInstruction}
 O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $$E=mc^2$$. Kodlarni \`\`\`lang ... \`\`\` ichida yoz. Do'stona bo'l.`;
         }
 
@@ -1167,6 +1550,83 @@ O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $
             return d;
         }
 
+        // ---------- Bosqichma-bosqich (step) reveal ----------
+        function renderStepReveal(rawText){
+            const steps = rawText.split('---STEP---').map(s=>s.trim()).filter(Boolean);
+            if(steps.length < 2){ addBubble('bot', renderContent(rawText)); return; }
+            let idx = 0;
+            const container = document.createElement('div');
+            container.appendChild(renderContent(steps[0]));
+            const btn = document.createElement('button'); btn.type='button'; btn.className='step-next-btn';
+            btn.textContent = `Keyingi qadam (1/${steps.length}) →`;
+            btn.onclick = ()=>{
+                idx++;
+                container.insertBefore(renderContent(steps[idx]), btn);
+                if(idx >= steps.length-1){ btn.remove(); }
+                else { btn.textContent = `Keyingi qadam (${idx+1}/${steps.length}) →`; }
+                document.getElementById('tutor-messages').scrollTop = document.getElementById('tutor-messages').scrollHeight;
+            };
+            container.appendChild(btn);
+            addBubble('bot', container);
+        }
+
+        // ---------- Interaktiv test (MCQ) ----------
+        function renderExamMCQ(rawText){
+            const blocks = rawText.split('===').map(s=>s.trim()).filter(Boolean);
+            let parsedAny = false;
+            const container = document.createElement('div');
+            blocks.forEach(block=>{
+                const qMatch = block.match(/SAVOL:\s*([\s\S]*?)\n[A-D]\)/);
+                const optMatches = [...block.matchAll(/([A-D])\)\s*(.+)/g)];
+                const ansMatch = block.match(/JAVOB:\s*([A-D])/);
+                if(!qMatch || optMatches.length < 2 || !ansMatch) return;
+                parsedAny = true;
+                const box = document.createElement('div'); box.className='mcq-box';
+                const qDiv = document.createElement('div'); qDiv.className='mcq-question'; qDiv.textContent = qMatch[1].trim();
+                box.appendChild(qDiv);
+                const correctLetter = ansMatch[1];
+                optMatches.forEach(([, letter, text])=>{
+                    const optBtn = document.createElement('button'); optBtn.type='button'; optBtn.className='mcq-option';
+                    optBtn.textContent = `${letter}) ${text.trim()}`;
+                    optBtn.onclick = ()=>{
+                        box.querySelectorAll('.mcq-option').forEach(b=>b.disabled=true);
+                        if(letter === correctLetter) optBtn.classList.add('correct');
+                        else {
+                            optBtn.classList.add('wrong');
+                            const correctBtn = [...box.querySelectorAll('.mcq-option')].find(b=>b.textContent.startsWith(correctLetter+')'));
+                            if(correctBtn) correctBtn.classList.add('correct');
+                        }
+                    };
+                    box.appendChild(optBtn);
+                });
+                container.appendChild(box);
+            });
+            if(!parsedAny){ addBubble('bot', renderContent(rawText)); return; }
+            addBubble('bot', container);
+        }
+
+        // ---------- Fleshkartalar ----------
+        function renderFlashcards(rawText){
+            const blocks = rawText.split('===').map(s=>s.trim()).filter(Boolean);
+            let parsedAny = false;
+            const wrap = document.createElement('div'); wrap.className='flash-wrap';
+            blocks.forEach(block=>{
+                const termMatch = block.match(/TERMIN:\s*([\s\S]*?)\nTA'RIF:/);
+                const defMatch = block.match(/TA'RIF:\s*([\s\S]*)/);
+                if(!termMatch || !defMatch) return;
+                parsedAny = true;
+                const card = document.createElement('div'); card.className='flash-card';
+                card.innerHTML = `<div class="flash-inner">
+                    <div class="flash-face front">${esc(termMatch[1].trim())}</div>
+                    <div class="flash-face back">${esc(defMatch[1].trim())}</div>
+                </div>`;
+                card.onclick = ()=>card.classList.toggle('flipped');
+                wrap.appendChild(card);
+            });
+            if(!parsedAny){ addBubble('bot', renderContent(rawText)); return; }
+            addBubble('bot', wrap);
+        }
+
         window.sendTutorMessage=async function(){
             const inp=document.getElementById('tutor-input');
             const btn=document.getElementById('tutor-send-btn');
@@ -1193,8 +1653,16 @@ O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $
                 const data=await res.json();
                 const reply=data.reply||data.text||data.content||'(Javob kelmadi)';
                 tutorHistory.push({role:'assistant',content:reply});
+                saveTutorHistory(tutorHistory);
                 if(thinking) thinking.remove();
-                addBubble('bot', renderContent(reply));
+
+                const mode = window.tutorMode||'explain';
+                if(mode==='step') renderStepReveal(reply);
+                else if(mode==='exam') renderExamMCQ(reply);
+                else if(mode==='flash') renderFlashcards(reply);
+                else addBubble('bot', renderContent(reply));
+
+                bumpStats();
                 if(window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-tutor','AI Tutor');
             }catch(err){
                 if(thinking) thinking.remove();
@@ -1206,9 +1674,33 @@ O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $
             }
         };
 
+        // ---------- Ovozli kiritish (Tutor) ----------
+        const TutorSpeechCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
         document.addEventListener('DOMContentLoaded',()=>{
             const inp=document.getElementById('tutor-input');
             if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendTutorMessage();} });
+
+            const micBtn = document.getElementById('tutor-mic-btn');
+            if(micBtn){
+                if(!TutorSpeechCtor){ micBtn.style.display='none'; }
+                else {
+                    let recognizing = false, recog = null;
+                    micBtn.addEventListener('click', ()=>{
+                        if(recognizing){ recog.stop(); return; }
+                        recog = new TutorSpeechCtor();
+                        recog.lang = 'uz-UZ';
+                        recog.interimResults = false;
+                        recog.onstart = ()=>{ recognizing=true; micBtn.classList.add('active'); };
+                        recog.onend = ()=>{ recognizing=false; micBtn.classList.remove('active'); };
+                        recog.onerror = ()=>{ recognizing=false; micBtn.classList.remove('active'); };
+                        recog.onresult = (event)=>{ const t=event.results[0][0].transcript; inp.value=(inp.value?inp.value+' ':'')+t; };
+                        recog.start();
+                    });
+                }
+            }
+
+            renderStats();
+            renderTutorHistoryFromStorage();
         });
     })();
     </script>
@@ -1217,29 +1709,125 @@ O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $
          ESSAY CHECKER
     ══════════════════════════════ -->
     <script>
-    window.checkEssay = async function() {
-        const textEl   = document.getElementById('essayText');
-        const btn      = document.getElementById('essayCheckBtn');
-        const result   = document.getElementById('essayResult');
-        const scoreEl  = document.getElementById('essayScore');
-        const contentEl= document.getElementById('essayResultContent');
+    (function(){
+        window.essayType = 'argument';
+        window.selectEssayType = function(el){
+            document.querySelectorAll('.essay-lang-btn[data-type]').forEach(b=>b.classList.remove('active'));
+            el.classList.add('active');
+            window.essayType = el.dataset.type;
+        };
 
-        if (!textEl || !result) return;
-        const text = textEl.value.trim();
-        if (!text || text.length < 20) {
-            if (window.ZiyomapNotify) ZiyomapNotify.error('Matn juda qisqa (kamida 20 belgi)!');
-            return;
+        function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        // ---------- So'z hisoblagich ----------
+        const essayTextEl = document.getElementById('essayText');
+        const wordCountEl = document.getElementById('essayWordCount');
+        function updateWordCount(){
+            if(!essayTextEl || !wordCountEl) return;
+            const words = essayTextEl.value.trim().split(/\s+/).filter(Boolean);
+            const wc = words.length;
+            const readMin = Math.max(1, Math.round(wc/130));
+            wordCountEl.textContent = `${wc} ta so'z · ~${readMin} daqiqa o'qish`;
+        }
+        if(essayTextEl){ essayTextEl.addEventListener('input', updateWordCount); updateWordCount(); }
+
+        // ---------- Ovozli diktovka ----------
+        const EssaySpeechCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const essayMicBtn = document.getElementById('essayMicBtn');
+        if(essayMicBtn){
+            if(!EssaySpeechCtor){ essayMicBtn.style.display='none'; }
+            else {
+                let recognizing=false, recog=null;
+                essayMicBtn.addEventListener('click', ()=>{
+                    if(recognizing){ recog.stop(); return; }
+                    recog = new EssaySpeechCtor();
+                    recog.lang = window.essayLang==='en' ? 'en-US' : window.essayLang==='ru' ? 'ru-RU' : 'uz-UZ';
+                    recog.interimResults = false;
+                    recog.continuous = true;
+                    recog.onstart = ()=>{ recognizing=true; essayMicBtn.classList.add('active'); essayMicBtn.style.color='#ef4444'; };
+                    recog.onend = ()=>{ recognizing=false; essayMicBtn.style.color=''; };
+                    recog.onresult = (event)=>{
+                        let t=''; for(let i=event.resultIndex;i<event.results.length;i++) t+=event.results[i][0].transcript;
+                        essayTextEl.value = (essayTextEl.value?essayTextEl.value+' ':'')+t;
+                        updateWordCount();
+                    };
+                    recog.start();
+                });
+            }
         }
 
-        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tekshirilmoqda...'; }
-        if (result) result.classList.remove('show');
+        // ---------- Tarix + grafik ----------
+        const ESSAY_HIST_KEY = 'ziyomap_essay_history';
+        function getEssayHistory(){ try{ return JSON.parse(localStorage.getItem(ESSAY_HIST_KEY)||'[]'); }catch{ return []; } }
+        function saveEssayScore(score){
+            const hist = getEssayHistory();
+            hist.push({ date: new Date().toISOString().slice(0,10), score, ts: Date.now() });
+            localStorage.setItem(ESSAY_HIST_KEY, JSON.stringify(hist.slice(-30)));
+            renderEssayHistoryChart();
+        }
+        let essayChartInstance = null;
+        function renderEssayHistoryChart(){
+            const hist = getEssayHistory();
+            const box = document.getElementById('essayHistoryBox');
+            const canvas = document.getElementById('essayHistoryChart');
+            if(!hist.length || !canvas){ if(box) box.style.display='none'; return; }
+            if(box) box.style.display='block';
+            if(essayChartInstance) essayChartInstance.destroy();
+            essayChartInstance = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: hist.map(h=>h.date),
+                    datasets: [{ label: 'Ball', data: hist.map(h=>h.score), borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,.15)', tension:.3, fill:true }]
+                },
+                options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ min:0, max:100 } }, plugins:{ legend:{ display:false } } }
+            });
+        }
 
-        const langMap  = { uz: "O'zbek", ru: "Rus", en: "Ingliz" };
-        const levelMap = { standard: "standart", academic: "akademik (ilmiy)", school: "maktab (o'quvchi)" };
-        const curLang  = window.essayLang  || 'uz';
-        const curLevel = window.essayLevel || 'standard';
+        // ---------- PDF eksport ----------
+        const essayPdfBtn = document.getElementById('essayPdfBtn');
+        if(essayPdfBtn){
+            essayPdfBtn.addEventListener('click', async ()=>{
+                const result = document.getElementById('essayResult');
+                if(!result || !window.html2canvas || !window.jspdf) return;
+                essayPdfBtn.disabled = true;
+                try{
+                    const canvas = await html2canvas(result, { backgroundColor:'#ffffff', scale:2 });
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p','pt','a4');
+                    const w = pdf.internal.pageSize.getWidth()-40;
+                    const h = canvas.height*(w/canvas.width);
+                    pdf.addImage(canvas.toDataURL('image/png'),'PNG',20,20,w,h);
+                    pdf.save('Ziyomap_Insho_Hisobot.pdf');
+                }catch(e){ if(window.ZiyomapNotify) ZiyomapNotify.error('PDF yaratib bo\'lmadi.'); }
+                finally{ essayPdfBtn.disabled=false; }
+            });
+        }
 
-        const prompt = `Sen professional matn muharriri va tilshunos mutaxassissan. ${langMap[curLang] || "O'zbek"} tilidagi matnni ${levelMap[curLevel] || "standart"} darajada chuqur tahlil qil.
+        window.checkEssay = async function() {
+            const textEl   = document.getElementById('essayText');
+            const btn      = document.getElementById('essayCheckBtn');
+            const result   = document.getElementById('essayResult');
+            const scoreEl  = document.getElementById('essayScore');
+            const contentEl= document.getElementById('essayResultContent');
+
+            if (!textEl || !result) return;
+            const text = textEl.value.trim();
+            if (!text || text.length < 20) {
+                if (window.ZiyomapNotify) ZiyomapNotify.error('Matn juda qisqa (kamida 20 belgi)!');
+                return;
+            }
+
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tekshirilmoqda...'; }
+            if (result) result.classList.remove('show');
+
+            const langMap  = { uz: "O'zbek", ru: "Rus", en: "Ingliz" };
+            const levelMap = { standard: "standart", academic: "akademik (ilmiy)", school: "maktab (o'quvchi)" };
+            const typeMap  = { argument: "argumentativ (dalilli)", narrativ: "hikoya", tasvir: "tasviriy" };
+            const curLang  = window.essayLang  || 'uz';
+            const curLevel = window.essayLevel || 'standard';
+            const curType  = window.essayType  || 'argument';
+
+            const prompt = `Sen professional matn muharriri va tilshunos mutaxassissan. ${langMap[curLang] || "O'zbek"} tilidagi ${typeMap[curType]||''} turidagi matnni ${levelMap[curLevel] || "standart"} darajada chuqur tahlil qil.
 
 MATN:
 """
@@ -1249,72 +1837,104 @@ ${text}
 FAQAT quyidagi formatda javob ber (har kalit so'z yangi qatorda, keyin ikki nuqta):
 BALL: [0 dan 100 gacha son]
 XULOSA: [matn haqida 2-3 gaplik umumiy baho]
-IMLO: [imlo xatolari ro'yxati yoki "Xato topilmadi"]
-GRAMMATIKA: [grammatik xatolar ro'yxati yoki "Xato topilmadi"]
+IMLO: [aniq xato so'z yoki iborani asl matndan AYNAN ko'chirib, har birini yangi qatorda yoz; xato bo'lmasa "Xato topilmadi"]
+GRAMMATIKA: [aniq xato so'z yoki iborani asl matndan AYNAN ko'chirib, har birini yangi qatorda yoz; xato bo'lmasa "Xato topilmadi"]
 USLUB: [uslub haqida tahlil]
 KUCHLI: [matnning kuchli tomonlari]
-TAVSIYA: [yaxshilash bo'yicha 2-3 aniq tavsiya]`;
+TAVSIYA: [yaxshilash bo'yicha 2-3 aniq tavsiya]
+TUZATILGAN: [matnning to'liq qayta yozilgan, tuzatilgan versiyasi]`;
 
-        try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: prompt, history: [] })
-            });
-            if (!res.ok) throw new Error('Server xatosi: ' + res.status);
-            const data = await res.json();
-            const reply = data.reply || data.text || '';
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: prompt, history: [] })
+                });
+                if (!res.ok) throw new Error('Server xatosi: ' + res.status);
+                const data = await res.json();
+                const reply = data.reply || data.text || '';
 
-            const get = key => {
-                const m = reply.match(new RegExp(key + ':\\s*([\\s\\S]*?)(?=\\n[A-ZОЬЪ]+:|$)'));
-                return m ? m[1].trim() : '—';
-            };
-            const ball = Math.min(100, Math.max(0, parseInt(reply.match(/BALL:\s*(\d+)/)?.[1]) || 0));
-            const color = ball >= 80 ? '#16a34a' : ball >= 60 ? '#d97706' : '#dc2626';
-            const label = ball >= 80 ? 'Ajoyib! 🌟' : ball >= 60 ? 'Yaxshi 👍' : 'Yaxshilash kerak ✏️';
+                const get = key => {
+                    const m = reply.match(new RegExp(key + ':\\s*([\\s\\S]*?)(?=\\n[A-Z]+:|$)'));
+                    return m ? m[1].trim() : '—';
+                };
+                const ball = Math.min(100, Math.max(0, parseInt(reply.match(/BALL:\s*(\d+)/)?.[1]) || 0));
+                const color = ball >= 80 ? '#16a34a' : ball >= 60 ? '#d97706' : '#dc2626';
+                const label = ball >= 80 ? 'Ajoyib! 🌟' : ball >= 60 ? 'Yaxshi 👍' : 'Yaxshilash kerak ✏️';
 
-            if (scoreEl) scoreEl.innerHTML = `
-                <span style="color:${color};font-size:2.5rem;font-weight:800">${ball}</span>
-                <span style="color:${color};font-size:1.2rem">/100</span>
-                <div style="font-size:.9rem;font-weight:600;color:${color};margin-top:4px">${label}</div>`;
+                if (scoreEl) scoreEl.innerHTML = `
+                    <span style="color:${color};font-size:2.5rem;font-weight:800">${ball}</span>
+                    <span style="color:${color};font-size:1.2rem">/100</span>
+                    <div style="font-size:.9rem;font-weight:600;color:${color};margin-top:4px">${label}</div>`;
 
-            const barColor = color;
-            const progressBar = `<div style="background:rgba(0,0,0,.08);border-radius:8px;height:10px;margin:0 0 20px;overflow:hidden">
-                <div style="width:${ball}%;height:100%;background:${barColor};border-radius:8px;transition:width .8s ease"></div>
-            </div>`;
+                const barColor = color;
+                const progressBar = `<div style="background:rgba(0,0,0,.08);border-radius:8px;height:10px;margin:0 0 20px;overflow:hidden">
+                    <div style="width:${ball}%;height:100%;background:${barColor};border-radius:8px;transition:width .8s ease"></div>
+                </div>`;
 
-            const sections = [
-                { key: 'XULOSA',      title: '📊 Umumiy baho'       },
-                { key: 'IMLO',        title: '🔤 Imlo xatolari'      },
-                { key: 'GRAMMATIKA',  title: '📝 Grammatika'          },
-                { key: 'USLUB',       title: '✍️ Uslub tahlili'      },
-                { key: 'KUCHLI',      title: '💪 Kuchli tomonlar'     },
-                { key: 'TAVSIYA',     title: '💡 Tavsiyalar'          },
-            ];
+                // ---------- Matn ichida xatolarni belgilash ----------
+                const imloVal = get('IMLO');
+                const gramVal = get('GRAMMATIKA');
+                function extractPhrases(val){
+                    if(!val || /xato topilmadi/i.test(val)) return [];
+                    return val.split('\n').map(l=>l.replace(/^[-•\d.\)]\s*/,'').trim()).filter(l=>l.length>1 && l.length<80);
+                }
+                let highlighted = esc(text);
+                extractPhrases(imloVal).forEach(p=>{
+                    const safe = esc(p); if(!safe) return;
+                    try{ highlighted = highlighted.split(safe).join(`<mark class="err-imlo">${safe}</mark>`); }catch(e){}
+                });
+                extractPhrases(gramVal).forEach(p=>{
+                    const safe = esc(p); if(!safe) return;
+                    try{ highlighted = highlighted.split(safe).join(`<mark class="err-gram">${safe}</mark>`); }catch(e){}
+                });
+                const highlightHtml = `<div class="essay-section"><div class="essay-section-title">🖊️ Matningiz (xatolar belgilangan)</div><div class="essay-highlighted">${highlighted.replace(/\n/g,'<br>')}</div>
+                    <div style="margin-top:8px;font-size:.7rem;opacity:.7"><mark class="err-imlo">qizil</mark> — imlo, <mark class="err-gram">sariq</mark> — grammatika</div></div>`;
 
-            function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+                const sections = [
+                    { key: 'XULOSA',      title: '📊 Umumiy baho'       },
+                    { key: 'USLUB',       title: '✍️ Uslub tahlili'      },
+                    { key: 'KUCHLI',      title: '💪 Kuchli tomonlar'     },
+                    { key: 'TAVSIYA',     title: '💡 Tavsiyalar'          },
+                ];
 
-            const sectHtml = sections.map(s => {
-                const val = get(s.key);
-                const lines = val.split('\n').filter(l => l.trim());
-                const body = lines.length > 1
-                    ? '<ul style="margin:8px 0 0;padding-left:18px">' + lines.map(l => `<li style="margin-bottom:4px">${esc(l.replace(/^[-•]\s*/,''))}</li>`).join('') + '</ul>'
-                    : `<div style="margin-top:6px">${esc(val)}</div>`;
-                return `<div class="essay-section"><div class="essay-section-title">${s.title}</div>${body}</div>`;
-            }).join('');
+                const sectHtml = sections.map(s => {
+                    const val = get(s.key);
+                    const lines = val.split('\n').filter(l => l.trim());
+                    const body = lines.length > 1
+                        ? '<ul style="margin:8px 0 0;padding-left:18px">' + lines.map(l => `<li style="margin-bottom:4px">${esc(l.replace(/^[-•]\s*/,''))}</li>`).join('') + '</ul>'
+                        : `<div style="margin-top:6px">${esc(val)}</div>`;
+                    return `<div class="essay-section"><div class="essay-section-title">${s.title}</div>${body}</div>`;
+                }).join('');
 
-            if (contentEl) contentEl.innerHTML = progressBar + sectHtml;
-            if (result) result.classList.add('show');
-            result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            if (window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-essay', 'Essay Checker');
+                const rewritten = get('TUZATILGAN');
+                const rewriteHtml = (rewritten && rewritten !== '—') ? `
+                    <div class="essay-section">
+                        <div class="essay-section-title">✨ Tuzatilgan versiya</div>
+                        <div class="essay-rewrite-box">${esc(rewritten).replace(/\n/g,'<br>')}</div>
+                        <div class="essay-lang-row" style="margin-top:8px">
+                            <button type="button" class="essay-pdf-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(rewritten)})"><i class="fas fa-copy"></i> Nusxalash</button>
+                            <button type="button" class="essay-pdf-btn" onclick="document.getElementById('essayText').value=${JSON.stringify(rewritten)};document.getElementById('essayText').dispatchEvent(new Event('input'))"><i class="fas fa-arrow-rotate-left"></i> Matn o'rniga qo'yish</button>
+                        </div>
+                    </div>` : '';
 
-        } catch(err) {
-            if (window.ZiyomapNotify) ZiyomapNotify.error('Xatolik: ' + err.message);
-            console.error('[essay]', err);
-        } finally {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-search"></i> Matnni tekshirish'; }
-        }
-    };
+                if (contentEl) contentEl.innerHTML = progressBar + highlightHtml + sectHtml + rewriteHtml;
+                if (result) result.classList.add('show');
+                result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-essay', 'Essay Checker');
+
+                saveEssayScore(ball);
+
+            } catch(err) {
+                if (window.ZiyomapNotify) ZiyomapNotify.error('Xatolik: ' + err.message);
+                console.error('[essay]', err);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-search"></i> Matnni tekshirish'; }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', renderEssayHistoryChart);
+    })();
     </script>
 
 </body>
