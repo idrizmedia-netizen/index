@@ -223,6 +223,7 @@
     .msg-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
     .msg-action-btn{padding:5px 10px;font-size:.75rem;font-weight:600;cursor:pointer;border-radius:6px;border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);font-family:inherit;transition:.15s}
     .msg-action-btn:hover{background:var(--primary-color);color:#fff}
+    .msg-action-btn.active{background:var(--primary-color);color:#fff}
 
     /* ── MOBIL ── */
     @media(max-width:768px){
@@ -259,12 +260,63 @@
         .message-content .katex-display { font-size: .95em; }
         .chart-container canvas { max-height: 200px !important; }
     }
+
+    /* ══════════════════════════════════════
+       AI CHAT — YANGI QO'SHIMCHALAR
+       (Faqat "AI Chat" tab uchun; Tutor/Essay'ga tegilmagan)
+    ══════════════════════════════════════ */
+    #offline-banner{display:none;background:#f59e0b;color:#1e1e1e;text-align:center;padding:6px 10px;font-size:.82rem;font-weight:700;flex-shrink:0}
+
+    #chat-sidebar{position:fixed;top:0;left:0;bottom:0;width:280px;max-width:80vw;background:var(--card-bg);border-right:1px solid rgba(56,189,248,.2);display:flex;flex-direction:column;z-index:300;transform:translateX(-100%);transition:transform .25s ease;box-shadow:4px 0 20px rgba(0,0,0,.15)}
+    #chat-sidebar.open{transform:translateX(0)}
+    #sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:250}
+    #sidebar-backdrop.open{display:block}
+    #new-chat-btn{margin:10px;padding:10px;border:none;border-radius:10px;background:var(--primary-color);color:#fff;font-weight:700;cursor:pointer;font-family:inherit}
+    #session-list{flex:1;overflow-y:auto;padding:0 8px}
+    .session-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.85rem;margin-bottom:4px;gap:6px;color:var(--text-color)}
+    .session-item:hover{background:rgba(56,189,248,.1)}
+    .session-item.active{background:rgba(37,99,235,.15);font-weight:700}
+    .session-title{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .session-delete-btn{border:none;background:transparent;color:#94a3b8;cursor:pointer;padding:2px 4px}
+    .session-delete-btn:hover{color:#ef4444}
+    #sidebar-toggle-btn{border:none;background:transparent;color:var(--primary-color);font-size:1.15rem;cursor:pointer;padding:4px 8px;flex-shrink:0}
+
+    .chat-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(56,189,248,.15);flex-wrap:wrap;background:var(--card-bg);flex-shrink:0}
+    #chat-search-input,#font-size-select{padding:6px 10px;border-radius:8px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);font-size:.85rem;font-family:inherit}
+    #chat-search-input{flex:1;min-width:100px}
+    #export-chat-btn{border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;padding:6px 10px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+    #rate-limit-label{display:none;font-size:.72rem;color:var(--text-color);opacity:.6;white-space:nowrap}
+
+    #drop-overlay{display:none;position:absolute;inset:0;background:rgba(37,99,235,.1);border:3px dashed var(--primary-color);align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:var(--primary-color);z-index:20;pointer-events:none;border-radius:16px}
+
+    #mic-btn,#stop-btn{border:none;background:transparent;color:var(--primary-color);font-size:1.15rem;cursor:pointer;padding:6px 8px;flex-shrink:0}
+    #mic-btn.active{color:#ef4444;animation:ziyoPulse 1s infinite}
+    #stop-btn{color:#ef4444;display:none}
+    @keyframes ziyoPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+    body.font-sm #chat-messages .message-content{font-size:.85rem}
+    body.font-lg #chat-messages .message-content{font-size:1.12rem}
+
+    .file-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:rgba(56,189,248,.1);color:var(--text-color);font-size:.78rem;margin:4px 6px 0 0}
+    .file-preview-item{position:relative;display:inline-flex}
+    .file-preview-item img{max-height:64px;border-radius:7px;border:1px solid var(--primary-color)}
+    .file-preview-item .preview-remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:.68rem;line-height:1;border:none;cursor:pointer}
+
+    @media(max-width:768px){ #chat-sidebar{width:85vw} #chat-search-input{font-size:16px} }
     </style>
 </head>
 <body>
+    <div id="offline-banner"><i class="fas fa-wifi"></i> Internet aloqasi yo'q</div>
+    <div id="sidebar-backdrop"></div>
+    <aside id="chat-sidebar">
+        <button type="button" id="new-chat-btn"><i class="fas fa-plus"></i> Yangi suhbat</button>
+        <div id="session-list"></div>
+    </aside>
+
     <div class="chat-page-wrap">
         <!-- TOP BAR -->
         <div class="chat-top-bar">
+            <button type="button" id="sidebar-toggle-btn" title="Suhbatlar ro'yxati"><i class="fas fa-bars"></i></button>
             <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Bosh sahifa</a>
             <h1 class="chat-page-title"><i class="fas fa-brain"></i> Ziyomap AI</h1>
             <a href="dashboard.html" style="color:var(--primary-color);font-weight:600;font-size:0.9rem;">
@@ -292,11 +344,24 @@
 
         <!-- TAB 1 — AI CHAT -->
         <div class="tab-panel active" id="tab-chat">
-            <div class="chat-shell">
+            <div class="chat-shell" style="position:relative;">
+                <div id="drop-overlay"><i class="fas fa-cloud-arrow-up"></i>&nbsp; Faylni shu yerga tashlang</div>
                 <div class="chat-header" style="background:var(--primary-color);padding:12px 16px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
                     <span><i class="fas fa-robot"></i> Sun'iy intellekt yordamchisi</span>
                     <span style="font-size:.72rem;opacity:.8">KaTeX · Chart.js · hljs</span>
                 </div>
+
+                <div class="chat-toolbar">
+                    <input type="text" id="chat-search-input" placeholder="Suhbatdan qidirish...">
+                    <select id="font-size-select" title="Shrift o'lchami">
+                        <option value="sm">Kichik</option>
+                        <option value="md" selected>O'rta</option>
+                        <option value="lg">Katta</option>
+                    </select>
+                    <button type="button" id="export-chat-btn" title="Suhbatni yuklab olish"><i class="fas fa-file-export"></i></button>
+                    <span id="rate-limit-label"></span>
+                </div>
+
                 <div id="chat-messages" style="flex:1;padding:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:10px;font-size:.92rem;min-height:0;">
                     <div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:14px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:92%;">
                         <strong>Assalomu alaykum!</strong> Savol bering — formulalar, grafiklar va kodlar chiroyli ko'rinadi.<br><br>
@@ -305,18 +370,18 @@
                         </span>
                     </div>
                 </div>
-                <div id="image-preview-box" style="display:none;padding:8px 14px;border-top:1px solid rgba(56,189,248,.1);flex-shrink:0;">
-                    <img id="preview-img" src="" alt="" style="max-height:70px;border-radius:7px;border:1px solid var(--primary-color);">
-                    <button type="button" onclick="cancelImage()" style="margin-left:8px;cursor:pointer;color:#ef4444;border:none;background:transparent;font-size:1.2rem;">×</button>
+                <div id="image-preview-box" style="display:none;padding:8px 14px;border-top:1px solid rgba(56,189,248,.1);flex-shrink:0;flex-wrap:wrap;gap:8px;align-items:center;">
                 </div>
                 <div class="chat-input-area" style="padding:8px 12px;flex-shrink:0;border-top:1px solid rgba(56,189,248,.15);background:var(--card-bg);">
                     <div style="display:flex;gap:8px;align-items:center;">
                         <label for="file-upload" style="cursor:pointer;color:var(--primary-color);font-size:1.2rem;flex-shrink:0;" title="Fayl biriktirish">
                             <i class="fas fa-paperclip"></i>
                         </label>
-                        <input type="file" id="file-upload" accept="image/*,application/pdf,text/plain" hidden>
+                        <input type="file" id="file-upload" accept="image/*,application/pdf,text/plain" multiple hidden>
+                        <button type="button" id="mic-btn" title="Ovozli kiritish"><i class="fas fa-microphone"></i></button>
                         <input type="text" id="user-input-ai" placeholder="Savol yozing..."
                             style="flex:1;min-width:0;padding:11px 12px;border-radius:10px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);outline:none;font-size:16px;font-family:inherit;">
+                        <button type="button" id="stop-btn" title="To'xtatish"><i class="fas fa-stop"></i></button>
                         <button type="button" id="send-btn-ai" title="Yuborish"
                             style="background:var(--primary-color);color:#fff;border:none;padding:11px 15px;border-radius:10px;cursor:pointer;flex-shrink:0;">
                             <i class="fas fa-paper-plane"></i>
@@ -558,17 +623,49 @@
     </script>
 
     <!-- ══════════════════════════════
-         AI CHAT
+         AI CHAT (to'liq yangilangan)
     ══════════════════════════════ -->
     <script>
-    let currentFileBase64=null, currentFileType=null, chatHistory=[];
+    (function(){
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    const MAX_FILES = 4;
+    const MAX_HISTORY_MESSAGES = 20;
+    const RETRY_ATTEMPTS = 2;
+    const SESSIONS_KEY = 'ziyomap_chat_sessions';
+    const CURRENT_SESSION_KEY = 'ziyomap_current_session';
+
     const userInputAi  = document.getElementById('user-input-ai');
     const sendBtnAi    = document.getElementById('send-btn-ai');
     const chatMessages = document.getElementById('chat-messages');
     const fileInput    = document.getElementById('file-upload');
     const previewBox   = document.getElementById('image-preview-box');
-    const previewImg   = document.getElementById('preview-img');
     const authNotice   = document.getElementById('auth-notice');
+
+    const sidebarEl = document.getElementById('chat-sidebar');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const sessionListEl = document.getElementById('session-list');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+    const micBtn = document.getElementById('mic-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const offlineBanner = document.getElementById('offline-banner');
+    const searchInput = document.getElementById('chat-search-input');
+    const fontSettingSelect = document.getElementById('font-size-select');
+    const exportBtn = document.getElementById('export-chat-btn');
+    const rateLimitLabel = document.getElementById('rate-limit-label');
+    const dropOverlay = document.getElementById('drop-overlay');
+    const chatShell = document.querySelector('#tab-chat .chat-shell');
+
+    let currentFiles = []; // [{base64, mimeType, name, dataUrl}]
+    let sessions = [];
+    let currentSessionId = null;
+    let abortController = null;
+    let isSending = false;
+    let recognizing = false;
+    let speechRecognition = null;
+    let currentUtterance = null;
+
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
     function isLoggedIn(){ return window.ZiyomapUsage ? !!ZiyomapUsage.getUser() : false; }
     function updateAuthUI(){
@@ -580,98 +677,443 @@
     updateAuthUI();
     if(isLoggedIn()&&window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-chat','Ziyomap AI');
 
-    if(fileInput) fileInput.addEventListener('change',e=>{
-        const f=e.target.files[0]; if(!f) return;
-        currentFileType=f.type;
-        const r=new FileReader();
-        r.onload=ev=>{
-            currentFileBase64=ev.target.result.split(',')[1];
-            if(f.type.startsWith('image/')&&previewImg&&previewBox){ previewImg.src=ev.target.result; previewImg.style.display=''; previewBox.style.display='block'; }
-            else if(previewBox) previewBox.style.display='block';
-        };
-        r.readAsDataURL(f);
-    });
+    function notifyError(text){
+        if (window.ZiyomapNotify) ZiyomapNotify.update(null, '❌ ' + text, 'error');
+        else alert(text);
+    }
 
-    window.cancelImage=function(){ currentFileBase64=null; currentFileType=null; if(previewBox) previewBox.style.display='none'; if(previewImg){previewImg.src='';previewImg.style.display='';} if(fileInput) fileInput.value=''; };
+    // ---------- SESSIYALAR ----------
+    function loadSessionsFromStorage(){
+        try{ const raw=localStorage.getItem(SESSIONS_KEY); sessions = raw?JSON.parse(raw):[]; }
+        catch{ sessions=[]; }
+        if(!sessions.length){ createNewSession(false); }
+        else {
+            currentSessionId = localStorage.getItem(CURRENT_SESSION_KEY) || sessions[0].id;
+            if(!sessions.find(s=>s.id===currentSessionId)) currentSessionId = sessions[0].id;
+        }
+    }
+    function saveSessionsToStorage(){
+        try{ localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); localStorage.setItem(CURRENT_SESSION_KEY, currentSessionId); }
+        catch(e){ console.warn("Sessiyani saqlab bo'lmadi:", e); }
+    }
+    function getCurrentSession(){ return sessions.find(s=>s.id===currentSessionId); }
 
-    function appendMsg(sender, text, isLoading){
-        const id = 'm'+Date.now()+Math.random().toString(36).substr(2,5);
+    function createNewSession(render){
+        const session = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), title:'Yangi suhbat', messages:[], createdAt:Date.now() };
+        sessions.unshift(session);
+        currentSessionId = session.id;
+        saveSessionsToStorage();
+        if(render !== false){ renderChatFromSession(); renderSidebar(); }
+    }
+    function switchSession(id){
+        currentSessionId = id;
+        saveSessionsToStorage();
+        renderChatFromSession();
+        renderSidebar();
+        toggleSidebar(false);
+    }
+    function deleteSession(id){
+        sessions = sessions.filter(s=>s.id!==id);
+        if(!sessions.length) createNewSession(false);
+        else if(currentSessionId===id) currentSessionId = sessions[0].id;
+        saveSessionsToStorage();
+        renderChatFromSession();
+        renderSidebar();
+    }
+    function renderSidebar(){
+        if(!sessionListEl) return;
+        sessionListEl.innerHTML = '';
+        sessions.forEach(s=>{
+            const item = document.createElement('div');
+            item.className = 'session-item' + (s.id===currentSessionId?' active':'');
+            item.innerHTML = `<span class="session-title">${esc(s.title||'Yangi suhbat')}</span><button type="button" class="session-delete-btn" title="O'chirish"><i class="fas fa-trash"></i></button>`;
+            item.querySelector('.session-title').addEventListener('click', ()=>switchSession(s.id));
+            item.querySelector('.session-delete-btn').addEventListener('click', (e)=>{ e.stopPropagation(); if(confirm("Ushbu suhbatni o'chirishni tasdiqlaysizmi?")) deleteSession(s.id); });
+            sessionListEl.appendChild(item);
+        });
+    }
+    function toggleSidebar(force){
+        if(!sidebarEl) return;
+        const isOpen = typeof force==='boolean' ? force : !sidebarEl.classList.contains('open');
+        sidebarEl.classList.toggle('open', isOpen);
+        if(sidebarBackdrop) sidebarBackdrop.classList.toggle('open', isOpen);
+    }
+    if(newChatBtn) newChatBtn.addEventListener('click', ()=>{ createNewSession(); toggleSidebar(false); });
+    if(sidebarToggleBtn) sidebarToggleBtn.addEventListener('click', ()=>toggleSidebar());
+    if(sidebarBackdrop) sidebarBackdrop.addEventListener('click', ()=>toggleSidebar(false));
+
+    function getChatHistoryForApi(){
+        const session = getCurrentSession();
+        if(!session) return [];
+        return session.messages.slice(-MAX_HISTORY_MESSAGES).map(m=>({ role: m.role==='user'?'user':'model', parts:[{text:m.text}] }));
+    }
+
+    // ---------- XABARLARNI CHIZISH ----------
+    function renderChatFromSession(){
+        const session = getCurrentSession();
+        chatMessages.innerHTML = '';
+        if(!session || !session.messages.length){
+            chatMessages.innerHTML = `<div class="welcome-bubble" style="background:rgba(56,189,248,.1);padding:14px;border-radius:15px 15px 15px 0;align-self:flex-start;max-width:92%;"><strong>Assalomu alaykum!</strong> Savol bering — formulalar, grafiklar va kodlar chiroyli ko'rinadi.</div>`;
+            return;
+        }
+        session.messages.forEach(renderMessage);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderMessage(msg){
         const wrap = document.createElement('div');
-        wrap.id = id;
-        wrap.style.cssText = sender==='user'
+        wrap.id = msg.id;
+        wrap.style.cssText = msg.role==='user'
             ? 'align-self:flex-end;background:var(--primary-color);color:#fff;padding:11px 14px;border-radius:15px 15px 0 15px;max-width:88%;'
             : 'align-self:flex-start;background:rgba(56,189,248,.08);color:var(--text-color);padding:11px 14px;border-radius:15px 15px 15px 0;max-width:92%;border:1px solid rgba(56,189,248,.12);';
 
-        if(sender==='user'){
+        if(msg.role==='user'){
             const d=document.createElement('div'); d.className='message-content';
-            d.innerHTML=text.replace(/\n/g,'<br>');
+            d.innerHTML = esc(msg.text).replace(/\n/g,'<br>'); // XSS himoyasi: escape qilingan
             wrap.appendChild(d);
-        } else if(isLoading){
+            addUserActions(wrap, msg);
+        } else if(msg.text === '__loading__'){
             wrap.innerHTML='<div style="display:flex;gap:5px;align-items:center;padding:2px 0"><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .0s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .2s infinite"></span><span style="width:7px;height:7px;border-radius:50%;background:var(--primary-color);animation:dotPulse 1.2s .4s infinite"></span></div>';
         } else {
-            wrap.appendChild(renderContent(text));
+            wrap.appendChild(renderContent(msg.text));
+            addAiActions(wrap, msg);
         }
         chatMessages.appendChild(wrap);
-        chatMessages.scrollTop=chatMessages.scrollHeight;
-        return id;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return wrap;
     }
 
-    /* Yuklanish animatsiyasi */
     if(!document.getElementById('dotPulseStyle')){
         const s=document.createElement('style'); s.id='dotPulseStyle';
         s.textContent='@keyframes dotPulse{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}';
         document.head.appendChild(s);
     }
 
-    function updateMsg(id, text){
-        const el=document.getElementById(id); if(!el) return;
-        el.innerHTML='';
-        const content = renderContent(text);
-        el.appendChild(content);
-        /* Nusxa va saqlash tugmalari */
-        const acts=document.createElement('div'); acts.className='msg-actions';
-        const copyBtn=document.createElement('button'); copyBtn.className='msg-action-btn';
+    function appendMessage(role, text){
+        const id = 'm'+Date.now()+Math.random().toString(36).substr(2,5);
+        const msg = { id, role, text, ts: Date.now() };
+        const session = getCurrentSession();
+        if(session) session.messages.push(msg);
+        renderMessage(msg);
+        return id;
+    }
+
+    function updateMessage(id, text){
+        const session = getCurrentSession();
+        const msg = session && session.messages.find(m=>m.id===id);
+        if(msg) msg.text = text;
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.innerHTML = '';
+        el.appendChild(renderContent(text));
+        addAiActions(el, msg || {id, text});
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function addUserActions(wrap, msg){
+        const acts = document.createElement('div'); acts.className='msg-actions';
+        const editBtn = document.createElement('button'); editBtn.className='msg-action-btn';
+        editBtn.innerHTML = '<i class="fas fa-pen"></i> Tahrirlash';
+        editBtn.onclick = ()=>startEditMessage(msg.id);
+        acts.appendChild(editBtn);
+        wrap.appendChild(acts);
+    }
+
+    function addAiActions(wrap, msg){
+        const old = wrap.querySelector('.msg-actions'); if(old) old.remove();
+        const acts = document.createElement('div'); acts.className='msg-actions';
+
+        const copyBtn = document.createElement('button'); copyBtn.className='msg-action-btn';
         copyBtn.innerHTML='<i class="fas fa-copy"></i> Nusxalash';
         copyBtn.onclick=()=>{
-            const txt=content.innerText||text;
-            navigator.clipboard.writeText(txt).then(()=>{
+            const content = wrap.querySelector('.message-content');
+            navigator.clipboard.writeText(content?content.innerText:msg.text).then(()=>{
                 copyBtn.innerHTML='<i class="fas fa-check"></i> Nusxalandi!';
-                copyBtn.style.cssText='background:var(--primary-color);color:#fff;border-color:var(--primary-color)';
-                setTimeout(()=>{ copyBtn.innerHTML='<i class="fas fa-copy"></i> Nusxalash'; copyBtn.style.cssText=''; },2000);
+                setTimeout(()=>copyBtn.innerHTML='<i class="fas fa-copy"></i> Nusxalash',2000);
             });
         };
-        acts.appendChild(copyBtn);
-        el.appendChild(acts);
-        chatMessages.scrollTop=chatMessages.scrollHeight;
+
+        const regenBtn = document.createElement('button'); regenBtn.className='msg-action-btn';
+        regenBtn.innerHTML='<i class="fas fa-rotate"></i> Qayta yoz';
+        regenBtn.onclick=()=>regenerateMessage(msg.id);
+
+        const speakBtn = document.createElement('button'); speakBtn.className='msg-action-btn';
+        speakBtn.innerHTML='<i class="fas fa-volume-high"></i> Tinglash';
+        speakBtn.onclick=()=>{
+            const content = wrap.querySelector('.message-content');
+            toggleSpeak(content?content.innerText:msg.text);
+        };
+
+        const upBtn = document.createElement('button'); upBtn.className='msg-action-btn';
+        upBtn.innerHTML='<i class="fas fa-thumbs-up"></i>';
+        const downBtn = document.createElement('button'); downBtn.className='msg-action-btn';
+        downBtn.innerHTML='<i class="fas fa-thumbs-down"></i>';
+        upBtn.onclick=()=>sendFeedback(msg.id,'up',upBtn,downBtn);
+        downBtn.onclick=()=>sendFeedback(msg.id,'down',upBtn,downBtn);
+
+        [copyBtn, regenBtn, speakBtn, upBtn, downBtn].forEach(b=>acts.appendChild(b));
+        wrap.appendChild(acts);
+    }
+
+    function sendFeedback(msgId, rating, upBtn, downBtn){
+        upBtn.classList.toggle('active', rating==='up');
+        downBtn.classList.toggle('active', rating==='down');
+        fetch('/api/feedback', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({messageId:msgId, rating}) })
+            .catch(()=>{ /* backend bo'lmasa ham jim o'tkaziladi */ });
+    }
+
+    function startEditMessage(msgId){
+        const session = getCurrentSession(); if(!session) return;
+        const idx = session.messages.findIndex(m=>m.id===msgId); if(idx===-1) return;
+        userInputAi.value = session.messages[idx].text;
+        userInputAi.focus();
+        session.messages = session.messages.slice(0, idx);
+        saveSessionsToStorage();
+        renderChatFromSession();
+    }
+
+    function regenerateMessage(aiMsgId){
+        const session = getCurrentSession(); if(!session) return;
+        const idx = session.messages.findIndex(m=>m.id===aiMsgId); if(idx===-1) return;
+        let userMsg = null;
+        for(let i=idx-1;i>=0;i--){ if(session.messages[i].role==='user'){ userMsg=session.messages[i]; break; } }
+        if(!userMsg) return;
+        session.messages = session.messages.slice(0, idx);
+        saveSessionsToStorage();
+        renderChatFromSession();
+        performSend(userMsg.text, []);
+    }
+
+    function toggleSpeak(text){
+        if(!window.speechSynthesis){ notifyError("Brauzeringiz ovozda o'qishni qo'llab-quvvatlamaydi."); return; }
+        if(currentUtterance && speechSynthesis.speaking){ speechSynthesis.cancel(); currentUtterance=null; return; }
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = 'uz-UZ';
+        currentUtterance.onend = ()=>{ currentUtterance=null; };
+        speechSynthesis.speak(currentUtterance);
+    }
+
+    function renderSidebarTitleIfNeeded(){
+        const session = getCurrentSession();
+        if(session && session.title==='Yangi suhbat' && session.messages.length){
+            const firstUser = session.messages.find(m=>m.role==='user');
+            if(firstUser){ session.title = firstUser.text.slice(0,40) || 'Yangi suhbat'; saveSessionsToStorage(); }
+        }
+    }
+
+    // ---------- FAYL YUKLASH ----------
+    function addFile(file){
+        if(currentFiles.length >= MAX_FILES){ notifyError(`Bittada maksimal ${MAX_FILES} ta fayl yuklash mumkin.`); return; }
+        if(file.size > MAX_FILE_SIZE){ notifyError(`"${file.name}" juda katta (max ${(MAX_FILE_SIZE/(1024*1024)).toFixed(0)} MB).`); return; }
+        const reader = new FileReader();
+        reader.onload = (ev)=>{
+            currentFiles.push({ base64: ev.target.result.split(',')[1], mimeType: file.type, name: file.name, dataUrl: ev.target.result });
+            renderFilePreviews();
+        };
+        reader.onerror = ()=>notifyError(`"${file.name}" faylini o'qib bo'lmadi.`);
+        reader.readAsDataURL(file);
+    }
+    function renderFilePreviews(){
+        if(!previewBox) return;
+        if(!currentFiles.length){ previewBox.style.display='none'; previewBox.innerHTML=''; return; }
+        previewBox.style.display='flex';
+        previewBox.innerHTML='';
+        currentFiles.forEach((f, idx)=>{
+            const item = document.createElement('div'); item.className='file-preview-item';
+            if(f.mimeType && f.mimeType.startsWith('image/')){
+                item.innerHTML = `<img src="${f.dataUrl}" alt="preview"><button type="button" class="preview-remove" data-idx="${idx}">×</button>`;
+            } else {
+                item.innerHTML = `<span class="file-chip"><i class="fas fa-file"></i> ${esc(f.name)}</span><button type="button" class="preview-remove" data-idx="${idx}">×</button>`;
+            }
+            item.querySelector('.preview-remove').onclick = ()=>{ currentFiles.splice(idx,1); renderFilePreviews(); };
+            previewBox.appendChild(item);
+        });
+    }
+    window.cancelImage = function(){ currentFiles=[]; renderFilePreviews(); if(fileInput) fileInput.value=''; };
+
+    if(fileInput) fileInput.addEventListener('change', (e)=>{ [...e.target.files].forEach(addFile); fileInput.value=''; });
+
+    if(chatShell){
+        ['dragenter','dragover'].forEach(evt=>chatShell.addEventListener(evt,(e)=>{ e.preventDefault(); if(dropOverlay) dropOverlay.style.display='flex'; }));
+        ['dragleave','drop'].forEach(evt=>chatShell.addEventListener(evt,(e)=>{ e.preventDefault(); if(dropOverlay) dropOverlay.style.display='none'; }));
+        chatShell.addEventListener('drop', (e)=>{ const files=e.dataTransfer?.files; if(files) [...files].forEach(addFile); });
+    }
+
+    // ---------- OVOZLI KIRITISH ----------
+    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(micBtn){
+        if(!SpeechRecognitionCtor){ micBtn.style.display='none'; }
+        else {
+            micBtn.addEventListener('click', ()=>{
+                if(recognizing){ speechRecognition.stop(); return; }
+                speechRecognition = new SpeechRecognitionCtor();
+                speechRecognition.lang = 'uz-UZ';
+                speechRecognition.interimResults = false;
+                speechRecognition.onstart = ()=>{ recognizing=true; micBtn.classList.add('active'); };
+                speechRecognition.onend = ()=>{ recognizing=false; micBtn.classList.remove('active'); };
+                speechRecognition.onerror = ()=>{ recognizing=false; micBtn.classList.remove('active'); notifyError("Ovozni tanib bo'lmadi."); };
+                speechRecognition.onresult = (event)=>{ const t=event.results[0][0].transcript; userInputAi.value=(userInputAi.value?userInputAi.value+' ':'')+t; };
+                speechRecognition.start();
+            });
+        }
+    }
+
+    // ---------- OFFLINE ----------
+    function updateOnlineStatus(){ if(offlineBanner) offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; }
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+
+    // ---------- SHRIFT SOZLAMASI ----------
+    if(fontSettingSelect){
+        const saved = localStorage.getItem('ziyomap_font_size') || 'md';
+        document.body.classList.add('font-'+saved);
+        fontSettingSelect.value = saved;
+        fontSettingSelect.addEventListener('change', ()=>{
+            document.body.classList.remove('font-sm','font-md','font-lg');
+            document.body.classList.add('font-'+fontSettingSelect.value);
+            localStorage.setItem('ziyomap_font_size', fontSettingSelect.value);
+        });
+    }
+
+    // ---------- QIDIRUV ----------
+    if(searchInput){
+        searchInput.addEventListener('input', ()=>{
+            const q = searchInput.value.trim().toLowerCase();
+            chatMessages.querySelectorAll(':scope > div').forEach(b=>{
+                const text = b.innerText.toLowerCase();
+                b.style.display = (!q || text.includes(q)) ? '' : 'none';
+            });
+        });
+    }
+
+    // ---------- EKSPORT ----------
+    if(exportBtn){
+        exportBtn.addEventListener('click', ()=>{
+            const session = getCurrentSession();
+            if(!session || !session.messages.length) return;
+            const lines = session.messages.filter(m=>m.text!=='__loading__').map(m=>`${m.role==='user'?'Siz':'Ziyomap AI'}: ${m.text}`);
+            const blob = new Blob([lines.join('\n\n')], {type:'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url; link.download = `Ziyomap_Suhbat_${session.id}.txt`; link.click();
+            setTimeout(()=>URL.revokeObjectURL(url), 1000);
+        });
+    }
+
+    // ---------- XABAR YUBORISH ----------
+    function mapStatusToMessage(status){
+        switch(status){
+            case 401: case 403: return 'Sessiya tugagan. Iltimos, qayta tizimga kiring.';
+            case 429: return "So'rovlar soni chegarasiga yetdingiz. Birozdan keyin urinib ko'ring.";
+            case 500: case 502: case 503: return "Server hozircha javob bermayapti. Birozdan keyin urinib ko'ring.";
+            default: return `Xatolik yuz berdi (kod: ${status}).`;
+        }
+    }
+
+    async function performSend(text, files){
+        if(isSending) return;
+        isSending = true;
+        if(sendBtnAi) sendBtnAi.disabled = true;
+        if(stopBtn) stopBtn.style.display = 'inline-flex';
+
+        const filesLabel = files.length ? ` [${files.length} ta fayl yuborildi]` : '';
+        appendMessage('user', text + filesLabel);
+        saveSessionsToStorage();
+
+        const loadingId = appendMessage('ai', '__loading__');
+        const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI fikrlayapti...') : null;
+
+        abortController = new AbortController();
+        let attempt = 0, lastError = null;
+
+        while(attempt <= RETRY_ATTEMPTS){
+            try{
+                const response = await fetch('/api/chat', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        message: text,
+                        history: getChatHistoryForApi(),
+                        image: files[0]?.base64 || null,
+                        mimeType: files[0]?.mimeType || null,
+                        files: files.map(f=>({ base64:f.base64, mimeType:f.mimeType, name:f.name })),
+                    }),
+                    signal: abortController.signal,
+                });
+
+                const data = await response.json().catch(()=>null);
+
+                if(!response.ok){
+                    const msg = (data && data.error) ? data.error : mapStatusToMessage(response.status);
+                    updateMessage(loadingId, msg);
+                    saveSessionsToStorage();
+                    if(window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi', 'error');
+                    lastError = null; break;
+                }
+
+                let aiReply = (data && (data.reply || data.error)) || 'Javob olinmadi.';
+                if(data && data.truncated) aiReply += "\n\n*(Javob uzunligi chegarasiga yetdi)*";
+
+                updateMessage(loadingId, aiReply);
+                saveSessionsToStorage();
+                renderSidebarTitleIfNeeded();
+                renderSidebar();
+
+                if(typeof data?.remaining === 'number' && rateLimitLabel){
+                    rateLimitLabel.textContent = `Bugun ${data.remaining} ta savol qoldi`;
+                    rateLimitLabel.style.display = 'inline-block';
+                }
+
+                if(window.ZiyomapNotify) ZiyomapNotify.update(notif, '✅ Javob keldi', 'success');
+                if(window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-xabar', 'AI ga savol yuborildi');
+                lastError = null; break;
+            } catch(err){
+                if(err.name === 'AbortError'){
+                    updateMessage(loadingId, "Javob to'xtatildi.");
+                    saveSessionsToStorage();
+                    lastError = null; break;
+                }
+                lastError = err;
+                attempt++;
+                if(attempt <= RETRY_ATTEMPTS) await new Promise(r=>setTimeout(r, 800*attempt));
+            }
+        }
+
+        if(lastError){
+            const offline = typeof navigator!=='undefined' && navigator.onLine===false;
+            const message = offline
+                ? "Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring."
+                : "Serverga ulanib bo'lmadi. Bir necha marta urinildi, birozdan keyin qayta urinib ko'ring.";
+            updateMessage(loadingId, message);
+            saveSessionsToStorage();
+            if(window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi', 'error');
+        }
+
+        isSending = false;
+        abortController = null;
+        if(sendBtnAi) sendBtnAi.disabled = false;
+        if(stopBtn) stopBtn.style.display = 'none';
     }
 
     async function sendAiMessage(){
         if(!isLoggedIn()){ updateAuthUI(); return; }
-        const text=userInputAi.value.trim();
-        if(!text&&!currentFileBase64) return;
-        appendMsg('user', text+(currentFileBase64?' 📎':''));
-        const imgB64=currentFileBase64, imgType=currentFileType;
-        userInputAi.value=''; cancelImage();
-        const lid=appendMsg('ai','',true);
-        const notif=window.ZiyomapNotify?ZiyomapNotify.loading('AI fikrlayapti...'):null;
-        try{
-            const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({message:text,history:chatHistory,image:imgB64,mimeType:imgType})});
-            const data=await res.json();
-            const reply=data.reply||data.error||'Javob olinmadi.';
-            updateMsg(lid,reply);
-            chatHistory.push({role:'user',parts:[{text}]});
-            chatHistory.push({role:'model',parts:[{text:reply}]});
-            if(window.ZiyomapNotify) ZiyomapNotify.update(notif,'✅ Javob keldi','success');
-            if(window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-xabar','AI savol');
-        }catch(e){
-            updateMsg(lid,'❌ Xatolik: '+e.message);
-            if(window.ZiyomapNotify) ZiyomapNotify.update(notif,'❌ Xatolik','error');
-        }
+        const text = userInputAi.value.trim();
+        if(!text && !currentFiles.length) return;
+        const files = currentFiles;
+        userInputAi.value = '';
+        window.cancelImage();
+        await performSend(text, files);
     }
 
-    if(sendBtnAi) sendBtnAi.addEventListener('click',sendAiMessage);
-    if(userInputAi) userInputAi.addEventListener('keypress',e=>{ if(e.key==='Enter') sendAiMessage(); });
+    if(stopBtn){ stopBtn.addEventListener('click', ()=>{ if(abortController) abortController.abort(); }); stopBtn.style.display='none'; }
+    if(sendBtnAi) sendBtnAi.addEventListener('click', sendAiMessage);
+    if(userInputAi) userInputAi.addEventListener('keypress', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendAiMessage(); } });
+
+    // ---------- ISHGA TUSHIRISH ----------
+    loadSessionsFromStorage();
+    renderChatFromSession();
+    renderSidebar();
+    })();
     </script>
 
     <!-- ══════════════════════════════
