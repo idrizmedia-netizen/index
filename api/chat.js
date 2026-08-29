@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     // history - frontenddan keladigan xabarlar massivi
     // files - yangi format: bir nechta fayl [{base64, mimeType, name}]
     // image/mimeType - eski format (orqaga moslik uchun saqlab qolindi)
-    const { message, image, mimeType, history, files } = req.body || {};
+    const { message, image, mimeType, history, files, system } = req.body || {};
     const API_KEY = process.env.GEMINI_API_KEY;
 
     // API Key mavjudligini tekshirish
@@ -27,6 +27,9 @@ export default async function handler(req, res) {
     }
     if (hasFiles && files.length > 4) {
         return res.status(400).json({ error: "Bir vaqtda maksimal 4 ta fayl yuborish mumkin." });
+    }
+    if (system && typeof system === 'string' && system.length > 4000) {
+        return res.status(400).json({ error: "Tizim ko'rsatmasi juda uzun." });
     }
 
     try {
@@ -80,16 +83,20 @@ export default async function handler(req, res) {
         });
 
         // Tizim ko'rsatmasi (LaTeX formulalar qo'shilgan variant)
-        const requestBody = {
-            contents: contents,
-            systemInstruction: {
-                parts: [{
-                    text: `Siz Ziyomap sun'iy intellektisiz. 
+        // Agar frontend (masalan, AI Tutor) o'z tizim ko'rsatmasini yuborgan bo'lsa, o'shani ishlatamiz;
+        // aks holda standart Ziyomap AI ko'rsatmasi ishlatiladi.
+        const defaultSystemText = `Siz Ziyomap sun'iy intellektisiz. 
                     1. Barcha matematik va fizik formulalarni doimo LaTeX formatida yozing (masalan: $F=ma$, $\\int x dx$). 
                     2. Javoblaringizda Markdown formatlash elementlaridan (sarlavhalar, jadvallar) keng foydalaning.
                     3. O'zbek tilida aniq va mukammal tushuntiring.
-                    4. Foydalanuvchilarga istalgan fan bo'yicha (fizika, matematika, kimyo, biologiya, tarix va b.) dars konspektlari va yechimlar bera olasiz.`
-                }]
+                    4. Foydalanuvchilarga istalgan fan bo'yicha (fizika, matematika, kimyo, biologiya, tarix va b.) dars konspektlari va yechimlar bera olasiz.`;
+
+        const systemText = (typeof system === 'string' && system.trim()) ? system.trim() : defaultSystemText;
+
+        const requestBody = {
+            contents: contents,
+            systemInstruction: {
+                parts: [{ text: systemText }]
             },
             generationConfig: {
                 temperature: 0.7,
