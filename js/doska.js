@@ -18,8 +18,12 @@ let drawing = false;
 let color = '#ffffff';
 let lineWidth = 4;
 let tool = 'pen'; // pen | eraser | shape-line | shape-rect | shape-circle
+let penMode = 'pen'; // pen | marker (marker = yarim shaffof, qalin, highlighter uslubi)
+let shapeFill = false;
+let shapeDash = 'solid'; // solid | dashed | dotted
 let shapeStart = null;
 let undoStack = [];
+let redoStack = [];
 const MAX_UNDO = 25;
 
 /* Lazer ko'rsatkich holati (kerakli funksiyalardan oldin e'lon qilinadi) */
@@ -206,11 +210,14 @@ function pushUndo() {
     try {
         undoStack.push(canvas.toDataURL());
         if (undoStack.length > MAX_UNDO) undoStack.shift();
+        /* Yangi harakat boshlanganda "oldinga" (redo) tarixi endi noto'g'ri bo'lib qoladi */
+        redoStack = [];
     } catch { /* ignore */ }
 }
 
 function undo() {
     if (!undoStack.length) return;
+    try { redoStack.push(canvas.toDataURL()); } catch { /* ignore */ }
     const img = new Image();
     img.onload = () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -218,6 +225,18 @@ function undo() {
     };
     img.src = undoStack.pop();
 }
+
+function redo() {
+    if (!redoStack.length) return;
+    try { undoStack.push(canvas.toDataURL()); } catch { /* ignore */ }
+    const img = new Image();
+    img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+    };
+    img.src = redoStack.pop();
+}
+document.getElementById('btn-redo')?.addEventListener('click', redo);
 
 function getCoords(e) {
     const rect = canvas.getBoundingClientRect();
@@ -279,11 +298,14 @@ function moveDraw(e) {
     }
 
     if (tool === 'pen' || tool === 'eraser') {
+        const isMarker = tool === 'pen' && penMode === 'marker';
         ctx.strokeStyle = color;
-        ctx.lineWidth = (tool === 'eraser' ? lineWidth * 2.5 : lineWidth) * RENDER_SCALE;
+        ctx.globalAlpha = isMarker ? 0.35 : 1;
+        ctx.lineWidth = (tool === 'eraser' ? lineWidth * 2.5 : (isMarker ? lineWidth * 3.5 : lineWidth)) * RENDER_SCALE;
         ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
         ctx.lineTo(p.x, p.y);
         ctx.stroke();
+        ctx.globalAlpha = 1;
     } else if (tool.startsWith('shape-') && shapeStart) {
         const img = new Image();
         img.onload = () => {
@@ -296,11 +318,29 @@ function moveDraw(e) {
     e.preventDefault();
 }
 
-function drawShape(start, end) {
+function applyShapeStrokeStyle() {
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
     ctx.lineWidth = lineWidth * RENDER_SCALE;
     ctx.globalCompositeOperation = 'source-over';
+    const dashMap = {
+        solid: [],
+        dashed: [lineWidth * 3 * RENDER_SCALE, lineWidth * 2 * RENDER_SCALE],
+        dotted: [lineWidth * RENDER_SCALE, lineWidth * 1.6 * RENDER_SCALE],
+    };
+    ctx.setLineDash(dashMap[shapeDash] || []);
+}
+
+function finishShapePath() {
+    /* Yopiq shakllarni (rect/circle/triangle/star) shapeFill yoqilgan bo'lsa to'ldiradi,
+       so'ng chegarasini chizadi. Dash uslubi qo'llanilgan bo'lsa shu holatda ham ishlaydi. */
+    if (shapeFill) ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+function drawShape(start, end) {
+    applyShapeStrokeStyle();
     ctx.beginPath();
     if (tool === 'shape-line') {
         ctx.moveTo(start.x, start.y);
@@ -308,18 +348,21 @@ function drawShape(start, end) {
         ctx.stroke();
     } else if (tool === 'shape-rect') {
         ctx.rect(start.x, start.y, end.x - start.x, end.y - start.y);
-        ctx.stroke();
+        finishShapePath();
     } else if (tool === 'shape-circle') {
         const r = Math.hypot(end.x - start.x, end.y - start.y);
         ctx.arc(start.x, start.y, r, 0, Math.PI * 2);
-        ctx.stroke();
+        finishShapePath();
     } else if (tool === 'shape-arrow') {
         drawArrow(start, end);
     } else if (tool === 'shape-triangle') {
         drawTriangle(start, end);
+        finishShapePath();
     } else if (tool === 'shape-star') {
         drawStar(start, end);
+        finishShapePath();
     }
+    ctx.setLineDash([]);
 }
 
 function drawArrow(start, end) {
@@ -345,7 +388,7 @@ function drawTriangle(start, end) {
     ctx.lineTo(start.x, start.y + h);
     ctx.lineTo(start.x + w, start.y + h);
     ctx.closePath();
-    ctx.stroke();
+    /* stroke/fill ishi drawShape() ichidagi finishShapePath() tomonidan bajariladi */
 }
 
 function drawStar(start, end) {
@@ -370,7 +413,7 @@ function drawStar(start, end) {
     }
     ctx.lineTo(cx, cy - rOuter);
     ctx.closePath();
-    ctx.stroke();
+    /* stroke/fill ishi drawShape() ichidagi finishShapePath() tomonidan bajariladi */
 }
 
 function endDraw() {
@@ -424,6 +467,32 @@ document.getElementById('brush-size')?.addEventListener('input', (e) => {
     lineWidth = parseInt(e.target.value, 10);
     const label = document.getElementById('brush-size-label');
     if (label) label.textContent = lineWidth + 'px';
+});
+
+/* ════════════════════════════════════
+   QALAM / MARKER (HIGHLIGHTER) REJIMI
+════════════════════════════════════ */
+document.querySelectorAll('.pen-mode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        if (panMode) togglePanMode(true);
+        penMode = btn.dataset.mode;
+        tool = 'pen';
+        canvas.classList.remove('eraser-mode', 'shape-mode');
+        document.getElementById('btn-eraser')?.classList.remove('active');
+        document.querySelectorAll('.shape-btn').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.pen-mode-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+/* ════════════════════════════════════
+   SHAKLLAR: TO'LDIRISH VA CHIZIQ USLUBI
+════════════════════════════════════ */
+document.getElementById('shape-fill-toggle')?.addEventListener('change', (e) => {
+    shapeFill = e.target.checked;
+});
+document.getElementById('shape-dash-select')?.addEventListener('change', (e) => {
+    shapeDash = e.target.value;
 });
 
 document.getElementById('btn-eraser')?.addEventListener('click', () => {
@@ -1639,7 +1708,8 @@ document.getElementById('widget-text')?.addEventListener('click', addTextWidget)
    KEYBOARD SHORTCUTS
 ════════════════════════════════════ */
 document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); undo(); }
+    if (e.ctrlKey && !e.shiftKey && e.key === 'z') { e.preventDefault(); undo(); }
+    if (e.ctrlKey && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) { e.preventDefault(); redo(); }
 });
 
 /* ════════════════════════════════════
