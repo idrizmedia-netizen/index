@@ -34,7 +34,7 @@ let lastCleanSnapshot = null;
 /* Zoom holati */
 let currentZoom = 1;
 const ZOOM_MIN = 0.4;
-const ZOOM_MAX = 2.5;
+const ZOOM_MAX = 4;
 const ZOOM_STEP = 0.15;
 
 /* Doska (canvas) ichki piksel zichligini oshirish — zoom qilinganda
@@ -1954,8 +1954,73 @@ function zoomIn() {
     applyZoom();
 }
 function zoomOut() {
+    /* Eng kichik zoom darajasiga yetib, foydalanuvchi yana kichraytirmoqchi
+       bo'lsa — biz view'ni emas, DOSKANING O'ZINI kattalashtiramiz (chetlaridan
+       ko'proq bo'sh joy qo'shiladi). Shu bilan doska "cheksiz" kengayadi. */
+    if (currentZoom <= ZOOM_MIN + 0.001) {
+        growCanvasOutward();
+        return;
+    }
     currentZoom = Math.max(ZOOM_MIN, +(currentZoom - ZOOM_STEP).toFixed(2));
     applyZoom();
+}
+
+let boardGrowCount = 0;
+const MAX_BOARD_GROW = 8; /* xotira/tezlik nazorati uchun cheklov */
+
+function growCanvasOutward() {
+    if (boardGrowCount >= MAX_BOARD_GROW) {
+        showToast('📏 Doska maksimal kengaytirilgan darajaga yetdi');
+        return;
+    }
+    const GROW = 1.35;
+    const oldDisplayW = parseFloat(canvas.style.width) || canvas.width / RENDER_SCALE;
+    const oldDisplayH = parseFloat(canvas.style.height) || canvas.height / RENDER_SCALE;
+    const newDisplayW = Math.round(oldDisplayW * GROW);
+    const newDisplayH = Math.round(oldDisplayH * GROW);
+    const offsetXd = Math.round((newDisplayW - oldDisplayW) / 2);
+    const offsetYd = Math.round((newDisplayH - oldDisplayH) / 2);
+
+    let dataUrl = null;
+    try { dataUrl = canvas.toDataURL(); } catch { /* ignore */ }
+
+    canvas.style.width = newDisplayW + 'px';
+    canvas.style.height = newDisplayH + 'px';
+    canvas.width = Math.round(newDisplayW * RENDER_SCALE);
+    canvas.height = Math.round(newDisplayH * RENDER_SCALE);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (dataUrl) {
+        const img = new Image();
+        img.onload = () => {
+            ctx.drawImage(img, offsetXd * RENDER_SCALE, offsetYd * RENDER_SCALE);
+        };
+        img.src = dataUrl;
+    }
+
+    /* Pinned-matn va widgetlar joylashuvini yangi markazga moslab siljitamiz */
+    [widgetLayer, pinnedLayer].forEach((layer) => {
+        if (!layer) return;
+        Array.from(layer.children).forEach((el) => {
+            const l = parseFloat(el.style.left) || 0;
+            const t = parseFloat(el.style.top) || 0;
+            el.style.left = (l + offsetXd) + 'px';
+            el.style.top = (t + offsetYd) + 'px';
+        });
+    });
+    if (typeof pages !== 'undefined' && pages[currentPage] && Array.isArray(pages[currentPage].pinned)) {
+        pages[currentPage].pinned = pages[currentPage].pinned.map((p) => ({ ...p, x: (p.x || 0) + offsetXd, y: (p.y || 0) + offsetYd }));
+    }
+
+    /* Ko'rinishni saqlab qolish uchun scroll pozitsiyasini ham moslashtiramiz,
+       shunda ekran birdan "sakramaydi". */
+    bgWrap.scrollLeft += offsetXd * currentZoom;
+    bgWrap.scrollTop += offsetYd * currentZoom;
+
+    boardGrowCount++;
+    showToast('🖼️ Doska chetlaridan kengaytirildi');
+    if (typeof scheduleAutosave === 'function') scheduleAutosave();
 }
 function zoomReset() {
     currentZoom = 1;
