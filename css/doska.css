@@ -1282,6 +1282,17 @@ input[type='range'].brush-range {
     z-index: 850;
     filter: drop-shadow(0 10px 22px rgba(0,0,0,0.35));
     touch-action: none;
+    /* Asbobning "tanasi" sichqoncha/barmoqni yutib yubormasin — shunda
+       foydalanuvchi xuddi haqiqiy chizg'ich/ugolnik kabi ASBOB QIRRASI
+       BO'YLAB, hatto ustidan ham chizishi mumkin bo'ladi. Faqat pastda
+       aniq belgilangan tutqichlar (sudrash/aylantirish/yopish) klikka
+       javob beradi. */
+    pointer-events: none;
+}
+.measure-drag-handle,
+.measure-rotate-handle,
+.measure-close {
+    pointer-events: auto;
 }
 
 /* ── CHIZG'ICH ── */
@@ -1408,6 +1419,7 @@ html[data-doska-theme="light"] .ruler-tool {
     font-size: 12px;
     cursor: grab;
     box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    pointer-events: auto;
 }
 .compass-pin:active { cursor: grabbing; }
 .compass-arm {
@@ -1436,6 +1448,7 @@ html[data-doska-theme="light"] .ruler-tool {
     cursor: grab;
     border: 2px solid #fff;
     box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    pointer-events: auto;
 }
 .compass-radius-handle:active { cursor: grabbing; }
 .compass-radius-label {
