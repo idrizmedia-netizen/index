@@ -1416,6 +1416,40 @@
     }
     function clearDraft(){ try{ localStorage.removeItem(draftKey()); }catch(e){} }
 
+    // ---------- PDF UCHUN: elementning TO'LIQ balandligini (scroll qilingan
+    // qismisiz) suratga olish. Buning uchun elementni klonlab, ekrandan
+    // tashqariga chiqarib, balandlik chegarasini olib tashlab suratga olamiz. ----------
+    async function captureFullElement(sourceEl, bgColor){
+        const clone = sourceEl.cloneNode(true);
+        clone.removeAttribute('id'); // #chat-messages kabi CSS qoidalari (overflow:auto) ta'sir qilmasligi uchun
+        clone.style.position = 'fixed';
+        clone.style.top = '0';
+        clone.style.left = '-99999px';
+        clone.style.width = sourceEl.offsetWidth + 'px';
+        clone.style.height = 'auto';
+        clone.style.maxHeight = 'none';
+        clone.style.minHeight = '0';
+        clone.style.overflow = 'visible';
+        clone.style.display = 'flex';
+        clone.style.flexDirection = 'column';
+        document.body.appendChild(clone);
+        // "Pastga o'tish" tugmasi kabi elementlar klonda kerak emas
+        clone.querySelectorAll('#scroll-bottom-btn, .code-copy-btn').forEach(el=>el.remove());
+        await new Promise(r=>setTimeout(r, 50)); // KaTeX/hljs joylashuvi barqarorlashishi uchun
+        let canvas;
+        try{
+            canvas = await html2canvas(clone, {
+                backgroundColor: bgColor,
+                scale: 2,
+                height: clone.scrollHeight,
+                windowHeight: clone.scrollHeight,
+            });
+        } finally {
+            document.body.removeChild(clone);
+        }
+        return canvas;
+    }
+
     // ---------- PDF EKSPORT ----------
     if(exportPdfBtn){
         exportPdfBtn.addEventListener('click', async ()=>{
@@ -1426,7 +1460,8 @@
             const oldIcon = exportPdfBtn.innerHTML;
             exportPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             try{
-                const canvas = await html2canvas(chatMessages, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--light-bg') || '#fff', scale: 2 });
+                const bg = getComputedStyle(document.body).getPropertyValue('--light-bg') || '#fff';
+                const canvas = await captureFullElement(chatMessages, bg);
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'pt', 'a4');
                 const pageWidth = pdf.internal.pageSize.getWidth();
