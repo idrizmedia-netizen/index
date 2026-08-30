@@ -1294,6 +1294,14 @@ input[type='range'].brush-range {
 .measure-close {
     pointer-events: auto;
 }
+/* Ba'zi brauzerlar SVG'dagi <path fill="..."> elementini merosdan
+   qat'iy nazar avtomatik "bosiladigan" deb hisoblashi mumkin —
+   shu sababli SVG'larga pointer-events:none'ni ANIQ o'zi belgilaymiz. */
+.setsquare-svg,
+.protractor-svg,
+.measure-ticks {
+    pointer-events: none;
+}
 
 /* ── CHIZG'ICH ── */
 .ruler-tool {
