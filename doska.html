@@ -139,6 +139,7 @@
                     <button type="button" class="shape-btn" data-shape="shape-triangle" title="Uchburchak"><i class="fas fa-play" style="transform:rotate(-90deg)"></i></button>
                     <button type="button" class="shape-btn" data-shape="shape-star" title="Yulduzcha"><i class="fas fa-star"></i></button>
                     <button type="button" class="tb-btn" id="btn-eraser" title="O'chirgich"><i class="fas fa-eraser"></i></button>
+                    <button type="button" class="tb-btn" id="btn-select" title="Tanlash — chizilganni tanlab ko'chirish yoki o'chirish"><i class="fas fa-vector-square"></i></button>
                 </div>
 
                 <div class="tb-row" style="margin-top:8px">
@@ -157,6 +158,8 @@
                     <button type="button" class="tb-btn" id="btn-redo"><i class="fas fa-redo"></i> Oldinga</button>
                     <button type="button" class="tb-btn danger" id="btn-clear"><i class="fas fa-trash"></i> Tozalash</button>
                     <button type="button" class="tb-btn" id="btn-save"><i class="fas fa-download"></i> PNG</button>
+                    <button type="button" class="tb-btn" id="btn-save-pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button type="button" class="tb-btn" id="btn-record"><i class="fas fa-circle" style="color:#ef4444"></i> Yozish</button>
                 </div>
             </div>
 
@@ -203,7 +206,15 @@
                     <button type="button" class="widget-option" id="widget-laser">
                         <i class="fas fa-bullseye"></i> Lazer
                     </button>
+                    <button type="button" class="widget-option" id="widget-image">
+                        <i class="fas fa-image"></i> Rasm
+                    </button>
+                    <button type="button" class="widget-option" id="widget-pdf-bg">
+                        <i class="fas fa-file-import"></i> PDF fon
+                    </button>
                 </div>
+                <input type="file" id="image-widget-input" accept="image/*" style="display:none">
+                <input type="file" id="pdf-bg-input" accept="application/pdf" style="display:none">
             </div>
 
             <!-- ═══ FON BO'LIMI ═══ -->
@@ -227,8 +238,11 @@
     <script src="js/ziyomap-usage.js"></script>
     <script src="js/auth-guard.js"></script>
     <script>ZiyomapAuthGuard.protectPage();</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="js/doska.js"></script>
     <script src="js/doska-measure.js"></script>
+    <script src="js/doska-extra.js"></script>
 
     <!-- Tezkor fon nuqtalari (bg-dot) — eski mantiqni saqlash uchun qo'shimcha bog'lash -->
     <script>
