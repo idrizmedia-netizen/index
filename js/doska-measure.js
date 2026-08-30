@@ -70,6 +70,15 @@ function makeFixedDraggable(container, handle) {
 /* ════════════════════════════════════
    UMUMIY: AYLANTIRISH (ROTATE)
 ════════════════════════════════════ */
+/* Aylanish (rotation) VA o'lcham (scale) — ikkalasi ham bitta
+   transform ichida birga qo'llaniladi, shunda ikkalasi bir vaqtda
+   ishlashi mumkin (masalan aylantirilgan asbobni kattalashtirish). */
+function applyMeasureTransform(container) {
+    const rot = parseFloat(container.dataset.rotation) || 0;
+    const scale = parseFloat(container.dataset.scale) || 1;
+    container.style.transform = `rotate(${rot}deg) scale(${scale})`;
+}
+
 function makeRotatable(container, handle) {
     container.dataset.rotation = container.dataset.rotation || '0';
     let rotating = false, startMouseAngle = 0, startRot = 0;
@@ -91,7 +100,7 @@ function makeRotatable(container, handle) {
         const cur = angleTo(cx, cy);
         const newRot = startRot + (cur - startMouseAngle);
         container.dataset.rotation = String(newRot);
-        container.style.transform = `rotate(${newRot}deg)`;
+        applyMeasureTransform(container);
     }
     function end() { rotating = false; }
     handle.addEventListener('mousedown', (e) => {
@@ -116,6 +125,61 @@ function makeRotatable(container, handle) {
     handle.addEventListener('touchend', end);
 }
 function getRotationDeg(container) { return parseFloat(container.dataset.rotation) || 0; }
+
+/* ════════════════════════════════════
+   ASBOBNI KATTALASHTIRISH / KICHRAYTIRISH
+   Burchakdagi (yashil) tutqichni sudrab markazdan uzoqlashtirsangiz —
+   kattalashadi, yaqinlashtirsangiz — kichrayadi. Sichqoncha va
+   barmoq (touch) bilan bir xil ishlaydi.
+════════════════════════════════════ */
+function makeResizable(container, handle, minScale, maxScale) {
+    container.dataset.scale = container.dataset.scale || '1';
+    let resizing = false, startDist = 0, startScale = 1;
+    function centerOf(el) {
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    }
+    function distTo(cx, cy) {
+        const c = centerOf(container);
+        return Math.max(8, Math.hypot(cx - c.x, cy - c.y));
+    }
+    function start(cx, cy) {
+        resizing = true;
+        startDist = distTo(cx, cy);
+        startScale = parseFloat(container.dataset.scale) || 1;
+    }
+    function move(cx, cy) {
+        if (!resizing) return;
+        const d = distTo(cx, cy);
+        let newScale = startScale * (d / startDist);
+        newScale = Math.min(maxScale || 3, Math.max(minScale || 0.5, newScale));
+        container.dataset.scale = String(newScale);
+        applyMeasureTransform(container);
+    }
+    function end() { resizing = false; }
+    handle.addEventListener('mousedown', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        start(e.clientX, e.clientY);
+        const mm = (ev) => move(ev.clientX, ev.clientY);
+        const mu = () => { end(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', mu);
+    });
+    handle.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        const t = e.touches[0];
+        start(t.clientX, t.clientY);
+    }, { passive: true });
+    handle.addEventListener('touchmove', (e) => {
+        if (!resizing) return;
+        const t = e.touches[0];
+        move(t.clientX, t.clientY);
+        e.preventDefault();
+    }, { passive: false });
+    handle.addEventListener('touchend', end);
+}
+function getScale(container) { return parseFloat(container.dataset.scale) || 1; }
+
 
 /* Ekran pikselini canvas ichki piksel birligiga o'giradi (zoom/RENDER_SCALE hisobga olinadi) */
 function screenPxToCanvasPx(px) {
@@ -183,6 +247,7 @@ window.addEventListener('resize', buildRulerTicks);
 
 makeFixedDraggable(rulerTool, document.getElementById('ruler-drag'));
 makeRotatable(rulerTool, document.getElementById('ruler-rotate'));
+makeResizable(rulerTool, document.getElementById('ruler-resize'), 0.5, 2.5);
 
 document.getElementById('ruler-close')?.addEventListener('click', () => {
     rulerTool.style.display = 'none';
@@ -288,6 +353,7 @@ buildProtractorSVG();
 
 makeFixedDraggable(setsquareTool, document.getElementById('setsquare-drag'));
 makeRotatable(setsquareTool, document.getElementById('setsquare-rotate'));
+makeResizable(setsquareTool, document.getElementById('setsquare-resize'), 0.5, 2.5);
 document.getElementById('setsquare-close')?.addEventListener('click', () => {
     setsquareTool.style.display = 'none';
     document.getElementById('tool-setsquare')?.classList.remove('active');
@@ -296,6 +362,7 @@ document.getElementById('setsquare-close')?.addEventListener('click', () => {
 
 makeFixedDraggable(setsquare2Tool, document.getElementById('setsquare2-drag'));
 makeRotatable(setsquare2Tool, document.getElementById('setsquare2-rotate'));
+makeResizable(setsquare2Tool, document.getElementById('setsquare2-resize'), 0.5, 2.5);
 document.getElementById('setsquare2-close')?.addEventListener('click', () => {
     setsquare2Tool.style.display = 'none';
     document.getElementById('tool-setsquare2')?.classList.remove('active');
@@ -304,6 +371,7 @@ document.getElementById('setsquare2-close')?.addEventListener('click', () => {
 
 makeFixedDraggable(protractorTool, document.getElementById('protractor-drag'));
 makeRotatable(protractorTool, document.getElementById('protractor-rotate'));
+makeResizable(protractorTool, document.getElementById('protractor-resize'), 0.5, 2.5);
 document.getElementById('protractor-close')?.addEventListener('click', () => {
     protractorTool.style.display = 'none';
     document.getElementById('tool-protractor')?.classList.remove('active');
@@ -312,6 +380,7 @@ document.getElementById('protractor-close')?.addEventListener('click', () => {
 
 makeFixedDraggable(frenchcurveTool, document.getElementById('frenchcurve-drag'));
 makeRotatable(frenchcurveTool, document.getElementById('frenchcurve-rotate'));
+makeResizable(frenchcurveTool, document.getElementById('frenchcurve-resize'), 0.5, 2.5);
 document.getElementById('frenchcurve-close')?.addEventListener('click', () => {
     frenchcurveTool.style.display = 'none';
     document.getElementById('tool-frenchcurve')?.classList.remove('active');
@@ -348,6 +417,7 @@ function updateCompassArm(angleDeg, lengthPx) {
 updateCompassArm(compassAngleDeg, compassRadiusPx);
 
 makeFixedDraggable(compassTool, compassPin);
+makeResizable(compassTool, document.getElementById('compass-resize'), 0.6, 2.2);
 
 function compassOrigin() {
     const r = compassTool.getBoundingClientRect();
