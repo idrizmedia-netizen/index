@@ -355,14 +355,132 @@ function drawShape(start, end) {
         finishShapePath();
     } else if (tool === 'shape-arrow') {
         drawArrow(start, end);
+    } else if (tool === 'shape-arrow2') {
+        drawDoubleArrow(start, end);
+    } else if (tool === 'shape-oval') {
+        const rx = Math.abs(end.x - start.x);
+        const ry = Math.abs(end.y - start.y);
+        ctx.ellipse(start.x, start.y, rx, ry, 0, 0, Math.PI * 2);
+        finishShapePath();
     } else if (tool === 'shape-triangle') {
         drawTriangle(start, end);
+        finishShapePath();
+    } else if (tool === 'shape-rhombus') {
+        drawRhombus(start, end);
+        finishShapePath();
+    } else if (tool === 'shape-trapezoid') {
+        drawTrapezoid(start, end);
+        finishShapePath();
+    } else if (tool === 'shape-pentagon') {
+        drawPolygon(start, end, 5);
+        finishShapePath();
+    } else if (tool === 'shape-hexagon') {
+        drawPolygon(start, end, 6);
         finishShapePath();
     } else if (tool === 'shape-star') {
         drawStar(start, end);
         finishShapePath();
+    } else if (tool === 'shape-heart') {
+        drawHeart(start, end);
+        finishShapePath();
+    } else if (tool === 'shape-cloud') {
+        drawCloud(start, end);
+        finishShapePath();
     }
     ctx.setLineDash([]);
+}
+
+function drawDoubleArrow(start, end) {
+    const headLen = Math.max(14, lineWidth * 3) * RENDER_SCALE;
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.stroke();
+    /* Oxiridagi o'q boshi */
+    ctx.beginPath();
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(end.x - headLen * Math.cos(angle - Math.PI / 6), end.y - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(end.x - headLen * Math.cos(angle + Math.PI / 6), end.y - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.stroke();
+    /* Boshidagi o'q boshi (teskari yo'nalish) */
+    const rAngle = angle + Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(start.x - headLen * Math.cos(rAngle - Math.PI / 6), start.y - headLen * Math.sin(rAngle - Math.PI / 6));
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(start.x - headLen * Math.cos(rAngle + Math.PI / 6), start.y - headLen * Math.sin(rAngle + Math.PI / 6));
+    ctx.stroke();
+}
+
+function drawRhombus(start, end) {
+    const w = end.x - start.x;
+    const h = end.y - start.y;
+    const cx = start.x + w / 2;
+    const cy = start.y + h / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, start.y);
+    ctx.lineTo(start.x + w, cy);
+    ctx.lineTo(cx, start.y + h);
+    ctx.lineTo(start.x, cy);
+    ctx.closePath();
+}
+
+function drawTrapezoid(start, end) {
+    const w = end.x - start.x;
+    const h = end.y - start.y;
+    const inset = w * 0.22;
+    ctx.beginPath();
+    ctx.moveTo(start.x + inset, start.y);
+    ctx.lineTo(start.x + w - inset, start.y);
+    ctx.lineTo(start.x + w, start.y + h);
+    ctx.lineTo(start.x, start.y + h);
+    ctx.closePath();
+}
+
+function drawPolygon(start, end, sides) {
+    const cx = start.x;
+    const cy = start.y;
+    const r = Math.hypot(end.x - start.x, end.y - start.y);
+    ctx.beginPath();
+    for (let i = 0; i < sides; i++) {
+        const angle = -Math.PI / 2 + (i * 2 * Math.PI) / sides;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+}
+
+function drawHeart(start, end) {
+    const w = Math.abs(end.x - start.x) || 1;
+    const h = Math.abs(end.y - start.y) || 1;
+    const x = Math.min(start.x, end.x);
+    const y = Math.min(start.y, end.y);
+    const topCurveHeight = h * 0.3;
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y + topCurveHeight);
+    ctx.bezierCurveTo(x + w / 2, y, x, y, x, y + topCurveHeight);
+    ctx.bezierCurveTo(x, y + h * 0.6, x + w / 2, y + h * 0.85, x + w / 2, y + h);
+    ctx.bezierCurveTo(x + w / 2, y + h * 0.85, x + w, y + h * 0.6, x + w, y + topCurveHeight);
+    ctx.bezierCurveTo(x + w, y, x + w / 2, y, x + w / 2, y + topCurveHeight);
+    ctx.closePath();
+}
+
+function drawCloud(start, end) {
+    const w = Math.abs(end.x - start.x) || 1;
+    const h = Math.abs(end.y - start.y) || 1;
+    const x = Math.min(start.x, end.x);
+    const y = Math.min(start.y, end.y);
+    const r = h * 0.32;
+    ctx.beginPath();
+    ctx.arc(x + w * 0.28, y + h * 0.65, r * 1.1, Math.PI * 0.5, Math.PI * 1.6);
+    ctx.arc(x + w * 0.48, y + h * 0.32, r * 1.25, Math.PI * 1.0, Math.PI * 2.05);
+    ctx.arc(x + w * 0.72, y + h * 0.45, r * 1.15, Math.PI * 1.35, Math.PI * 2.5);
+    ctx.arc(x + w * 0.85, y + h * 0.68, r * 0.95, Math.PI * 1.7, Math.PI * 0.55);
+    ctx.lineTo(x + w * 0.28, y + h * 0.97);
+    ctx.closePath();
 }
 
 function drawArrow(start, end) {
@@ -719,6 +837,56 @@ const PATTERN_SWATCHES = [
             '</svg>'
         ) + '") repeat-y',
     },
+    {
+        name: 'Millimetrli qog\u2019oz',
+        css: 'repeating-linear-gradient(0deg,#243044,#243044 1px,#0f172a 1px,#0f172a 6px),' +
+             'repeating-linear-gradient(90deg,#243044,#243044 1px,#0f172a 1px,#0f172a 6px),' +
+             'repeating-linear-gradient(0deg,#334155,#334155 1.5px,transparent 1.5px,transparent 30px),' +
+             'repeating-linear-gradient(90deg,#334155,#334155 1.5px,transparent 1.5px,transparent 30px)',
+    },
+    {
+        name: 'Izometrik katakcha',
+        css: '#0f172a url("data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="34.6">' +
+            '<rect width="60" height="34.6" fill="#0f172a"/>' +
+            '<g stroke="#1e293b" stroke-width="1">' +
+            '<line x1="0" y1="0" x2="60" y2="34.6"/><line x1="0" y1="34.6" x2="60" y2="0"/>' +
+            '<line x1="0" y1="17.3" x2="60" y2="17.3"/>' +
+            '<line x1="30" y1="0" x2="30" y2="34.6"/>' +
+            '</g></svg>'
+        ) + '") repeat',
+    },
+    {
+        name: 'Yozuv chizig\u2019i (3 chiziq)',
+        css: '#ffffff url("data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="80">' +
+            '<rect width="400" height="80" fill="#ffffff"/>' +
+            '<line x1="0" y1="18" x2="400" y2="18" stroke="#93c5fd" stroke-width="1.2"/>' +
+            '<line x1="0" y1="40" x2="400" y2="40" stroke="#fca5a5" stroke-width="1.4" stroke-dasharray="4,3"/>' +
+            '<line x1="0" y1="62" x2="400" y2="62" stroke="#93c5fd" stroke-width="1.2"/>' +
+            '</svg>'
+        ) + '") repeat-y',
+    },
+    {
+        name: 'Polar (burchak) katakcha',
+        css: '#0f172a url("data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">' +
+            '<rect width="600" height="600" fill="#0f172a"/>' +
+            '<g fill="none" stroke="#1e293b" stroke-width="1">' +
+                Array.from({ length: 6 }, (_, i) => `<circle cx="300" cy="300" r="${(i + 1) * 45}"/>`).join('') +
+            '</g>' +
+            '<g stroke="#243044" stroke-width="1">' +
+                Array.from({ length: 12 }, (_, i) => {
+                    const a = (i * Math.PI) / 6;
+                    const x2 = 300 + 270 * Math.cos(a);
+                    const y2 = 300 + 270 * Math.sin(a);
+                    return `<line x1="300" y1="300" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;
+                }).join('') +
+            '</g>' +
+            '<circle cx="300" cy="300" r="2.5" fill="#64748b"/>' +
+            '</svg>'
+        ) + '") repeat',
+    },
 ];
 
 function buildBgModal() {
@@ -802,7 +970,15 @@ function buildBgModal() {
         sw.type = 'button';
         sw.className = 'pattern-swatch';
         sw.style.background = p.css;
-        sw.style.backgroundSize = p.name === 'Nuqtalar' ? '14px 14px' : 'auto';
+        const previewSizes = {
+            'Nuqtalar': '14px 14px',
+            'Koordinata o\u2019qi': '46px 46px',
+            'Polar (burchak) katakcha': '46px 46px',
+            'Izometrik katakcha': '30px 17.3px',
+            'Yozuv chizig\u2019i (3 chiziq)': 'auto 26px',
+            'Nota chizig\u2019i': 'auto 26px',
+        };
+        sw.style.backgroundSize = previewSizes[p.name] || 'auto';
         sw.title = p.name;
         sw.addEventListener('click', () => {
             setPageBg({ type: 'pattern', value: p.css });
