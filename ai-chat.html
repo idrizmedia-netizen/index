@@ -233,7 +233,9 @@
     @media(max-width:768px){
         html,body{ height:100% !important; height:100dvh !important; overflow:hidden !important; }
         .chat-page-wrap{
-            position:fixed !important; inset:0 !important;
+            position:fixed !important;
+            top:0 !important; left:0 !important; right:0 !important; bottom:0 !important;
+            height:var(--app-height, 100vh) !important;
             padding:6px 6px 0 !important; box-sizing:border-box !important;
             display:flex !important; flex-direction:column !important;
             overflow:hidden !important; max-width:100% !important;
@@ -397,6 +399,22 @@
     </style>
 </head>
 <body>
+    <script>
+    /* Ba'zi ilova/PWA muhitlarida (Android WebView) vh/dvh noto'g'ri hisoblanadi,
+       shu sabab pastdagi yozish qismi ekrandan chiqib ketadi. Shuning uchun
+       haqiqiy balandlikni JS orqali window.innerHeight'dan olib, CSS
+       o'zgaruvchisiga yozamiz — bu eng ishonchli usul. */
+    (function(){
+        function setAppHeight(){
+            const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+            document.documentElement.style.setProperty('--app-height', h + 'px');
+        }
+        setAppHeight();
+        window.addEventListener('resize', setAppHeight);
+        window.addEventListener('orientationchange', ()=>setTimeout(setAppHeight, 200));
+        if(window.visualViewport) window.visualViewport.addEventListener('resize', setAppHeight);
+    })();
+    </script>
     <div id="offline-banner"><i class="fas fa-wifi"></i> Internet aloqasi yo'q</div>
     <div id="sidebar-backdrop"></div>
     <aside id="chat-sidebar">
