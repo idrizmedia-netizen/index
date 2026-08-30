@@ -231,7 +231,7 @@
 
     /* ── MOBIL ── */
     @media(max-width:768px){
-        html,body{ height:100% !important; overflow:hidden !important; }
+        html,body{ height:100% !important; height:100dvh !important; overflow:hidden !important; }
         .chat-page-wrap{
             position:fixed !important; inset:0 !important;
             padding:6px 6px 0 !important; box-sizing:border-box !important;
@@ -260,6 +260,28 @@
         }
         .ai-tab{ padding:7px 10px; font-size:.73rem; }
         .tutor-subjects{ flex-wrap:nowrap; overflow-x:auto; }
+
+        /* Yangi chip/tugma qatorlari — bitta qatorga sig'sin, gorizontal skroll,
+           IKKINCHI QATORGA O'TIB KETMASIN (bu input pastga tushib ketishining sababi edi) */
+        .chat-toolbar,
+        .tutor-mode-bar,
+        .level-row,
+        .tutor-stats{
+            flex-wrap:nowrap !important;
+            overflow-x:auto !important;
+            -webkit-overflow-scrolling:touch !important;
+            padding-top:5px !important;
+            padding-bottom:5px !important;
+        }
+        .chat-toolbar::-webkit-scrollbar,
+        .tutor-mode-bar::-webkit-scrollbar,
+        .level-row::-webkit-scrollbar{ display:none; }
+        .chat-toolbar > *,
+        .tutor-mode-bar > *,
+        .level-row > *{ flex-shrink:0; }
+        #chat-search-input{ min-width:110px !important; }
+        .tutor-stats{ font-size:.66rem !important; gap:10px !important; white-space:nowrap; }
+
         /* Formulalar mobilida ham chiroyli */
         .message-content .katex-display { font-size: .95em; }
         .chart-container canvas { max-height: 200px !important; }
