@@ -21,6 +21,9 @@ const PX_PER_CM = 16;
 const rulerTool = document.getElementById('ruler-tool');
 const compassTool = document.getElementById('compass-tool');
 const setsquareTool = document.getElementById('setsquare-tool');
+const setsquare2Tool = document.getElementById('setsquare2-tool');
+const protractorTool = document.getElementById('protractor-tool');
+const frenchcurveTool = document.getElementById('frenchcurve-tool');
 
 /* ════════════════════════════════════
    UMUMIY: SUDRASH (DRAG)
@@ -190,18 +193,16 @@ document.getElementById('ruler-close')?.addEventListener('click', () => {
 /* ════════════════════════════════════════════════════════════
    2) UGOLNIK / TRANSPORTIR (90° SET-SQUARE)
 ════════════════════════════════════════════════════════════ */
-function buildSetsquareSVG() {
-    const svg = document.getElementById('setsquare-svg');
-    if (!svg) return;
+function buildSetsquareSVG(svgEl, legH, legV, angleSteps) {
+    if (!svgEl) return;
     const A = { x: 30, y: 190 }; // to'g'ri burchak uchi
-    const B = { x: 30, y: 20 };  // tik tomon uchi
-    const C = { x: 200, y: 190 }; // gorizontal tomon uchi
+    const B = { x: 30, y: 190 - legV };  // tik tomon uchi
+    const C = { x: 30 + legH, y: 190 }; // gorizontal tomon uchi
     const parts = [];
     parts.push(`<path d="M${A.x},${A.y} L${B.x},${B.y} L${C.x},${C.y} Z" fill="rgba(148,163,184,0.32)" stroke="#475569" stroke-width="2.5" stroke-linejoin="round"/>`);
 
     /* Tik tomon (santimetr belgilari) */
-    const legLenV = A.y - B.y;
-    for (let cm = 0; cm * 10 <= legLenV; cm++) {
+    for (let cm = 0; cm * 10 <= legV; cm++) {
         const y = A.y - cm * 10;
         const major = cm % 5 === 0;
         const tickLen = major ? 12 : 6;
@@ -209,39 +210,111 @@ function buildSetsquareSVG() {
         if (major) parts.push(`<text x="${A.x + 15}" y="${y + 3}" font-size="9" fill="#334155" font-family="monospace">${cm}</text>`);
     }
     /* Gorizontal tomon (santimetr belgilari) */
-    const legLenH = C.x - A.x;
-    for (let cm = 0; cm * 10 <= legLenH; cm++) {
+    for (let cm = 0; cm * 10 <= legH; cm++) {
         const x = A.x + cm * 10;
         const major = cm % 5 === 0;
         const tickLen = major ? 12 : 6;
         parts.push(`<line x1="${x}" y1="${A.y}" x2="${x}" y2="${A.y - tickLen}" stroke="#334155" stroke-width="1.2"/>`);
         if (major && cm > 0) parts.push(`<text x="${x - 4}" y="${A.y - 16}" font-size="9" fill="#334155" font-family="monospace">${cm}</text>`);
     }
-    /* Burchak yoyi — transportir kabi 0° dan 90° gacha, har 15° da belgi */
+    /* Burchak yoyi vertex A da */
     const R = 42;
-    for (let deg = 0; deg <= 90; deg += 15) {
+    const maxAngle = Math.round(Math.atan2(legV, legH) * 180 / Math.PI);
+    (angleSteps || [0, 15, 30, 45, 60, 75, 90]).forEach((deg) => {
+        if (deg > 90) return;
         const rad = deg * Math.PI / 180;
         const x1 = A.x + Math.cos(rad) * (R - 6);
         const y1 = A.y - Math.sin(rad) * (R - 6);
         const x2 = A.x + Math.cos(rad) * R;
         const y2 = A.y - Math.sin(rad) * R;
-        parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#ff8a3d" stroke-width="1.4"/>`);
+        const isMain = deg === 0 || deg === 90 || deg === maxAngle;
+        parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${isMain ? '#ff8a3d' : '#94a3b8'}" stroke-width="${isMain ? '1.6' : '1'}"/>`);
         const lx = A.x + Math.cos(rad) * (R + 13);
         const ly = A.y - Math.sin(rad) * (R + 13);
-        parts.push(`<text x="${lx - 7}" y="${ly + 3}" font-size="8" fill="#ff8a3d" font-family="monospace">${deg}°</text>`);
+        parts.push(`<text x="${lx - 7}" y="${ly + 3}" font-size="8" fill="${isMain ? '#ff8a3d' : '#94a3b8'}" font-family="monospace">${deg}°</text>`);
+    });
+    parts.push(`<text x="${A.x + legH - 28}" y="${A.y - legV + 14}" font-size="9" fill="#64748b" font-family="monospace">sm</text>`);
+    svgEl.innerHTML = parts.join('');
+}
+
+/* Lekalo (French curve) — chizmachilikda egri chiziqlarni ko'chirish uchun
+   ishlatiladigan haqiqiy asbobga o'xshash, turli radiusli qirralari bor shablon. */
+function buildFrenchCurveSVG(svgEl) {
+    if (!svgEl) return;
+    const d = `M 30,190
+        C 18,142 24,78 62,44
+        C 92,16 142,8 178,34
+        C 208,56 212,92 196,122
+        C 182,150 150,154 140,176
+        C 132,192 108,202 82,199
+        C 58,196 36,192 30,190 Z`;
+    svgEl.innerHTML = `
+        <path d="${d}" fill="rgba(148,163,184,0.25)" stroke="#475569" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <text x="52" y="182" font-size="10" fill="#64748b" font-family="monospace">Lekalo</text>
+    `;
+}
+
+function buildProtractorSVG() {
+    const svg = document.getElementById('protractor-svg');
+    if (!svg) return;
+    const cx = 120, cy = 115, R = 95;
+    const parts = [];
+    parts.push(`<path d="M${cx - R},${cy} A${R},${R} 0 0 1 ${cx + R},${cy} Z" fill="rgba(148,163,184,0.28)" stroke="#475569" stroke-width="2"/>`);
+    parts.push(`<line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="#475569" stroke-width="2"/>`);
+    for (let deg = 0; deg <= 180; deg += 10) {
+        const rad = deg * Math.PI / 180;
+        const major = deg % 30 === 0;
+        const rInner = major ? R - 14 : R - 8;
+        const x1 = cx + R * Math.cos(rad);
+        const y1 = cy - R * Math.sin(rad);
+        const x2 = cx + rInner * Math.cos(rad);
+        const y2 = cy - rInner * Math.sin(rad);
+        parts.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#334155" stroke-width="${major ? 1.6 : 1}"/>`);
+        if (major) {
+            const lx = cx + (R - 26) * Math.cos(rad);
+            const ly = cy - (R - 26) * Math.sin(rad);
+            parts.push(`<text x="${lx - 9}" y="${ly + 3}" font-size="9" fill="#334155" font-family="monospace">${deg}</text>`);
+        }
     }
-    parts.push(`<text x="150" y="34" font-size="9" fill="#64748b" font-family="monospace">sm</text>`);
+    parts.push(`<circle cx="${cx}" cy="${cy}" r="2.5" fill="#ff8a3d"/>`);
     svg.innerHTML = parts.join('');
 }
-buildSetsquareSVG();
+
+/* ── Ishga tushirish: Ugolnik (45°), Ugolnik (30-60°), Transportir, Lekalo ── */
+buildSetsquareSVG(document.getElementById('setsquare-svg'), 170, 170, [0, 15, 30, 45, 60, 75, 90]);
+buildSetsquareSVG(document.getElementById('setsquare2-svg'), 100, 170, [0, 30, 60, 90]);
+buildFrenchCurveSVG(document.getElementById('frenchcurve-svg'));
+buildProtractorSVG();
 
 makeFixedDraggable(setsquareTool, document.getElementById('setsquare-drag'));
 makeRotatable(setsquareTool, document.getElementById('setsquare-rotate'));
-
 document.getElementById('setsquare-close')?.addEventListener('click', () => {
     setsquareTool.style.display = 'none';
     document.getElementById('tool-setsquare')?.classList.remove('active');
     if (tool === 'setsquare-line') tool = 'pen';
+});
+
+makeFixedDraggable(setsquare2Tool, document.getElementById('setsquare2-drag'));
+makeRotatable(setsquare2Tool, document.getElementById('setsquare2-rotate'));
+document.getElementById('setsquare2-close')?.addEventListener('click', () => {
+    setsquare2Tool.style.display = 'none';
+    document.getElementById('tool-setsquare2')?.classList.remove('active');
+    if (tool === 'setsquare2-line') tool = 'pen';
+});
+
+makeFixedDraggable(protractorTool, document.getElementById('protractor-drag'));
+makeRotatable(protractorTool, document.getElementById('protractor-rotate'));
+document.getElementById('protractor-close')?.addEventListener('click', () => {
+    protractorTool.style.display = 'none';
+    document.getElementById('tool-protractor')?.classList.remove('active');
+    if (tool === 'protractor-line') tool = 'pen';
+});
+
+makeFixedDraggable(frenchcurveTool, document.getElementById('frenchcurve-drag'));
+makeRotatable(frenchcurveTool, document.getElementById('frenchcurve-rotate'));
+document.getElementById('frenchcurve-close')?.addEventListener('click', () => {
+    frenchcurveTool.style.display = 'none';
+    document.getElementById('tool-frenchcurve')?.classList.remove('active');
 });
 
 /* ════════════════════════════════════════════════════════════
@@ -373,6 +446,9 @@ function toggleMeasureTool(btn, el, toolName) {
 toggleMeasureTool(document.getElementById('tool-ruler'), rulerTool, 'ruler-line');
 toggleMeasureTool(document.getElementById('tool-compass'), compassTool, null);
 toggleMeasureTool(document.getElementById('tool-setsquare'), setsquareTool, 'setsquare-line');
+toggleMeasureTool(document.getElementById('tool-setsquare2'), setsquare2Tool, 'setsquare2-line');
+toggleMeasureTool(document.getElementById('tool-protractor'), protractorTool, 'protractor-line');
+toggleMeasureTool(document.getElementById('tool-frenchcurve'), frenchcurveTool, null);
 
 /* ════════════════════════════════════════════════════════════
    5) CHIZG'ICH / UGOLNIK QIRRASIGA "YOPISHIB" CHIZISH
@@ -385,7 +461,34 @@ let measureLineStartScreen = null;
 let measureSnapshotBeforeLine = null;
 
 function isMeasureLineTool() {
-    return tool === 'ruler-line' || tool === 'setsquare-line';
+    return tool === 'ruler-line' || tool === 'setsquare-line' || tool === 'setsquare2-line' || tool === 'protractor-line';
+}
+
+function measureBaseAngle() {
+    if (tool === 'ruler-line') return getRotationDeg(rulerTool);
+    if (tool === 'setsquare-line') return getRotationDeg(setsquareTool);
+    if (tool === 'setsquare2-line') return getRotationDeg(setsquare2Tool);
+    if (tool === 'protractor-line') return getRotationDeg(protractorTool);
+    return 0;
+}
+
+function measureSnapOffsets() {
+    if (tool === 'setsquare-line' || tool === 'setsquare2-line') return [0, 90];
+    if (tool === 'protractor-line') return [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165];
+    return [0]; // chizg'ich — faqat o'zining burchagi
+}
+
+function bestSnapAngle(dragAngleDeg) {
+    const base = measureBaseAngle();
+    const offsets = measureSnapOffsets();
+    let best = base, bestDiff = 999;
+    offsets.forEach((o) => {
+        [base + o, base + o + 180].forEach((variant) => {
+            let diff = Math.abs(((dragAngleDeg - variant + 540) % 360) - 180);
+            if (diff < bestDiff) { bestDiff = diff; best = variant; }
+        });
+    });
+    return best;
 }
 
 function measureStartDraw(e) {
@@ -398,19 +501,6 @@ function measureStartDraw(e) {
     measureLineStart = getCoords(e);
     try { measureSnapshotBeforeLine = canvas.toDataURL(); } catch { measureSnapshotBeforeLine = null; }
     e.preventDefault();
-}
-
-function bestSnapAngle(dragAngleDeg) {
-    const base = tool === 'ruler-line' ? getRotationDeg(rulerTool) : getRotationDeg(setsquareTool);
-    const candidates = tool === 'setsquare-line' ? [base, base + 90] : [base];
-    let best = candidates[0], bestDiff = 999;
-    candidates.forEach((c) => {
-        [c, c + 180].forEach((variant) => {
-            let diff = Math.abs(((dragAngleDeg - variant + 540) % 360) - 180);
-            if (diff < bestDiff) { bestDiff = diff; best = variant; }
-        });
-    });
-    return best;
 }
 
 function measureMoveDraw(e) {
