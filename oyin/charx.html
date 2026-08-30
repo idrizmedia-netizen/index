@@ -241,6 +241,7 @@ function showQuestion(){
   document.getElementById('qTxt').textContent=q.q;
   document.getElementById('opts').innerHTML=q.o.map((t,i)=>
     `<button class="opt" onclick="answer(${i},${q.a})">${String.fromCharCode(65+i)}. ${t}</button>`).join('');
+  document.getElementById('qBox').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function answer(i,correct){
