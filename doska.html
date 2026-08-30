@@ -65,6 +65,27 @@
         <button type="button" class="measure-close" id="setsquare-close" title="Olib tashlash"><i class="fas fa-xmark"></i></button>
     </div>
 
+    <div class="measure-tool setsquare-tool" id="setsquare2-tool" style="display:none;left:calc(50% + 420px);">
+        <svg class="setsquare-svg" id="setsquare2-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="measure-drag-handle setsquare-drag" id="setsquare2-drag"><i class="fas fa-up-down-left-right"></i></div>
+        <div class="measure-rotate-handle setsquare-rotate" id="setsquare2-rotate" title="Aylantirish"><i class="fas fa-rotate"></i></div>
+        <button type="button" class="measure-close" id="setsquare2-close" title="Olib tashlash"><i class="fas fa-xmark"></i></button>
+    </div>
+
+    <div class="measure-tool protractor-tool" id="protractor-tool" style="display:none;">
+        <svg class="protractor-svg" id="protractor-svg" viewBox="0 0 240 130" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="measure-drag-handle protractor-drag" id="protractor-drag"><i class="fas fa-up-down-left-right"></i></div>
+        <div class="measure-rotate-handle protractor-rotate" id="protractor-rotate" title="Aylantirish"><i class="fas fa-rotate"></i></div>
+        <button type="button" class="measure-close" id="protractor-close" title="Olib tashlash"><i class="fas fa-xmark"></i></button>
+    </div>
+
+    <div class="measure-tool setsquare-tool frenchcurve-tool" id="frenchcurve-tool" style="display:none;top:380px;left:calc(50% - 110px);">
+        <svg class="setsquare-svg" id="frenchcurve-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="measure-drag-handle setsquare-drag" id="frenchcurve-drag"><i class="fas fa-up-down-left-right"></i></div>
+        <div class="measure-rotate-handle setsquare-rotate" id="frenchcurve-rotate" title="Aylantirish"><i class="fas fa-rotate"></i></div>
+        <button type="button" class="measure-close" id="frenchcurve-close" title="Olib tashlash"><i class="fas fa-xmark"></i></button>
+    </div>
+
     <!-- ZOOM BOSHQARUVI (desktop / katta ekran) -->
     <div class="zoom-control zoom-control--desktop" id="zoom-control-desktop">
         <button type="button" class="zoom-btn" id="zoom-out" title="Kichraytirish"><i class="fas fa-minus"></i></button>
@@ -134,10 +155,18 @@
                 <div class="shape-popup">
                     <button type="button" class="shape-btn" data-shape="shape-line" title="Chiziq"><i class="fas fa-slash"></i></button>
                     <button type="button" class="shape-btn" data-shape="shape-arrow" title="O'q (strelka)"><i class="fas fa-arrow-right"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-arrow2" title="Qo'sh o'q"><i class="fas fa-left-right"></i></button>
                     <button type="button" class="shape-btn" data-shape="shape-rect" title="To'rtburchak"><i class="far fa-square"></i></button>
                     <button type="button" class="shape-btn" data-shape="shape-circle" title="Doira"><i class="far fa-circle"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-oval" title="Oval / Ellips"><i class="far fa-circle" style="transform:scaleX(1.6)"></i></button>
                     <button type="button" class="shape-btn" data-shape="shape-triangle" title="Uchburchak"><i class="fas fa-play" style="transform:rotate(-90deg)"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-rhombus" title="Romb"><i class="fas fa-gem"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-trapezoid" title="Trapetsiya"><i class="fas fa-shapes"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-pentagon" title="Beshburchak"><i class="fas fa-draw-polygon"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-hexagon" title="Oltiburchak"><i class="fas fa-draw-polygon" style="transform:rotate(30deg)"></i></button>
                     <button type="button" class="shape-btn" data-shape="shape-star" title="Yulduzcha"><i class="fas fa-star"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-heart" title="Yurak"><i class="fas fa-heart"></i></button>
+                    <button type="button" class="shape-btn" data-shape="shape-cloud" title="Bulut (izoh uchun)"><i class="fas fa-cloud"></i></button>
                     <button type="button" class="tb-btn" id="btn-eraser" title="O'chirgich"><i class="fas fa-eraser"></i></button>
                     <button type="button" class="tb-btn" id="btn-select" title="Tanlash — chizilganni tanlab ko'chirish yoki o'chirish"><i class="fas fa-vector-square"></i></button>
                 </div>
@@ -174,7 +203,16 @@
                         <i class="fas fa-compass-drafting"></i> Sirkul
                     </button>
                     <button type="button" class="widget-option" id="tool-setsquare" data-tool="setsquare">
-                        <i class="fas fa-ruler-combined"></i> Ugolnik (90°)
+                        <i class="fas fa-ruler-combined"></i> Ugolnik (45°)
+                    </button>
+                    <button type="button" class="widget-option" id="tool-setsquare2" data-tool="setsquare2">
+                        <i class="fas fa-ruler-combined" style="transform:scaleX(0.7)"></i> Ugolnik (30-60°)
+                    </button>
+                    <button type="button" class="widget-option" id="tool-protractor" data-tool="protractor">
+                        <i class="fas fa-drafting-compass"></i> Transportir
+                    </button>
+                    <button type="button" class="widget-option" id="tool-frenchcurve" data-tool="frenchcurve">
+                        <i class="fas fa-wave-square"></i> Lekalo
                     </button>
                 </div>
                 <p class="tb-hint">
