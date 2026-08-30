@@ -690,6 +690,35 @@ const PATTERN_SWATCHES = [
     { name: 'Katakcha', css: 'repeating-linear-gradient(0deg,#1e293b,#1e293b 1px,#0f172a 1px,#0f172a 28px),repeating-linear-gradient(90deg,#1e293b,#1e293b 1px,#0f172a 1px,#0f172a 28px)' },
     { name: 'Chiziqli', css: 'repeating-linear-gradient(0deg,#1e293b,#1e293b 1px,#0f172a 1px,#0f172a 32px)' },
     { name: 'Nuqtalar', css: 'radial-gradient(circle,#334155 2px,#0f172a 2px)' },
+    {
+        name: 'Koordinata o\u2019qi',
+        css: '#0f172a url("data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">' +
+            '<rect width="600" height="600" fill="#0f172a"/>' +
+            '<g stroke="#1e293b" stroke-width="1">' +
+                Array.from({ length: 21 }, (_, i) => `<line x1="${i * 30}" y1="0" x2="${i * 30}" y2="600"/><line x1="0" y1="${i * 30}" x2="600" y2="${i * 30}"/>`).join('') +
+            '</g>' +
+            '<line x1="0" y1="300" x2="600" y2="300" stroke="#64748b" stroke-width="2"/>' +
+            '<line x1="300" y1="0" x2="300" y2="600" stroke="#64748b" stroke-width="2"/>' +
+            '<path d="M590,300 L578,294 L578,306 Z" fill="#64748b"/>' +
+            '<path d="M300,10 L294,22 L306,22 Z" fill="#64748b"/>' +
+            '<text x="580" y="292" fill="#94a3b8" font-size="14" font-family="monospace">x</text>' +
+            '<text x="308" y="20" fill="#94a3b8" font-size="14" font-family="monospace">y</text>' +
+            '<text x="304" y="296" fill="#64748b" font-size="11" font-family="monospace">0</text>' +
+            '</svg>'
+        ) + '") repeat',
+    },
+    {
+        name: 'Nota chizig\u2019i',
+        css: '#0f172a url("data:image/svg+xml,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120">' +
+            '<rect width="400" height="120" fill="#0f172a"/>' +
+            '<g stroke="#94a3b8" stroke-width="1.4">' +
+                Array.from({ length: 5 }, (_, i) => `<line x1="0" y1="${30 + i * 12}" x2="400" y2="${30 + i * 12}"/>`).join('') +
+            '</g>' +
+            '</svg>'
+        ) + '") repeat-y',
+    },
 ];
 
 function buildBgModal() {
