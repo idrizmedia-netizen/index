@@ -312,7 +312,7 @@
     .chat-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(56,189,248,.15);flex-wrap:wrap;background:var(--card-bg);flex-shrink:0}
     #chat-search-input,#font-size-select{padding:6px 10px;border-radius:8px;border:1px solid rgba(56,189,248,.3);background:var(--light-bg);color:var(--text-color);font-size:.85rem;font-family:inherit}
     #chat-search-input{flex:1;min-width:100px}
-    #export-chat-btn,#export-pdf-btn{border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;padding:6px 10px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
+    #export-chat-btn,#export-pdf-btn,#share-chat-btn{border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);border-radius:8px;padding:6px 10px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit}
     #rate-limit-label{display:none;font-size:.72rem;color:var(--text-color);opacity:.6;white-space:nowrap}
 
     #drop-overlay{display:none;position:absolute;inset:0;background:rgba(37,99,235,.1);border:3px dashed var(--primary-color);align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:var(--primary-color);z-index:20;pointer-events:none;border-radius:16px}
@@ -478,6 +478,7 @@
                     </select>
                     <button type="button" id="export-chat-btn" title="Suhbatni .txt yuklab olish"><i class="fas fa-file-export"></i></button>
                     <button type="button" id="export-pdf-btn" title="Suhbatni PDF yuklab olish"><i class="fas fa-file-pdf"></i></button>
+                    <button type="button" id="share-chat-btn" title="Suhbatni havola orqali ulashish"><i class="fas fa-share-nodes"></i></button>
                     <button type="button" id="theme-toggle-btn" title="Qorong'i/yorug' rejim" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
                     <span id="rate-limit-label"></span>
                 </div>
@@ -810,6 +811,7 @@
     const dropOverlay = document.getElementById('drop-overlay');
     const chatShell = document.querySelector('#tab-chat .chat-shell');
     const exportPdfBtn = document.getElementById('export-pdf-btn');
+    const shareChatBtn = document.getElementById('share-chat-btn');
     const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
     const categorySelect = document.getElementById('session-category-select');
 
@@ -1050,7 +1052,7 @@
         return id;
     }
 
-    function updateMessage(id, text){
+    function updateMessage(id, text, isFinal){
         const session = getCurrentSession();
         const msg = session && session.messages.find(m=>m.id===id);
         if(msg) msg.text = text;
@@ -1059,6 +1061,10 @@
         el.innerHTML = '';
         el.appendChild(renderContent(text));
         addAiActions(el, msg || {id, text});
+        if(isFinal && text !== '__loading__'){
+            addQuickReplies(el);
+            appendTimestamp(el, msg || {ts: Date.now()});
+        }
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
@@ -1290,22 +1296,39 @@
                         image: files[0]?.base64 || null,
                         mimeType: files[0]?.mimeType || null,
                         files: files.map(f=>({ base64:f.base64, mimeType:f.mimeType, name:f.name })),
+                        stream: true,
                     }),
                     signal: abortController.signal,
                 });
 
-                const data = await response.json().catch(()=>null);
-
                 if(!response.ok){
+                    const data = await response.json().catch(()=>null);
                     const msg = (data && data.error) ? data.error : mapStatusToMessage(response.status);
-                    updateMessage(loadingId, msg);
+                    updateMessage(loadingId, msg, true);
                     saveSessionsToStorage();
                     if(window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi', 'error');
                     lastError = null; break;
                 }
 
-                let aiReply = (data && (data.reply || data.error)) || 'Javob olinmadi.';
-                if(data && data.truncated) aiReply += "\n\n*(Javob uzunligi chegarasiga yetdi)*";
+                // ---------- HAQIQIY STREAMING: token-by-token o'qish ----------
+                let aiReply = '';
+                if(response.body && response.body.getReader){
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let pendingFrame = false;
+                    while(true){
+                        const { done, value } = await reader.read();
+                        if(done) break;
+                        aiReply += decoder.decode(value, { stream: true });
+                        if(!pendingFrame){
+                            pendingFrame = true;
+                            requestAnimationFrame(()=>{ pendingFrame=false; updateMessage(loadingId, aiReply, false); });
+                        }
+                    }
+                } else {
+                    aiReply = await response.text();
+                }
+                if(!aiReply) aiReply = 'Javob olinmadi.';
 
                 if(compareWithOld){
                     const session2 = getCurrentSession();
@@ -1314,23 +1337,18 @@
                     const el2 = document.getElementById(loadingId);
                     if(el2){ el2.innerHTML=''; el2.appendChild(renderCompareBlock({oldText:compareWithOld,newText:aiReply})); appendTimestamp(el2, msg2||{ts:Date.now()}); }
                 } else {
-                    updateMessage(loadingId, aiReply);
+                    updateMessage(loadingId, aiReply, true);
                 }
                 saveSessionsToStorage();
                 renderSidebarTitleIfNeeded();
                 renderSidebar();
-
-                if(typeof data?.remaining === 'number' && rateLimitLabel){
-                    rateLimitLabel.textContent = `Bugun ${data.remaining} ta savol qoldi`;
-                    rateLimitLabel.style.display = 'inline-block';
-                }
 
                 if(window.ZiyomapNotify) ZiyomapNotify.update(notif, '✅ Javob keldi', 'success');
                 if(window.ZiyomapUsage) ZiyomapUsage.logUsage('ai-xabar', 'AI ga savol yuborildi');
                 lastError = null; break;
             } catch(err){
                 if(err.name === 'AbortError'){
-                    updateMessage(loadingId, "Javob to'xtatildi.");
+                    updateMessage(loadingId, "Javob to'xtatildi.", true);
                     saveSessionsToStorage();
                     lastError = null; break;
                 }
@@ -1345,7 +1363,7 @@
             const message = offline
                 ? "Internet aloqasi yo'q. Ulanishni tekshirib, qayta urinib ko'ring."
                 : "Serverga ulanib bo'lmadi. Bir necha marta urinildi, birozdan keyin qayta urinib ko'ring.";
-            updateMessage(loadingId, message);
+            updateMessage(loadingId, message, true);
             saveSessionsToStorage();
             if(window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik yuz berdi', 'error');
         }
@@ -1436,11 +1454,97 @@
         });
     }
 
+    // ---------- SUHBATNI HAVOLA ORQALI ULASHISH (bazasiz, URL orqali) ----------
+    function shareCurrentSession(){
+        const session = getCurrentSession();
+        const msgs = session ? session.messages.filter(m=>m.text!=='__loading__') : [];
+        if(!msgs.length){ notifyError("Ulashish uchun suhbat bo'sh."); return; }
+
+        const payload = msgs.map(m=>({ r: m.role==='user'?'u':'a', t: m.text }));
+        let encoded;
+        try{
+            encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+        }catch(e){ notifyError('Ulashishda xatolik yuz berdi.'); return; }
+
+        if(encoded.length > 6000){
+            notifyError("Suhbat juda uzun — havola orqali ulashish uchun qisqaroq suhbat tanlang.");
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.search = ''; url.hash = '';
+        url.searchParams.set('share', encoded);
+        const shareUrl = url.toString();
+
+        if(navigator.share){
+            navigator.share({ title: 'Ziyomap AI suhbat', url: shareUrl }).catch(()=>{});
+        } else if(navigator.clipboard){
+            navigator.clipboard.writeText(shareUrl).then(()=>{
+                if(window.ZiyomapNotify) ZiyomapNotify.update(null, '✅ Havola nusxalandi!', 'success');
+            }).catch(()=>{ prompt('Havolani nusxalang:', shareUrl); });
+        } else {
+            prompt('Havolani nusxalang:', shareUrl);
+        }
+    }
+    if(shareChatBtn) shareChatBtn.addEventListener('click', shareCurrentSession);
+
+    function checkSharedView(){
+        const params = new URLSearchParams(window.location.search);
+        const shared = params.get('share');
+        if(!shared) return false;
+        let messages;
+        try{ messages = JSON.parse(decodeURIComponent(escape(atob(shared)))); }
+        catch(e){ return false; }
+        if(!Array.isArray(messages) || !messages.length) return false;
+        renderSharedView(messages);
+        return true;
+    }
+
+    function renderSharedView(messages){
+        chatMessages.innerHTML = '';
+        const banner = document.createElement('div');
+        banner.style.cssText = 'background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.3);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:.82rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
+        banner.innerHTML = `<span>👁️ Bu <b>faqat o'qish uchun</b> ulashilgan suhbat.</span>`;
+        const exitBtn = document.createElement('button');
+        exitBtn.type='button';
+        exitBtn.textContent = "O'z chatimni ochish";
+        exitBtn.style.cssText = 'border:none;background:var(--primary-color);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.78rem;';
+        exitBtn.onclick = ()=>{
+            const url = new URL(window.location.href);
+            url.searchParams.delete('share');
+            window.location.href = url.toString();
+        };
+        banner.appendChild(exitBtn);
+        chatMessages.appendChild(banner);
+
+        messages.forEach(m=>{
+            const wrap = document.createElement('div');
+            wrap.style.cssText = m.r==='u'
+                ? 'align-self:flex-end;background:var(--primary-color);color:#fff;padding:11px 14px;border-radius:15px 15px 0 15px;max-width:88%;'
+                : 'align-self:flex-start;background:rgba(56,189,248,.08);color:var(--text-color);padding:11px 14px;border-radius:15px 15px 15px 0;max-width:92%;border:1px solid rgba(56,189,248,.12);';
+            if(m.r==='u'){
+                const d=document.createElement('div'); d.className='message-content';
+                d.innerHTML = esc(m.t).replace(/\n/g,'<br>');
+                wrap.appendChild(d);
+            } else {
+                wrap.appendChild(renderContent(m.t));
+            }
+            chatMessages.appendChild(wrap);
+        });
+
+        if(userInputAi){ userInputAi.disabled = true; userInputAi.placeholder = "Bu ulashilgan suhbat — yozish uchun o'z chatingizni oching"; }
+        if(sendBtnAi) sendBtnAi.disabled = true;
+        if(sidebarToggleBtn) sidebarToggleBtn.style.display = 'none';
+        if(authNotice) authNotice.style.display = 'none';
+    }
+
     // ---------- ISHGA TUSHIRISH ----------
-    loadSessionsFromStorage();
-    renderChatFromSession();
-    renderSidebar();
-    restoreDraft();
+    if(!checkSharedView()){
+        loadSessionsFromStorage();
+        renderChatFromSession();
+        renderSidebar();
+        restoreDraft();
+    }
     })();
     </script>
 
