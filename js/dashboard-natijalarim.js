@@ -422,6 +422,7 @@
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const logoUrl = `${window.location.origin}/images/nav-icon.png`;
         const rightLogoUrl = `${window.location.origin}/images/cert-icon-right.png`;
+        const svgLogoUrl = `${window.location.origin}/images/logo-full.svg`;
         const verifyUrl = `${window.location.origin}/tasdiqlash.html?id=${encodeURIComponent(certNumber)}`;
 
         // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
@@ -483,10 +484,10 @@
             .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
-            .cert-logo-block{position:absolute;top:20px;display:flex;flex-direction:column;align-items:center;gap:4px}
-            .cert-logo-tl{left:24px}
-            .cert-logo-tr{right:24px}
+            .cert-logo-row{position:absolute;top:20px;left:24px;display:flex;align-items:flex-start;gap:16px}
+            .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:4px}
             .cert-corner-logo{width:46px;height:46px;object-fit:contain;border-radius:9px}
+            .cert-logo-svg{height:46px;width:auto;object-fit:contain}
             .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:11px;letter-spacing:1px;color:${theme.deep};text-transform:uppercase}
             .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
             .cert-brand{
@@ -535,13 +536,18 @@
                 <div class="cert-corner cc-tr"></div>
                 <div class="cert-corner cc-bl"></div>
                 <div class="cert-corner cc-br"></div>
-                <div class="cert-logo-block cert-logo-tl">
-                    <img src="${logoUrl}" class="cert-corner-logo" alt="">
-                    <span class="cert-logo-caption">Ziyomap</span>
-                </div>
-                <div class="cert-logo-block cert-logo-tr">
-                    <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
-                    <span class="cert-logo-caption">Reja</span>
+                <div class="cert-logo-row">
+                    <div class="cert-logo-block">
+                        <img src="${logoUrl}" class="cert-corner-logo" alt="">
+                        <span class="cert-logo-caption">Ziyomap</span>
+                    </div>
+                    <div class="cert-logo-block">
+                        <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
+                        <span class="cert-logo-caption">Reja</span>
+                    </div>
+                    <div class="cert-logo-block">
+                        <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
+                    </div>
                 </div>
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
