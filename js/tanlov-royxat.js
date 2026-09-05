@@ -332,6 +332,11 @@ async function openContest(contest, showBack) {
             submitBtn.disabled = false;
             return;
         }
+        if (!document.getElementById('f-privacy-consent')?.checked) {
+            setStatus('Davom etish uchun Maxfiylik siyosatiga roziligingizni bildiring.', 'error');
+            submitBtn.disabled = false;
+            return;
+        }
 
         if (contest.minAge && yosh < contest.minAge) {
             setStatus(`Bu tanlov uchun yosh chegarasi: ${contest.minAge} dan boshlab.`, 'error');
