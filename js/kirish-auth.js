@@ -226,6 +226,11 @@ function startGoogleLogin() {
 if (loginBtn) {
     loginBtn.addEventListener('click', () => {
         if (checkAndWarnIfLocked()) return;
+        const consent = document.getElementById('privacy-consent-login');
+        if (consent && !consent.checked) {
+            setStatus('Davom etish uchun avval Maxfiylik siyosatiga roziligingizni bildiring.', 'error');
+            return;
+        }
         startGoogleLogin();
     });
 }
@@ -264,6 +269,11 @@ if (localLoginForm) {
     localLoginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (checkAndWarnIfLocked()) return;
+        const consent = document.getElementById('privacy-consent-login');
+        if (consent && !consent.checked) {
+            setStatus('Davom etish uchun avval Maxfiylik siyosatiga roziligingizni bildiring.', 'error');
+            return;
+        }
         const login = document.getElementById('local-login')?.value;
         const password = document.getElementById('local-password')?.value;
         if (!Creds) return;
