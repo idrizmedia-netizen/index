@@ -19,7 +19,7 @@
         appId: '1:982123868162:web:6845723988c030fcd1f71b',
     };
 
-    let db, authInst, updateDocFn, docFn, setDocFn, getDocFn, serverTimestampFn;
+    let db, authInst, updateDocFn, docFn, setDocFn, getDocFn, serverTimestampFn, collectionFn, getDocsFn;
 
     // ── Adminga Telegram orqali bildirishnoma yuborish (bot sozlangan bo'lsa) ──
     async function notifyTelegram(text) {
@@ -138,6 +138,8 @@
             setDocFn = setDoc;
             getDocFn = getDoc;
             serverTimestampFn = serverTimestamp;
+            collectionFn = collection;
+            getDocsFn = getDocs;
             const queryUid = (authInst.currentUser && authInst.currentUser.uid) || user.uid;
 
             let telegramBannerHtml = '';
@@ -417,7 +419,7 @@
         return `${surname} ${initials}`;
     }
 
-    function buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings) {
+    function buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings, partnerLogos) {
         const today = fmtCertDate(new Date());
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const logoUrl = `${window.location.origin}/images/nav-icon.png`;
@@ -431,6 +433,15 @@
                     <span class="cert-logo-caption">${esc(c.title || 'Tanlov')}</span>
                 </div>`
             : '';
+        // Hamkorlar logotiplari — tanlov logotipi ortidan qatorlashib chiqadi
+        const partnerLogoBlocks = (partnerLogos || [])
+            .filter((p) => p && p.logoUrl)
+            .map(
+                (p) => `<div class="cert-logo-block">
+                    <img src="${esc(p.logoUrl)}" class="cert-corner-logo" alt="">
+                </div>`
+            )
+            .join('');
 
         // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
         // ishtirok sertifikati uchun brendga mos alohida ranglar.
@@ -491,11 +502,11 @@
             .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
-            .cert-logo-row{position:absolute;top:20px;left:24px;display:flex;align-items:flex-start;gap:16px}
-            .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:4px}
-            .cert-corner-logo{width:46px;height:46px;object-fit:contain;border-radius:9px}
-            .cert-logo-svg{height:46px;width:auto;object-fit:contain}
-            .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:11px;letter-spacing:1px;color:${theme.deep};text-transform:uppercase}
+            .cert-logo-row{position:absolute;top:20px;left:24px;right:24px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 14px;max-width:60%}
+            .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:4px;width:46px}
+            .cert-corner-logo{width:40px;height:40px;object-fit:contain;border-radius:9px}
+            .cert-logo-svg{height:40px;width:auto;object-fit:contain}
+            .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:10px;letter-spacing:0.5px;color:${theme.deep};text-transform:uppercase;text-align:center;line-height:1.15}
             .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
             .cert-brand{
                 font-family:'Playfair Display',serif;font-weight:700;font-size:15px;
@@ -556,6 +567,7 @@
                         <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
                     </div>
                     ${contestLogoBlock}
+                    ${partnerLogoBlocks}
                 </div>
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
@@ -591,6 +603,21 @@
     }
 
     function wireCertificateActions(container, regs, contestDates, signatureSettings) {
+        const partnerLogosCache = {};
+        async function getPartnerLogos(contestId) {
+            if (!contestId) return [];
+            if (partnerLogosCache[contestId]) return partnerLogosCache[contestId];
+            try {
+                const snap = await getDocsFn(collectionFn(db, 'contests', contestId, 'partners'));
+                const items = [];
+                snap.forEach((d) => items.push(d.data()));
+                partnerLogosCache[contestId] = items;
+                return items;
+            } catch (err) {
+                console.error('Hamkor logotiplarini yuklashda xatolik:', err);
+                return [];
+            }
+        }
         container.querySelectorAll('[data-diploma], [data-certificate]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.diploma || btn.dataset.certificate;
@@ -616,7 +643,8 @@
                     console.error('Sertifikat yozuvini saqlashda xatolik:', err);
                 }
 
-                const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {});
+                const partnerLogos = await getPartnerLogos(r.contestId);
+                const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {}, partnerLogos);
                 const w = window.open('', '_blank');
                 if (!w) return;
                 w.document.write(html);
