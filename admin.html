@@ -269,6 +269,18 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         </div>
       </div>
       <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Masalan: test 25.07.2026–30.07.2026 kunlari, har kuni 08:00–18:00 oralig'ida; suhbat shu kunlarda 09:00–17:00 oralig'ida, lekin 12:00–13:00 tanaffus hisobga olinadi (bu oraliqqa hech kim taqsimlanmaydi). Bularni saqlagandan so'ng, "Ishtirokchilar" bo'limida "Vaqtlarni avtomatik taqsimlash" tugmasi orqali har bir ishtirokchiga alohida vaqt biriktiriladi.</p>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-shield"></i> Nizom va maxfiylik hujjatlari</h4>
+      <p style="color:var(--muted);font-size:0.78rem;margin:0 0 12px">Bu yerga yuklangan hujjat bilan ishtirokchi ro'yxatdan o'tishdan oldin albatta tanishib chiqishi va alohida roziligini bildirishi shart bo'ladi. Fayl hajmi <b>300 KB</b> dan oshmasin (PDF yoki rasm formatida). Katta hujjat bo'lsa, uni siqib (kichraytirib) yoki suratini olib yuklang — yoki to'liq nusxasini Telegram kanalimizda joylashtiring.</p>
+      <div class="field">
+        <label>Tanlov nizomi (ixtiyoriy)</label>
+        <input type="file" id="c-nizom-file" accept="application/pdf,image/*">
+        <p id="c-nizom-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <div class="field">
+        <label>Ushbu tanlovga xos maxfiylik sharti (ixtiyoriy — bo'sh qoldirsangiz standart Maxfiylik siyosati sahifasi ishlatiladi)</label>
+        <input type="file" id="c-maxfiylik-file" accept="application/pdf,image/*">
+        <p id="c-maxfiylik-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
       <input type="hidden" id="c-edit-id" value="">
       <button class="btn btn-primary" id="c-create-btn"><i class="fas fa-check"></i> Yaratish va e'lon qilish</button>
       <button class="btn" id="c-cancel-edit-btn" style="display:none;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-xmark"></i> Bekor qilish</button>
@@ -554,6 +566,11 @@ Javob: A"></textarea>
         <label>Bot username (ishtirokchilarga shaxsiy bildirishnoma yuborish uchun)</label>
         <input type="text" id="telegram-bot-username" placeholder="Masalan: ZiyomapBildirishnoma_bot (@ belgisisiz)">
         <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Bu username ishtirokchilarga "Telegram orqali bildirishnoma olish" havolasi (masalan ro'yxatdan o'tish va shaxsiy kabinet sahifalarida) yaratish uchun ishlatiladi.</p>
+      </div>
+      <div class="field">
+        <label>Rasmiy Telegram kanali username (barcha nizom, e'lonlar va tanlov shartlari joylashtiriladigan ochiq kanal)</label>
+        <input type="text" id="telegram-channel-username" placeholder="Masalan: ziyomap (@ belgisisiz)">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Bu havola "Tanlovga ro'yxatdan o'tish" sahifasida ko'rsatiladi — foydalanuvchilarga barcha nizomlar va tanlov shartlari shu kanalda e'lon qilinishi haqida xabar beriladi.</p>
       </div>
       <button class="btn btn-primary" id="telegram-save-btn"><i class="fas fa-check"></i> Saqlash</button>
       <button class="btn" id="telegram-test-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-left:8px"><i class="fas fa-paper-plane"></i> Test xabar yuborish</button>
