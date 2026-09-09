@@ -302,6 +302,26 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     </div>
 
     <div class="card">
+      <h3><i class="fas fa-handshake"></i> Hamkorlar logotiplari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Tanlovni tanlab, hamkor tashkilot logotipini yuklang — u sertifikat/diplomda tanlov logotipi ortidan qatorlashib chiqadi.
+        Orqa foni bir xil rangda bo'lsa, avtomatik tozalanadi va logotip chegarasiga qarab kesiladi (xuddi tanlov logotipi kabi).
+        Bitta tanlovga bir nechta hamkor logotipini qo'shish mumkin.
+      </p>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="partner-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field">
+        <label>Hamkor logotipi (rasm)</label>
+        <input type="file" id="partner-logo-file" accept="image/*" disabled>
+        <p id="partner-logo-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <button class="btn btn-primary" id="partner-logo-add-btn" disabled><i class="fas fa-plus"></i> Qo'shish</button>
+      <div id="partner-logo-list" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:16px"></div>
+    </div>
+
+    <div class="card">
       <h3><i class="fas fa-video"></i> Suhbat (Google Meet)</h3>
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
         <a href="https://meet.google.com/new" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">meet.google.com/new</a> orqali yangi uchrashuv yarating, havolasini nusxalab shu yerga joylashtiring.
