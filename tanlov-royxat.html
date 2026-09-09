@@ -91,6 +91,24 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
 }
 #contest-info b { display: block; font-size: 1rem; margin-bottom: 2px; color: #1e3a8a; }
 
+#telegram-channel-banner {
+    display: none; align-items: flex-start; gap: 12px;
+    background: linear-gradient(135deg, #0088cc, #005f8f); color: #fff;
+    border-radius: 16px; padding: 14px 16px; margin-bottom: 18px;
+    font-size: 0.85rem; line-height: 1.5;
+}
+#telegram-channel-banner i.fa-telegram { font-size: 1.5rem; margin-top: 2px; }
+#telegram-channel-banner a {
+    color: #fff; font-weight: 800; text-decoration: underline; text-underline-offset: 2px;
+}
+#telegram-channel-banner b { display: block; margin-bottom: 3px; font-size: 0.9rem; }
+
+.nizom-link-box {
+    background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px;
+    padding: 10px 14px; margin: 10px 0 0; font-size: 0.82rem; color: #9a3412;
+}
+.nizom-link-box a { color: #c2410c; font-weight: 800; }
+
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .field input, .field select {
@@ -202,6 +220,15 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
         <div class="logo-icon"><i class="fas fa-trophy"></i></div>
         <h1>Tanlovga ro'yxatdan o'tish</h1>
         <p class="subtitle">Ma'lumotlaringizni to'ldiring — tasdiqlovchi kod kerak emas, darhol maxsus ID olasiz.</p>
+    </div>
+
+    <div id="telegram-channel-banner">
+        <i class="fab fa-telegram"></i>
+        <div>
+            <b>Rasmiy Telegram kanalimiz</b>
+            Barcha tanlovlar bo'yicha nizomlar, ishtirok shartlari va rasmiy e'lonlar
+            <a href="#" id="telegram-channel-link" target="_blank" rel="noopener">Ziyomap Telegram kanali</a>da joylashtiriladi — ro'yxatdan o'tishdan oldin shu yerda tanishib chiqishingizni tavsiya qilamiz.
+        </div>
     </div>
 
     <div id="contest-info" style="display:none"></div>
@@ -319,9 +346,13 @@ h1 { margin: 0 0 6px; font-size: 1.4rem; }
             </div>
             <p id="f-photo-status" style="font-size:0.78rem;margin-top:6px"></p>
         </div>
+        <label id="f-nizom-consent-label" style="display:none;align-items:flex-start;gap:8px;margin-bottom:14px;font-size:0.85rem;cursor:pointer">
+            <input type="checkbox" id="f-nizom-consent" style="width:auto;margin-top:3px">
+            <span>Men ushbu tanlovning <a href="#" id="f-nizom-link" target="_blank" style="color:var(--primary);font-weight:700">Nizomi</a> bilan to'liq tanishib chiqdim va unda ko'rsatilgan shartlarga roziman</span>
+        </label>
         <label style="display:flex;align-items:flex-start;gap:8px;margin-bottom:14px;font-size:0.85rem;cursor:pointer">
             <input type="checkbox" id="f-privacy-consent" style="width:auto;margin-top:3px" required>
-            <span>Men <a href="maxfiylik-tanlov.html" target="_blank" style="color:var(--primary);font-weight:700">Maxfiylik siyosati</a>ga roziman va ma'lumotlarimning yuqorida ko'rsatilgan maqsadlarda ishlatilishiga rozilik bildiraman</span>
+            <span>Men <a href="maxfiylik-tanlov.html" target="_blank" id="f-privacy-link" style="color:var(--primary);font-weight:700">Maxfiylik siyosati</a>ga roziman va ma'lumotlarimning yuqorida ko'rsatilgan maqsadlarda ishlatilishiga rozilik bildiraman</span>
         </label>
         <button type="submit" class="btn-primary" id="submit-btn">
             <i class="fas fa-paper-plane"></i> Ro'yxatdan o'tish
