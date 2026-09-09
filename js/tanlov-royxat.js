@@ -111,6 +111,23 @@ async function nextRegistrationId() {
     return `ZM-${year}-${String(n).padStart(4, '0')}`;
 }
 
+// ── Rasmiy Telegram kanali banneri (nizom/e'lonlar shu yerda joylashtiriladi) ──
+async function loadTelegramChannelBanner() {
+    try {
+        const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        const channelUsername = snap.exists() ? snap.data().channelUsername : null;
+        const banner = document.getElementById('telegram-channel-banner');
+        const link = document.getElementById('telegram-channel-link');
+        if (channelUsername && banner && link) {
+            link.href = `https://t.me/${channelUsername}`;
+            banner.style.display = 'flex';
+        }
+    } catch (err) {
+        console.error('Telegram kanal ma\u2019lumotini yuklashda xatolik:', err);
+    }
+}
+loadTelegramChannelBanner();
+
 async function loadMiniStats() {
     try {
         const [statsSnap, contestsCount, openCount] = await Promise.all([
@@ -256,7 +273,31 @@ async function openContest(contest, showBack) {
         (restrictions.length
             ? `<div style="margin-top:8px;font-size:0.78rem;color:#b45309"><i class="fas fa-circle-info"></i> ${escapeHtml(restrictions.join(' · '))}</div>`
             : '') +
-        countdownHtml;
+        countdownHtml +
+        (contest.nizomUrl
+            ? `<div class="nizom-link-box"><i class="fas fa-file-lines"></i> Ushbu tanlovning rasmiy nizomi va ishtirok shartlari e'lon qilingan — <a href="${contest.nizomUrl}" target="_blank" rel="noopener">Nizomni ko'rish</a>. Ro'yxatdan o'tishdan oldin uni albatta o'qib chiqing.</div>`
+            : '');
+
+    // Nizomga rozilik checkbox'i — faqat admin nizom hujjatini yuklagan tanlovlarda ko'rinadi va talab qilinadi
+    const nizomLabel = document.getElementById('f-nizom-consent-label');
+    const nizomCheckbox = document.getElementById('f-nizom-consent');
+    const nizomLink = document.getElementById('f-nizom-link');
+    if (contest.nizomUrl && nizomLabel && nizomCheckbox && nizomLink) {
+        nizomLink.href = contest.nizomUrl;
+        nizomLabel.style.display = 'flex';
+        nizomCheckbox.required = true;
+        nizomCheckbox.checked = false;
+    } else if (nizomLabel && nizomCheckbox) {
+        nizomLabel.style.display = 'none';
+        nizomCheckbox.required = false;
+        nizomCheckbox.checked = false;
+    }
+
+    // Maxfiylik havolasi — tanlovga xos hujjat yuklangan bo'lsa o'shani, aks holda standart sahifani ko'rsatadi
+    const privacyLink = document.getElementById('f-privacy-link');
+    if (privacyLink) {
+        privacyLink.href = contest.maxfiylikUrl || 'maxfiylik-tanlov.html';
+    }
 
     const backLink = document.getElementById('back-to-list');
     if (backLink) {
@@ -329,6 +370,11 @@ async function openContest(contest, showBack) {
         }
         if (!selectedPhotoDataUrl) {
             setStatus('Iltimos, rasmingizni yuklang.', 'error');
+            submitBtn.disabled = false;
+            return;
+        }
+        if (contest.nizomUrl && !document.getElementById('f-nizom-consent')?.checked) {
+            setStatus('Davom etish uchun tanlov nizomi bilan tanishib chiqib, roziligingizni bildiring.', 'error');
             submitBtn.disabled = false;
             return;
         }
