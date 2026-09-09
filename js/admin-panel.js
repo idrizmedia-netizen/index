@@ -392,6 +392,29 @@ async function loadContests() {
                 document.getElementById('c-interview-fields').style.display = c.interviewEnabled === false ? 'none' : '';
                 document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
                 document.getElementById('c-cancel-edit-btn').style.display = '';
+
+                editingNizomUrl = c.nizomUrl || null;
+                editingNizomFileName = c.nizomFileName || null;
+                pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = false;
+                document.getElementById('c-nizom-file').value = '';
+                const nizomStatus = document.getElementById('c-nizom-status');
+                if (nizomStatus) {
+                    nizomStatus.innerHTML = c.nizomFileName
+                        ? `Joriy hujjat: <b>${c.nizomFileName}</b> — <a href="#" data-remove-doc="nizom" style="color:var(--red)">olib tashlash</a>`
+                        : '';
+                }
+
+                editingMaxfiylikUrl = c.maxfiylikUrl || null;
+                editingMaxfiylikFileName = c.maxfiylikFileName || null;
+                pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = false;
+                document.getElementById('c-maxfiylik-file').value = '';
+                const maxfiylikStatus = document.getElementById('c-maxfiylik-status');
+                if (maxfiylikStatus) {
+                    maxfiylikStatus.innerHTML = c.maxfiylikFileName
+                        ? `Joriy hujjat: <b>${c.maxfiylikFileName}</b> — <a href="#" data-remove-doc="maxfiylik" style="color:var(--red)">olib tashlash</a>`
+                        : '';
+                }
+
                 document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
             });
         });
@@ -416,6 +439,70 @@ async function loadContests() {
         listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
     }
 }
+
+/* ── Tanlov uchun Nizom / Maxfiylik hujjatlari yuklash ── */
+const DOC_MAX_BYTES = 300 * 1024; // 300 KB (base64 orqali saqlanganda ~400 KB bo'ladi; ikkalasi + boshqa maydonlar Firestore'ning 1 MB hujjat chegarasidan oshmasin uchun)
+let editingNizomUrl = null, editingNizomFileName = null;
+let editingMaxfiylikUrl = null, editingMaxfiylikFileName = null;
+let pendingNizomData = null, pendingNizomFileName = null, nizomRemoved = false;
+let pendingMaxfiylikData = null, pendingMaxfiylikFileName = null, maxfiylikRemoved = false;
+
+function setupContestDocUpload(inputId, statusId, onLoaded) {
+    document.getElementById(inputId)?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        const statusEl = document.getElementById(statusId);
+        if (!file) return;
+        if (file.size > DOC_MAX_BYTES) {
+            if (statusEl) {
+                statusEl.textContent = `Fayl juda katta (${Math.round(file.size / 1024)} KB). 300 KB dan kichik fayl tanlang.`;
+                statusEl.style.color = 'var(--red)';
+            }
+            e.target.value = '';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            onLoaded(reader.result, file.name);
+            if (statusEl) {
+                statusEl.textContent = `Tanlandi: ${file.name} (${Math.round(file.size / 1024)} KB) — saqlash uchun pastdagi tugmani bosing.`;
+                statusEl.style.color = 'var(--muted)';
+            }
+        };
+        reader.onerror = () => {
+            if (statusEl) { statusEl.textContent = 'Faylni o\u2018qishda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+setupContestDocUpload('c-nizom-file', 'c-nizom-status', (dataUrl, name) => {
+    pendingNizomData = dataUrl;
+    pendingNizomFileName = name;
+    nizomRemoved = false;
+});
+setupContestDocUpload('c-maxfiylik-file', 'c-maxfiylik-status', (dataUrl, name) => {
+    pendingMaxfiylikData = dataUrl;
+    pendingMaxfiylikFileName = name;
+    maxfiylikRemoved = false;
+});
+
+document.addEventListener('click', (e) => {
+    const link = e.target.closest('[data-remove-doc]');
+    if (!link) return;
+    e.preventDefault();
+    if (link.dataset.removeDoc === 'nizom') {
+        pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = true;
+        editingNizomUrl = null; editingNizomFileName = null;
+        const f = document.getElementById('c-nizom-file'); if (f) f.value = '';
+        const s = document.getElementById('c-nizom-status');
+        if (s) { s.textContent = 'Hujjat olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
+    } else if (link.dataset.removeDoc === 'maxfiylik') {
+        pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = true;
+        editingMaxfiylikUrl = null; editingMaxfiylikFileName = null;
+        const f = document.getElementById('c-maxfiylik-file'); if (f) f.value = '';
+        const s = document.getElementById('c-maxfiylik-status');
+        if (s) { s.textContent = 'Hujjat olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
+    }
+});
 
 function resetContestForm() {
     document.getElementById('c-edit-id').value = '';
@@ -458,6 +545,15 @@ function resetContestForm() {
     document.getElementById('c-interview-fields').style.display = '';
     document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish va e\u2018lon qilish';
     document.getElementById('c-cancel-edit-btn').style.display = 'none';
+
+    document.getElementById('c-nizom-file').value = '';
+    document.getElementById('c-maxfiylik-file').value = '';
+    const nizomStatus = document.getElementById('c-nizom-status'); if (nizomStatus) nizomStatus.textContent = '';
+    const maxfiylikStatus = document.getElementById('c-maxfiylik-status'); if (maxfiylikStatus) maxfiylikStatus.textContent = '';
+    editingNizomUrl = null; editingNizomFileName = null;
+    pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = false;
+    editingMaxfiylikUrl = null; editingMaxfiylikFileName = null;
+    pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = false;
 }
 
 document.getElementById('c-cancel-edit-btn')?.addEventListener('click', resetContestForm);
@@ -559,6 +655,27 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             paymentAccount,
             paymentReceiver,
         };
+
+        // Nizom hujjati: yangi fayl tanlangan bo'lsa — shuni yozadi; "olib tashlash"
+        // bosilgan bo'lsa — null qiladi; yangi tanlov bo'lsa — bo'sh qoldiradi;
+        // tahrirlashda hech narsa o'zgarmagan bo'lsa — maydonga umuman tegilmaydi
+        // (shu sababli mavjud hujjat saqlanib qoladi).
+        if (pendingNizomData) {
+            payload.nizomUrl = pendingNizomData;
+            payload.nizomFileName = pendingNizomFileName;
+        } else if (nizomRemoved || !editId) {
+            payload.nizomUrl = null;
+            payload.nizomFileName = null;
+        }
+
+        if (pendingMaxfiylikData) {
+            payload.maxfiylikUrl = pendingMaxfiylikData;
+            payload.maxfiylikFileName = pendingMaxfiylikFileName;
+        } else if (maxfiylikRemoved || !editId) {
+            payload.maxfiylikUrl = null;
+            payload.maxfiylikFileName = null;
+        }
+
         if (editId) {
             await updateDoc(doc(db, 'contests', editId), payload);
             setStatus('Tanlov ma\u2019lumotlari yangilandi!', 'success');
@@ -1567,6 +1684,7 @@ async function loadTelegramSettings() {
             document.getElementById('telegram-bot-token').value = data.botToken || '';
             document.getElementById('telegram-chat-id').value = data.chatId || '';
             document.getElementById('telegram-bot-username').value = data.botUsername || '';
+            document.getElementById('telegram-channel-username').value = data.channelUsername || '';
         }
     } catch (err) {
         console.error(err);
@@ -1578,11 +1696,12 @@ document.getElementById('telegram-save-btn')?.addEventListener('click', async ()
     const botToken = document.getElementById('telegram-bot-token').value.trim() || null;
     const chatId = document.getElementById('telegram-chat-id').value.trim() || null;
     const botUsername = document.getElementById('telegram-bot-username').value.trim().replace(/^@/, '') || null;
+    const channelUsername = document.getElementById('telegram-channel-username').value.trim().replace(/^@/, '') || null;
     const btn = document.getElementById('telegram-save-btn');
     const statusEl = document.getElementById('telegram-status');
     btn.disabled = true;
     try {
-        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId, botUsername }, { merge: true });
+        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId, botUsername, channelUsername }, { merge: true });
         statusEl.textContent = 'Saqlandi!';
         statusEl.style.color = 'var(--green)';
     } catch (err) {
