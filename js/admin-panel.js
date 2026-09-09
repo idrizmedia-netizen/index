@@ -327,11 +327,13 @@ async function loadContests() {
         const meetSelect = document.getElementById('meet-contest-select');
         const statsSelect = document.getElementById('stats-contest-select');
         const ticketSelect = document.getElementById('ticket-contest-select');
+        const partnerSelect = document.getElementById('partner-contest-select');
         if (tSelect) tSelect.innerHTML = selectHtml;
         if (trSelect) trSelect.innerHTML = selectHtml;
         if (meetSelect) meetSelect.innerHTML = selectHtml;
         if (statsSelect) statsSelect.innerHTML = selectHtml;
         if (ticketSelect) ticketSelect.innerHTML = selectHtml;
+        if (partnerSelect) partnerSelect.innerHTML = selectHtml;
 
         listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
@@ -499,7 +501,9 @@ setupContestDocUpload('c-maxfiylik-file', 'c-maxfiylik-status', DOC_MAX_BYTES, '
     maxfiylikRemoved = false;
 });
 
-/* ── Tanlov logotipi: bir xil (bir tekis) orqa fon aniqlansa, avtomatik shaffoflashtiriladi ── */
+/* ── Logotip qayta ishlash: bir xil orqa fon avtomatik shaffoflashtiriladi,
+   so'ng rasm ko'rinadigan qismi (logotipning o'zi) chegarasi bo'yicha kesib olinadi —
+   shunda logotip 46x46 doirachani bo'sh joy bilan emas, to'liq band qilib chiqadi. ── */
 function loadImageFromFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -514,34 +518,35 @@ function loadImageFromFile(file) {
     });
 }
 
-// Rasmni canvas'ga chizib, burchak piksellaridan fon rangini aniqlaydi va shu rangga
-// yaqin barcha piksellarni shaffof qiladi (chekkalarida yumshoq o'tish bilan).
-// Fon bir xil rangda bo'lmasa (masalan surat/fon rasmli logotip), rasm o'zgarishsiz qoladi.
-function autoRemoveBackground(img, maxDim) {
+function processLogoImage(img, maxDim) {
+    // 1) Ishlov berish uchun oraliq (unumli) o'lchamda chizamiz
     let w = img.naturalWidth || img.width;
     let h = img.naturalHeight || img.height;
-    if (w > maxDim || h > maxDim) {
-        const scale = maxDim / Math.max(w, h);
+    const workDim = Math.min(Math.max(w, h), 800);
+    if (Math.max(w, h) > workDim) {
+        const scale = workDim / Math.max(w, h);
         w = Math.max(1, Math.round(w * scale));
         h = Math.max(1, Math.round(h * scale));
     }
-    const canvas = document.createElement('canvas');
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, w, h);
-    const imageData = ctx.getImageData(0, 0, w, h);
+    const workCanvas = document.createElement('canvas');
+    workCanvas.width = w;
+    workCanvas.height = h;
+    const wctx = workCanvas.getContext('2d');
+    wctx.drawImage(img, 0, 0, w, h);
+    const imageData = wctx.getImageData(0, 0, w, h);
     const data = imageData.data;
 
+    // 2) Burchak piksellaridan fon rangini aniqlaymiz
     const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].map(([x, y]) => {
         const i = (y * w + x) * 4;
-        return [data[i], data[i + 1], data[i + 2]];
+        return [data[i], data[i + 1], data[i + 2], data[i + 3]];
     });
     const avg = corners.reduce((a, c) => [a[0] + c[0], a[1] + c[1], a[2] + c[2]], [0, 0, 0]).map((v) => v / corners.length);
-    const cornersUniform = corners.every((c) => Math.abs(c[0] - avg[0]) < 22 && Math.abs(c[1] - avg[1]) < 22 && Math.abs(c[2] - avg[2]) < 22);
+    const cornersUniform = corners.every((c) => c[3] < 10 || (Math.abs(c[0] - avg[0]) < 22 && Math.abs(c[1] - avg[1]) < 22 && Math.abs(c[2] - avg[2]) < 22));
+    const hasOpaqueCorner = corners.some((c) => c[3] >= 10);
 
     let bgRemoved = false;
-    if (cornersUniform) {
+    if (cornersUniform && hasOpaqueCorner) {
         bgRemoved = true;
         const threshold = 36;
         const softRange = 34;
@@ -554,24 +559,75 @@ function autoRemoveBackground(img, maxDim) {
                 data[i + 3] = Math.round(data[i + 3] * ((dist - threshold) / softRange));
             }
         }
-        ctx.putImageData(imageData, 0, 0);
     }
-    return { canvas, bgRemoved };
+    wctx.putImageData(imageData, 0, 0);
+
+    // 3) Ko'rinadigan (shaffof bo'lmagan) piksellar chegarasini (bounding box) topamiz
+    const finalData = wctx.getImageData(0, 0, w, h).data;
+    let minX = w, minY = h, maxX = -1, maxY = -1;
+    const alphaThresh = 12;
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const a = finalData[(y * w + x) * 4 + 3];
+            if (a > alphaThresh) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+            }
+        }
+    }
+
+    let cropCanvas = workCanvas;
+    if (maxX >= minX && maxY >= minY) {
+        const cw = maxX - minX + 1;
+        const ch = maxY - minY + 1;
+        // Chekkalar butunlay kesilib qolmasligi uchun atrofiga ozgina bo'shliq qoldiramiz
+        const pad = Math.round(Math.max(cw, ch) * 0.06);
+        const sx = Math.max(0, minX - pad);
+        const sy = Math.max(0, minY - pad);
+        const ex = Math.min(w, maxX + 1 + pad);
+        const ey = Math.min(h, maxY + 1 + pad);
+        const outW = ex - sx;
+        const outH = ey - sy;
+        // Faqat haqiqatan ham kesish kerak bo'lsa (atrofda bo'sh joy bo'lsa) yangi canvas yasaymiz
+        if (outW < w || outH < h) {
+            cropCanvas = document.createElement('canvas');
+            cropCanvas.width = outW;
+            cropCanvas.height = outH;
+            cropCanvas.getContext('2d').drawImage(workCanvas, sx, sy, outW, outH, 0, 0, outW, outH);
+        }
+    }
+
+    // 4) Yakuniy hajmni maxDim ga moslashtiramiz
+    let outW = cropCanvas.width;
+    let outH = cropCanvas.height;
+    if (Math.max(outW, outH) > maxDim) {
+        const scale = maxDim / Math.max(outW, outH);
+        outW = Math.max(1, Math.round(outW * scale));
+        outH = Math.max(1, Math.round(outH * scale));
+    }
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = outW;
+    finalCanvas.height = outH;
+    finalCanvas.getContext('2d').drawImage(cropCanvas, 0, 0, outW, outH);
+
+    return { canvas: finalCanvas, bgRemoved };
 }
 
-async function processContestLogo(file, statusEl) {
+// Faylni o'qib, fonini tozalab, logotipni chegarasi bo'yicha kesib, hajm limitiga sig'dirib beradi.
+async function processLogoFile(file, maxBytes) {
     const img = await loadImageFromFile(file);
-    // Avval kattaroq o'lchamda urinib ko'ramiz, hajmi limitdan oshsa kichraytirib qayta uramiz
     const attempts = [320, 220, 150];
     let lastDataUrl = null;
     let lastBgRemoved = false;
     for (const maxDim of attempts) {
-        const { canvas, bgRemoved } = autoRemoveBackground(img, maxDim);
+        const { canvas, bgRemoved } = processLogoImage(img, maxDim);
         const dataUrl = canvas.toDataURL('image/png');
         const approxBytes = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
         lastDataUrl = dataUrl;
         lastBgRemoved = bgRemoved;
-        if (approxBytes <= LOGO_MAX_BYTES) {
+        if (approxBytes <= maxBytes) {
             return { dataUrl, bgRemoved, tooBig: false };
         }
     }
@@ -584,7 +640,7 @@ document.getElementById('c-logo-file')?.addEventListener('change', async (e) => 
     if (!file) return;
     if (statusEl) { statusEl.textContent = 'Rasm qayta ishlanmoqda, fon tekshirilmoqda...'; statusEl.style.color = 'var(--muted)'; }
     try {
-        const { dataUrl, bgRemoved, tooBig } = await processContestLogo(file);
+        const { dataUrl, bgRemoved, tooBig } = await processLogoFile(file, LOGO_MAX_BYTES);
         if (tooBig) {
             if (statusEl) {
                 statusEl.textContent = `Rasm juda murakkab/katta — ${Math.round(LOGO_MAX_BYTES / 1024)} KB chegarasiga sig\u2018dirib bo\u2018lmadi. Iltimos, soddaroq yoki kichikroq rasm tanlang.`;
@@ -598,8 +654,8 @@ document.getElementById('c-logo-file')?.addEventListener('change', async (e) => 
         logoRemoved = false;
         if (statusEl) {
             statusEl.textContent = bgRemoved
-                ? `Tanlandi: ${file.name} — orqa fon avtomatik tozalandi. Saqlash uchun pastdagi tugmani bosing.`
-                : `Tanlandi: ${file.name} — fon bir xil rangda emas (yoki allaqachon shaffof), o\u2018zgarishsiz qoldirildi. Saqlash uchun pastdagi tugmani bosing.`;
+                ? `Tanlandi: ${file.name} — orqa fon avtomatik tozalandi va logotip chegarasiga qarab kesildi. Saqlash uchun pastdagi tugmani bosing.`
+                : `Tanlandi: ${file.name} — fon bir xil rangda emas (yoki allaqachon shaffof); logotip chegarasiga qarab kesildi. Saqlash uchun pastdagi tugmani bosing.`;
             statusEl.style.color = 'var(--muted)';
         }
     } catch (err) {
@@ -607,6 +663,144 @@ document.getElementById('c-logo-file')?.addEventListener('change', async (e) => 
         if (statusEl) { statusEl.textContent = 'Rasmni qayta ishlashda xatolik yuz berdi. Boshqa fayl bilan urinib ko\u2018ring.'; statusEl.style.color = 'var(--red)'; }
     } finally {
         e.target.value = '';
+    }
+});
+
+/* ── Hamkorlar logotiplari (contests/{id}/partners subkolleksiyasida saqlanadi) ── */
+const PARTNER_LOGO_MAX_BYTES = 150 * 1024; // 150 KB — alohida hujjat bo'lgani uchun biroz kattaroq
+let pendingPartnerLogoData = null;
+let pendingPartnerLogoFileName = null;
+
+function renderPartnerLogoList(contestId, items) {
+    const listEl = document.getElementById('partner-logo-list');
+    if (!listEl) return;
+    if (!contestId) {
+        listEl.innerHTML = '';
+        return;
+    }
+    if (!items.length) {
+        listEl.innerHTML = '<div class="empty" style="width:100%">Bu tanlov uchun hali hamkor logotipi qo\u2018shilmagan.</div>';
+        return;
+    }
+    listEl.innerHTML = items
+        .map(
+            (p) => `<div style="width:100px;text-align:center;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:10px">
+                <img src="${p.logoUrl}" alt="" style="width:46px;height:46px;object-fit:contain;margin-bottom:6px">
+                <div style="font-size:0.68rem;color:var(--muted);word-break:break-word;margin-bottom:6px">${escapeHtml(p.fileName || 'logotip')}</div>
+                <button type="button" class="btn btn-red" data-remove-partner-logo="${p.id}" style="padding:4px 8px;font-size:0.72rem"><i class="fas fa-trash"></i></button>
+            </div>`
+        )
+        .join('');
+}
+
+async function loadPartnerLogos(contestId) {
+    const listEl = document.getElementById('partner-logo-list');
+    if (!contestId) {
+        renderPartnerLogoList(null, []);
+        return;
+    }
+    if (listEl) listEl.innerHTML = '<div class="empty" style="width:100%">Yuklanmoqda...</div>';
+    try {
+        const snap = await getDocs(collection(db, 'contests', contestId, 'partners'));
+        const items = [];
+        snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
+        renderPartnerLogoList(contestId, items);
+    } catch (err) {
+        console.error('Hamkor logotiplarini yuklashda xatolik:', err);
+        if (listEl) listEl.innerHTML = '<div class="empty" style="width:100%">Yuklashda xatolik yuz berdi.</div>';
+    }
+}
+
+document.getElementById('partner-contest-select')?.addEventListener('change', (e) => {
+    const contestId = e.target.value;
+    const fileInput = document.getElementById('partner-logo-file');
+    const addBtn = document.getElementById('partner-logo-add-btn');
+    const statusEl = document.getElementById('partner-logo-status');
+    pendingPartnerLogoData = null;
+    pendingPartnerLogoFileName = null;
+    if (fileInput) { fileInput.disabled = !contestId; fileInput.value = ''; }
+    if (addBtn) addBtn.disabled = !contestId;
+    if (statusEl) statusEl.textContent = '';
+    loadPartnerLogos(contestId);
+});
+
+document.getElementById('partner-logo-file')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const statusEl = document.getElementById('partner-logo-status');
+    if (!file) return;
+    if (statusEl) { statusEl.textContent = 'Rasm qayta ishlanmoqda, fon tekshirilmoqda...'; statusEl.style.color = 'var(--muted)'; }
+    try {
+        const { dataUrl, bgRemoved, tooBig } = await processLogoFile(file, PARTNER_LOGO_MAX_BYTES);
+        if (tooBig) {
+            if (statusEl) {
+                statusEl.textContent = `Rasm juda murakkab/katta — ${Math.round(PARTNER_LOGO_MAX_BYTES / 1024)} KB chegarasiga sig\u2018dirib bo\u2018lmadi. Iltimos, soddaroq yoki kichikroq rasm tanlang.`;
+                statusEl.style.color = 'var(--red)';
+            }
+            e.target.value = '';
+            return;
+        }
+        pendingPartnerLogoData = dataUrl;
+        pendingPartnerLogoFileName = file.name.replace(/\.[^.]+$/, '') + '.png';
+        if (statusEl) {
+            statusEl.textContent = bgRemoved
+                ? `Tayyor: ${file.name} — fon tozalandi va kesildi. "Qo\u2018shish" tugmasini bosing.`
+                : `Tayyor: ${file.name} — logotip chegarasiga qarab kesildi. "Qo\u2018shish" tugmasini bosing.`;
+            statusEl.style.color = 'var(--muted)';
+        }
+    } catch (err) {
+        console.error('Hamkor logotipini qayta ishlashda xatolik:', err);
+        if (statusEl) { statusEl.textContent = 'Rasmni qayta ishlashda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
+    }
+});
+
+document.getElementById('partner-logo-add-btn')?.addEventListener('click', async () => {
+    const contestId = document.getElementById('partner-contest-select')?.value;
+    const statusEl = document.getElementById('partner-logo-status');
+    const btn = document.getElementById('partner-logo-add-btn');
+    if (!contestId) {
+        if (statusEl) { statusEl.textContent = 'Avval tanlovni tanlang.'; statusEl.style.color = 'var(--red)'; }
+        return;
+    }
+    if (!pendingPartnerLogoData) {
+        if (statusEl) { statusEl.textContent = 'Avval logotip faylini tanlang.'; statusEl.style.color = 'var(--red)'; }
+        return;
+    }
+    btn.disabled = true;
+    try {
+        const ref = doc(collection(db, 'contests', contestId, 'partners'));
+        await setDoc(ref, {
+            logoUrl: pendingPartnerLogoData,
+            fileName: pendingPartnerLogoFileName,
+            createdAt: serverTimestamp(),
+        });
+        pendingPartnerLogoData = null;
+        pendingPartnerLogoFileName = null;
+        const fileInput = document.getElementById('partner-logo-file');
+        if (fileInput) fileInput.value = '';
+        if (statusEl) { statusEl.textContent = 'Hamkor logotipi qo\u2018shildi.'; statusEl.style.color = 'var(--green)'; }
+        loadPartnerLogos(contestId);
+    } catch (err) {
+        console.error('Hamkor logotipini saqlashda xatolik:', err);
+        if (statusEl) { statusEl.textContent = 'Saqlashda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+document.getElementById('partner-logo-list')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-remove-partner-logo]');
+    if (!btn) return;
+    const contestId = document.getElementById('partner-contest-select')?.value;
+    if (!contestId) return;
+    if (!confirm('Ushbu hamkor logotipini o\u2018chirishni tasdiqlaysizmi?')) return;
+    btn.disabled = true;
+    try {
+        await deleteDoc(doc(db, 'contests', contestId, 'partners', btn.dataset.removePartnerLogo));
+        loadPartnerLogos(contestId);
+    } catch (err) {
+        console.error('Hamkor logotipini o\u2018chirishda xatolik:', err);
+        alert('O\u2018chirishda xatolik yuz berdi.');
+        btn.disabled = false;
     }
 });
 
