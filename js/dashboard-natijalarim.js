@@ -503,9 +503,10 @@
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
             .cert-logo-row{position:absolute;top:20px;left:24px;right:24px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 14px;max-width:60%}
-            .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:4px;width:46px}
+            .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:4px;width:46px;flex-shrink:0}
+            .cert-logo-block-wide{display:flex;flex-direction:column;align-items:center;gap:4px;width:auto;flex-shrink:0}
             .cert-corner-logo{width:40px;height:40px;object-fit:contain;border-radius:9px}
-            .cert-logo-svg{height:40px;width:auto;object-fit:contain}
+            .cert-logo-svg{height:40px;width:auto;object-fit:contain;display:block}
             .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:10px;letter-spacing:0.5px;color:${theme.deep};text-transform:uppercase;text-align:center;line-height:1.15}
             .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
             .cert-brand{
@@ -563,7 +564,7 @@
                         <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
                         <span class="cert-logo-caption">Reja</span>
                     </div>
-                    <div class="cert-logo-block">
+                    <div class="cert-logo-block-wide">
                         <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
                     </div>
                     ${contestLogoBlock}
