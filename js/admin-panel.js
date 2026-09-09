@@ -415,6 +415,17 @@ async function loadContests() {
                         : '';
                 }
 
+                editingLogoUrl = c.contestLogoUrl || null;
+                editingLogoFileName = c.contestLogoFileName || null;
+                pendingLogoData = null; pendingLogoFileName = null; logoRemoved = false;
+                document.getElementById('c-logo-file').value = '';
+                const logoStatus = document.getElementById('c-logo-status');
+                if (logoStatus) {
+                    logoStatus.innerHTML = c.contestLogoFileName
+                        ? `Joriy logotip: <b>${c.contestLogoFileName}</b> — <a href="#" data-remove-doc="logo" style="color:var(--red)">olib tashlash</a>`
+                        : '';
+                }
+
                 document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
             });
         });
@@ -441,20 +452,23 @@ async function loadContests() {
 }
 
 /* ── Tanlov uchun Nizom / Maxfiylik hujjatlari yuklash ── */
-const DOC_MAX_BYTES = 300 * 1024; // 300 KB (base64 orqali saqlanganda ~400 KB bo'ladi; ikkalasi + boshqa maydonlar Firestore'ning 1 MB hujjat chegarasidan oshmasin uchun)
+const DOC_MAX_BYTES = 250 * 1024; // 250 KB (nizom/maxfiylik hujjatlari uchun)
+const LOGO_MAX_BYTES = 120 * 1024; // 120 KB (tanlov logotipi uchun — sertifikatda kichik hajmda chiqadi)
 let editingNizomUrl = null, editingNizomFileName = null;
 let editingMaxfiylikUrl = null, editingMaxfiylikFileName = null;
 let pendingNizomData = null, pendingNizomFileName = null, nizomRemoved = false;
 let pendingMaxfiylikData = null, pendingMaxfiylikFileName = null, maxfiylikRemoved = false;
+let editingLogoUrl = null, editingLogoFileName = null;
+let pendingLogoData = null, pendingLogoFileName = null, logoRemoved = false;
 
-function setupContestDocUpload(inputId, statusId, onLoaded) {
+function setupContestDocUpload(inputId, statusId, maxBytes, maxLabel, onLoaded) {
     document.getElementById(inputId)?.addEventListener('change', (e) => {
         const file = e.target.files[0];
         const statusEl = document.getElementById(statusId);
         if (!file) return;
-        if (file.size > DOC_MAX_BYTES) {
+        if (file.size > maxBytes) {
             if (statusEl) {
-                statusEl.textContent = `Fayl juda katta (${Math.round(file.size / 1024)} KB). 300 KB dan kichik fayl tanlang.`;
+                statusEl.textContent = `Fayl juda katta (${Math.round(file.size / 1024)} KB). ${maxLabel} dan kichik fayl tanlang.`;
                 statusEl.style.color = 'var(--red)';
             }
             e.target.value = '';
@@ -474,15 +488,126 @@ function setupContestDocUpload(inputId, statusId, onLoaded) {
         reader.readAsDataURL(file);
     });
 }
-setupContestDocUpload('c-nizom-file', 'c-nizom-status', (dataUrl, name) => {
+setupContestDocUpload('c-nizom-file', 'c-nizom-status', DOC_MAX_BYTES, '250 KB', (dataUrl, name) => {
     pendingNizomData = dataUrl;
     pendingNizomFileName = name;
     nizomRemoved = false;
 });
-setupContestDocUpload('c-maxfiylik-file', 'c-maxfiylik-status', (dataUrl, name) => {
+setupContestDocUpload('c-maxfiylik-file', 'c-maxfiylik-status', DOC_MAX_BYTES, '250 KB', (dataUrl, name) => {
     pendingMaxfiylikData = dataUrl;
     pendingMaxfiylikFileName = name;
     maxfiylikRemoved = false;
+});
+
+/* ── Tanlov logotipi: bir xil (bir tekis) orqa fon aniqlansa, avtomatik shaffoflashtiriladi ── */
+function loadImageFromFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Rasmni yuklab bo\u2018lmadi.'));
+            img.src = reader.result;
+        };
+        reader.onerror = () => reject(new Error('Faylni o\u2018qib bo\u2018lmadi.'));
+        reader.readAsDataURL(file);
+    });
+}
+
+// Rasmni canvas'ga chizib, burchak piksellaridan fon rangini aniqlaydi va shu rangga
+// yaqin barcha piksellarni shaffof qiladi (chekkalarida yumshoq o'tish bilan).
+// Fon bir xil rangda bo'lmasa (masalan surat/fon rasmli logotip), rasm o'zgarishsiz qoladi.
+function autoRemoveBackground(img, maxDim) {
+    let w = img.naturalWidth || img.width;
+    let h = img.naturalHeight || img.height;
+    if (w > maxDim || h > maxDim) {
+        const scale = maxDim / Math.max(w, h);
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const data = imageData.data;
+
+    const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].map(([x, y]) => {
+        const i = (y * w + x) * 4;
+        return [data[i], data[i + 1], data[i + 2]];
+    });
+    const avg = corners.reduce((a, c) => [a[0] + c[0], a[1] + c[1], a[2] + c[2]], [0, 0, 0]).map((v) => v / corners.length);
+    const cornersUniform = corners.every((c) => Math.abs(c[0] - avg[0]) < 22 && Math.abs(c[1] - avg[1]) < 22 && Math.abs(c[2] - avg[2]) < 22);
+
+    let bgRemoved = false;
+    if (cornersUniform) {
+        bgRemoved = true;
+        const threshold = 36;
+        const softRange = 34;
+        for (let i = 0; i < data.length; i += 4) {
+            const dr = data[i] - avg[0], dg = data[i + 1] - avg[1], db = data[i + 2] - avg[2];
+            const dist = Math.sqrt(dr * dr + dg * dg + db * db);
+            if (dist < threshold) {
+                data[i + 3] = 0;
+            } else if (dist < threshold + softRange) {
+                data[i + 3] = Math.round(data[i + 3] * ((dist - threshold) / softRange));
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+    return { canvas, bgRemoved };
+}
+
+async function processContestLogo(file, statusEl) {
+    const img = await loadImageFromFile(file);
+    // Avval kattaroq o'lchamda urinib ko'ramiz, hajmi limitdan oshsa kichraytirib qayta uramiz
+    const attempts = [320, 220, 150];
+    let lastDataUrl = null;
+    let lastBgRemoved = false;
+    for (const maxDim of attempts) {
+        const { canvas, bgRemoved } = autoRemoveBackground(img, maxDim);
+        const dataUrl = canvas.toDataURL('image/png');
+        const approxBytes = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
+        lastDataUrl = dataUrl;
+        lastBgRemoved = bgRemoved;
+        if (approxBytes <= LOGO_MAX_BYTES) {
+            return { dataUrl, bgRemoved, tooBig: false };
+        }
+    }
+    return { dataUrl: lastDataUrl, bgRemoved: lastBgRemoved, tooBig: true };
+}
+
+document.getElementById('c-logo-file')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    const statusEl = document.getElementById('c-logo-status');
+    if (!file) return;
+    if (statusEl) { statusEl.textContent = 'Rasm qayta ishlanmoqda, fon tekshirilmoqda...'; statusEl.style.color = 'var(--muted)'; }
+    try {
+        const { dataUrl, bgRemoved, tooBig } = await processContestLogo(file);
+        if (tooBig) {
+            if (statusEl) {
+                statusEl.textContent = `Rasm juda murakkab/katta — ${Math.round(LOGO_MAX_BYTES / 1024)} KB chegarasiga sig\u2018dirib bo\u2018lmadi. Iltimos, soddaroq yoki kichikroq rasm tanlang.`;
+                statusEl.style.color = 'var(--red)';
+            }
+            e.target.value = '';
+            return;
+        }
+        pendingLogoData = dataUrl;
+        pendingLogoFileName = file.name.replace(/\.[^.]+$/, '') + '.png';
+        logoRemoved = false;
+        if (statusEl) {
+            statusEl.textContent = bgRemoved
+                ? `Tanlandi: ${file.name} — orqa fon avtomatik tozalandi. Saqlash uchun pastdagi tugmani bosing.`
+                : `Tanlandi: ${file.name} — fon bir xil rangda emas (yoki allaqachon shaffof), o\u2018zgarishsiz qoldirildi. Saqlash uchun pastdagi tugmani bosing.`;
+            statusEl.style.color = 'var(--muted)';
+        }
+    } catch (err) {
+        console.error('Logotipni qayta ishlashda xatolik:', err);
+        if (statusEl) { statusEl.textContent = 'Rasmni qayta ishlashda xatolik yuz berdi. Boshqa fayl bilan urinib ko\u2018ring.'; statusEl.style.color = 'var(--red)'; }
+    } finally {
+        e.target.value = '';
+    }
 });
 
 document.addEventListener('click', (e) => {
@@ -501,6 +626,12 @@ document.addEventListener('click', (e) => {
         const f = document.getElementById('c-maxfiylik-file'); if (f) f.value = '';
         const s = document.getElementById('c-maxfiylik-status');
         if (s) { s.textContent = 'Hujjat olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
+    } else if (link.dataset.removeDoc === 'logo') {
+        pendingLogoData = null; pendingLogoFileName = null; logoRemoved = true;
+        editingLogoUrl = null; editingLogoFileName = null;
+        const f = document.getElementById('c-logo-file'); if (f) f.value = '';
+        const s = document.getElementById('c-logo-status');
+        if (s) { s.textContent = 'Logotip olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
     }
 });
 
@@ -548,12 +679,16 @@ function resetContestForm() {
 
     document.getElementById('c-nizom-file').value = '';
     document.getElementById('c-maxfiylik-file').value = '';
+    document.getElementById('c-logo-file').value = '';
     const nizomStatus = document.getElementById('c-nizom-status'); if (nizomStatus) nizomStatus.textContent = '';
     const maxfiylikStatus = document.getElementById('c-maxfiylik-status'); if (maxfiylikStatus) maxfiylikStatus.textContent = '';
+    const logoStatus = document.getElementById('c-logo-status'); if (logoStatus) logoStatus.textContent = '';
     editingNizomUrl = null; editingNizomFileName = null;
     pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = false;
     editingMaxfiylikUrl = null; editingMaxfiylikFileName = null;
     pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = false;
+    editingLogoUrl = null; editingLogoFileName = null;
+    pendingLogoData = null; pendingLogoFileName = null; logoRemoved = false;
 }
 
 document.getElementById('c-cancel-edit-btn')?.addEventListener('click', resetContestForm);
@@ -674,6 +809,15 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
         } else if (maxfiylikRemoved || !editId) {
             payload.maxfiylikUrl = null;
             payload.maxfiylikFileName = null;
+        }
+
+        // Tanlov logotipi — sertifikat/diplom generatorida boshqa logolar qatorida ko'rsatiladi
+        if (pendingLogoData) {
+            payload.contestLogoUrl = pendingLogoData;
+            payload.contestLogoFileName = pendingLogoFileName;
+        } else if (logoRemoved || !editId) {
+            payload.contestLogoUrl = null;
+            payload.contestLogoFileName = null;
         }
 
         if (editId) {
