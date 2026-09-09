@@ -424,6 +424,13 @@
         const rightLogoUrl = `${window.location.origin}/images/cert-icon-right.png`;
         const svgLogoUrl = `${window.location.origin}/images/logo-full.svg`;
         const verifyUrl = `${window.location.origin}/tasdiqlash.html?id=${encodeURIComponent(certNumber)}`;
+        // Admin tanlov uchun alohida logotip yuklagan bo'lsa — boshqa logolar qatorida shu ham chiqadi
+        const contestLogoBlock = c.contestLogoUrl
+            ? `<div class="cert-logo-block">
+                    <img src="${esc(c.contestLogoUrl)}" class="cert-corner-logo" alt="">
+                    <span class="cert-logo-caption">${esc(c.title || 'Tanlov')}</span>
+                </div>`
+            : '';
 
         // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
         // ishtirok sertifikati uchun brendga mos alohida ranglar.
@@ -548,6 +555,7 @@
                     <div class="cert-logo-block">
                         <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
                     </div>
+                    ${contestLogoBlock}
                 </div>
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
