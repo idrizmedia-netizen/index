@@ -270,7 +270,7 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
       </div>
       <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Masalan: test 25.07.2026–30.07.2026 kunlari, har kuni 08:00–18:00 oralig'ida; suhbat shu kunlarda 09:00–17:00 oralig'ida, lekin 12:00–13:00 tanaffus hisobga olinadi (bu oraliqqa hech kim taqsimlanmaydi). Bularni saqlagandan so'ng, "Ishtirokchilar" bo'limida "Vaqtlarni avtomatik taqsimlash" tugmasi orqali har bir ishtirokchiga alohida vaqt biriktiriladi.</p>
       <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-shield"></i> Nizom va maxfiylik hujjatlari</h4>
-      <p style="color:var(--muted);font-size:0.78rem;margin:0 0 12px">Bu yerga yuklangan hujjat bilan ishtirokchi ro'yxatdan o'tishdan oldin albatta tanishib chiqishi va alohida roziligini bildirishi shart bo'ladi. Fayl hajmi <b>300 KB</b> dan oshmasin (PDF yoki rasm formatida). Katta hujjat bo'lsa, uni siqib (kichraytirib) yoki suratini olib yuklang — yoki to'liq nusxasini Telegram kanalimizda joylashtiring.</p>
+      <p style="color:var(--muted);font-size:0.78rem;margin:0 0 12px">Bu yerga yuklangan hujjat bilan ishtirokchi ro'yxatdan o'tishdan oldin albatta tanishib chiqishi va alohida roziligini bildirishi shart bo'ladi. Fayl hajmi <b>250 KB</b> dan oshmasin (PDF yoki rasm formatida). Katta hujjat bo'lsa, uni siqib (kichraytirib) yoki suratini olib yuklang — yoki to'liq nusxasini Telegram kanalimizda joylashtiring.</p>
       <div class="field">
         <label>Tanlov nizomi (ixtiyoriy)</label>
         <input type="file" id="c-nizom-file" accept="application/pdf,image/*">
@@ -280,6 +280,12 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
         <label>Ushbu tanlovga xos maxfiylik sharti (ixtiyoriy — bo'sh qoldirsangiz standart Maxfiylik siyosati sahifasi ishlatiladi)</label>
         <input type="file" id="c-maxfiylik-file" accept="application/pdf,image/*">
         <p id="c-maxfiylik-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <div class="field">
+        <label>Tanlov logotipi (ixtiyoriy — sertifikat va diplomlarda boshqa logolar qatorida chiqadi)</label>
+        <input type="file" id="c-logo-file" accept="image/*">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Fon rangi bir xil (masalan oq yoki bir tekis rang) bo'lsa — <b>tizim uni avtomatik tozalab, shaffof qiladi</b>. Kvadratga yaqin (masalan 200×200) rasm eng yaxshi ko'rinadi. Hajmi <b>120 KB</b> dan oshmasin — katta rasm avtomatik kichraytiriladi.</p>
+        <p id="c-logo-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
       </div>
       <input type="hidden" id="c-edit-id" value="">
       <button class="btn btn-primary" id="c-create-btn"><i class="fas fa-check"></i> Yaratish va e'lon qilish</button>
