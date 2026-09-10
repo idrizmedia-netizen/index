@@ -1,2942 +1,655 @@
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
-import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    orderBy,
-    limit,
-    getDocs,
-    getDoc,
-    getCountFromServer,
-    doc,
-    setDoc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    writeBatch,
-    increment,
-} from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Admin panel | Ziyomap</title>
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/notifications.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.7.2/mammoth.browser.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f0ff; --bg-gradient:linear-gradient(160deg,#ede9fe 0%,#fce7f3 45%,#ffedd5 100%);
+  --white:#ffffff; --text:#0f172a; --muted:#64748b;
+  --border:#e5dcff; --primary:#7c3aed; --primary-light:#f3ebff;
+  --green:#059669; --orange:#d97706; --red:#dc2626; --card:#ffffff;
+  --gradient:linear-gradient(135deg,#7c3aed 0%,#db2777 100%);
+}
+body.dark-theme{
+  --bg:#0b1220; --bg-gradient:linear-gradient(160deg,#1e1b4b 0%,#3b1550 45%,#4a1d1d 100%);
+  --white:#1e1533; --text:#f1f5f9; --muted:#c4b5fd;
+  --border:#3b2a5c; --card:#1e1533; --primary-light:#2e1f4d;
+}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg-gradient);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
+.top-nav{
+  position:sticky;top:0;z-index:100;background:var(--white);border-bottom:1px solid var(--border);
+  padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;transition:background .25s,border-color .25s;
+  box-shadow:0 4px 20px rgba(124,58,237,0.08);
+}
+.top-nav .logo{font-size:1.25rem;font-weight:900;display:flex;align-items:center;gap:9px;color:var(--text);text-decoration:none;letter-spacing:.2px}
+.top-nav .logo img{height:36px;width:36px;object-fit:contain}
+.top-nav .logo span.brand-badge{color:#00bcd4}
+.top-nav .logo .sep{color:var(--muted);font-weight:600;font-size:0.95rem;margin-left:2px}
+.top-nav-right{display:flex;align-items:center;gap:10px}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;border:none;background:var(--primary-light);
+  color:var(--primary);display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:0.95rem;transition:transform .2s,background .2s;text-decoration:none;
+}
+.icon-btn:hover{transform:translateY(-1px)}
+.top-nav a.home{color:var(--muted);text-decoration:none;font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:6px}
 
-const firebaseConfig = {
-    apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
-    authDomain: 'ziyomap.firebaseapp.com',
-    projectId: 'ziyomap',
-    storageBucket: 'ziyomap.firebasestorage.app',
-    messagingSenderId: '982123868162',
-    appId: '1:982123868162:web:6845723988c030fcd1f71b',
-};
+#gate{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:70vh;text-align:center;padding:20px;color:var(--muted);
+}
+#gate i{font-size:2.5rem;margin-bottom:14px;color:var(--red)}
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const authInst = getAuth(app);
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 60px;display:none}
+.wrap.show{display:block}
 
-// Avvalgi sahifada (kirish.html) saqlangan Firebase sessiyasi to'liq
-// yuklanguncha kutamiz — aks holda Firestore so'rovlari "kirmagan" deb hisoblanadi.
-const authReady = new Promise((resolve) => {
-    const unsub = onAuthStateChanged(authInst, () => {
-        unsub();
-        resolve();
+.tabs{display:flex;gap:8px;overflow-x:auto;margin-bottom:22px;padding-bottom:2px}
+.tab-btn{
+  padding:10px 18px;border-radius:12px;border:none;background:var(--white);
+  border:1px solid var(--border);color:var(--muted);font-weight:700;font-size:0.85rem;
+  cursor:pointer;white-space:nowrap;transition:.2s;display:flex;align-items:center;gap:6px;
+}
+.tab-btn.active{background:var(--gradient);color:#fff;border-color:transparent}
+
+.panel{display:none}
+.panel.active{display:block}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:18px;box-shadow:0 10px 30px rgba(124,58,237,0.06)}
+.card h3{font-size:1rem;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:18px;text-align:center;box-shadow:0 10px 26px rgba(124,58,237,0.08);display:flex;flex-direction:column;align-items:center;gap:6px}
+.stat-card .s-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.85rem;margin-bottom:2px}
+.stat-card .v{font-size:1.8rem;font-weight:800;color:var(--primary)}
+.stat-card .k{font-size:12px;color:var(--muted);margin-top:4px;font-weight:600}
+
+.field{margin-bottom:12px}
+.field label{display:block;font-size:0.78rem;font-weight:700;color:var(--muted);margin-bottom:6px}
+.field input,.field textarea,.field select{
+  width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);
+  font-size:14px;font-family:inherit;outline:none;
+}
+.field textarea{resize:vertical;min-height:80px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.row2{grid-template-columns:1fr}}
+
+.btn{
+  padding:11px 20px;border:none;border-radius:10px;font-weight:700;font-size:0.85rem;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:#fff;
+  box-shadow:0 6px 16px rgba(124,58,237,0.18);transition:transform .15s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--gradient)}
+.btn-green{background:linear-gradient(135deg,#059669,#0d9488)}
+.btn-red{background:linear-gradient(135deg,#dc2626,#e11d48)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+table{width:100%;border-collapse:collapse;font-size:0.83rem}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border)}
+th{color:var(--muted);font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:.03em}
+td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px solid var(--border)}
+.table-scroll{overflow-x:auto}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge.open{background:#ecfdf5;color:#047857}
+.badge.closed{background:#f1f5f9;color:#64748b}
+
+#contestsList{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.contest-item{
+  display:flex;flex-direction:column;justify-content:space-between;padding:16px;
+  border:1px solid var(--border);border-radius:16px;gap:10px;
+  transition:box-shadow .2s;
+}
+.contest-item:hover{box-shadow:0 6px 18px rgba(124,58,237,0.1)}
+.contest-item .t{font-weight:700}
+.contest-item .d{color:var(--muted);font-size:0.82rem;margin-top:2px}
+.contest-filter-btn{
+  padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:#fff;
+  font-weight:700;font-size:0.85rem;cursor:pointer;color:var(--muted);
+}
+.contest-filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.admin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.empty{text-align:center;color:var(--muted);padding:30px;font-size:0.85rem}
+#status-msg{margin-top:12px;padding:11px 14px;border-radius:10px;font-size:0.85rem;text-align:center;display:none}
+#status-msg.show{display:block}
+#status-msg.info{background:#eff6ff;color:#1d4ed8}
+#status-msg.error{background:#fef2f2;color:#b91c1c}
+#status-msg.success{background:#ecfdf5;color:#047857}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html" class="logo">
+    <img src="images/nav-icon.png" alt="Ziyomap">
+    <span><span class="brand-badge">Ziyo</span>map</span>
+    <span class="sep">· Admin</span>
+  </a>
+  <div class="top-nav-right">
+    <a href="https://www.sanity.io/@onIr8G39c/studio/rvuzzqmwinncul6sh3kcalud/default/structure" target="_blank" rel="noopener" class="home" style="background:linear-gradient(135deg,#f97316,#db2777);color:#fff;padding:8px 14px;border-radius:10px"><i class="fas fa-newspaper"></i> Blog Studio</a>
+    <button class="icon-btn" id="theme-toggle-admin" title="Tun/Kun rejimi"><i class="fas fa-moon"></i></button>
+    <a href="index.html" class="home"><i class="fas fa-house"></i> Bosh sahifa</a>
+  </div>
+</nav>
+
+<div id="gate">
+  <i class="fas fa-spinner fa-spin"></i>
+  <p>Tekshirilmoqda...</p>
+</div>
+
+<div class="wrap" id="wrap">
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="stats"><i class="fas fa-chart-simple"></i> Statistika</button>
+    <button class="tab-btn" data-tab="contests"><i class="fas fa-trophy"></i> Tanlovlar</button>
+    <button class="tab-btn" data-tab="tests"><i class="fas fa-file-pen"></i> Testlar</button>
+    <button class="tab-btn" data-tab="registrants"><i class="fas fa-users"></i> Ishtirokchilar</button>
+    <button class="tab-btn" data-tab="notify"><i class="fas fa-bullhorn"></i> Bildirishnoma</button>
+    <button class="tab-btn" data-tab="users"><i class="fas fa-user-group"></i> Foydalanuvchilar</button>
+    <button class="tab-btn" data-tab="content"><i class="fas fa-image"></i> Sayt kontenti</button>
+    <button class="tab-btn" data-tab="admins" id="admins-tab-btn" style="display:none"><i class="fas fa-user-shield"></i> Adminlar</button>
+  </div>
+
+  <!-- STATISTIKA -->
+  <div class="panel active" id="panel-stats">
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#a855f7,#7c3aed)"><i class="fas fa-user-check"></i></div><div class="v" id="st-reg">—</div><div class="k">Jami ro'yxatdan o'tganlar</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#f97316,#db2777)"><i class="fas fa-trophy"></i></div><div class="v" id="st-contests">—</div><div class="k">Jami tanlovlar</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#059669,#0d9488)"><i class="fas fa-bolt"></i></div><div class="v" id="st-open">—</div><div class="k">Faol tanlovlar</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#2563eb,#0ea5e9)"><i class="fas fa-user-shield"></i></div><div class="v" id="st-admins">—</div><div class="k">Adminlar soni</div></div>
+      <div class="stat-card"><div class="s-ic" style="background:linear-gradient(135deg,#db2777,#e11d48)"><i class="fas fa-users"></i></div><div class="v" id="st-users">—</div><div class="k">Saytga kirganlar (jami)</div></div>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-chart-column"></i> Bo'limlar bo'yicha ishlatilish</h3>
+      <div id="usageStatsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-chart-simple"></i> Tanlov bo'yicha statistika</h3>
+      <select id="stats-contest-select"><option value="">— tanlov tanlang —</option></select>
+      <div id="contestStatsBox" style="margin-top:18px"></div>
+    </div>
+  </div>
+
+  <!-- TANLOVLAR -->
+  <div class="panel" id="panel-contests">
+    <div class="card">
+      <h3><i class="fas fa-plus"></i> Yangi tanlov yaratish</h3>
+      <div class="field"><label>Nomi</label><input type="text" id="c-title" placeholder="Masalan: Fizika olimpiadasi 2026"></div>
+      <div class="field"><label>Tavsif</label><textarea id="c-desc" placeholder="Qisqacha ma'lumot..."></textarea></div>
+      <div class="row2">
+        <div class="field"><label>Tashkilotchi (ixtiyoriy)</label><input type="text" id="c-organizer" placeholder="Masalan: IdrizMedia / Ziyomap"></div>
+        <div class="field"><label>Mas'ul shaxs F.I.Sh (ixtiyoriy)</label><input type="text" id="c-responsible-name" placeholder="Masalan: Aliyev Vali"></div>
+      </div>
+      <div class="field"><label>Mas'ul shaxs telefon (ixtiyoriy)</label><input type="text" id="c-responsible-phone" placeholder="+998 90 123 45 67"></div>
+      <div class="row2">
+        <div class="field"><label>Yosh chegarasi — dan</label><input type="number" id="c-min-age" placeholder="masalan: 10"></div>
+        <div class="field"><label>Yosh chegarasi — gacha</label><input type="number" id="c-max-age" placeholder="masalan: 18"></div>
+      </div>
+      <div class="field">
+        <label>Sinflar (ixtiyoriy, bo'sh qoldirsangiz — hammaga ochiq)</label>
+        <input type="text" id="c-grades" placeholder="masalan: 5,6,7,8,9 yoki 5-9">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Hudud cheklovi — Viloyat (ixtiyoriy, bo'sh — hammaga ochiq)</label>
+          <select id="c-restrict-viloyat"><option value="">— cheklovsiz (barcha viloyatlar) —</option></select>
+        </div>
+        <div class="field">
+          <label>Hudud cheklovi — Tuman/shahar (ixtiyoriy)</label>
+          <select id="c-restrict-tuman"><option value="">— cheklovsiz (barcha tumanlar) —</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Ro'yxatdan o'tish boshlanish sanasi</label><input type="date" id="c-reg-start"></div>
+        <div class="field"><label>Ro'yxatdan o'tish tugash sanasi</label><input type="date" id="c-reg-end"></div>
+      </div>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-money-bill-wave"></i> To'lov turi</h4>
+      <div class="row2">
+        <div class="field">
+          <label>Tanlov turi</label>
+          <select id="c-payment-type">
+            <option value="free">Bepul tanlov</option>
+            <option value="paid">Pullik tanlov</option>
+          </select>
+        </div>
+        <div class="field"><label>Summa (so'm)</label><input type="number" id="c-payment-amount" min="0" placeholder="masalan: 50000" disabled></div>
+      </div>
+      <div class="row2" id="c-payment-details-row" style="display:none">
+        <div class="field"><label>Hisob/karta raqami</label><input type="text" id="c-payment-account" placeholder="8600 xxxx xxxx xxxx"></div>
+        <div class="field"><label>Qabul qiluvchi F.I.Sh</label><input type="text" id="c-payment-receiver" placeholder="Masalan: Aliyev Vali"></div>
+      </div>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-pen"></i> Test vaqti jadvali</h4>
+      <div class="row2">
+        <div class="field"><label>Test kunlari — dan</label><input type="date" id="c-test-date-start"></div>
+        <div class="field"><label>Test kunlari — gacha</label><input type="date" id="c-test-date-end"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Har kuni soat — dan</label><input type="time" id="c-test-daily-start" value="08:00"></div>
+        <div class="field"><label>Har kuni soat — gacha</label><input type="time" id="c-test-daily-end" value="18:00"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Tanaffus — dan (ixtiyoriy)</label><input type="time" id="c-test-break-start"></div>
+        <div class="field"><label>Tanaffus — gacha (ixtiyoriy)</label><input type="time" id="c-test-break-end"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Har bir slot davomiyligi (daqiqa)</label><input type="number" id="c-test-slot-minutes" value="30" min="5"></div>
+        <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-test-slot-capacity" value="15" min="1"></div>
+      </div>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-video"></i> Suhbat vaqti jadvali</h4>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.88rem">
+        <input type="checkbox" id="c-no-interview" style="width:auto"> Bu tanlovda suhbat bosqichi bo'lmasin (faqat test orqali o'tkaziladi)
+      </label>
+      <div id="c-interview-fields">
+        <div class="field">
+          <label>Suhbat bosqichiga o'tish uchun minimal test bali (ixtiyoriy, bo'sh — hammaga ochiq)</label>
+          <input type="number" id="c-min-score-advance" min="0" step="0.1" placeholder="masalan: 15">
+        </div>
+        <div class="row2">
+          <div class="field"><label>Suhbat kunlari — dan</label><input type="date" id="c-interview-date-start"></div>
+          <div class="field"><label>Suhbat kunlari — gacha</label><input type="date" id="c-interview-date-end"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Har kuni soat — dan</label><input type="time" id="c-interview-daily-start" value="09:00"></div>
+          <div class="field"><label>Har kuni soat — gacha</label><input type="time" id="c-interview-daily-end" value="17:00"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Tanaffus — dan (ixtiyoriy, masalan tushlik)</label><input type="time" id="c-interview-break-start" value="12:00"></div>
+          <div class="field"><label>Tanaffus — gacha (ixtiyoriy)</label><input type="time" id="c-interview-break-end" value="13:00"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>Har bir slot davomiyligi (daqiqa)</label><input type="number" id="c-interview-slot-minutes" value="15" min="5"></div>
+          <div class="field"><label>Bir slotda nechta ishtirokchi</label><input type="number" id="c-interview-slot-capacity" value="1" min="1"></div>
+        </div>
+      </div>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Masalan: test 25.07.2026–30.07.2026 kunlari, har kuni 08:00–18:00 oralig'ida; suhbat shu kunlarda 09:00–17:00 oralig'ida, lekin 12:00–13:00 tanaffus hisobga olinadi (bu oraliqqa hech kim taqsimlanmaydi). Bularni saqlagandan so'ng, "Ishtirokchilar" bo'limida "Vaqtlarni avtomatik taqsimlash" tugmasi orqali har bir ishtirokchiga alohida vaqt biriktiriladi.</p>
+      <h4 style="margin:14px 0 4px;color:var(--primary)"><i class="fas fa-file-shield"></i> Nizom va maxfiylik hujjatlari</h4>
+      <p style="color:var(--muted);font-size:0.78rem;margin:0 0 12px">Bu yerga yuklangan hujjat bilan ishtirokchi ro'yxatdan o'tishdan oldin albatta tanishib chiqishi va alohida roziligini bildirishi shart bo'ladi. Fayl hajmi <b>250 KB</b> dan oshmasin (PDF yoki rasm formatida). Katta hujjat bo'lsa, uni siqib (kichraytirib) yoki suratini olib yuklang — yoki to'liq nusxasini Telegram kanalimizda joylashtiring.</p>
+      <div class="field">
+        <label>Tanlov nizomi (ixtiyoriy)</label>
+        <input type="file" id="c-nizom-file" accept="application/pdf,image/*">
+        <p id="c-nizom-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <div class="field">
+        <label>Ushbu tanlovga xos maxfiylik sharti (ixtiyoriy — bo'sh qoldirsangiz standart Maxfiylik siyosati sahifasi ishlatiladi)</label>
+        <input type="file" id="c-maxfiylik-file" accept="application/pdf,image/*">
+        <p id="c-maxfiylik-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <div class="field">
+        <label>Tanlov logotipi (ixtiyoriy — sertifikat va diplomlarda boshqa logolar qatorida chiqadi)</label>
+        <input type="file" id="c-logo-file" accept="image/*">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Fon rangi bir xil (masalan oq yoki bir tekis rang) bo'lsa — <b>tizim uni avtomatik tozalab, shaffof qiladi</b>. Kvadratga yaqin (masalan 200×200) rasm eng yaxshi ko'rinadi. Hajmi <b>120 KB</b> dan oshmasin — katta rasm avtomatik kichraytiriladi.</p>
+        <p id="c-logo-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <input type="hidden" id="c-edit-id" value="">
+      <button class="btn btn-primary" id="c-create-btn"><i class="fas fa-check"></i> Yaratish va e'lon qilish</button>
+      <button class="btn" id="c-cancel-edit-btn" style="display:none;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-xmark"></i> Bekor qilish</button>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-list"></i> Barcha tanlovlar</h3>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="contest-filter-btn active" data-contest-filter="all">Barchasi</button>
+        <button class="contest-filter-btn" data-contest-filter="open">Faol</button>
+        <button class="contest-filter-btn" data-contest-filter="closed">Faol emas</button>
+      </div>
+      <div id="contestsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-handshake"></i> Hamkorlar logotiplari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Tanlovni tanlab, hamkor tashkilot logotipini yuklang — u sertifikat/diplomda tanlov logotipi ortidan qatorlashib chiqadi.
+        Orqa foni bir xil rangda bo'lsa, avtomatik tozalanadi va logotip chegarasiga qarab kesiladi (xuddi tanlov logotipi kabi).
+        Bitta tanlovga bir nechta hamkor logotipini qo'shish mumkin.
+      </p>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="partner-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field">
+        <label>Hamkor nomi (sertifikatda logotip ostida yoziladi)</label>
+        <input type="text" id="partner-logo-name" placeholder="Masalan: Tashkent IT Park" disabled>
+      </div>
+      <div class="field">
+        <label>Hamkor logotipi (rasm)</label>
+        <input type="file" id="partner-logo-file" accept="image/*" disabled>
+        <p id="partner-logo-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
+      </div>
+      <button class="btn btn-primary" id="partner-logo-add-btn" disabled><i class="fas fa-plus"></i> Qo'shish</button>
+      <div id="partner-logo-list" style="display:flex;flex-wrap:wrap;gap:14px;margin-top:16px"></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-video"></i> Suhbat (Google Meet)</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        <a href="https://meet.google.com/new" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">meet.google.com/new</a> orqali yangi uchrashuv yarating, havolasini nusxalab shu yerga joylashtiring.
+        Ro'yxatdan o'tgan ishtirokchilar buni o'z sahifasida ko'radi.
+      </p>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="meet-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field">
+        <label>Google Meet havolasi</label>
+        <input type="text" id="meet-link-input" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+      </div>
+      <div class="field">
+        <label>Suhbat uchun mas'ul shaxs email(lar)i (ixtiyoriy)</label>
+        <input type="text" id="meet-responsible-email" placeholder="ustoz1@gmail.com, ustoz2@gmail.com">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Agar suhbatni boshqa ustoz/komissiya a'zosi olib borsa, Google Meet'da ularni "co-host" (hamda-mezbon) qilib qo'shing — shunda ular ham kutish xonasidan odam qabul qila oladi. Bu yerga yozilgan email — shunchaki eslatma/aloqa uchun, tizim uni avtomatik ulamaydi.</p>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Suhbatda nechta savol so'raladi</label><input type="number" id="meet-questions-count" min="1" placeholder="masalan: 5"></div>
+        <div class="field"><label>Suhbat uchun umumiy ball</label><input type="number" id="meet-max-score" min="1" placeholder="masalan: 30"></div>
+      </div>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Bu ma'lumot ishtirokchiga suhbat vaqti bilan birga ko'rsatiladi va admin ball qo'yayotganda maksimal ballni eslatib turadi. Suhbat bali baribir qo'lda kiritiladi.</p>
+      <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:0.88rem">
+        <input type="checkbox" id="meet-enabled-input" checked style="width:auto"> Havola ishtirokchilarga ochiq (yoqilgan)
+      </label>
+      <button class="btn btn-primary" id="meet-save-btn"><i class="fas fa-check"></i> Saqlash</button>
+      <h4 style="margin:20px 0 10px">Barcha bog'langan suhbat havolalari</h4>
+      <div id="meetLinksList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-ticket"></i> Suhbat biletlari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Har bir bilet 5 tadan savoldan iborat bo'ladi. Ishtirokchilarga bu biletlar suhbat vaqtidan 10 daqiqa oldin avtomatik biriktiriladi va ko'rsatiladi — ular suhbatda bilet raqamini aytib, savollarni o'qib javob beradi.
+      </p>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="ticket-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field">
+        <label>Biletlar (quyidagi formatda kiriting)</label>
+        <textarea id="ticket-questions" rows="10" style="min-height:180px;font-family:monospace;font-size:13px" placeholder="Bilet 1
+1. Birinchi savol
+2. Ikkinchi savol
+3. Uchinchi savol
+4. To'rtinchi savol
+5. Beshinchi savol
+---
+Bilet 2
+1. Savol
+2. Savol
+3. Savol
+4. Savol
+5. Savol"></textarea>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir biletni "---" bilan ajrating. Birinchi qator "Bilet N" bo'lsin, keyingi 5 qator savollar (raqamlash ixtiyoriy).</p>
+        <div class="field" style="margin-top:10px">
+          <label>Yoki: tayyor fayldan biletlarni yuklang (.txt yoki .docx, yuqoridagi format bilan yozilgan bo'lsin)</label>
+          <input type="file" id="ticket-questions-file" accept=".txt,.docx">
+          <p id="ticket-questions-file-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="ticket-save-btn"><i class="fas fa-check"></i> Biletlarni saqlash</button>
+      <p id="ticket-save-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-ticket"></i> Suhbat biletlari (yuklangan)</h3>
+      <div id="ticketsList"><div class="empty">Tanlov tanlanmagan.</div></div>
+    </div>
+  </div>
+
+  <!-- TESTLAR -->
+  <div class="panel" id="panel-tests">
+    <div class="card">
+      <h3><i class="fas fa-file-pen"></i> Yangi test yaratish</h3>
+      <div class="field">
+        <label>Qaysi tanlov uchun</label>
+        <select id="t-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <div class="field"><label>Test nomi</label><input type="text" id="t-title" placeholder="Masalan: Fizika — 1-bosqich testi"></div>
+      <div class="row2">
+        <div class="field"><label>Vaqt chegarasi (daqiqa)</label><input type="number" id="t-time-limit" value="20" min="1"></div>
+        <div class="field"><label>Ishtirokchiga nechta yopiq (test) savol beriladi (bo'sh — hammasi)</label><input type="number" id="t-mc-per-attempt" min="1" placeholder="masalan: 10"></div>
+      </div>
+      <div class="field"><label>Ishtirokchiga nechta ochiq savol beriladi (bo'sh — hammasi)</label><input type="number" id="t-open-per-attempt" min="1" placeholder="masalan: 2" style="max-width:calc(50% - 6px)"></div>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Savollar bazasida xohlagancha savol bo'lishi mumkin — har bir ishtirokchiga shu yerda ko'rsatilgan sondagi yopiq va ochiq savollar alohida-alohida, tasodifiy va aralashtirilgan holda beriladi.</p>
+      <div class="row2">
+        <div class="field"><label>Yopiq (test) savol uchun ball — har biriga</label><input type="number" id="t-points-per-correct" value="1" min="0.1" step="0.1"></div>
+        <div class="field"><label>Ochiq savol uchun maksimal ball — har biriga</label><input type="number" id="t-open-max-points" value="5" min="0.1" step="0.1"></div>
+      </div>
+      <p id="t-points-preview" style="color:var(--primary);font-size:0.8rem;font-weight:700;margin:-6px 0 12px"></p>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Yopiq savollar uchun umumiy ball avtomatik hisoblanadi va to'g'ri javoblarga qarab avtomatik qo'yiladi. Ochiq savollar uchun bu yerdagi son — admin qo'lda ball qo'yayotganda ruxsat etilgan maksimal chegara (ishtirokchilar bo'limida eslatma sifatida ko'rinadi).</p>
+      <div class="field">
+        <label>Test paytida sahifadan chiqib ketishga ruxsat (necha marta)</label>
+        <input type="number" id="t-max-tab-switches" value="1" min="1" step="1" style="max-width:200px">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Standart: 1 — ya'ni ishtirokchi test paytida sahifadan (boshqa oyna/ilova) chiqib ketsa, test avtomatik yakunlanadi va uni qayta davom ettira olmaydi. Xohlasangiz bu sonni oshirishingiz mumkin (masalan 2-3 marta gacha ruxsat berish uchun).</p>
+      </div>
+      <div class="field">
+        <label>Savollar (quyidagi formatda kiriting)</label>
+        <textarea id="t-questions" rows="12" style="min-height:220px;font-family:monospace;font-size:13px" placeholder="Nyutonning 1-qonuni haqida nima deyiladi?
+Daraja: o'rta (ixtiyoriy: oson / o'rta / qiyin)
+A) Jism tezlanadi
+B) Kuch ta'sir etmasa, jism tinch yoki notekis harakatda qoladi
+C) Har doim tortishish kuchi bor
+D) Energiya yo'qoladi
+Javob: B
+---
+Fikringizcha, gravitatsiya nima uchun muhim?
+Turi: ochiq
+Javob: Gravitatsiya jismlarni Yerga tortadi va Quyosh tizimidagi sayyoralar harakatini boshqaradi
+---
+Ikkinchi savol matni?
+A) variant
+B) variant
+C) variant
+D) variant
+Javob: A"></textarea>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Har bir savolni "---" bilan ajrating. Oddiy (test) savolda 4 ta variant (A,B,C,D) va oxirida "Javob: X" bo'lishi shart. Rasmli savol uchun ixtiyoriy "Rasm: &lt;havola&gt;" qatorini qo'shing. Qiyinlik darajasini "Daraja: oson/o'rta/qiyin" bilan belgilang (bo'lmasa "o'rta" deb olinadi) — tizim savol berayotganda darajalar bo'yicha muvozanatlab tanlaydi. Ochiq (erkin javobli) savol uchun "Turi: ochiq" qatorini qo'shing — agar shundan keyin ixtiyoriy "Javob: &lt;aniq/etalon javob&gt;" qatorini ham qo'shsangiz, tizim ishtirokchining yozgan javobini shu etalon bilan solishtirib, mosligiga qarab ballni <b>avtomatik</b> qo'yadi (so'z mosligi asosida, taxminiy — 100% aniq emas, shuning uchun "Ishtirokchilar" bo'limida baribir tekshirib, kerak bo'lsa qo'lda tuzatishingiz mumkin). Agar "Javob:" qatorini qo'shmasangiz, ball to'liq qo'lda qo'yiladi (avvalgidek).</p>
+        <div class="field" style="margin-top:10px">
+          <label>Yoki: tayyor fayldan savollarni yuklang (.txt yoki .docx, yuqoridagi format bilan yozilgan bo'lsin)</label>
+          <input type="file" id="t-questions-file" accept=".txt,.docx">
+          <p id="t-questions-file-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+        </div>
+        <div style="margin-top:8px">
+          <button type="button" class="btn" id="t-download-questions-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-download"></i> Joriy savollarni faylga yuklab olish</button>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Yoki: kursorni savol ichiga qo'yib, rasmni shu yerdan yuklang</label>
+          <input type="file" id="t-image-upload" accept="image/*">
+          <p id="t-image-upload-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+        </div>
+      </div>
+      <input type="hidden" id="t-edit-id" value="">
+      <button class="btn btn-primary" id="t-create-btn"><i class="fas fa-check"></i> Testni yaratish va e'lon qilish</button>
+      <button class="btn" id="t-cancel-edit-btn" style="display:none;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-xmark"></i> Bekor qilish</button>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-list-check"></i> Mavjud testlar</h3>
+      <div id="testsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-chart-bar"></i> Test natijalari</h3>
+      <div class="field">
+        <label>Qaysi tanlov testi</label>
+        <select id="tr-contest-select"><option value="">— tanlov tanlang —</option></select>
+      </div>
+      <button class="btn btn-green" id="t-sync-scores-btn" style="display:none;margin-bottom:14px"><i class="fas fa-arrows-rotate"></i> Ballarni (yopiq + avto-baholangan ochiq) ishtirokchilar ro'yxatiga ko'chirish</button>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-8px 0 14px">Ochiq savollarga etalon javob kiritilgan bo'lsa, tizim ishtirokchi javobini solishtirib avtomatik taxminiy ball qo'yadi. Etalon javob bo'lmagan ochiq savollar "Ishtirokchilar" bo'limida qo'lda baholanadi.</p>
+      <div class="table-scroll" id="testResultsTable"><div class="empty">Yuqorida tanlov tanlang</div></div>
+    </div>
+  </div>
+
+  <!-- ISHTIROKCHILAR -->
+  <div class="panel" id="panel-registrants">
+    <div class="card">
+      <h3><i class="fas fa-filter"></i> Tanlovni tanlang</h3>
+      <select id="reg-contest-select"><option value="">— tanlov tanlang —</option></select>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-table"></i> Ro'yxat</h3>
+      <button class="btn btn-green" id="export-excel-btn" style="display:none;margin-bottom:14px"><i class="fas fa-file-excel"></i> Excelga yuklash</button>
+      <button class="btn" id="photo-roster-btn" style="display:none;margin-bottom:14px;margin-left:8px;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-images"></i> Rasmli ro'yxatni chop etish</button>
+      <button class="btn btn-primary" id="publish-leaderboard-btn" style="display:none;margin-bottom:14px;margin-left:8px"><i class="fas fa-medal"></i> G'oliblarni e'lon qilish</button>
+      <button class="btn" id="auto-schedule-btn" style="display:none;margin-bottom:14px;margin-left:8px;background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-clock"></i> Test/suhbat vaqtlarini avtomatik taqsimlash</button>
+      <p id="auto-schedule-status" style="color:var(--muted);font-size:0.8rem;margin:-8px 0 14px"></p>
+      <input type="text" id="registrants-search" placeholder="F.I.Sh, ID, maktab, viloyat yoki telefon bo'yicha qidirish..." style="margin-bottom:14px">
+      <div class="table-scroll" id="registrantsTable"><div class="empty">Yuqorida tanlov tanlang</div></div>
+    </div>
+  </div>
+
+  <!-- BILDIRISHNOMA -->
+  <div class="panel" id="panel-notify">
+    <div class="card">
+      <h3><i class="fas fa-paper-plane"></i> Barchaga bildirishnoma yuborish</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Xabar barcha foydalanuvchilarning qo'ng'iroq (🔔) bo'limida va asosiy oynada ko'rinadi.</p>
+      <div class="field">
+        <label>Tayyor shablon (ixtiyoriy)</label>
+        <select id="n-template-select">
+          <option value="">— shablon tanlang —</option>
+          <option value="winners">G'oliblarni tabriklash</option>
+          <option value="new-contest">Yangi tanlov e'lon qilish</option>
+        </select>
+      </div>
+      <div class="field"><textarea id="n-text" placeholder="Masalan: Fizika olimpiadasi 2026 boshlandi! Ro'yxatdan o'ting."></textarea></div>
+      <button class="btn btn-primary" id="n-send-btn"><i class="fas fa-bullhorn"></i> Yuborish</button>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-clock-rotate-left"></i> Yuborilgan xabarlar</h3>
+      <div id="notifyList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <!-- FOYDALANUVCHILAR -->
+  <div class="panel" id="panel-users">
+    <div class="card">
+      <h3><i class="fas fa-user-group"></i> Saytga kirgan barcha foydalanuvchilar</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">So'nggi faollik bo'yicha tartiblangan. Bloklangan foydalanuvchi yangi tanlovlarga ro'yxatdan o'ta olmaydi.</p>
+      <div class="table-scroll" id="usersTable"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <!-- SAYT KONTENTI -->
+  <div class="panel" id="panel-content">
+    <div class="card">
+      <h3><i class="fas fa-image"></i> Bosh sahifa — rasm va matn</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Bu yerdagi o'zgarishlar kod yozmasdan, to'g'ridan-to'g'ri bosh sahifada ko'rinadi.</p>
+      <div class="field">
+        <label>Profil rasmi manzili (URL)</label>
+        <input type="text" id="content-photo-url" placeholder="https://... (masalan Imgur yoki boshqa rasm havolasi)">
+      </div>
+      <div class="field">
+        <label>Bio matni (rasm ostidagi tavsif)</label>
+        <textarea id="content-bio-text" placeholder="Fizika o'qituvchisi, Dasturchi va IT tadbirkor..."></textarea>
+      </div>
+      <button class="btn btn-primary" id="content-save-btn"><i class="fas fa-check"></i> Saqlash</button>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-signature"></i> Diplom/sertifikat imzosi</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Bu yerga qo'ygan imzo va ism — ishtirokchilarga chiqadigan barcha diplom/sertifikatlarda avtomatik ko'rinadi.</p>
+      <div class="field">
+        <label>Imzo rasmi (fon shaffof PNG tavsiya etiladi)</label>
+        <input type="file" id="signature-image-upload" accept="image/*">
+        <p id="signature-upload-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+        <img id="signature-preview" style="max-height:60px;margin-top:8px;display:none">
+      </div>
+      <div class="field">
+        <label>F.I.Sh (rasmiy hujjatlardagidek avtomatik qisqartiriladi, masalan "Aliyev Vali" → "Aliyev V.")</label>
+        <input type="text" id="signer-full-name" placeholder="Masalan: Aliyev Vali">
+      </div>
+      <button class="btn btn-primary" id="signature-save-btn"><i class="fas fa-check"></i> Saqlash</button>
+    </div>
+
+    <div class="card">
+      <h3><i class="fab fa-telegram"></i> Telegram bildirishnomalari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Yangi ro'yxatdan o'tish va "Men to'ladim" xabarlari haqida sizga (yoki xodimlar guruhingizga) Telegram orqali darhol xabar keladi.
+      </p>
+      <p style="background:#fef3c7;color:#92400e;padding:12px 14px;border-radius:10px;font-size:0.8rem;margin-bottom:14px">
+        <b>⚠️ Xavfsizlik haqida muhim eslatma:</b> Sayt serversiz (faqat Firestore) ishlagani uchun, bot tokeni brauzer orqali yuboriladi va texnik jihatdan ko'rinishi mumkin. Shu sabab:
+        <br>1) <b>Faqat shu maqsad uchun alohida, yangi bot yarating</b> (boshqa joyda ishlatmang).
+        <br>2) Botga hech qanday moliyaviy yoki maxfiy funksiya bermang — u faqat xabar yuborish uchun ishlatiladi.
+        <br>3) Agar suiiste'mol sezsangiz, @BotFather orqali istalgan vaqtda tokenni bekor qilib, yangisini olishingiz mumkin.
+      </p>
+      <div class="field">
+        <label>1-qadam: Bot yaratish</label>
+        <p style="color:var(--muted);font-size:0.82rem">Telegram'da <a href="https://t.me/BotFather" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@BotFather</a>ga yozing → <code>/newbot</code> → nom bering → sizga bot tokeni beriladi (masalan <code>123456:ABC-DEF...</code>).</p>
+      </div>
+      <div class="field">
+        <label>Bot tokeni</label>
+        <input type="text" id="telegram-bot-token" placeholder="123456789:AAExampleTokenHere">
+      </div>
+      <div class="field">
+        <label>2-qadam: Chat ID topish</label>
+        <p style="color:var(--muted);font-size:0.82rem">Yaratgan botingizni Telegram'da topib, unga birinchi xabarni (masalan "salom") <b>albatta o'zingiz yozib yuboring</b> (bu shart — aks holda bot sizga xabar yubora olmaydi). So'ng <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@userinfobot</a>ga o'ting, unga ham xabar yozing — u sizga <b>sizning shaxsiy Chat ID'ingizni</b> qaytaradi.</p>
+        <p style="background:#fef2f2;color:#991b1b;padding:10px 12px;border-radius:8px;font-size:0.78rem;margin-top:8px">
+          ⚠️ <b>Keng tarqalgan xato:</b> Chat ID — bu bot tokenidagi birinchi raqamlar (":" belgisidan oldingi qism) <b>EMAS</b>! Masalan token <code>8282648949:AAHN...</code> bo'lsa, <code>8282648949</code>ni Chat ID sifatida yozmang — bu botning o'z ID'si, sizniki emas. Chat ID @userinfobot bergan <b>butunlay boshqa raqam</b> bo'lishi kerak.
+        </p>
+      </div>
+      <div class="field">
+        <label>Chat ID</label>
+        <input type="text" id="telegram-chat-id" placeholder="Masalan: 123456789">
+      </div>
+      <div class="field">
+        <label>Bot username (ishtirokchilarga shaxsiy bildirishnoma yuborish uchun)</label>
+        <input type="text" id="telegram-bot-username" placeholder="Masalan: ZiyomapBildirishnoma_bot (@ belgisisiz)">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Bu username ishtirokchilarga "Telegram orqali bildirishnoma olish" havolasi (masalan ro'yxatdan o'tish va shaxsiy kabinet sahifalarida) yaratish uchun ishlatiladi.</p>
+      </div>
+      <div class="field">
+        <label>Rasmiy Telegram kanali username (barcha nizom, e'lonlar va tanlov shartlari joylashtiriladigan ochiq kanal)</label>
+        <input type="text" id="telegram-channel-username" placeholder="Masalan: ziyomap (@ belgisisiz)">
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Bu havola "Tanlovga ro'yxatdan o'tish" sahifasida ko'rsatiladi — foydalanuvchilarga barcha nizomlar va tanlov shartlari shu kanalda e'lon qilinishi haqida xabar beriladi.</p>
+      </div>
+      <button class="btn btn-primary" id="telegram-save-btn"><i class="fas fa-check"></i> Saqlash</button>
+      <button class="btn" id="telegram-test-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none;margin-left:8px"><i class="fas fa-paper-plane"></i> Test xabar yuborish</button>
+      <p id="telegram-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
+
+      <h4 style="margin:20px 0 10px">Ishtirokchilar ulanishi</h4>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:10px">Ishtirokchi botga "Start" bosgach, uni tizimga ulash uchun shu tugmani bosing (sayt avtomatik, fon rejimida buni bajarolmaydi — chunki server yo'q, shu sabab vaqti-vaqti bilan qo'lda bosib turishingiz kerak).</p>
+      <button class="btn" id="telegram-sync-btn" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i> Yangi ulanishlarni tekshirish</button>
+      <p id="telegram-sync-status" style="color:var(--muted);font-size:0.8rem;margin-top:8px"></p>
+    </div>
+  </div>
+
+  <!-- ADMINLAR -->
+  <div class="panel" id="panel-admins">
+    <div class="card">
+      <h3><i class="fas fa-user-plus"></i> Yangi admin qo'shish</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Bu yerga qo'shilgan email Google orqali kirganda, avtomatik ravishda admin panelga kirish huquqiga ega bo'ladi.</p>
+      <div class="field"><input type="email" id="a-email" placeholder="masalan@gmail.com"></div>
+      <button class="btn btn-primary" id="a-add-btn"><i class="fas fa-check"></i> Qo'shish</button>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-users-gear"></i> Hozirgi adminlar</h3>
+      <div id="adminsList"><div class="empty">Yuklanmoqda...</div></div>
+    </div>
+  </div>
+
+  <p id="status-msg" role="alert"></p>
+</div>
+
+<script src="js/ziyomap-usage.js"></script>
+<script src="js/auth-guard.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/admin-guard.js"></script>
+<script src="js/hududlar.js"></script>
+<script type="module" src="js/admin-panel.js"></script>
+<script>
+(function () {
+    function applyTheme(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        const icon = document.getElementById('theme-toggle-admin')?.querySelector('i');
+        if (icon) { icon.classList.toggle('fa-sun', isDark); icon.classList.toggle('fa-moon', !isDark); }
+    }
+    applyTheme(localStorage.getItem('theme') === 'dark');
+    document.getElementById('theme-toggle-admin')?.addEventListener('click', () => {
+        const isDark = !document.body.classList.contains('dark-theme');
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
-});
-
-const gate = document.getElementById('gate');
-const wrap = document.getElementById('wrap');
-const statusMsg = document.getElementById('status-msg');
-
-function setStatus(text, type) {
-    if (!text) {
-        statusMsg.className = '';
-        statusMsg.textContent = '';
-        return;
-    }
-    statusMsg.textContent = text;
-    statusMsg.className = 'show ' + (type || 'info');
-    setTimeout(() => setStatus(''), 4000);
-}
-
-function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str == null ? '' : String(str);
-    return d.innerHTML;
-}
-
-function formatDateTime(isoStr) {
-    if (!isoStr) return '\u2014';
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return isoStr;
-    return d.toLocaleString('uz-UZ', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-/* ── KIRISHNI TEKSHIRISH ── */
-async function boot(isAdmin) {
-    if (!isAdmin) {
-        gate.innerHTML =
-            '<i class="fas fa-lock"></i><p>Bu sahifaga kirish huquqingiz yo\u2018q.<br>Faqat admin sifatida belgilangan Google hisob bilan kiring.</p>';
-        return;
-    }
-    await authReady;
-    gate.style.display = 'none';
-    wrap.classList.add('show');
-
-    if (!authInst.currentUser) {
-        setStatus('Sessiyangiz eskirgan. Iltimos, chiqib, Google orqali qayta kiring — aks holda ma\u2018lumotlar yuklanmaydi.', 'error');
-    }
-
-    if (window.ZiyomapIsOwner) {
-        document.getElementById('admins-tab-btn').style.display = '';
-    }
-    initTabs();
-    loadStats();
-    loadContests();
-    loadNotifications();
-    loadUsers();
-    loadSiteContent();
-    loadTests();
-    loadMeetLinks();
-    if (window.ZiyomapIsOwner) loadAdmins();
-}
-
-document.addEventListener('ziyomap-admin-checked', (e) => boot(e.detail));
-// agar voqea allaqachon otib ketgan bo'lsa (juda tez yuklangan holat)
-setTimeout(() => {
-    if (window.ZiyomapIsAdmin !== undefined && wrap.classList.contains('show') === false && gate.querySelector('.fa-spin')) {
-        boot(!!window.ZiyomapIsAdmin);
-    }
-}, 2500);
-
-/* ── TABLAR ── */
-function initTabs() {
-    document.querySelectorAll('.tab-btn').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-        });
-    });
-}
-
-/* ── STATISTIKA ── */
-async function loadStats() {
-    try {
-        const [regSnap, contC, openC, admC, usersC] = await Promise.all([
-            getDocs(collection(db, 'registrations')),
-            getCountFromServer(collection(db, 'contests')),
-            getCountFromServer(query(collection(db, 'contests'), where('status', '==', 'open'))),
-            getCountFromServer(collection(db, 'admins')),
-            getCountFromServer(collection(db, 'users')),
-        ]);
-        document.getElementById('st-reg').textContent = regSnap.size;
-        document.getElementById('st-contests').textContent = contC.data().count;
-        document.getElementById('st-open').textContent = openC.data().count;
-        document.getElementById('st-admins').textContent = admC.data().count + 1; // +1 = owner
-        document.getElementById('st-users').textContent = usersC.data().count;
-    } catch (err) {
-        console.error(err);
-    }
-
-    const usageEl = document.getElementById('usageStatsList');
-    try {
-        const snap = await getDocs(collection(db, 'usage-stats'));
-        if (snap.empty) {
-            usageEl.innerHTML = '<div class="empty">Hali statistika yig\u2018ilmagan.</div>';
-            return;
-        }
-        const rows = [];
-        snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
-        rows.sort((a, b) => (b.count || 0) - (a.count || 0));
-        usageEl.innerHTML = rows
-            .slice(0, 15)
-            .map(
-                (r) => `<div class="admin-row"><span>${escapeHtml(r.label || r.id)}</span><b>${r.count || 0}</b></div>`
-            )
-            .join('');
-    } catch (err) {
-        console.error(err);
-        usageEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-/* ── TANLOV BO'YICHA STATISTIKA ── */
-function renderBarChart(items, maxItems = 8) {
-    // items: [{label, value}], eng katta qiymatga nisbatan foiz bo'yicha chiziladi
-    if (!items.length) return '<div class="empty">Ma\u2019lumot yo\u2018q.</div>';
-    const sorted = [...items].sort((a, b) => b.value - a.value).slice(0, maxItems);
-    const max = Math.max(...sorted.map((i) => i.value), 1);
-    return sorted
-        .map(
-            (i) => `<div style="margin-bottom:10px">
-                <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:3px">
-                    <span>${escapeHtml(i.label)}</span><b>${i.value}</b>
-                </div>
-                <div style="background:var(--primary-light);border-radius:6px;height:10px;overflow:hidden">
-                    <div style="width:${Math.round((i.value / max) * 100)}%;background:var(--primary);height:100%;border-radius:6px"></div>
-                </div>
-            </div>`
-        )
-        .join('');
-}
-
-document.getElementById('stats-contest-select')?.addEventListener('change', async (e) => {
-    const contestId = e.target.value;
-    const box = document.getElementById('contestStatsBox');
-    if (!contestId) {
-        box.innerHTML = '';
-        return;
-    }
-    box.innerHTML = '<div class="empty">Hisoblanmoqda...</div>';
-    try {
-        const snap = await getDocs(query(collection(db, 'registrations'), where('contestId', '==', contestId)));
-        const list = [];
-        snap.forEach((d) => list.push(d.data()));
-
-        const total = list.length;
-        const testedCount = list.filter((r) => r.score !== null && r.score !== undefined).length;
-        const interviewedCount = list.filter((r) => r.interviewScore !== null && r.interviewScore !== undefined).length;
-        const scores = list.map((r) => r.score).filter((s) => s !== null && s !== undefined);
-        const interviewScores = list.map((r) => r.interviewScore).filter((s) => s !== null && s !== undefined);
-        const avg = (arr) => (arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : '\u2014');
-
-        const viloyatCounts = {};
-        const maktabCounts = {};
-        list.forEach((r) => {
-            if (r.viloyat) viloyatCounts[r.viloyat] = (viloyatCounts[r.viloyat] || 0) + 1;
-            if (r.maktab) maktabCounts[r.maktab] = (maktabCounts[r.maktab] || 0) + 1;
-        });
-        const viloyatItems = Object.entries(viloyatCounts).map(([label, value]) => ({ label, value }));
-        const maktabItems = Object.entries(maktabCounts).map(([label, value]) => ({ label, value }));
-
-        box.innerHTML = `
-            <div class="stats-grid" style="margin-bottom:10px">
-                <div class="stat-card"><div class="v">${total}</div><div class="k">Ro'yxatdan o'tganlar</div></div>
-                <div class="stat-card"><div class="v">${testedCount}</div><div class="k">Test topshirganlar</div></div>
-                <div class="stat-card"><div class="v">${interviewedCount}</div><div class="k">Suhbatdan o'tganlar</div></div>
-                <div class="stat-card"><div class="v">${avg(scores)}</div><div class="k">O'rtacha test bali</div></div>
-                <div class="stat-card"><div class="v">${avg(interviewScores)}</div><div class="k">O'rtacha suhbat bali</div></div>
-            </div>
-            <h4 style="margin:16px 0 8px">Viloyatlar bo'yicha taqsimot</h4>
-            ${renderBarChart(viloyatItems)}
-            <h4 style="margin:16px 0 8px">Eng ko'p ishtirokchi bergan maktablar (top 8)</h4>
-            ${renderBarChart(maktabItems)}
-        `;
-    } catch (err) {
-        console.error(err);
-        box.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-});
-
-// ── Hudud cheklovi (Viloyat/Tuman) tanlash ──
-function setupContestHududSelects() {
-    const viloyatSelect = document.getElementById('c-restrict-viloyat');
-    const tumanSelect = document.getElementById('c-restrict-tuman');
-    if (!viloyatSelect || !tumanSelect || !window.UZ_HUDUDLAR) return;
-    Object.keys(window.UZ_HUDUDLAR).forEach((viloyat) => {
-        const opt = document.createElement('option');
-        opt.value = viloyat;
-        opt.textContent = viloyat;
-        viloyatSelect.appendChild(opt);
-    });
-    viloyatSelect.addEventListener('change', () => {
-        const tumanlar = window.UZ_HUDUDLAR[viloyatSelect.value] || [];
-        tumanSelect.innerHTML = '<option value="">— cheklovsiz (barcha tumanlar) —</option>';
-        tumanlar.forEach((tuman) => {
-            const opt = document.createElement('option');
-            opt.value = tuman;
-            opt.textContent = tuman;
-            tumanSelect.appendChild(opt);
-        });
-    });
-}
-setupContestHududSelects();
-
-document.getElementById('c-no-interview')?.addEventListener('change', (e) => {
-    document.getElementById('c-interview-fields').style.display = e.target.checked ? 'none' : '';
-});
-
-// ── To'lov turi (bepul/pullik) maydonlarini ko'rsatish/yashirish ──
-document.getElementById('c-payment-type')?.addEventListener('change', (e) => {
-    const isPaid = e.target.value === 'paid';
-    document.getElementById('c-payment-amount').disabled = !isPaid;
-    document.getElementById('c-payment-details-row').style.display = isPaid ? '' : 'none';
-});
-
-/* ── TANLOVLAR ── */
-let contestsCache = {};
-let contestFilterMode = 'all';
-
-document.querySelectorAll('[data-contest-filter]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-        contestFilterMode = btn.dataset.contestFilter;
-        document.querySelectorAll('[data-contest-filter]').forEach((b) => b.classList.toggle('active', b === btn));
-        loadContests();
-    });
-});
-
-async function loadContests() {
-    const listEl = document.getElementById('contestsList');
-    const selectEl = document.getElementById('reg-contest-select');
-    try {
-        const snap = await getDocs(query(collection(db, 'contests'), orderBy('createdAt', 'desc')));
-        if (snap.empty) {
-            listEl.innerHTML = '<div class="empty">Hali tanlov yaratilmagan.</div>';
-            return;
-        }
-        let listHtml = '';
-        let selectHtml = '<option value="">— tanlov tanlang —</option>';
-        contestsCache = {};
-        snap.forEach((d) => {
-            const c = d.data();
-            contestsCache[d.id] = c;
-            const isOpen = c.status === 'open';
-            const restrictions = [];
-            if (c.minAge || c.maxAge) restrictions.push(`Yosh: ${c.minAge || '0'}–${c.maxAge || '∞'}`);
-            if (c.grades && c.grades.length) restrictions.push(`Sinf: ${c.grades.join(', ')}`);
-            if (c.restrictViloyat) restrictions.push(`Hudud: ${c.restrictTuman || c.restrictViloyat}`);
-            const dates = [];
-            if (c.regStartDate || c.regEndDate) dates.push(`Ro'yxat: ${c.regStartDate || '\u2014'} \u2013 ${c.regEndDate || '\u2014'}`);
-            if (c.testDateStart || c.testDateEnd) dates.push(`Test: ${c.testDateStart || '\u2014'} \u2013 ${c.testDateEnd || '\u2014'} (${c.testDailyStart || '?'}\u2013${c.testDailyEnd || '?'})`);
-            if (c.interviewDateStart || c.interviewDateEnd) dates.push(`Suhbat: ${c.interviewDateStart || '\u2014'} \u2013 ${c.interviewDateEnd || '\u2014'} (${c.interviewDailyStart || '?'}\u2013${c.interviewDailyEnd || '?'})`);
-            const paymentBadge = c.isPaid
-                ? `<span class="badge" style="background:#fef3c7;color:#92400e;margin-left:6px"><i class="fas fa-money-bill-wave"></i> PULLIK: ${escapeHtml(c.paymentAmount || '?')} so\u2018m</span>`
-                : `<span class="badge" style="background:#e0f2fe;color:#075985;margin-left:6px">BEPUL</span>`;
-            selectHtml += `<option value="${d.id}">${escapeHtml(c.title)}</option>`;
-            if (contestFilterMode === 'open' && !isOpen) return;
-            if (contestFilterMode === 'closed' && isOpen) return;
-            listHtml += `<div class="contest-item">
-                <div>
-                    <div class="t">${escapeHtml(c.title)} <span class="badge ${isOpen ? 'open' : 'closed'}">${isOpen ? 'FAOL' : 'YOPIQ'}</span>${paymentBadge}</div>
-                    <div class="d">${escapeHtml(c.description || '')}</div>
-                    ${restrictions.length ? `<div class="d" style="color:var(--orange);margin-top:2px"><i class="fas fa-filter"></i> ${escapeHtml(restrictions.join(' · '))}</div>` : ''}
-                    ${dates.length ? `<div class="d" style="color:var(--primary);margin-top:2px"><i class="fas fa-calendar-days"></i> ${escapeHtml(dates.join(' · '))}</div>` : ''}
-                </div>
-                <div style="display:flex;gap:8px">
-                    <button class="btn ${isOpen ? 'btn-red' : 'btn-green'}" data-toggle="${d.id}" data-next="${isOpen ? 'closed' : 'open'}">
-                        <i class="fas ${isOpen ? 'fa-lock' : 'fa-unlock'}"></i> ${isOpen ? 'Yopish' : 'Ochish'}
-                    </button>
-                    <button class="btn btn-primary" data-edit-contest="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
-                    <button class="btn btn-red" data-delete-contest="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>`;
-        });
-        listEl.innerHTML = listHtml || '<div class="empty">Bu filtrga mos tanlov topilmadi.</div>';
-        selectEl.innerHTML = selectHtml;
-        const tSelect = document.getElementById('t-contest-select');
-        const trSelect = document.getElementById('tr-contest-select');
-        const meetSelect = document.getElementById('meet-contest-select');
-        const statsSelect = document.getElementById('stats-contest-select');
-        const ticketSelect = document.getElementById('ticket-contest-select');
-        const partnerSelect = document.getElementById('partner-contest-select');
-        if (tSelect) tSelect.innerHTML = selectHtml;
-        if (trSelect) trSelect.innerHTML = selectHtml;
-        if (meetSelect) meetSelect.innerHTML = selectHtml;
-        if (statsSelect) statsSelect.innerHTML = selectHtml;
-        if (ticketSelect) ticketSelect.innerHTML = selectHtml;
-        if (partnerSelect) partnerSelect.innerHTML = selectHtml;
-
-        listEl.querySelectorAll('[data-toggle]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                btn.disabled = true;
-                try {
-                    await updateDoc(doc(db, 'contests', btn.dataset.toggle), { status: btn.dataset.next });
-                    loadContests();
-                    loadStats();
-                } catch (err) {
-                    console.error(err);
-                    setStatus('Xatolik yuz berdi.', 'error');
-                    btn.disabled = false;
-                }
-            });
-        });
-
-        listEl.querySelectorAll('[data-edit-contest]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const c = contestsCache[btn.dataset.editContest];
-                if (!c) return;
-                document.getElementById('c-edit-id').value = btn.dataset.editContest;
-                document.getElementById('c-title').value = c.title || '';
-                document.getElementById('c-desc').value = c.description || '';
-                document.getElementById('c-organizer').value = c.organizer || '';
-                document.getElementById('c-responsible-name').value = c.responsibleName || '';
-                document.getElementById('c-responsible-phone').value = c.responsiblePhone || '';
-                document.getElementById('c-min-age').value = c.minAge ?? '';
-                document.getElementById('c-max-age').value = c.maxAge ?? '';
-                document.getElementById('c-grades').value = (c.grades && c.grades.length) ? c.grades.join(',') : '';
-                document.getElementById('c-restrict-viloyat').value = c.restrictViloyat || '';
-                document.getElementById('c-restrict-viloyat').dispatchEvent(new Event('change'));
-                document.getElementById('c-restrict-tuman').value = c.restrictTuman || '';
-                document.getElementById('c-payment-type').value = c.isPaid ? 'paid' : 'free';
-                document.getElementById('c-payment-type').dispatchEvent(new Event('change'));
-                document.getElementById('c-payment-amount').value = c.paymentAmount || '';
-                document.getElementById('c-payment-account').value = c.paymentAccount || '';
-                document.getElementById('c-payment-receiver').value = c.paymentReceiver || '';
-                document.getElementById('c-reg-start').value = c.regStartDate || '';
-                document.getElementById('c-reg-end').value = c.regEndDate || '';
-                document.getElementById('c-test-date-start').value = c.testDateStart || '';
-                document.getElementById('c-test-date-end').value = c.testDateEnd || '';
-                document.getElementById('c-test-daily-start').value = c.testDailyStart || '08:00';
-                document.getElementById('c-test-daily-end').value = c.testDailyEnd || '18:00';
-                document.getElementById('c-test-break-start').value = c.testBreakStart || '';
-                document.getElementById('c-test-break-end').value = c.testBreakEnd || '';
-                document.getElementById('c-test-slot-minutes').value = c.testSlotMinutes || 30;
-                document.getElementById('c-test-slot-capacity').value = c.testSlotCapacity || 15;
-                document.getElementById('c-interview-date-start').value = c.interviewDateStart || '';
-                document.getElementById('c-interview-date-end').value = c.interviewDateEnd || '';
-                document.getElementById('c-interview-daily-start').value = c.interviewDailyStart || '09:00';
-                document.getElementById('c-interview-daily-end').value = c.interviewDailyEnd || '17:00';
-                document.getElementById('c-interview-break-start').value = c.interviewBreakStart || '';
-                document.getElementById('c-interview-break-end').value = c.interviewBreakEnd || '';
-                document.getElementById('c-interview-slot-minutes').value = c.interviewSlotMinutes || 15;
-                document.getElementById('c-interview-slot-capacity').value = c.interviewSlotCapacity || 1;
-                document.getElementById('c-min-score-advance').value = c.minScoreToAdvance ?? '';
-                document.getElementById('c-no-interview').checked = c.interviewEnabled === false;
-                document.getElementById('c-interview-fields').style.display = c.interviewEnabled === false ? 'none' : '';
-                document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
-                document.getElementById('c-cancel-edit-btn').style.display = '';
-
-                editingNizomUrl = c.nizomUrl || null;
-                editingNizomFileName = c.nizomFileName || null;
-                pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = false;
-                document.getElementById('c-nizom-file').value = '';
-                const nizomStatus = document.getElementById('c-nizom-status');
-                if (nizomStatus) {
-                    nizomStatus.innerHTML = c.nizomFileName
-                        ? `Joriy hujjat: <b>${c.nizomFileName}</b> — <a href="#" data-remove-doc="nizom" style="color:var(--red)">olib tashlash</a>`
-                        : '';
-                }
-
-                editingMaxfiylikUrl = c.maxfiylikUrl || null;
-                editingMaxfiylikFileName = c.maxfiylikFileName || null;
-                pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = false;
-                document.getElementById('c-maxfiylik-file').value = '';
-                const maxfiylikStatus = document.getElementById('c-maxfiylik-status');
-                if (maxfiylikStatus) {
-                    maxfiylikStatus.innerHTML = c.maxfiylikFileName
-                        ? `Joriy hujjat: <b>${c.maxfiylikFileName}</b> — <a href="#" data-remove-doc="maxfiylik" style="color:var(--red)">olib tashlash</a>`
-                        : '';
-                }
-
-                editingLogoUrl = c.contestLogoUrl || null;
-                editingLogoFileName = c.contestLogoFileName || null;
-                pendingLogoData = null; pendingLogoFileName = null; logoRemoved = false;
-                document.getElementById('c-logo-file').value = '';
-                const logoStatus = document.getElementById('c-logo-status');
-                if (logoStatus) {
-                    logoStatus.innerHTML = c.contestLogoFileName
-                        ? `Joriy logotip: <b>${c.contestLogoFileName}</b> — <a href="#" data-remove-doc="logo" style="color:var(--red)">olib tashlash</a>`
-                        : '';
-                }
-
-                document.getElementById('c-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-        });
-
-        listEl.querySelectorAll('[data-delete-contest]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Bu tanlovni butunlay o\u2018chirmoqchimisiz? Ro\u2018yxatdan o\u2018tganlar ma\u2019lumoti saqlanib qoladi, lekin tanlov ro\u2018yxatdan yo\u2018qoladi.')) return;
-                btn.disabled = true;
-                try {
-                    await deleteDoc(doc(db, 'contests', btn.dataset.deleteContest));
-                    loadContests();
-                    loadStats();
-                } catch (err) {
-                    console.error(err);
-                    setStatus('Xatolik yuz berdi.', 'error');
-                    btn.disabled = false;
-                }
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-/* ── Tanlov uchun Nizom / Maxfiylik hujjatlari yuklash ── */
-const DOC_MAX_BYTES = 250 * 1024; // 250 KB (nizom/maxfiylik hujjatlari uchun)
-const LOGO_MAX_BYTES = 120 * 1024; // 120 KB (tanlov logotipi uchun — sertifikatda kichik hajmda chiqadi)
-let editingNizomUrl = null, editingNizomFileName = null;
-let editingMaxfiylikUrl = null, editingMaxfiylikFileName = null;
-let pendingNizomData = null, pendingNizomFileName = null, nizomRemoved = false;
-let pendingMaxfiylikData = null, pendingMaxfiylikFileName = null, maxfiylikRemoved = false;
-let editingLogoUrl = null, editingLogoFileName = null;
-let pendingLogoData = null, pendingLogoFileName = null, logoRemoved = false;
-
-function setupContestDocUpload(inputId, statusId, maxBytes, maxLabel, onLoaded) {
-    document.getElementById(inputId)?.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        const statusEl = document.getElementById(statusId);
-        if (!file) return;
-        if (file.size > maxBytes) {
-            if (statusEl) {
-                statusEl.textContent = `Fayl juda katta (${Math.round(file.size / 1024)} KB). ${maxLabel} dan kichik fayl tanlang.`;
-                statusEl.style.color = 'var(--red)';
-            }
-            e.target.value = '';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => {
-            onLoaded(reader.result, file.name);
-            if (statusEl) {
-                statusEl.textContent = `Tanlandi: ${file.name} (${Math.round(file.size / 1024)} KB) — saqlash uchun pastdagi tugmani bosing.`;
-                statusEl.style.color = 'var(--muted)';
-            }
-        };
-        reader.onerror = () => {
-            if (statusEl) { statusEl.textContent = 'Faylni o\u2018qishda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
-        };
-        reader.readAsDataURL(file);
-    });
-}
-setupContestDocUpload('c-nizom-file', 'c-nizom-status', DOC_MAX_BYTES, '250 KB', (dataUrl, name) => {
-    pendingNizomData = dataUrl;
-    pendingNizomFileName = name;
-    nizomRemoved = false;
-});
-setupContestDocUpload('c-maxfiylik-file', 'c-maxfiylik-status', DOC_MAX_BYTES, '250 KB', (dataUrl, name) => {
-    pendingMaxfiylikData = dataUrl;
-    pendingMaxfiylikFileName = name;
-    maxfiylikRemoved = false;
-});
-
-/* ── Logotip qayta ishlash: bir xil orqa fon avtomatik shaffoflashtiriladi,
-   so'ng rasm ko'rinadigan qismi (logotipning o'zi) chegarasi bo'yicha kesib olinadi —
-   shunda logotip 46x46 doirachani bo'sh joy bilan emas, to'liq band qilib chiqadi. ── */
-function loadImageFromFile(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error('Rasmni yuklab bo\u2018lmadi.'));
-            img.src = reader.result;
-        };
-        reader.onerror = () => reject(new Error('Faylni o\u2018qib bo\u2018lmadi.'));
-        reader.readAsDataURL(file);
-    });
-}
-
-function processLogoImage(img, maxDim) {
-    // 1) Ishlov berish uchun oraliq (unumli) o'lchamda chizamiz
-    let w = img.naturalWidth || img.width;
-    let h = img.naturalHeight || img.height;
-    const workDim = Math.min(Math.max(w, h), 800);
-    if (Math.max(w, h) > workDim) {
-        const scale = workDim / Math.max(w, h);
-        w = Math.max(1, Math.round(w * scale));
-        h = Math.max(1, Math.round(h * scale));
-    }
-    const workCanvas = document.createElement('canvas');
-    workCanvas.width = w;
-    workCanvas.height = h;
-    const wctx = workCanvas.getContext('2d');
-    wctx.drawImage(img, 0, 0, w, h);
-    const imageData = wctx.getImageData(0, 0, w, h);
-    const data = imageData.data;
-
-    // 2) Burchak piksellaridan fon rangini aniqlaymiz
-    const corners = [[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].map(([x, y]) => {
-        const i = (y * w + x) * 4;
-        return [data[i], data[i + 1], data[i + 2], data[i + 3]];
-    });
-    const avg = corners.reduce((a, c) => [a[0] + c[0], a[1] + c[1], a[2] + c[2]], [0, 0, 0]).map((v) => v / corners.length);
-    const cornersUniform = corners.every((c) => c[3] < 10 || (Math.abs(c[0] - avg[0]) < 22 && Math.abs(c[1] - avg[1]) < 22 && Math.abs(c[2] - avg[2]) < 22));
-    const hasOpaqueCorner = corners.some((c) => c[3] >= 10);
-
-    let bgRemoved = false;
-    if (cornersUniform && hasOpaqueCorner) {
-        bgRemoved = true;
-        const threshold = 36;
-        const softRange = 34;
-        for (let i = 0; i < data.length; i += 4) {
-            const dr = data[i] - avg[0], dg = data[i + 1] - avg[1], db = data[i + 2] - avg[2];
-            const dist = Math.sqrt(dr * dr + dg * dg + db * db);
-            if (dist < threshold) {
-                data[i + 3] = 0;
-            } else if (dist < threshold + softRange) {
-                data[i + 3] = Math.round(data[i + 3] * ((dist - threshold) / softRange));
-            }
-        }
-    }
-    wctx.putImageData(imageData, 0, 0);
-
-    // 3) Ko'rinadigan (shaffof bo'lmagan) piksellar chegarasini (bounding box) topamiz
-    const finalData = wctx.getImageData(0, 0, w, h).data;
-    let minX = w, minY = h, maxX = -1, maxY = -1;
-    const alphaThresh = 12;
-    for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-            const a = finalData[(y * w + x) * 4 + 3];
-            if (a > alphaThresh) {
-                if (x < minX) minX = x;
-                if (x > maxX) maxX = x;
-                if (y < minY) minY = y;
-                if (y > maxY) maxY = y;
-            }
-        }
-    }
-
-    let cropCanvas = workCanvas;
-    if (maxX >= minX && maxY >= minY) {
-        const cw = maxX - minX + 1;
-        const ch = maxY - minY + 1;
-        // Chekkalar butunlay kesilib qolmasligi uchun atrofiga ozgina bo'shliq qoldiramiz
-        const pad = Math.round(Math.max(cw, ch) * 0.06);
-        const sx = Math.max(0, minX - pad);
-        const sy = Math.max(0, minY - pad);
-        const ex = Math.min(w, maxX + 1 + pad);
-        const ey = Math.min(h, maxY + 1 + pad);
-        const outW = ex - sx;
-        const outH = ey - sy;
-        // Faqat haqiqatan ham kesish kerak bo'lsa (atrofda bo'sh joy bo'lsa) yangi canvas yasaymiz
-        if (outW < w || outH < h) {
-            cropCanvas = document.createElement('canvas');
-            cropCanvas.width = outW;
-            cropCanvas.height = outH;
-            cropCanvas.getContext('2d').drawImage(workCanvas, sx, sy, outW, outH, 0, 0, outW, outH);
-        }
-    }
-
-    // 4) Yakuniy hajmni maxDim ga moslashtiramiz
-    let outW = cropCanvas.width;
-    let outH = cropCanvas.height;
-    if (Math.max(outW, outH) > maxDim) {
-        const scale = maxDim / Math.max(outW, outH);
-        outW = Math.max(1, Math.round(outW * scale));
-        outH = Math.max(1, Math.round(outH * scale));
-    }
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = outW;
-    finalCanvas.height = outH;
-    finalCanvas.getContext('2d').drawImage(cropCanvas, 0, 0, outW, outH);
-
-    return { canvas: finalCanvas, bgRemoved };
-}
-
-// Faylni o'qib, fonini tozalab, logotipni chegarasi bo'yicha kesib, hajm limitiga sig'dirib beradi.
-async function processLogoFile(file, maxBytes) {
-    const img = await loadImageFromFile(file);
-    const attempts = [320, 220, 150];
-    let lastDataUrl = null;
-    let lastBgRemoved = false;
-    for (const maxDim of attempts) {
-        const { canvas, bgRemoved } = processLogoImage(img, maxDim);
-        const dataUrl = canvas.toDataURL('image/png');
-        const approxBytes = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
-        lastDataUrl = dataUrl;
-        lastBgRemoved = bgRemoved;
-        if (approxBytes <= maxBytes) {
-            return { dataUrl, bgRemoved, tooBig: false };
-        }
-    }
-    return { dataUrl: lastDataUrl, bgRemoved: lastBgRemoved, tooBig: true };
-}
-
-document.getElementById('c-logo-file')?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    const statusEl = document.getElementById('c-logo-status');
-    if (!file) return;
-    if (statusEl) { statusEl.textContent = 'Rasm qayta ishlanmoqda, fon tekshirilmoqda...'; statusEl.style.color = 'var(--muted)'; }
-    try {
-        const { dataUrl, bgRemoved, tooBig } = await processLogoFile(file, LOGO_MAX_BYTES);
-        if (tooBig) {
-            if (statusEl) {
-                statusEl.textContent = `Rasm juda murakkab/katta — ${Math.round(LOGO_MAX_BYTES / 1024)} KB chegarasiga sig\u2018dirib bo\u2018lmadi. Iltimos, soddaroq yoki kichikroq rasm tanlang.`;
-                statusEl.style.color = 'var(--red)';
-            }
-            e.target.value = '';
-            return;
-        }
-        pendingLogoData = dataUrl;
-        pendingLogoFileName = file.name.replace(/\.[^.]+$/, '') + '.png';
-        logoRemoved = false;
-        if (statusEl) {
-            statusEl.textContent = bgRemoved
-                ? `Tanlandi: ${file.name} — orqa fon avtomatik tozalandi va logotip chegarasiga qarab kesildi. Saqlash uchun pastdagi tugmani bosing.`
-                : `Tanlandi: ${file.name} — fon bir xil rangda emas (yoki allaqachon shaffof); logotip chegarasiga qarab kesildi. Saqlash uchun pastdagi tugmani bosing.`;
-            statusEl.style.color = 'var(--muted)';
-        }
-    } catch (err) {
-        console.error('Logotipni qayta ishlashda xatolik:', err);
-        if (statusEl) { statusEl.textContent = 'Rasmni qayta ishlashda xatolik yuz berdi. Boshqa fayl bilan urinib ko\u2018ring.'; statusEl.style.color = 'var(--red)'; }
-    } finally {
-        e.target.value = '';
-    }
-});
-
-/* ── Hamkorlar logotiplari (contests/{id}/partners subkolleksiyasida saqlanadi) ── */
-const PARTNER_LOGO_MAX_BYTES = 150 * 1024; // 150 KB — alohida hujjat bo'lgani uchun biroz kattaroq
-let pendingPartnerLogoData = null;
-let pendingPartnerLogoFileName = null;
-
-function renderPartnerLogoList(contestId, items) {
-    const listEl = document.getElementById('partner-logo-list');
-    if (!listEl) return;
-    if (!contestId) {
-        listEl.innerHTML = '';
-        return;
-    }
-    if (!items.length) {
-        listEl.innerHTML = '<div class="empty" style="width:100%">Bu tanlov uchun hali hamkor logotipi qo\u2018shilmagan.</div>';
-        return;
-    }
-    listEl.innerHTML = items
-        .map(
-            (p) => `<div style="width:100px;text-align:center;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:10px">
-                <img src="${p.logoUrl}" alt="" style="width:46px;height:46px;object-fit:contain;margin-bottom:6px">
-                <div style="font-size:0.72rem;font-weight:700;color:var(--text);word-break:break-word;margin-bottom:2px">${escapeHtml(p.name || '(nomsiz)')}</div>
-                <div style="font-size:0.66rem;color:var(--muted);word-break:break-word;margin-bottom:6px">${escapeHtml(p.fileName || 'logotip')}</div>
-                <button type="button" class="btn btn-red" data-remove-partner-logo="${p.id}" style="padding:4px 8px;font-size:0.72rem"><i class="fas fa-trash"></i></button>
-            </div>`
-        )
-        .join('');
-}
-
-async function loadPartnerLogos(contestId) {
-    const listEl = document.getElementById('partner-logo-list');
-    if (!contestId) {
-        renderPartnerLogoList(null, []);
-        return;
-    }
-    if (listEl) listEl.innerHTML = '<div class="empty" style="width:100%">Yuklanmoqda...</div>';
-    try {
-        const snap = await getDocs(collection(db, 'contests', contestId, 'partners'));
-        const items = [];
-        snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
-        renderPartnerLogoList(contestId, items);
-    } catch (err) {
-        console.error('Hamkor logotiplarini yuklashda xatolik:', err);
-        if (listEl) listEl.innerHTML = '<div class="empty" style="width:100%">Yuklashda xatolik yuz berdi.</div>';
-    }
-}
-
-document.getElementById('partner-contest-select')?.addEventListener('change', (e) => {
-    const contestId = e.target.value;
-    const fileInput = document.getElementById('partner-logo-file');
-    const nameInput = document.getElementById('partner-logo-name');
-    const addBtn = document.getElementById('partner-logo-add-btn');
-    const statusEl = document.getElementById('partner-logo-status');
-    pendingPartnerLogoData = null;
-    pendingPartnerLogoFileName = null;
-    if (fileInput) { fileInput.disabled = !contestId; fileInput.value = ''; }
-    if (nameInput) { nameInput.disabled = !contestId; nameInput.value = ''; }
-    if (addBtn) addBtn.disabled = !contestId;
-    if (statusEl) statusEl.textContent = '';
-    loadPartnerLogos(contestId);
-});
-
-document.getElementById('partner-logo-file')?.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    const statusEl = document.getElementById('partner-logo-status');
-    if (!file) return;
-    if (statusEl) { statusEl.textContent = 'Rasm qayta ishlanmoqda, fon tekshirilmoqda...'; statusEl.style.color = 'var(--muted)'; }
-    try {
-        const { dataUrl, bgRemoved, tooBig } = await processLogoFile(file, PARTNER_LOGO_MAX_BYTES);
-        if (tooBig) {
-            if (statusEl) {
-                statusEl.textContent = `Rasm juda murakkab/katta — ${Math.round(PARTNER_LOGO_MAX_BYTES / 1024)} KB chegarasiga sig\u2018dirib bo\u2018lmadi. Iltimos, soddaroq yoki kichikroq rasm tanlang.`;
-                statusEl.style.color = 'var(--red)';
-            }
-            e.target.value = '';
-            return;
-        }
-        pendingPartnerLogoData = dataUrl;
-        pendingPartnerLogoFileName = file.name.replace(/\.[^.]+$/, '') + '.png';
-        if (statusEl) {
-            statusEl.textContent = bgRemoved
-                ? `Tayyor: ${file.name} — fon tozalandi va kesildi. "Qo\u2018shish" tugmasini bosing.`
-                : `Tayyor: ${file.name} — logotip chegarasiga qarab kesildi. "Qo\u2018shish" tugmasini bosing.`;
-            statusEl.style.color = 'var(--muted)';
-        }
-    } catch (err) {
-        console.error('Hamkor logotipini qayta ishlashda xatolik:', err);
-        if (statusEl) { statusEl.textContent = 'Rasmni qayta ishlashda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
-    }
-});
-
-document.getElementById('partner-logo-add-btn')?.addEventListener('click', async () => {
-    const contestId = document.getElementById('partner-contest-select')?.value;
-    const statusEl = document.getElementById('partner-logo-status');
-    const btn = document.getElementById('partner-logo-add-btn');
-    const nameInput = document.getElementById('partner-logo-name');
-    const partnerName = (nameInput?.value || '').trim();
-    if (!contestId) {
-        if (statusEl) { statusEl.textContent = 'Avval tanlovni tanlang.'; statusEl.style.color = 'var(--red)'; }
-        return;
-    }
-    if (!pendingPartnerLogoData) {
-        if (statusEl) { statusEl.textContent = 'Avval logotip faylini tanlang.'; statusEl.style.color = 'var(--red)'; }
-        return;
-    }
-    if (!partnerName) {
-        if (statusEl) { statusEl.textContent = 'Hamkor nomini kiriting — u sertifikatda logotip ostida yoziladi.'; statusEl.style.color = 'var(--red)'; }
-        return;
-    }
-    btn.disabled = true;
-    try {
-        const ref = doc(collection(db, 'contests', contestId, 'partners'));
-        await setDoc(ref, {
-            logoUrl: pendingPartnerLogoData,
-            fileName: pendingPartnerLogoFileName,
-            name: partnerName,
-            createdAt: serverTimestamp(),
-        });
-        pendingPartnerLogoData = null;
-        pendingPartnerLogoFileName = null;
-        const fileInput = document.getElementById('partner-logo-file');
-        if (fileInput) fileInput.value = '';
-        if (nameInput) nameInput.value = '';
-        if (statusEl) { statusEl.textContent = 'Hamkor logotipi qo\u2018shildi.'; statusEl.style.color = 'var(--green)'; }
-        loadPartnerLogos(contestId);
-    } catch (err) {
-        console.error('Hamkor logotipini saqlashda xatolik:', err);
-        if (statusEl) { statusEl.textContent = 'Saqlashda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('partner-logo-list')?.addEventListener('click', async (e) => {
-    const btn = e.target.closest('[data-remove-partner-logo]');
-    if (!btn) return;
-    const contestId = document.getElementById('partner-contest-select')?.value;
-    if (!contestId) return;
-    if (!confirm('Ushbu hamkor logotipini o\u2018chirishni tasdiqlaysizmi?')) return;
-    btn.disabled = true;
-    try {
-        await deleteDoc(doc(db, 'contests', contestId, 'partners', btn.dataset.removePartnerLogo));
-        loadPartnerLogos(contestId);
-    } catch (err) {
-        console.error('Hamkor logotipini o\u2018chirishda xatolik:', err);
-        alert('O\u2018chirishda xatolik yuz berdi.');
-        btn.disabled = false;
-    }
-});
-
-document.addEventListener('click', (e) => {
-    const link = e.target.closest('[data-remove-doc]');
-    if (!link) return;
-    e.preventDefault();
-    if (link.dataset.removeDoc === 'nizom') {
-        pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = true;
-        editingNizomUrl = null; editingNizomFileName = null;
-        const f = document.getElementById('c-nizom-file'); if (f) f.value = '';
-        const s = document.getElementById('c-nizom-status');
-        if (s) { s.textContent = 'Hujjat olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
-    } else if (link.dataset.removeDoc === 'maxfiylik') {
-        pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = true;
-        editingMaxfiylikUrl = null; editingMaxfiylikFileName = null;
-        const f = document.getElementById('c-maxfiylik-file'); if (f) f.value = '';
-        const s = document.getElementById('c-maxfiylik-status');
-        if (s) { s.textContent = 'Hujjat olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
-    } else if (link.dataset.removeDoc === 'logo') {
-        pendingLogoData = null; pendingLogoFileName = null; logoRemoved = true;
-        editingLogoUrl = null; editingLogoFileName = null;
-        const f = document.getElementById('c-logo-file'); if (f) f.value = '';
-        const s = document.getElementById('c-logo-status');
-        if (s) { s.textContent = 'Logotip olib tashlanadi (saqlaganda).'; s.style.color = 'var(--red)'; }
-    }
-});
-
-function resetContestForm() {
-    document.getElementById('c-edit-id').value = '';
-    document.getElementById('c-title').value = '';
-    document.getElementById('c-desc').value = '';
-    document.getElementById('c-organizer').value = '';
-    document.getElementById('c-responsible-name').value = '';
-    document.getElementById('c-responsible-phone').value = '';
-    document.getElementById('c-min-age').value = '';
-    document.getElementById('c-max-age').value = '';
-    document.getElementById('c-grades').value = '';
-    document.getElementById('c-restrict-viloyat').value = '';
-    document.getElementById('c-restrict-viloyat').dispatchEvent(new Event('change'));
-    document.getElementById('c-restrict-tuman').value = '';
-    document.getElementById('c-payment-type').value = 'free';
-    document.getElementById('c-payment-type').dispatchEvent(new Event('change'));
-    document.getElementById('c-payment-amount').value = '';
-    document.getElementById('c-payment-account').value = '';
-    document.getElementById('c-payment-receiver').value = '';
-    document.getElementById('c-reg-start').value = '';
-    document.getElementById('c-reg-end').value = '';
-    document.getElementById('c-test-date-start').value = '';
-    document.getElementById('c-test-date-end').value = '';
-    document.getElementById('c-test-daily-start').value = '08:00';
-    document.getElementById('c-test-daily-end').value = '18:00';
-    document.getElementById('c-test-break-start').value = '';
-    document.getElementById('c-test-break-end').value = '';
-    document.getElementById('c-test-slot-minutes').value = '30';
-    document.getElementById('c-test-slot-capacity').value = '15';
-    document.getElementById('c-interview-date-start').value = '';
-    document.getElementById('c-interview-date-end').value = '';
-    document.getElementById('c-interview-daily-start').value = '09:00';
-    document.getElementById('c-interview-daily-end').value = '17:00';
-    document.getElementById('c-interview-break-start').value = '12:00';
-    document.getElementById('c-interview-break-end').value = '13:00';
-    document.getElementById('c-interview-slot-minutes').value = '15';
-    document.getElementById('c-interview-slot-capacity').value = '1';
-    document.getElementById('c-min-score-advance').value = '';
-    document.getElementById('c-no-interview').checked = false;
-    document.getElementById('c-interview-fields').style.display = '';
-    document.getElementById('c-create-btn').innerHTML = '<i class="fas fa-check"></i> Yaratish va e\u2018lon qilish';
-    document.getElementById('c-cancel-edit-btn').style.display = 'none';
-
-    document.getElementById('c-nizom-file').value = '';
-    document.getElementById('c-maxfiylik-file').value = '';
-    document.getElementById('c-logo-file').value = '';
-    const nizomStatus = document.getElementById('c-nizom-status'); if (nizomStatus) nizomStatus.textContent = '';
-    const maxfiylikStatus = document.getElementById('c-maxfiylik-status'); if (maxfiylikStatus) maxfiylikStatus.textContent = '';
-    const logoStatus = document.getElementById('c-logo-status'); if (logoStatus) logoStatus.textContent = '';
-    editingNizomUrl = null; editingNizomFileName = null;
-    pendingNizomData = null; pendingNizomFileName = null; nizomRemoved = false;
-    editingMaxfiylikUrl = null; editingMaxfiylikFileName = null;
-    pendingMaxfiylikData = null; pendingMaxfiylikFileName = null; maxfiylikRemoved = false;
-    editingLogoUrl = null; editingLogoFileName = null;
-    pendingLogoData = null; pendingLogoFileName = null; logoRemoved = false;
-}
-
-document.getElementById('c-cancel-edit-btn')?.addEventListener('click', resetContestForm);
-
-document.getElementById('c-create-btn').addEventListener('click', async () => {
-    const editId = document.getElementById('c-edit-id').value;
-    const title = document.getElementById('c-title').value.trim();
-    const desc = document.getElementById('c-desc').value.trim();
-    const organizer = document.getElementById('c-organizer').value.trim() || null;
-    const responsibleName = document.getElementById('c-responsible-name').value.trim() || null;
-    const responsiblePhone = document.getElementById('c-responsible-phone').value.trim() || null;
-    const minAgeRaw = document.getElementById('c-min-age').value.trim();
-    const maxAgeRaw = document.getElementById('c-max-age').value.trim();
-    const gradesRaw = document.getElementById('c-grades').value.trim();
-    const regStartDate = document.getElementById('c-reg-start').value || null;
-    const regEndDate = document.getElementById('c-reg-end').value || null;
-    const testDateStart = document.getElementById('c-test-date-start').value || null;
-    const testDateEnd = document.getElementById('c-test-date-end').value || null;
-    const testDailyStart = document.getElementById('c-test-daily-start').value || '08:00';
-    const testDailyEnd = document.getElementById('c-test-daily-end').value || '18:00';
-    const testBreakStart = document.getElementById('c-test-break-start').value || null;
-    const testBreakEnd = document.getElementById('c-test-break-end').value || null;
-    const testSlotMinutes = parseInt(document.getElementById('c-test-slot-minutes').value, 10) || 30;
-    const testSlotCapacity = parseInt(document.getElementById('c-test-slot-capacity').value, 10) || 15;
-    const interviewDateStart = document.getElementById('c-interview-date-start').value || null;
-    const interviewDateEnd = document.getElementById('c-interview-date-end').value || null;
-    const interviewDailyStart = document.getElementById('c-interview-daily-start').value || '09:00';
-    const interviewDailyEnd = document.getElementById('c-interview-daily-end').value || '17:00';
-    const interviewBreakStart = document.getElementById('c-interview-break-start').value || null;
-    const interviewBreakEnd = document.getElementById('c-interview-break-end').value || null;
-    const interviewSlotMinutes = parseInt(document.getElementById('c-interview-slot-minutes').value, 10) || 15;
-    const interviewSlotCapacity = parseInt(document.getElementById('c-interview-slot-capacity').value, 10) || 1;
-    const minScoreAdvanceRaw = document.getElementById('c-min-score-advance').value.trim();
-    const minScoreToAdvance = minScoreAdvanceRaw ? parseFloat(minScoreAdvanceRaw) : null;
-    const interviewEnabled = !document.getElementById('c-no-interview').checked;
-    const restrictViloyat = document.getElementById('c-restrict-viloyat').value || null;
-    const restrictTuman = document.getElementById('c-restrict-tuman').value || null;
-    const isPaid = document.getElementById('c-payment-type').value === 'paid';
-    const paymentAmount = isPaid ? parseFloat(document.getElementById('c-payment-amount').value) || null : null;
-    const paymentAccount = isPaid ? document.getElementById('c-payment-account').value.trim() || null : null;
-    const paymentReceiver = isPaid ? document.getElementById('c-payment-receiver').value.trim() || null : null;
-    if (!title) {
-        setStatus('Tanlov nomini kiriting.', 'error');
-        return;
-    }
-
-    // "5-9" yoki "5,6,7,8,9" ko'rinishini raqamlar ro'yxatiga aylantirish
-    let grades = [];
-    if (gradesRaw) {
-        if (gradesRaw.includes('-')) {
-            const [a, b] = gradesRaw.split('-').map((n) => parseInt(n.trim(), 10));
-            if (!isNaN(a) && !isNaN(b)) {
-                for (let i = Math.min(a, b); i <= Math.max(a, b); i++) grades.push(i);
-            }
-        } else {
-            grades = gradesRaw
-                .split(',')
-                .map((n) => parseInt(n.trim(), 10))
-                .filter((n) => !isNaN(n));
-        }
-    }
-
-    const btn = document.getElementById('c-create-btn');
-    btn.disabled = true;
-    try {
-        const payload = {
-            title,
-            description: desc,
-            organizer,
-            responsibleName,
-            responsiblePhone,
-            minAge: minAgeRaw ? parseInt(minAgeRaw, 10) : null,
-            maxAge: maxAgeRaw ? parseInt(maxAgeRaw, 10) : null,
-            grades,
-            regStartDate,
-            regEndDate,
-            testDateStart,
-            testDateEnd,
-            testDailyStart,
-            testDailyEnd,
-            testBreakStart,
-            testBreakEnd,
-            testSlotMinutes,
-            testSlotCapacity,
-            interviewDateStart,
-            interviewDateEnd,
-            interviewDailyStart,
-            interviewDailyEnd,
-            interviewBreakStart,
-            interviewBreakEnd,
-            interviewSlotMinutes,
-            interviewSlotCapacity,
-            minScoreToAdvance,
-            interviewEnabled,
-            restrictViloyat,
-            restrictTuman,
-            isPaid,
-            paymentAmount,
-            paymentAccount,
-            paymentReceiver,
-        };
-
-        // Nizom hujjati: yangi fayl tanlangan bo'lsa — shuni yozadi; "olib tashlash"
-        // bosilgan bo'lsa — null qiladi; yangi tanlov bo'lsa — bo'sh qoldiradi;
-        // tahrirlashda hech narsa o'zgarmagan bo'lsa — maydonga umuman tegilmaydi
-        // (shu sababli mavjud hujjat saqlanib qoladi).
-        if (pendingNizomData) {
-            payload.nizomUrl = pendingNizomData;
-            payload.nizomFileName = pendingNizomFileName;
-        } else if (nizomRemoved || !editId) {
-            payload.nizomUrl = null;
-            payload.nizomFileName = null;
-        }
-
-        if (pendingMaxfiylikData) {
-            payload.maxfiylikUrl = pendingMaxfiylikData;
-            payload.maxfiylikFileName = pendingMaxfiylikFileName;
-        } else if (maxfiylikRemoved || !editId) {
-            payload.maxfiylikUrl = null;
-            payload.maxfiylikFileName = null;
-        }
-
-        // Tanlov logotipi — sertifikat/diplom generatorida boshqa logolar qatorida ko'rsatiladi
-        if (pendingLogoData) {
-            payload.contestLogoUrl = pendingLogoData;
-            payload.contestLogoFileName = pendingLogoFileName;
-        } else if (logoRemoved || !editId) {
-            payload.contestLogoUrl = null;
-            payload.contestLogoFileName = null;
-        }
-
-        if (editId) {
-            await updateDoc(doc(db, 'contests', editId), payload);
-            setStatus('Tanlov ma\u2019lumotlari yangilandi!', 'success');
-        } else {
-            const ref = doc(collection(db, 'contests'));
-            await setDoc(ref, {
-                ...payload,
-                status: 'open',
-                createdAt: serverTimestamp(),
-            });
-            setStatus('Tanlov yaratildi va e\u2018lon qilindi!', 'success');
-        }
-        resetContestForm();
-        loadContests();
-        loadStats();
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-/* ── ISHTIROKCHILAR ── */
-let currentRegistrants = [];
-let currentContestTitle = '';
-let currentContestId = '';
-let currentContestMeta = {};
-
-document.getElementById('reg-contest-select').addEventListener('change', async (e) => {
-    const contestId = e.target.value;
-    const contestTitle = e.target.options[e.target.selectedIndex]?.textContent || '';
-    const tableEl = document.getElementById('registrantsTable');
-    const exportBtn = document.getElementById('export-excel-btn');
-    const photoRosterBtn = document.getElementById('photo-roster-btn');
-    const publishBtn = document.getElementById('publish-leaderboard-btn');
-    const autoScheduleBtn = document.getElementById('auto-schedule-btn');
-    const autoScheduleStatus = document.getElementById('auto-schedule-status');
-    currentContestId = contestId;
-    if (!contestId) {
-        tableEl.innerHTML = '<div class="empty">Yuqorida tanlov tanlang</div>';
-        if (exportBtn) exportBtn.style.display = 'none';
-        if (photoRosterBtn) photoRosterBtn.style.display = 'none';
-        if (publishBtn) publishBtn.style.display = 'none';
-        if (autoScheduleBtn) autoScheduleBtn.style.display = 'none';
-        if (autoScheduleStatus) autoScheduleStatus.textContent = '';
-        return;
-    }
-    tableEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
-    if (exportBtn) exportBtn.style.display = 'none';
-    if (photoRosterBtn) photoRosterBtn.style.display = 'none';
-    if (publishBtn) publishBtn.style.display = 'none';
-    if (autoScheduleBtn) autoScheduleBtn.style.display = 'none';
-    if (autoScheduleStatus) autoScheduleStatus.textContent = '';
-    try {
-        const snap = await getDocs(
-            query(collection(db, 'registrations'), where('contestId', '==', contestId))
-        );
-        if (snap.empty) {
-            tableEl.innerHTML = '<div class="empty">Bu tanlovga hali hech kim ro\u2018yxatdan o\u2018tmagan.</div>';
-            currentRegistrants = [];
-            return;
-        }
-
-        const list = [];
-        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
-        list.sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
-
-        currentRegistrants = list;
-        currentContestTitle = contestTitle;
-        if (exportBtn) exportBtn.style.display = '';
-        if (photoRosterBtn) photoRosterBtn.style.display = '';
-        if (publishBtn) publishBtn.style.display = '';
-        if (autoScheduleBtn) autoScheduleBtn.style.display = '';
-        const searchInput = document.getElementById('registrants-search');
-        if (searchInput) searchInput.value = '';
-
-        currentContestMeta = {};
-        let contestData = null;
-        try {
-            const [contestSnap, testSnap] = await Promise.all([
-                getDoc(doc(db, 'contests', contestId)),
-                getDoc(doc(db, 'tests', contestId)),
-            ]);
-            if (contestSnap.exists()) {
-                const c = contestSnap.data();
-                contestData = c;
-                currentContestMeta.interviewMaxScore = c.interviewMaxScore || null;
-                currentContestMeta.minScoreToAdvance = c.minScoreToAdvance ?? null;
-            }
-            if (testSnap.exists()) {
-                const t = testSnap.data();
-                const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
-                const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
-                const servedMc = t.mcQuestionsPerAttempt ? Math.min(t.mcQuestionsPerAttempt, mcCount) : mcCount;
-                const servedOpen = t.openQuestionsPerAttempt ? Math.min(t.openQuestionsPerAttempt, openCount) : openCount;
-                currentContestMeta.testMax = mcCount ? +(servedMc * (t.pointsPerCorrect || 1)).toFixed(2) : null;
-                currentContestMeta.openMax = openCount ? +(servedOpen * (t.openMaxPointsPerQuestion || 5)).toFixed(2) : null;
-            }
-        } catch (err) {
-            console.error('Ball chegaralarini yuklashda xatolik:', err);
-        }
-
-        // To'lov muddati o'tgan, hali to'lamagan ishtirokchilarni avtomatik "bekor qilindi" deb belgilaymiz
-        // (bu panelni har safar ochganda tekshiriladi — chunki statik saytda fon rejimida ishlaydigan
-        // haqiqiy avtomatik/rejalashtirilgan tekshiruv uchun alohida server (Cloud Functions) kerak bo'lardi).
-        if (contestData?.isPaid && contestData.testDateStart) {
-            const deadline = new Date(`${contestData.testDateStart}T${contestData.testDailyStart || '00:00'}`);
-            deadline.setDate(deadline.getDate() - 1);
-            if (new Date() > deadline) {
-                const overdue = list.filter((r) => r.paymentStatus === 'kutilmoqda' || r.paymentStatus === 'tekshirilmoqda');
-                if (overdue.length) {
-                    try {
-                        const chunks = [];
-                        for (let i = 0; i < overdue.length; i += 400) chunks.push(overdue.slice(i, i + 400));
-                        for (const chunk of chunks) {
-                            const batch = writeBatch(db);
-                            chunk.forEach((r) => batch.update(doc(db, 'registrations', r.id), { paymentStatus: 'bekor_qilindi' }));
-                            await batch.commit();
-                        }
-                        overdue.forEach((r) => (r.paymentStatus = 'bekor_qilindi'));
-                        setStatus(`To\u2018lov muddati o\u2018tganligi sababli ${overdue.length} ta ishtirokchi ro\u2018yxati avtomatik bekor qilindi.`, 'success');
-                    } catch (err) {
-                        console.error('Muddati o\u2018tganlarni bekor qilishda xatolik:', err);
-                    }
-                }
-            }
-        }
-
-        renderRegistrantsTable(list);
-    } catch (err) {
-        console.error(err);
-        tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-});
-
-function renderRegistrantsTable(list) {
-    const tableEl = document.getElementById('registrantsTable');
-    if (!list.length) {
-        tableEl.innerHTML = '<div class="empty">Mos ishtirokchi topilmadi.</div>';
-        return;
-    }
-    const meta = currentContestMeta || {};
-    const metaBits = [];
-    if (meta.testMax) metaBits.push(`Test uchun maksimal: ${meta.testMax} ball`);
-    if (meta.openMax) metaBits.push(`Ochiq savollar uchun maksimal: ${meta.openMax} ball`);
-    if (meta.interviewMaxScore) metaBits.push(`Suhbat uchun maksimal: ${meta.interviewMaxScore} ball`);
-    const metaLine = metaBits.length
-        ? `<p style="color:var(--muted);font-size:0.78rem;margin:-4px 0 12px">${escapeHtml(metaBits.join(' \u00b7 '))}</p>`
-        : '';
-
-    const anyPayment = list.some((r) => r.paymentStatus !== null && r.paymentStatus !== undefined);
-    const bulkPaymentBox = anyPayment
-        ? `<div style="background:var(--primary-light);border-radius:12px;padding:14px;margin-bottom:14px">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-                <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem"><input type="checkbox" id="payment-select-all" style="width:auto"> Hammasini tanlash</label>
-                <button class="btn btn-green" id="bulk-mark-paid-btn" style="font-size:12px"><i class="fas fa-check-double"></i> Tanlanganlarni "To'landi" deb belgilash</button>
-            </div>
-            <details>
-                <summary style="cursor:pointer;font-size:0.85rem;font-weight:700;color:var(--primary)">Bank ko'chirmasi bo'yicha avtomatik belgilash (ko'plab ishtirokchi uchun)</summary>
-                <p style="color:var(--muted);font-size:0.78rem;margin:8px 0">Har bir ishtirokchining shaxsiy to'lov kodi kvitansiyasida ko'rsatilgan (masalan <code>TOLOV-${escapeHtml(list[0]?.customId || 'ID')}</code>). Bank ilovasidan barcha o'tkazmalar izohi/tarixi matnini nusxalab shu yerga joylashtiring — tizim kodlarni qidirib, mos kelganlarni avtomatik "to'landi" deb belgilaydi.</p>
-                <textarea id="bank-statement-text" rows="5" placeholder="Bank ko'chirmasidan nusxalangan matn..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);font-family:monospace;font-size:12px"></textarea>
-                <button class="btn btn-primary" id="match-payments-btn" style="margin-top:8px;font-size:12px"><i class="fas fa-magnifying-glass"></i> Kodlarni qidirib belgilash</button>
-                <p id="match-payments-status" style="font-size:0.78rem;margin-top:6px;color:var(--muted)"></p>
-            </details>
-        </div>`
-        : '';
-
-    let rows = '';
-    list.forEach((r, i) => {
-        const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
-        const retakeLabel = r.retakeUntil ? `Ruxsat: ${escapeHtml(formatDateTime(r.retakeUntil))}` : 'Yo\u2018q';
-        const hasPayment = r.paymentStatus !== null && r.paymentStatus !== undefined;
-        const paymentCode = hasPayment ? `TOLOV-${r.customId}` : '';
-        let paymentBtnHtml = '\u2014';
-        if (hasPayment) {
-            if (r.paymentStatus === 'paid') {
-                paymentBtnHtml = `<button class="btn btn-green" data-toggle-payment="${r.id}" data-next="kutilmoqda" style="font-size:11px;padding:6px 10px" title="Kod: ${paymentCode}">\u2705 To\u2018landi</button>`;
-            } else if (r.paymentStatus === 'tekshirilmoqda') {
-                paymentBtnHtml = `<button class="btn" data-view-receipt="${r.id}" style="font-size:11px;padding:6px 10px;background:#fef3c7;color:#92400e" title="Kod: ${paymentCode}">\u{1F4E4} Tekshirish</button>`;
-            } else if (r.paymentStatus === 'bekor_qilindi') {
-                paymentBtnHtml = `<button class="btn" data-toggle-payment="${r.id}" data-next="kutilmoqda" style="font-size:11px;padding:6px 10px;background:#e2e8f0;color:#334155" title="Kod: ${paymentCode}">\u274c Bekor qilingan</button>`;
-            } else {
-                paymentBtnHtml = `<button class="btn btn-red" data-toggle-payment="${r.id}" data-next="paid" style="font-size:11px;padding:6px 10px" title="Kod: ${paymentCode}">\u23f3 Kutilmoqda</button>`;
-            }
-            paymentBtnHtml += `<br><span style="font-size:10px;color:var(--muted)">${paymentCode}</span>`;
-        }
-        rows += `<tr data-row="${r.id}">
-            <td>${hasPayment ? `<input type="checkbox" class="payment-row-check" data-id="${r.id}" style="width:auto">` : ''}</td>
-            <td>${i + 1}</td>
-            <td>${r.photoUrl ? `<img src="${r.photoUrl}" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px">` : ''}${escapeHtml(r.fullName)}</td>
-            <td><b>${escapeHtml(r.customId)}</b></td>
-            <td>${escapeHtml(r.maktab)}${(r.viloyat || r.tuman) ? `<br><span style="color:var(--muted);font-size:0.75rem">${escapeHtml([r.tuman, r.viloyat].filter(Boolean).join(', '))}</span>` : ''}</td>
-            <td>${escapeHtml(r.yosh)}</td>
-            <td>${escapeHtml(r.telefon)}</td>
-            <td><input type="number" step="0.1" data-score="${r.id}" value="${r.score ?? ''}" placeholder="—" title="${meta.testMax ? 'Maksimal: ' + meta.testMax : ''}" style="width:64px"></td>
-            <td><input type="number" step="0.1" data-interview="${r.id}" value="${r.interviewScore ?? ''}" placeholder="—" title="${meta.interviewMaxScore ? 'Maksimal: ' + meta.interviewMaxScore : ''}" style="width:64px">${(meta.minScoreToAdvance != null && r.score != null && r.score < meta.minScoreToAdvance) ? `<br><span style="color:var(--red);font-size:10px;font-weight:700" title="Test balidan chegarani (${meta.minScoreToAdvance}) o'tolmagan">\u26a0\ufe0f chegaradan past</span>` : ''}</td>
-            <td><input type="number" step="0.1" data-open="${r.id}" value="${r.openScore ?? ''}" placeholder="—" title="${meta.openMax ? 'Maksimal: ' + meta.openMax : ''}" style="width:64px"></td>
-            <td><b data-total="${r.id}">${total || '\u2014'}</b></td>
-            <td>${paymentBtnHtml}</td>
-            <td style="white-space:nowrap">
-                <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
-                <button class="btn" data-view-open="${r.id}" title="Ochiq savollarga javoblarni ko'rish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-eye"></i></button>
-                <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
-            </td>
-        </tr>
-        <tr data-retake-info="${r.id}"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
-            <i class="fas fa-rotate"></i> Qayta topshirish ruxsati: <span data-retake-label="${r.id}">${retakeLabel}</span>
-        </td></tr>
-        <tr data-receipt-row="${r.id}" style="display:none"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
-            <div data-receipt-content="${r.id}"></div>
-        </td></tr>
-        <tr data-open-answers-row="${r.id}" style="display:none"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.82rem;padding:10px 6px">
-            <div data-open-answers-content="${r.id}">Yuklanmoqda...</div>
-        </td></tr>`;
-    });
-    tableEl.innerHTML = `${metaLine}${bulkPaymentBox}<table>
-        <thead><tr><th></th><th>№</th><th>F.I.Sh</th><th>ID</th><th>Maktabi</th><th>Yoshi</th><th>Telefon raqami</th><th>Test</th><th>Suhbat</th><th>Ochiq</th><th>Jami</th><th>To'lov</th><th></th></tr></thead>
-        <tbody>${rows}</tbody>
-    </table>`;
-
-    document.getElementById('payment-select-all')?.addEventListener('change', (e) => {
-        tableEl.querySelectorAll('.payment-row-check').forEach((cb) => (cb.checked = e.target.checked));
-    });
-
-    document.getElementById('bulk-mark-paid-btn')?.addEventListener('click', async () => {
-        const ids = Array.from(tableEl.querySelectorAll('.payment-row-check:checked')).map((cb) => cb.dataset.id);
-        if (!ids.length) {
-            setStatus('Avval kamida bitta ishtirokchini tanlang.', 'error');
-            return;
-        }
-        if (!confirm(`${ids.length} ta ishtirokchini "To'landi" deb belgilamoqchimisiz?`)) return;
-        try {
-            const chunks = [];
-            for (let i = 0; i < ids.length; i += 400) chunks.push(ids.slice(i, i + 400));
-            for (const chunk of chunks) {
-                const batch = writeBatch(db);
-                chunk.forEach((id) => batch.update(doc(db, 'registrations', id), { paymentStatus: 'paid' }));
-                await batch.commit();
-            }
-            ids.forEach((id) => {
-                const cached = currentRegistrants.find((x) => x.id === id);
-                if (cached) cached.paymentStatus = 'paid';
-            });
-            setStatus(`${ids.length} ta ishtirokchi "To'landi" deb belgilandi.`, 'success');
-            renderRegistrantsTable(currentRegistrants);
-        } catch (err) {
-            console.error(err);
-            setStatus('Xatolik yuz berdi.', 'error');
-        }
-    });
-
-    document.getElementById('match-payments-btn')?.addEventListener('click', async () => {
-        const text = document.getElementById('bank-statement-text').value;
-        const statusEl = document.getElementById('match-payments-status');
-        if (!text.trim()) {
-            statusEl.textContent = 'Avval bank ko\u2018chirmasi matnini joylashtiring.';
-            statusEl.style.color = 'var(--red)';
-            return;
-        }
-        const matchedIds = currentRegistrants
-            .filter((r) => r.paymentStatus && r.paymentStatus !== 'paid')
-            .filter((r) => text.toUpperCase().includes(`TOLOV-${r.customId}`.toUpperCase()));
-        if (!matchedIds.length) {
-            statusEl.textContent = 'Hech qanday mos kod topilmadi.';
-            statusEl.style.color = 'var(--red)';
-            return;
-        }
-        try {
-            const chunks = [];
-            for (let i = 0; i < matchedIds.length; i += 400) chunks.push(matchedIds.slice(i, i + 400));
-            for (const chunk of chunks) {
-                const batch = writeBatch(db);
-                chunk.forEach((r) => batch.update(doc(db, 'registrations', r.id), { paymentStatus: 'paid' }));
-                await batch.commit();
-            }
-            matchedIds.forEach((r) => (r.paymentStatus = 'paid'));
-            statusEl.textContent = `${matchedIds.length} ta ishtirokchi kod bo\u2018yicha topilib, "to\u2018landi" deb belgilandi.`;
-            statusEl.style.color = 'var(--green)';
-            renderRegistrantsTable(currentRegistrants);
-        } catch (err) {
-            console.error(err);
-            statusEl.textContent = 'Xatolik yuz berdi.';
-            statusEl.style.color = 'var(--red)';
-        }
-    });
-
-    tableEl.querySelectorAll('[data-save]').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.save;
-            const scoreInput = tableEl.querySelector(`[data-score="${id}"]`);
-            const interviewInput = tableEl.querySelector(`[data-interview="${id}"]`);
-            const openInput = tableEl.querySelector(`[data-open="${id}"]`);
-            const score = scoreInput.value === '' ? null : parseFloat(scoreInput.value);
-            const interviewScore = interviewInput.value === '' ? null : parseFloat(interviewInput.value);
-            const openScore = openInput.value === '' ? null : parseFloat(openInput.value);
-            btn.disabled = true;
-            try {
-                await updateDoc(doc(db, 'registrations', id), { score, interviewScore, openScore });
-                // Jami ustunini sahifani qayta yuklamasdan darhol yangilaymiz
-                const totalEl = tableEl.querySelector(`[data-total="${id}"]`);
-                const newTotal = (score ?? 0) + (interviewScore ?? 0) + (openScore ?? 0);
-                if (totalEl) totalEl.textContent = newTotal || '\u2014';
-                const cached = currentRegistrants.find((x) => x.id === id);
-                if (cached) {
-                    cached.score = score;
-                    cached.interviewScore = interviewScore;
-                    cached.openScore = openScore;
-                }
-                setStatus('Ballar saqlandi.', 'success');
-            } catch (err) {
-                console.error(err);
-                setStatus('Xatolik yuz berdi.', 'error');
-            } finally {
-                btn.disabled = false;
-            }
-        });
-    });
-
-    tableEl.querySelectorAll('[data-view-open]').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.viewOpen;
-            const row = tableEl.querySelector(`[data-open-answers-row="${id}"]`);
-            const content = tableEl.querySelector(`[data-open-answers-content="${id}"]`);
-            if (!row) return;
-            const isHidden = row.style.display === 'none';
-            row.style.display = isHidden ? '' : 'none';
-            if (!isHidden || content.dataset.loaded) return;
-            content.dataset.loaded = '1';
-            try {
-                const reg = currentRegistrants.find((x) => x.id === id);
-                if (!reg) throw new Error('Ishtirokchi topilmadi');
-                const [testSnap, attemptSnap] = await Promise.all([
-                    getDoc(doc(db, 'tests', reg.contestId)),
-                    getDoc(doc(db, 'test-attempts', id)),
-                ]);
-                if (!attemptSnap.exists() || !attemptSnap.data().questionOrder) {
-                    content.innerHTML = '<span style="color:var(--muted)">Bu ishtirokchi testni hali topshirmagan.</span>';
-                    return;
-                }
-                const attempt = attemptSnap.data();
-                const testDoc = testSnap.exists() ? testSnap.data() : { questions: [] };
-                const openPairs = [];
-                (attempt.questionOrder || []).forEach((origIdx, qi) => {
-                    const q = testDoc.questions?.[origIdx];
-                    if (q && q.type === 'open') {
-                        openPairs.push({ text: q.text, answer: attempt.answers?.[qi] || '', expectedAnswer: q.expectedAnswer || null });
-                    }
-                });
-                if (!openPairs.length) {
-                    content.innerHTML = '<span style="color:var(--muted)">Bu testda ochiq savol yo\u2018q edi.</span>';
-                    return;
-                }
-                const autoNote = attempt.openScoreAuto !== null && attempt.openScoreAuto !== undefined
-                    ? `<p style="color:var(--green);font-size:0.8rem;margin-bottom:8px"><i class="fas fa-robot"></i> Tizim ${attempt.openGradedCount || 0} ta savolni etalon javob bilan solishtirib, taxminan ${attempt.openScoreAuto} ball qo\u2018ydi (bu — taxminiy, so\u2018z mosligi asosida; iltimos pastdagi javoblarni ham ko\u2018zdan kechiring).</p>`
-                    : '';
-                content.innerHTML = autoNote + openPairs
-                    .map(
-                        (p, idx) => `<div style="margin-bottom:8px"><b>${idx + 1}. ${escapeHtml(p.text)}</b><br>
-                            <span style="color:var(--text)"><b>Javob:</b> ${escapeHtml(p.answer) || '<i style="color:var(--muted)">(javob berilmagan)</i>'}</span>
-                            ${p.expectedAnswer ? `<br><span style="color:var(--muted);font-size:0.8rem"><b>Etalon javob:</b> ${escapeHtml(p.expectedAnswer)}</span>` : ''}
-                        </div>`
-                    )
-                    .join('');
-            } catch (err) {
-                console.error(err);
-                content.innerHTML = '<span style="color:var(--red)">Yuklashda xatolik yuz berdi.</span>';
-            }
-        });
-    });
-
-    tableEl.querySelectorAll('[data-view-receipt]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const id = btn.dataset.viewReceipt;
-            const row = tableEl.querySelector(`[data-receipt-row="${id}"]`);
-            const content = tableEl.querySelector(`[data-receipt-content="${id}"]`);
-            if (!row) return;
-            const isHidden = row.style.display === 'none';
-            row.style.display = isHidden ? '' : 'none';
-            if (!isHidden) return;
-            const r = currentRegistrants.find((x) => x.id === id);
-            content.innerHTML = `
-                ${r?.paymentReceiptUrl ? `<img src="${r.paymentReceiptUrl}" style="max-width:220px;border-radius:10px;border:1px solid var(--border);display:block;margin-bottom:10px">` : '<p style="color:var(--muted)">Ishtirokchi chek rasmini yuklamagan.</p>'}
-                <button class="btn btn-green" data-approve-payment="${id}" style="font-size:12px"><i class="fas fa-check"></i> Tasdiqlash</button>
-                <button class="btn btn-red" data-reject-payment="${id}" style="font-size:12px;margin-left:6px"><i class="fas fa-xmark"></i> Rad etish</button>
-            `;
-            content.querySelector(`[data-approve-payment="${id}"]`)?.addEventListener('click', async () => {
-                await updateDoc(doc(db, 'registrations', id), { paymentStatus: 'paid' });
-                if (r) r.paymentStatus = 'paid';
-                if (r) notifyParticipantTelegram(r.uid, `\u2705 "${r.contestTitle}" tanlovi uchun to\u2018lovingiz tasdiqlandi! Testni boshlashingiz mumkin.`);
-                setStatus('To\u2018lov tasdiqlandi.', 'success');
-                renderRegistrantsTable(currentRegistrants);
-            });
-            content.querySelector(`[data-reject-payment="${id}"]`)?.addEventListener('click', async () => {
-                if (!confirm('To\u2018lovni rad etib, holatni "kutilmoqda"ga qaytarmoqchimisiz?')) return;
-                await updateDoc(doc(db, 'registrations', id), { paymentStatus: 'kutilmoqda' });
-                if (r) r.paymentStatus = 'kutilmoqda';
-                setStatus('To\u2018lov rad etildi.', 'success');
-                renderRegistrantsTable(currentRegistrants);
-            });
-        });
-    });
-
-    tableEl.querySelectorAll('[data-toggle-payment]').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.togglePayment;
-            const next = btn.dataset.next;
-            btn.disabled = true;
-            try {
-                await updateDoc(doc(db, 'registrations', id), { paymentStatus: next });
-                const cached = currentRegistrants.find((x) => x.id === id);
-                if (cached) cached.paymentStatus = next;
-                if (next === 'paid' && cached) {
-                    notifyParticipantTelegram(cached.uid, `\u2705 "${cached.contestTitle}" tanlovi uchun to\u2018lovingiz tasdiqlandi! Testni boshlashingiz mumkin.`);
-                }
-                renderRegistrantsTable(currentRegistrants);
-                setStatus(next === 'paid' ? 'To\u2018lov tasdiqlandi.' : 'To\u2018lov holati "kutilmoqda"ga qaytarildi.', 'success');
-            } catch (err) {
-                console.error(err);
-                setStatus('Xatolik yuz berdi.', 'error');
-                btn.disabled = false;
-            }
-        });
-    });
-
-    tableEl.querySelectorAll('[data-retake]').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-            const id = btn.dataset.retake;
-            const input = prompt('Ishtirokchi testni qaysi sanagacha qayta topshira olishi mumkin? (masalan: 2026-08-15 18:00). Bekor qilish uchun bo\u2018sh qoldirib OK bosing.');
-            if (input === null) return;
-            let retakeUntil = input.trim() || null;
-            if (retakeUntil && !retakeUntil.includes('T')) {
-                // "YYYY-MM-DD HH:mm" ko'rinishini test.js bilan bir xil formatga keltiramiz
-                retakeUntil = retakeUntil.replace(' ', 'T');
-                if (!/T\d{2}:\d{2}/.test(retakeUntil)) retakeUntil += 'T23:59';
-            }
-            btn.disabled = true;
-            try {
-                await updateDoc(doc(db, 'registrations', id), { retakeUntil });
-                const labelEl = tableEl.querySelector(`[data-retake-label="${id}"]`);
-                if (labelEl) labelEl.textContent = retakeUntil ? `Ruxsat: ${formatDateTime(retakeUntil)}` : 'Yo\u2018q';
-                const cached = currentRegistrants.find((x) => x.id === id);
-                if (cached) cached.retakeUntil = retakeUntil;
-                setStatus(retakeUntil ? 'Qayta topshirish ruxsati berildi.' : 'Qayta topshirish ruxsati bekor qilindi.', 'success');
-            } catch (err) {
-                console.error(err);
-                setStatus('Xatolik yuz berdi.', 'error');
-            } finally {
-                btn.disabled = false;
-            }
-        });
-    });
-}
-
-document.getElementById('registrants-search')?.addEventListener('input', (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    if (!currentRegistrants.length) return;
-    if (!q) {
-        renderRegistrantsTable(currentRegistrants);
-        return;
-    }
-    const filtered = currentRegistrants.filter((r) =>
-        [r.fullName, r.customId, r.maktab, r.viloyat, r.tuman, r.telefon].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))
-    );
-    renderRegistrantsTable(filtered);
-});
-
-function toLocalInputValue(d) {
-    const pad = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-// Berilgan sana oralig'ida (dateStart..dateEnd), har kuni faqat (dailyStart..dailyEnd) soatlari ichida,
-// tanaffusni (breakStart..breakEnd) chetlab o'tib, "slotMinutes" davomiyligidagi barcha mumkin bo'lgan
-// vaqt slotlarini generatsiya qiladi. Masalan: 25.07–30.07, har kuni 08:00–18:00, tanaffus 12:00–13:00.
-function generateDailySlots(dateStartStr, dateEndStr, dailyStartStr, dailyEndStr, breakStartStr, breakEndStr, slotMinutes) {
-    const slots = [];
-    if (!dateStartStr || !dateEndStr || !dailyStartStr || !dailyEndStr) return slots;
-    const slotMs = Math.max(5, slotMinutes) * 60000;
-    const dayCursor = new Date(`${dateStartStr}T00:00`);
-    const lastDay = new Date(`${dateEndStr}T00:00`);
-    const pad = (n) => String(n).padStart(2, '0');
-
-    while (dayCursor <= lastDay) {
-        const dayStr = `${dayCursor.getFullYear()}-${pad(dayCursor.getMonth() + 1)}-${pad(dayCursor.getDate())}`;
-        let slotStart = new Date(`${dayStr}T${dailyStartStr}`);
-        const dayEnd = new Date(`${dayStr}T${dailyEndStr}`);
-        const breakStart = breakStartStr ? new Date(`${dayStr}T${breakStartStr}`) : null;
-        const breakEnd = breakEndStr ? new Date(`${dayStr}T${breakEndStr}`) : null;
-
-        while (slotStart.getTime() + slotMs <= dayEnd.getTime()) {
-            const slotEnd = new Date(slotStart.getTime() + slotMs);
-            const overlapsBreak = breakStart && breakEnd && slotStart < breakEnd && slotEnd > breakStart;
-            if (!overlapsBreak) {
-                slots.push({ start: new Date(slotStart), end: new Date(slotEnd) });
-            }
-            slotStart = slotEnd;
-        }
-        dayCursor.setDate(dayCursor.getDate() + 1);
-    }
-    return slots;
-}
-
-// Slotlar ro'yxatidan ishtirokchilarga navbat bilan (bitta slotda "capacity" tagacha kishi) taqsimlaydi.
-// Agar ishtirokchilar sig'imidan ko'p bo'lsa, oxirgi slotga zichlashtiriladi va ogohlantirish qaytariladi.
-function assignFromSlots(slots, capacity, count) {
-    const assignments = [];
-    if (!slots.length || !count) return { assignments, overflowed: false, totalSlots: slots.length };
-    let slotIdx = 0;
-    let usedInSlot = 0;
-    let overflowed = false;
-    for (let i = 0; i < count; i++) {
-        if (slotIdx >= slots.length) {
-            overflowed = true;
-            slotIdx = slots.length - 1;
-        }
-        const slot = slots[slotIdx];
-        assignments.push({ start: toLocalInputValue(slot.start), end: toLocalInputValue(slot.end) });
-        usedInSlot++;
-        if (usedInSlot >= Math.max(1, capacity)) {
-            usedInSlot = 0;
-            slotIdx++;
-        }
-    }
-    return { assignments, overflowed, totalSlots: slots.length };
-}
-
-function buildScheduleAssignments(dateStart, dateEnd, dailyStart, dailyEnd, breakStart, breakEnd, slotMinutes, capacity, count) {
-    const slots = generateDailySlots(dateStart, dateEnd, dailyStart, dailyEnd, breakStart, breakEnd, slotMinutes);
-    return assignFromSlots(slots, capacity, count);
-}
-
-document.getElementById('auto-schedule-btn')?.addEventListener('click', async () => {
-    if (!currentContestId || !currentRegistrants.length) return;
-    const statusEl = document.getElementById('auto-schedule-status');
-    const btn = document.getElementById('auto-schedule-btn');
-    btn.disabled = true;
-    statusEl.textContent = 'Hisoblanmoqda...';
-    try {
-        const contestSnap = await getDoc(doc(db, 'contests', currentContestId));
-        if (!contestSnap.exists()) throw new Error('Tanlov topilmadi');
-        const c = contestSnap.data();
-        if (!c.testDateStart && !c.interviewDateStart) {
-            statusEl.textContent = 'Avval "Tanlovlar" bo\u2018limida test va/yoki suhbat vaqti jadvalini kiriting.';
-            statusEl.style.color = 'var(--red)';
-            btn.disabled = false;
-            return;
-        }
-
-        const n = currentRegistrants.length;
-        const testResult = buildScheduleAssignments(c.testDateStart, c.testDateEnd, c.testDailyStart || '08:00', c.testDailyEnd || '18:00', c.testBreakStart, c.testBreakEnd, c.testSlotMinutes || 30, c.testSlotCapacity || 15, n);
-        const interviewResult = c.interviewEnabled === false
-            ? { assignments: [], overflowed: false, totalSlots: 0 }
-            : buildScheduleAssignments(c.interviewDateStart, c.interviewDateEnd, c.interviewDailyStart || '09:00', c.interviewDailyEnd || '17:00', c.interviewBreakStart, c.interviewBreakEnd, c.interviewSlotMinutes || 15, c.interviewSlotCapacity || 1, n);
-
-        // Suhbat biletlari (agar yuklangan va yoqilgan bo'lsa) — navbat bilan (round-robin) taqsimlanadi
-        let ticketNumbers = [];
-        try {
-            const ticketsSnap = await getDoc(doc(db, 'interview-tickets', currentContestId));
-            if (ticketsSnap.exists() && ticketsSnap.data().tickets?.length) {
-                ticketNumbers = ticketsSnap.data().tickets.filter((t) => t.enabled !== false).map((t) => t.number);
-            }
-        } catch (err) {
-            console.error('Biletlarni yuklashda xatolik:', err);
-        }
-
-        // Ishtirokchilarni ro'yxatdan o'tgan tartibda (eng birinchi bo'lib o'tganlar birinchi slotlarga) taqsimlaymiz
-        const chunks = [];
-        for (let i = 0; i < n; i += 400) chunks.push(currentRegistrants.slice(i, i + 400));
-
-        let written = 0;
-        for (const chunk of chunks) {
-            const batch = writeBatch(db);
-            chunk.forEach((r, localIdx) => {
-                const globalIdx = written + localIdx;
-                const payload = {};
-                if (testResult.assignments[globalIdx]) {
-                    payload.assignedTestStart = testResult.assignments[globalIdx].start;
-                    payload.assignedTestEnd = testResult.assignments[globalIdx].end;
-                }
-                if (interviewResult.assignments[globalIdx]) {
-                    payload.assignedInterviewStart = interviewResult.assignments[globalIdx].start;
-                    payload.assignedInterviewEnd = interviewResult.assignments[globalIdx].end;
-                }
-                if (ticketNumbers.length) {
-                    payload.assignedTicketNumber = ticketNumbers[globalIdx % ticketNumbers.length];
-                }
-                if (Object.keys(payload).length) batch.update(doc(db, 'registrations', r.id), payload);
-                Object.assign(r, payload); // mahalliy keshni ham yangilaymiz
-            });
-            await batch.commit();
-            written += chunk.length;
-        }
-
-        let msg = `${n} ta ishtirokchiga vaqt biriktirildi.`;
-        if (testResult.assignments.length) msg += ` Test uchun ${testResult.totalSlots} ta mavjud slotdan foydalanildi.`;
-        if (interviewResult.assignments.length) msg += ` Suhbat uchun ${interviewResult.totalSlots} ta mavjud slotdan foydalanildi.`;
-        if (ticketNumbers.length) msg += ` Suhbat biletlari ham ${ticketNumbers.length} tadan navbat bilan biriktirildi.`;
-
-        // Telegram'ga ulangan ishtirokchilarga shaxsiy eslatma yuboramiz
-        try {
-            const tgSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
-            const botToken = tgSnap.exists() ? tgSnap.data().botToken : null;
-            if (botToken) {
-                let notified = 0;
-                for (const r of currentRegistrants) {
-                    if (!r.uid) continue;
-                    try {
-                        const userSnap = await getDoc(doc(db, 'users', r.uid));
-                        const chatId = userSnap.exists() ? userSnap.data().telegramChatId : null;
-                        if (!chatId) continue;
-                        const lines = [`\u{1F4C5} "${c.title}" tanlovi bo\u2018yicha sizga vaqt biriktirildi:`];
-                        if (r.assignedTestStart) lines.push(`\u{1F4DD} Test vaqtingiz: ${formatDateTime(r.assignedTestStart)}${r.assignedTestEnd ? ' \u2013 ' + formatDateTime(r.assignedTestEnd) : ''}`);
-                        if (r.assignedInterviewStart) lines.push(`\u{1F3A4} Suhbat vaqtingiz: ${formatDateTime(r.assignedInterviewStart)}${r.assignedInterviewEnd ? ' \u2013 ' + formatDateTime(r.assignedInterviewEnd) : ''}`);
-                        if (r.assignedTicketNumber) lines.push(`\u{1F3AB} Suhbat biletingiz: №${r.assignedTicketNumber}`);
-                        lines.push('Batafsil: shaxsiy kabinetingizda (dashboard.html)');
-                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chat_id: chatId, text: lines.join('\n') }),
-                        }).catch(() => {});
-                        notified++;
-                    } catch (err) {
-                        console.error('Foydalanuvchiga xabar yuborishda xatolik:', r.uid, err);
-                    }
-                }
-                if (notified) msg += ` ${notified} ta ishtirokchiga Telegram orqali ham shaxsiy xabar yuborildi.`;
-            }
-        } catch (err) {
-            console.error('Telegram sozlamalarini yuklashda xatolik:', err);
-        }
-        if (testResult.overflowed || interviewResult.overflowed) {
-            msg += ' Diqqat: ishtirokchilar soni belgilangan kun/soatlar doirasidagi barcha slotlardan ko\u2018p \u2014 ba\u2018zi ishtirokchilar oxirgi slotga zichlashtirildi. Kunlar oralig\u2018ini kengaytiring yoki slot sig\u2018imini oshiring.';
-            statusEl.style.color = 'var(--orange)';
-        } else {
-            statusEl.style.color = 'var(--green)';
-        }
-        statusEl.textContent = msg;
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Xatolik yuz berdi.';
-        statusEl.style.color = 'var(--red)';
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('publish-leaderboard-btn')?.addEventListener('click', async () => {
-    if (!currentRegistrants.length || !currentContestId) return;
-
-    const withTotal = currentRegistrants
-        .map((r) => ({ ...r, total: (r.score ?? null) === null && (r.interviewScore ?? null) === null && (r.openScore ?? null) === null ? null : (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0) }))
-        .filter((r) => r.total !== null);
-    if (!withTotal.length) {
-        setStatus('Hech kimga ball qo\u2018yilmagan. Avval test yoki suhbat ballini kiriting.', 'error');
-        return;
-    }
-    if (!confirm(`"${currentContestTitle}" uchun g\u2018oliblar reytingi e\u2018lon qilinsinmi? Bu barcha foydalanuvchilarga ochiq bo\u2018ladi.`)) return;
-
-    const btn = document.getElementById('publish-leaderboard-btn');
-    btn.disabled = true;
-    try {
-        const sorted = [...withTotal].sort((a, b) => b.total - a.total);
-
-        // "1223" turdagi zich reyting: teng ball bo'lsa bir xil o'rin beriladi,
-        // lekin keyingi o'rin BIR pog'ona ko'tariladi (2-o'rin tashlab ketilmaydi).
-        let rank = 0;
-        let prevTotal = null;
-        const ranked = sorted.map((r) => {
-            if (prevTotal === null || r.total < prevTotal) rank++;
-            prevTotal = r.total;
-            return { ...r, rank };
-        });
-
-        // Ommaviy g'oliblar sahifasida faqat TOP-5 o'rin ko'rsatiladi (agar tenglik bo'lsa, 5-o'rinda
-        // bir nechta kishi bo'lishi mumkin — bu holda ularning barchasi ko'rinadi).
-        const entries = ranked
-            .filter((r) => r.rank <= 5)
-            .map((r) => ({
-                rank: r.rank,
-                fullName: r.fullName,
-                maktab: r.maktab,
-                customId: r.customId,
-                score: r.total,
-                testScore: r.score ?? null,
-                interviewScore: r.interviewScore ?? null,
-            }));
-
-        await setDoc(doc(db, 'leaderboards', currentContestId), {
-            contestTitle: currentContestTitle,
-            publishedAt: serverTimestamp(),
-            entries,
-        });
-
-        const batch = writeBatch(db);
-        ranked.forEach((r) => {
-            batch.update(doc(db, 'registrations', r.id), { rank: r.rank });
-        });
-        await batch.commit();
-
-        // Telegram'ga ulangan barcha ishtirokchilarga natijalari haqida shaxsiy xabar
-        (async () => {
-            for (const r of ranked) {
-                if (!r.uid) continue;
-                const medal = r.rank === 1 ? '\u{1F947}' : r.rank === 2 ? '\u{1F948}' : r.rank === 3 ? '\u{1F949}' : '\u{1F3C6}';
-                await notifyParticipantTelegram(
-                    r.uid,
-                    `${medal} "${currentContestTitle}" tanlovi natijalari e\u2018lon qilindi!\nSizning natijangiz: ${r.total} ball, ${r.rank}-o\u2018rin.\nBatafsil: shaxsiy kabinetingizda (dashboard.html) diplomingizni yuklab olishingiz mumkin.`
-                );
-            }
-        })();
-
-        setStatus('G\u2018oliblar reytingi e\u2018lon qilindi!', 'success');
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('photo-roster-btn')?.addEventListener('click', () => {
-    // Eslatma: bepul Excel kutubxonasi (SheetJS community) rasmlarni katakka joylashtirishni
-    // qo'llab-quvvatlamaydi, shuning uchun rasmlar bilan chop etish uchun alohida sahifa ochamiz.
-    const rowsHtml = currentRegistrants
-        .map(
-            (r) => `<div style="display:flex;align-items:center;gap:14px;padding:10px;border-bottom:1px solid #e2e8f0;break-inside:avoid">
-                ${r.photoUrl ? `<img src="${r.photoUrl}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #cbd5e1">` : '<div style="width:64px;height:64px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:11px">rasm yo\u2018q</div>'}
-                <div>
-                    <div style="font-weight:800;font-size:15px">${escapeHtml(r.fullName)}</div>
-                    <div style="font-size:12.5px;color:#64748b">ID: <b>${escapeHtml(r.customId)}</b> \u00b7 ${escapeHtml(r.maktab || '')}</div>
-                </div>
-            </div>`
-        )
-        .join('');
-    const html = `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${escapeHtml(currentContestTitle)} — rasmli ro'yxat</title>
-        <style>body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#1e293b} h1{font-size:20px;margin-bottom:16px}</style>
-        </head><body>
-        <h1>${escapeHtml(currentContestTitle)} — Ishtirokchilar ro'yxati (${currentRegistrants.length} kishi)</h1>
-        ${rowsHtml}
-        <script>window.onload = () => setTimeout(() => window.print(), 300);</script>
-        </body></html>`;
-    const w = window.open('', '_blank');
-    if (!w) {
-        setStatus('Yangi oyna ochilmadi — brauzeringizda popup blokerini o\u2018chiring.', 'error');
-        return;
-    }
-    w.document.write(html);
-    w.document.close();
-});
-
-document.getElementById('export-excel-btn')?.addEventListener('click', () => {
-    if (!currentRegistrants.length || !window.XLSX) return;
-    const rows = currentRegistrants.map((r, i) => ({
-        '№': i + 1,
-        'F.I.Sh': r.fullName,
-        ID: r.customId,
-        Viloyat: r.viloyat || '',
-        'Tuman/shahar': r.tuman || '',
-        Maktabi: r.maktab,
-        Yoshi: r.yosh,
-        'Telefon raqami': r.telefon,
-        Test: r.score ?? '',
-        Suhbat: r.interviewScore ?? '',
-        'Ochiq savollar': r.openScore ?? '',
-        Jami: (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0),
-        'To\'lov holati': { paid: 'To\'landi', kutilmoqda: 'Kutilmoqda', tekshirilmoqda: 'Tekshirilmoqda', bekor_qilindi: 'Bekor qilingan' }[r.paymentStatus] || '',
-    }));
-    const ws = window.XLSX.utils.json_to_sheet(rows);
-    ws['!cols'] = [{ wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 22 }, { wch: 22 }, { wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 12 }];
-    const wb = window.XLSX.utils.book_new();
-    window.XLSX.utils.book_append_sheet(wb, ws, 'Ishtirokchilar');
-    const safeTitle = (currentContestTitle || 'tanlov').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 40);
-    window.XLSX.writeFile(wb, `${safeTitle}_ishtirokchilar.xlsx`);
-});
-
-/* ── BILDIRISHNOMA ── */
-/* ── BILDIRISHNOMA ── */
-document.getElementById('n-template-select')?.addEventListener('change', (e) => {
-    const textarea = document.getElementById('n-text');
-    const title = currentContestTitle || '[tanlov nomi]';
-    if (e.target.value === 'winners') {
-        textarea.value = `🏆 "${title}" tanlovi natijalari e'lon qilindi! G'oliblarni "G'oliblar" bo'limida ko'rishingiz mumkin. Barcha ishtirokchilarga rahmat!`;
-    } else if (e.target.value === 'new-contest') {
-        textarea.value = `📢 Yangi tanlov boshlandi: "${title}"! Ro'yxatdan o'tish uchun "Tanlov" bo'limiga o'ting.`;
-    }
-});
-
-document.getElementById('n-send-btn').addEventListener('click', async () => {
-    const text = document.getElementById('n-text').value.trim();
-    if (!text) {
-        setStatus('Xabar matnini kiriting.', 'error');
-        return;
-    }
-    const btn = document.getElementById('n-send-btn');
-    btn.disabled = true;
-    try {
-        const ref = doc(collection(db, 'notifications'));
-        await setDoc(ref, { text, createdAt: serverTimestamp() });
-        document.getElementById('n-text').value = '';
-        setStatus('Bildirishnoma yuborildi!', 'success');
-        loadNotifications();
-        if (window.ZiyomapFirestoreNotify) ZiyomapFirestoreNotify.sync();
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-async function loadNotifications() {
-    const listEl = document.getElementById('notifyList');
-    try {
-        const snap = await getDocs(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)));
-        if (snap.empty) {
-            listEl.innerHTML = '<div class="empty">Hali xabar yuborilmagan.</div>';
-            return;
-        }
-        let html = '';
-        snap.forEach((d) => {
-            html += `<div class="admin-row"><span>${escapeHtml(d.data().text)}</span>
-                <button class="btn btn-red" data-del-notif="${d.id}"><i class="fas fa-trash"></i></button></div>`;
-        });
-        listEl.innerHTML = html;
-        listEl.querySelectorAll('[data-del-notif]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('O\u2018chirilsinmi?')) return;
-                await deleteDoc(doc(db, 'notifications', btn.dataset.delNotif));
-                loadNotifications();
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-/* ── FOYDALANUVCHILAR ── */
-async function loadUsers() {
-    const tableEl = document.getElementById('usersTable');
-    try {
-        const snap = await getDocs(query(collection(db, 'users'), orderBy('lastSeen', 'desc'), limit(200)));
-        if (snap.empty) {
-            tableEl.innerHTML = '<div class="empty">Hali hech kim qayd etilmagan.</div>';
-            return;
-        }
-        let rows = '';
-        snap.forEach((d) => {
-            const u = d.data();
-            const blocked = !!u.blocked;
-            rows += `<tr>
-                <td>${escapeHtml(u.displayName || '—')}</td>
-                <td>${escapeHtml(u.email || '—')}</td>
-                <td>${blocked ? '<span class="badge closed">BLOKLANGAN</span>' : '<span class="badge open">FAOL</span>'}</td>
-                <td><button class="btn ${blocked ? 'btn-green' : 'btn-red'}" data-block="${d.id}" data-next="${blocked ? 'false' : 'true'}">
-                    <i class="fas ${blocked ? 'fa-unlock' : 'fa-ban'}"></i> ${blocked ? 'Blokdan chiqarish' : 'Bloklash'}
-                </button></td>
-            </tr>`;
-        });
-        tableEl.innerHTML = `<table>
-            <thead><tr><th>Ism</th><th>Email</th><th>Holati</th><th></th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table>`;
-
-        tableEl.querySelectorAll('[data-block]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                btn.disabled = true;
-                try {
-                    await updateDoc(doc(db, 'users', btn.dataset.block), { blocked: btn.dataset.next === 'true' });
-                    loadUsers();
-                } catch (err) {
-                    console.error(err);
-                    setStatus('Xatolik yuz berdi.', 'error');
-                    btn.disabled = false;
-                }
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-/* ── SAYT KONTENTI ── */
-async function loadSiteContent() {
-    try {
-        const snap = await getDoc(doc(db, 'site-content', 'homepage'));
-        if (snap.exists()) {
-            const data = snap.data();
-            document.getElementById('content-photo-url').value = data.heroPhotoUrl || '';
-            document.getElementById('content-bio-text').value = data.heroBio || '';
-        }
-    } catch (err) {
-        console.error(err);
-    }
-    try {
-        const sigSnap = await getDoc(doc(db, 'site-content', 'diploma-signature'));
-        if (sigSnap.exists()) {
-            const data = sigSnap.data();
-            document.getElementById('signer-full-name').value = data.signerName || '';
-            const preview = document.getElementById('signature-preview');
-            if (data.signatureImageUrl && preview) {
-                preview.src = data.signatureImageUrl;
-                preview.style.background = "repeating-conic-gradient(#e2e8f0 0% 25%, #fff 0% 50%) 50% / 14px 14px";
-                preview.style.display = 'block';
-            }
-        }
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-document.getElementById('content-save-btn')?.addEventListener('click', async () => {
-    const heroPhotoUrl = document.getElementById('content-photo-url').value.trim();
-    const heroBio = document.getElementById('content-bio-text').value.trim();
-    const btn = document.getElementById('content-save-btn');
-    btn.disabled = true;
-    try {
-        await setDoc(doc(db, 'site-content', 'homepage'), { heroPhotoUrl, heroBio }, { merge: true });
-        setStatus('Saqlandi! Bosh sahifada bir necha soniyada yangilanadi.', 'success');
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-/* ── DIPLOM IMZOSI ── */
-let signatureDataUrl = null;
-document.getElementById('signature-image-upload')?.addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
-    const statusEl = document.getElementById('signature-upload-status');
-    const preview = document.getElementById('signature-preview');
-    if (!file) return;
-    statusEl.textContent = 'Yuklanmoqda va fon olib tashlanmoqda...';
-    statusEl.style.color = 'var(--muted)';
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = () => {
-        img.onload = () => {
-            const maxW = 500;
-            const scale = Math.min(1, maxW / img.width);
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-            // Fonni (oq/och rangli qog'oz) shaffof qilib, faqat qora/to'q chiziqlarni (imzoning o'zini) qoldiramiz.
-            // Yorug' piksellar butunlay shaffoflanadi, o'ta ochiq-to'q oraliqdagilar yumshoq o'tish bilan.
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const d = imgData.data;
-            const LIGHT = 215; // shundan yorug'roq — to'liq shaffof (qog'oz doni ham shu ichiga kiradi)
-            const DARK = 95; // shundan to'qroq — to'liq ko'rinadigan (faqat siyoh chizig'i)
-            for (let i = 0; i < d.length; i += 4) {
-                const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-                let alpha;
-                if (lum >= LIGHT) alpha = 0;
-                else if (lum <= DARK) alpha = 255;
-                else alpha = Math.round(((LIGHT - lum) / (LIGHT - DARK)) * 255);
-                d[i + 3] = Math.min(d[i + 3], alpha);
-                // Chiziqni sof qora-jigarrang rangda ko'rsatamiz (qog'ozning sarg'ish/kulrang tusi aralashmasin)
-                d[i] = 30;
-                d[i + 1] = 27;
-                d[i + 2] = 24;
-            }
-            ctx.putImageData(imgData, 0, 0);
-
-            signatureDataUrl = canvas.toDataURL('image/png');
-            preview.src = signatureDataUrl;
-            preview.style.display = 'block';
-            preview.style.background = "repeating-conic-gradient(#e2e8f0 0% 25%, #fff 0% 50%) 50% / 14px 14px";
-            statusEl.textContent = 'Fon olib tashlandi. Pastda ko\u2018ring (shaxmat fon shaffofligini ko\u2018rsatadi uchun) \u2014 mos bo\u2018lsa "Saqlash" tugmasini bosing.';
-            statusEl.style.color = 'var(--green)';
-        };
-        img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-});
-
-document.getElementById('signature-save-btn')?.addEventListener('click', async () => {
-    const signerName = document.getElementById('signer-full-name').value.trim() || null;
-    const btn = document.getElementById('signature-save-btn');
-    btn.disabled = true;
-    try {
-        const payload = { signerName };
-        if (signatureDataUrl) payload.signatureImageUrl = signatureDataUrl;
-        await setDoc(doc(db, 'site-content', 'diploma-signature'), payload, { merge: true });
-        setStatus('Imzo ma\u2019lumotlari saqlandi!', 'success');
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-/* ── TELEGRAM BILDIRISHNOMALARI ── */
-async function loadTelegramSettings() {
-    try {
-        const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
-        if (snap.exists()) {
-            const data = snap.data();
-            document.getElementById('telegram-bot-token').value = data.botToken || '';
-            document.getElementById('telegram-chat-id').value = data.chatId || '';
-            document.getElementById('telegram-bot-username').value = data.botUsername || '';
-            document.getElementById('telegram-channel-username').value = data.channelUsername || '';
-        }
-    } catch (err) {
-        console.error(err);
-    }
-}
-loadTelegramSettings();
-
-document.getElementById('telegram-save-btn')?.addEventListener('click', async () => {
-    const botToken = document.getElementById('telegram-bot-token').value.trim() || null;
-    const chatId = document.getElementById('telegram-chat-id').value.trim() || null;
-    const botUsername = document.getElementById('telegram-bot-username').value.trim().replace(/^@/, '') || null;
-    const channelUsername = document.getElementById('telegram-channel-username').value.trim().replace(/^@/, '') || null;
-    const btn = document.getElementById('telegram-save-btn');
-    const statusEl = document.getElementById('telegram-status');
-    btn.disabled = true;
-    try {
-        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId, botUsername, channelUsername }, { merge: true });
-        statusEl.textContent = 'Saqlandi!';
-        statusEl.style.color = 'var(--green)';
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Xatolik yuz berdi.';
-        statusEl.style.color = 'var(--red)';
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-async function notifyParticipantTelegram(uid, text) {
-    if (!uid) return;
-    try {
-        const [tgSnap, userSnap] = await Promise.all([
-            getDoc(doc(db, 'site-content', 'telegram-settings')),
-            getDoc(doc(db, 'users', uid)),
-        ]);
-        const botToken = tgSnap.exists() ? tgSnap.data().botToken : null;
-        const chatId = userSnap.exists() ? userSnap.data().telegramChatId : null;
-        if (!botToken || !chatId) return;
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text }),
-        });
-    } catch (err) {
-        console.error('Ishtirokchiga Telegram xabar yuborishda xatolik:', err);
-    }
-}
-
-document.getElementById('telegram-sync-btn')?.addEventListener('click', async () => {
-    const btn = document.getElementById('telegram-sync-btn');
-    const statusEl = document.getElementById('telegram-sync-status');
-    btn.disabled = true;
-    statusEl.textContent = 'Tekshirilmoqda...';
-    statusEl.style.color = 'var(--muted)';
-    try {
-        const settingsSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
-        const settings = settingsSnap.exists() ? settingsSnap.data() : {};
-        const botToken = settings.botToken;
-        if (!botToken) {
-            statusEl.textContent = 'Avval bot tokenini saqlang.';
-            statusEl.style.color = 'var(--red)';
-            btn.disabled = false;
-            return;
-        }
-        const lastUpdateId = settings.lastUpdateId || 0;
-        const resp = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&limit=100`);
-        const data = await resp.json();
-        if (!data.ok) {
-            statusEl.textContent = 'Xatolik: ' + (data.description || 'noma\u2019lum xato');
-            statusEl.style.color = 'var(--red)';
-            btn.disabled = false;
-            return;
-        }
-        const updates = data.result || [];
-        let linked = 0;
-        let maxUpdateId = lastUpdateId;
-        for (const upd of updates) {
-            if (upd.update_id > maxUpdateId) maxUpdateId = upd.update_id;
-            const msg = upd.message;
-            if (!msg || !msg.text) continue;
-            const match = msg.text.match(/^\/start\s+(\S+)/);
-            if (!match) continue;
-            const uid = match[1];
-            try {
-                await updateDoc(doc(db, 'users', uid), { telegramChatId: msg.chat.id });
-                linked++;
-                // Foydalanuvchiga ulanish muvaffaqiyatli bo'lgani haqida darhol tasdiq xabari
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: msg.chat.id, text: '\u2705 Ziyomap bildirishnomalari yoqildi! Endi test/suhbat vaqti, to\u2018lov holati va natijalar haqida shu yerga xabar keladi.' }),
-                }).catch(() => {});
-            } catch (err) {
-                console.error('Foydalanuvchini ulashda xatolik:', uid, err);
-            }
-        }
-        await setDoc(doc(db, 'site-content', 'telegram-settings'), { lastUpdateId: maxUpdateId }, { merge: true });
-        statusEl.textContent = linked
-            ? `${linked} ta yangi ishtirokchi Telegram\u2018ga ulandi!`
-            : 'Yangi ulanish topilmadi.';
-        statusEl.style.color = linked ? 'var(--green)' : 'var(--muted)';
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Xatolik yuz berdi.';
-        statusEl.style.color = 'var(--red)';
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('telegram-test-btn')?.addEventListener('click', async () => {
-    const botToken = document.getElementById('telegram-bot-token').value.trim();
-    const chatId = document.getElementById('telegram-chat-id').value.trim();
-    const statusEl = document.getElementById('telegram-status');
-    if (!botToken || !chatId) {
-        statusEl.textContent = 'Avval bot tokeni va Chat ID kiritib, saqlang.';
-        statusEl.style.color = 'var(--red)';
-        return;
-    }
-    const botIdPrefix = botToken.split(':')[0];
-    if (botIdPrefix && chatId === botIdPrefix) {
-        statusEl.textContent = '\u274c Chat ID bot tokenidagi raqam bilan bir xil chiqdi \u2014 bu botning o\u2018z ID\u2018si, sizniki emas. Yuqoridagi ko\u2018rsatmaga qarab @userinfobot orqali o\u2018zingizning shaxsiy Chat ID\u2018ingizni oling.';
-        statusEl.style.color = 'var(--red)';
-        return;
-    }
-    statusEl.textContent = 'Yuborilmoqda...';
-    statusEl.style.color = 'var(--muted)';
-    try {
-        const resp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text: '\u2705 Ziyomap: test xabari muvaffaqiyatli yetib bordi!' }),
-        });
-        const data = await resp.json();
-        if (data.ok) {
-            statusEl.textContent = 'Test xabari yuborildi! Telegram\u2018ni tekshiring.';
-            statusEl.style.color = 'var(--green)';
-        } else {
-            const desc = data.description || '';
-            let friendly = 'Xatolik: ' + (desc || 'noma\u2019lum xato');
-            if (/forbidden|chat not found|bot was blocked/i.test(desc)) {
-                friendly = '\u274c Chat ID noto\u2018g\u2018ri yoki bot hali sizdan xabar olmagan. Avval botga o\u2018zingiz Telegram\u2018da "salom" deb yozing, so\u2018ng @userinfobot orqali olingan (bot tokenidagi raqamdan FARQLI) Chat ID\u2018ni qayta tekshirib kiriting.';
-            } else if (/not found/i.test(desc)) {
-                friendly = '\u274c Bot tokeni noto\u2018g\u2018ri ko\u2018rinadi \u2014 @BotFather bergan tokenni to\u2018liq, xatosiz nusxalab qayta kiriting.';
-            }
-            statusEl.textContent = friendly;
-            statusEl.style.color = 'var(--red)';
-        }
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Xatolik yuz berdi \u2014 tokenni tekshiring.';
-        statusEl.style.color = 'var(--red)';
-    }
-});
-
-/* ── TESTLAR ── */
-function parseQuestions(raw) {
-    const blocks = raw
-        .split(/^---$/m)
-        .map((b) => b.trim())
-        .filter(Boolean);
-    const questions = [];
-    blocks.forEach((block, idx) => {
-        const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
-        if (lines.length < 2) return;
-        const text = lines[0];
-        let imageUrl = null;
-        let difficulty = "o'rta";
-        let isOpen = false;
-        const options = [];
-        let answerLineRaw = null;
-        lines.slice(1).forEach((line) => {
-            const imgMatch = line.match(/^Rasm:\s*(\S+)/i);
-            if (imgMatch) {
-                imageUrl = imgMatch[1].trim();
-                return;
-            }
-            const typeMatch = line.match(/^Turi:\s*(ochiq|yopiq)/i);
-            if (typeMatch) {
-                isOpen = typeMatch[1].toLowerCase() === 'ochiq';
-                return;
-            }
-            const diffMatch = line.match(/^Daraja:\s*(oson|o'rta|o\u2018rta|orta|qiyin)/i);
-            if (diffMatch) {
-                let d = diffMatch[1].toLowerCase().replace('o\u2018rta', "o'rta").replace('orta', "o'rta");
-                difficulty = d;
-                return;
-            }
-            const optMatch = line.match(/^([A-D])\)\s*(.+)$/i);
-            if (optMatch) {
-                options.push(optMatch[2].trim());
-                return;
-            }
-            const ansMatch = line.match(/^Javob:\s*(.+)$/i);
-            if (ansMatch) {
-                answerLineRaw = ansMatch[1].trim();
-            }
-        });
-
-        if (!text) return;
-        if (isOpen) {
-            const q = { id: 'q' + idx, text, type: 'open', difficulty };
-            if (imageUrl) q.imageUrl = imageUrl;
-            if (answerLineRaw) q.expectedAnswer = answerLineRaw;
-            questions.push(q);
-        } else if (options.length === 4 && answerLineRaw && /^[A-D]\b/i.test(answerLineRaw)) {
-            const correctIndex = 'ABCD'.indexOf(answerLineRaw[0].toUpperCase());
-            const q = { id: 'q' + idx, text, type: 'mc', options, correctIndex, difficulty };
-            if (imageUrl) q.imageUrl = imageUrl;
-            questions.push(q);
-        }
-    });
-    return questions;
-}
-
-// Saqlangan savollar tuzilmasidan tahrirlash uchun matn qayta tiklanadi
-function questionsToRaw(questions) {
-    return questions
-        .map((q) => {
-            const lines = [q.text];
-            if (q.imageUrl) lines.push(`Rasm: ${q.imageUrl}`);
-            if (q.difficulty && q.difficulty !== "o'rta") lines.push(`Daraja: ${q.difficulty}`);
-            if (q.type === 'open') {
-                lines.push('Turi: ochiq');
-                if (q.expectedAnswer) lines.push(`Javob: ${q.expectedAnswer}`);
-            } else {
-                q.options.forEach((opt, i) => lines.push(`${'ABCD'[i]}) ${opt}`));
-                lines.push(`Javob: ${'ABCD'[q.correctIndex] || 'A'}`);
-            }
-            return lines.join('\n');
-        })
-        .join('\n---\n');
-}
-
-function updatePointsPreview() {
-    const previewEl = document.getElementById('t-points-preview');
-    if (!previewEl) return;
-    const raw = document.getElementById('t-questions').value;
-    const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
-    const openMax = parseFloat(document.getElementById('t-open-max-points').value) || 5;
-    const mcPerAttemptRaw = document.getElementById('t-mc-per-attempt').value.trim();
-    const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
-    const questions = parseQuestions(raw);
-    if (!questions.length) {
-        previewEl.textContent = '';
-        return;
-    }
-    const mcTotal = questions.filter((q) => q.type !== 'open').length;
-    const openTotal = questions.filter((q) => q.type === 'open').length;
-    const mcServed = mcPerAttemptRaw ? Math.min(parseInt(mcPerAttemptRaw, 10), mcTotal) : mcTotal;
-    const openServed = openPerAttemptRaw ? Math.min(parseInt(openPerAttemptRaw, 10), openTotal) : openTotal;
-    const bits = [];
-    if (mcTotal) bits.push(`${mcServed} ta yopiq savol beriladi (bazada ${mcTotal} ta) \u00d7 ${pointsPerCorrect} ball = jami ${(mcServed * pointsPerCorrect).toFixed(1).replace(/\.0$/, '')} ball`);
-    if (openTotal) bits.push(`${openServed} ta ochiq savol beriladi (bazada ${openTotal} ta) \u00d7 max ${openMax} ball = maksimal ${(openServed * openMax).toFixed(1).replace(/\.0$/, '')} ball`);
-    previewEl.textContent = bits.join(' \u00b7 ');
-}
-document.getElementById('t-questions')?.addEventListener('input', updatePointsPreview);
-document.getElementById('t-points-per-correct')?.addEventListener('input', updatePointsPreview);
-document.getElementById('t-open-max-points')?.addEventListener('input', updatePointsPreview);
-document.getElementById('t-mc-per-attempt')?.addEventListener('input', updatePointsPreview);
-document.getElementById('t-open-per-attempt')?.addEventListener('input', updatePointsPreview);
-
-function resetTestForm() {
-    document.getElementById('t-edit-id').value = '';
-    document.getElementById('t-title').value = '';
-    document.getElementById('t-questions').value = '';
-    document.getElementById('t-time-limit').value = '20';
-    document.getElementById('t-mc-per-attempt').value = '';
-    document.getElementById('t-open-per-attempt').value = '';
-    document.getElementById('t-points-per-correct').value = '1';
-    document.getElementById('t-open-max-points').value = '5';
-    document.getElementById('t-max-tab-switches').value = '1';
-    document.getElementById('t-points-preview').textContent = '';
-    document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> Testni yaratish va e\u2018lon qilish';
-    document.getElementById('t-cancel-edit-btn').style.display = 'none';
-}
-
-document.getElementById('t-cancel-edit-btn')?.addEventListener('click', resetTestForm);
-
-/* ── SUHBAT BILETLARI ── */
-function parseTickets(raw) {
-    const blocks = raw
-        .split(/^---$/m)
-        .map((b) => b.trim())
-        .filter(Boolean);
-    return blocks
-        .map((block, idx) => {
-            const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
-            if (!lines.length) return null;
-            let number = idx + 1;
-            let startIdx = 0;
-            const headerMatch = lines[0].match(/^Bilet\s*(\d+)/i);
-            if (headerMatch) {
-                number = parseInt(headerMatch[1], 10);
-                startIdx = 1;
-            }
-            const questions = lines
-                .slice(startIdx)
-                .map((l) => l.replace(/^\d+[.)]\s*/, '').trim())
-                .filter(Boolean);
-            return questions.length ? { number, questions, enabled: true } : null;
-        })
-        .filter(Boolean);
-}
-
-// Saqlangan biletlar tuzilmasidan tahrirlash uchun matn qayta tiklanadi
-function ticketsToRaw(tickets) {
-    return tickets
-        .map((t) => [`Bilet ${t.number}`, ...t.questions].join('\n'))
-        .join('\n---\n');
-}
-
-document.getElementById('ticket-save-btn')?.addEventListener('click', async () => {
-    const contestId = document.getElementById('ticket-contest-select').value;
-    const raw = document.getElementById('ticket-questions').value;
-    const statusEl = document.getElementById('ticket-save-status');
-    if (!contestId) {
-        setStatus('Tanlovni tanlang.', 'error');
-        return;
-    }
-    const tickets = parseTickets(raw);
-    if (!tickets.length) {
-        statusEl.textContent = 'Biletlar formatida xatolik bor. Namunani tekshiring.';
-        statusEl.style.color = 'var(--red)';
-        return;
-    }
-    const btn = document.getElementById('ticket-save-btn');
-    btn.disabled = true;
-    try {
-        await setDoc(doc(db, 'interview-tickets', contestId), { tickets, updatedAt: serverTimestamp() });
-        statusEl.textContent = `${tickets.length} ta bilet saqlandi.`;
-        statusEl.style.color = 'var(--green)';
-        document.getElementById('ticket-questions').value = '';
-        loadTickets(contestId);
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Xatolik yuz berdi.';
-        statusEl.style.color = 'var(--red)';
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-async function loadTickets(contestId) {
-    const listEl = document.getElementById('ticketsList');
-    if (!listEl) return;
-    if (!contestId) {
-        listEl.innerHTML = '<div class="empty">Tanlov tanlanmagan.</div>';
-        return;
-    }
-    listEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
-    try {
-        const snap = await getDoc(doc(db, 'interview-tickets', contestId));
-        if (!snap.exists() || !snap.data().tickets?.length) {
-            listEl.innerHTML = '<div class="empty">Bu tanlov uchun hali bilet yuklanmagan.</div>';
-            return;
-        }
-        const tickets = snap.data().tickets;
-        listEl.innerHTML = tickets
-            .map((t) => {
-                const enabled = t.enabled !== false;
-                return `<div class="admin-row"><span><b>Bilet ${escapeHtml(t.number)}</b> — ${t.questions.length} ta savol
-                    <span class="badge ${enabled ? 'open' : 'closed'}" style="margin-left:6px">${enabled ? 'YOQILGAN' : 'YOPIQ'}</span></span>
-                    <span style="display:flex;gap:8px">
-                        <button class="btn ${enabled ? 'btn-red' : 'btn-green'}" data-toggle-ticket="${t.number}" title="${enabled ? 'Yopish' : 'Yoqish'}"><i class="fas ${enabled ? 'fa-lock' : 'fa-unlock'}"></i></button>
-                        <button class="btn btn-primary" data-edit-ticket="${t.number}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
-                        <button class="btn btn-red" data-del-ticket="${t.number}" title="O'chirish"><i class="fas fa-trash"></i></button>
-                    </span></div>`;
-            })
-            .join('');
-
-        listEl.querySelectorAll('[data-toggle-ticket]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const updated = tickets.map((t) =>
-                    String(t.number) === btn.dataset.toggleTicket ? { ...t, enabled: t.enabled === false } : t
-                );
-                await setDoc(doc(db, 'interview-tickets', contestId), { tickets: updated, updatedAt: serverTimestamp() });
-                loadTickets(contestId);
-            });
-        });
-        listEl.querySelectorAll('[data-edit-ticket]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                // Tahrirlash uchun BARCHA biletlarni matn maydoniga yuklaymiz — kerakli o'zgarishni
-                // kiritib, "Biletlarni saqlash" tugmasi bilan qayta saqlash butun to'plamni yangilaydi.
-                document.getElementById('ticket-questions').value = ticketsToRaw(tickets);
-                document.getElementById('ticket-questions').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                document.getElementById('ticket-save-status').textContent = 'Kerakli biletni tahrirlab, "Biletlarni saqlash" tugmasini bosing (butun to\u2018plam qayta saqlanadi).';
-                document.getElementById('ticket-save-status').style.color = 'var(--primary)';
-            });
-        });
-        listEl.querySelectorAll('[data-del-ticket]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Bu biletni o\u2018chirmoqchimisiz?')) return;
-                const remaining = tickets.filter((t) => String(t.number) !== btn.dataset.delTicket);
-                await setDoc(doc(db, 'interview-tickets', contestId), { tickets: remaining, updatedAt: serverTimestamp() });
-                loadTickets(contestId);
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-document.getElementById('ticket-contest-select')?.addEventListener('change', (e) => {
-    document.getElementById('ticket-questions').value = '';
-    document.getElementById('ticket-save-status').textContent = '';
-    loadTickets(e.target.value);
-});
-
-/* ── TAYYOR FAYLDAN BILETLARNI YUKLASH (.txt / .docx) ── */
-document.getElementById('ticket-questions-file')?.addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
-    const statusEl = document.getElementById('ticket-questions-file-status');
-    const textarea = document.getElementById('ticket-questions');
-    if (!file) return;
-    statusEl.textContent = 'O\u2018qilmoqda...';
-    statusEl.style.color = 'var(--muted)';
-    try {
-        let text = '';
-        if (file.name.toLowerCase().endsWith('.docx')) {
-            if (!window.mammoth) throw new Error('Fayl o\u2018qish kutubxonasi yuklanmadi. Internetga ulanishni tekshiring.');
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await window.mammoth.extractRawText({ arrayBuffer });
-            text = result.value;
-        } else {
-            text = await file.text();
-        }
-        const existing = textarea.value.trim();
-        textarea.value = existing ? `${existing}\n---\n${text.trim()}` : text.trim();
-        const parsed = parseTickets(textarea.value);
-        statusEl.textContent = `Fayldan o\u2018qildi. Hozircha jami ${parsed.length} ta to\u2018g\u2018ri formatdagi bilet aniqlandi \u2014 pastdagi matnni tekshirib chiqing.`;
-        statusEl.style.color = parsed.length ? 'var(--green)' : 'var(--red)';
-        document.getElementById('ticket-questions-file').value = '';
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Faylni o\u2018qishda xatolik: ' + err.message;
-        statusEl.style.color = 'var(--red)';
-    }
-});
-document.getElementById('t-questions-file')?.addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
-    const statusEl = document.getElementById('t-questions-file-status');
-    const textarea = document.getElementById('t-questions');
-    if (!file) return;
-    statusEl.textContent = 'O\u2018qilmoqda...';
-    statusEl.style.color = 'var(--muted)';
-    try {
-        let text = '';
-        if (file.name.toLowerCase().endsWith('.docx')) {
-            if (!window.mammoth) throw new Error('Fayl o\u2018qish kutubxonasi yuklanmadi. Internetga ulanishni tekshiring.');
-            const arrayBuffer = await file.arrayBuffer();
-            const result = await window.mammoth.extractRawText({ arrayBuffer });
-            text = result.value;
-        } else {
-            text = await file.text();
-        }
-        const existing = textarea.value.trim();
-        textarea.value = existing ? `${existing}\n---\n${text.trim()}` : text.trim();
-        const parsed = parseQuestions(textarea.value);
-        updatePointsPreview();
-        statusEl.textContent = `Fayldan o\u2018qildi. Hozircha jami ${parsed.length} ta to\u2018g\u2018ri formatdagi savol aniqlandi \u2014 pastdagi matnni tekshirib chiqing.`;
-        statusEl.style.color = parsed.length ? 'var(--green)' : 'var(--red)';
-        document.getElementById('t-questions-file').value = '';
-    } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Faylni o\u2018qishda xatolik: ' + err.message;
-        statusEl.style.color = 'var(--red)';
-    }
-});
-
-document.getElementById('t-download-questions-btn')?.addEventListener('click', () => {
-    const text = document.getElementById('t-questions').value;
-    if (!text.trim()) {
-        setStatus('Yuklab olish uchun avval savollar kiriting yoki mavjud testni tahrirlashni oching.', 'error');
-        return;
-    }
-    const titleRaw = document.getElementById('t-title').value.trim() || 'savollar';
-    const safeTitle = titleRaw.replace(/[^a-zA-Z0-9\u0400-\u04FF\u0080-\u024F\-_ ]/g, '').trim() || 'savollar';
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${safeTitle}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-});
-
-/* ── SAVOL RASMINI FAYLDAN YUKLASH ── */
-document.getElementById('t-image-upload')?.addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
-    const statusEl = document.getElementById('t-image-upload-status');
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-        statusEl.textContent = 'Faqat rasm fayllarini yuklash mumkin.';
-        statusEl.style.color = 'var(--red)';
-        return;
-    }
-    statusEl.textContent = 'Yuklanmoqda va siqilmoqda...';
-    statusEl.style.color = 'var(--muted)';
-
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = () => {
-        img.onload = () => {
-            // Firestore hujjat hajmi cheklangani uchun rasmni kichraytirib, siqib olamiz
-            const maxWidth = 700;
-            const scale = Math.min(1, maxWidth / img.width);
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
-            const sizeKb = Math.round((dataUrl.length * 0.75) / 1024);
-
-            const textarea = document.getElementById('t-questions');
-            const start = textarea.selectionStart ?? textarea.value.length;
-            const end = textarea.selectionEnd ?? textarea.value.length;
-            const line = `Rasm: ${dataUrl}\n`;
-            textarea.value = textarea.value.slice(0, start) + line + textarea.value.slice(end);
-            textarea.selectionStart = textarea.selectionEnd = start + line.length;
-
-            statusEl.textContent = `Rasm qo\u2018shildi (\u2248${sizeKb} KB). Kursor qo\u2018yilgan joyga "Rasm:" qatori yozildi \u2014 uni savol matnidan keyin, variantlardan oldin joylashganiga ishonch hosil qiling.`;
-            statusEl.style.color = 'var(--green)';
-            if (sizeKb > 250) {
-                statusEl.textContent += ' Diqqat: rasm biroz katta, juda ko\u2018p rasmli savol bir testda hujjat hajmi chegarasiga tegishi mumkin \u2014 iloji boricha kichikroq/aniqroq rasm tanlang.';
-                statusEl.style.color = 'var(--orange)';
-            }
-            document.getElementById('t-image-upload').value = '';
-        };
-        img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-});
-
-document.getElementById('t-create-btn')?.addEventListener('click', async () => {
-    const editId = document.getElementById('t-edit-id').value;
-    const contestId = document.getElementById('t-contest-select').value;
-    const title = document.getElementById('t-title').value.trim();
-    const timeLimitMinutes = parseInt(document.getElementById('t-time-limit').value, 10) || 20;
-    const mcPerAttemptRaw = document.getElementById('t-mc-per-attempt').value.trim();
-    const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
-    const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
-    const openMaxPointsPerQuestion = parseFloat(document.getElementById('t-open-max-points').value) || 5;
-    const maxTabSwitches = parseInt(document.getElementById('t-max-tab-switches').value, 10) || 1;
-    const rawQuestions = document.getElementById('t-questions').value;
-
-    if (!contestId) {
-        setStatus('Tanlovni tanlang.', 'error');
-        return;
-    }
-    if (!title) {
-        setStatus('Test nomini kiriting.', 'error');
-        return;
-    }
-    const questions = parseQuestions(rawQuestions);
-    if (!questions.length) {
-        setStatus('Savollar formatida xatolik bor. Namunani tekshiring.', 'error');
-        return;
-    }
-    const mcQuestionsPerAttempt = mcPerAttemptRaw ? Math.max(1, parseInt(mcPerAttemptRaw, 10)) : null;
-    const openQuestionsPerAttempt = openPerAttemptRaw ? Math.max(1, parseInt(openPerAttemptRaw, 10)) : null;
-
-    const btn = document.getElementById('t-create-btn');
-    btn.disabled = true;
-    try {
-        // Testlar tanlov ID'si bo'yicha saqlanadi (bir tanlov — bitta savollar bazasi),
-        // lekin har bir ishtirokchiga shu bazadan tasodifiy tanlangan savollar beriladi.
-        const testDocId = editId || contestId;
-        await setDoc(doc(db, 'tests', testDocId), {
-            contestId,
-            title,
-            timeLimitMinutes,
-            mcQuestionsPerAttempt,
-            openQuestionsPerAttempt,
-            pointsPerCorrect,
-            openMaxPointsPerQuestion,
-            maxTabSwitches,
-            questions,
-            published: true,
-            createdAt: serverTimestamp(),
-        }, { merge: true });
-        setStatus(editId ? 'Test yangilandi!' : `Test yaratildi! ${questions.length} ta savol qo\u2018shildi.`, 'success');
-        resetTestForm();
-        loadTests();
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-let testsCache = {};
-
-async function loadTests() {
-    const listEl = document.getElementById('testsList');
-    try {
-        const snap = await getDocs(collection(db, 'tests'));
-        if (snap.empty) {
-            listEl.innerHTML = '<div class="empty">Hali test yaratilmagan.</div>';
-            testsCache = {};
-            return;
-        }
-        testsCache = {};
-        let html = '';
-        snap.forEach((d) => {
-            const t = d.data();
-            testsCache[d.id] = t;
-            const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
-            const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
-            const perAttemptBits = [];
-            if (mcCount) perAttemptBits.push(t.mcQuestionsPerAttempt ? `${t.mcQuestionsPerAttempt} ta yopiq beriladi` : 'barcha yopiq beriladi');
-            if (openCount) perAttemptBits.push(t.openQuestionsPerAttempt ? `${t.openQuestionsPerAttempt} ta ochiq beriladi` : 'barcha ochiq beriladi');
-            const pointsInfo = [];
-            if (mcCount) pointsInfo.push(`yopiq: ${t.pointsPerCorrect || 1} ball/savol`);
-            if (openCount) pointsInfo.push(`ochiq: max ${t.openMaxPointsPerQuestion || 5} ball/savol`);
-            html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttemptBits.join(', '))}), ${t.timeLimitMinutes} daqiqa${pointsInfo.length ? ', ' + escapeHtml(pointsInfo.join(', ')) : ''}</span>
-                <span style="display:flex;gap:8px">
-                    <button class="btn btn-primary" data-edit-test="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
-                    <button class="btn btn-red" data-del-test="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
-                </span></div>`;
-        });
-        listEl.innerHTML = html;
-        listEl.querySelectorAll('[data-edit-test]').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const t = testsCache[btn.dataset.editTest];
-                if (!t) return;
-                document.getElementById('t-edit-id').value = btn.dataset.editTest;
-                document.getElementById('t-contest-select').value = t.contestId || btn.dataset.editTest;
-                document.getElementById('t-title').value = t.title || '';
-                document.getElementById('t-time-limit').value = t.timeLimitMinutes || 20;
-                document.getElementById('t-mc-per-attempt').value = t.mcQuestionsPerAttempt || '';
-                document.getElementById('t-open-per-attempt').value = t.openQuestionsPerAttempt || '';
-                document.getElementById('t-points-per-correct').value = t.pointsPerCorrect || 1;
-                document.getElementById('t-open-max-points').value = t.openMaxPointsPerQuestion || 5;
-                document.getElementById('t-max-tab-switches').value = t.maxTabSwitches || 1;
-                document.getElementById('t-questions').value = questionsToRaw(t.questions || []);
-                document.getElementById('t-create-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
-                document.getElementById('t-cancel-edit-btn').style.display = '';
-                document.getElementById('t-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                updatePointsPreview();
-            });
-        });
-        listEl.querySelectorAll('[data-del-test]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Bu testni o\u2018chirmoqchimisiz?')) return;
-                await deleteDoc(doc(db, 'tests', btn.dataset.delTest));
-                loadTests();
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-let currentTestContestId = '';
-let currentTestAttempts = [];
-
-document.getElementById('tr-contest-select')?.addEventListener('change', async (e) => {
-    const contestId = e.target.value;
-    currentTestContestId = contestId;
-    const tableEl = document.getElementById('testResultsTable');
-    const syncBtn = document.getElementById('t-sync-scores-btn');
-    if (!contestId) {
-        tableEl.innerHTML = '<div class="empty">Yuqorida tanlov tanlang</div>';
-        syncBtn.style.display = 'none';
-        return;
-    }
-    tableEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
-    syncBtn.style.display = 'none';
-    try {
-        const snap = await getDocs(query(collection(db, 'test-attempts'), where('contestId', '==', contestId)));
-        if (snap.empty) {
-            tableEl.innerHTML = '<div class="empty">Hali hech kim test topshirmagan.</div>';
-            currentTestAttempts = [];
-            return;
-        }
-        const list = [];
-        snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
-        list.sort((a, b) => (b.score || 0) - (a.score || 0));
-        currentTestAttempts = list;
-        syncBtn.style.display = '';
-
-        let rows = '';
-        list.forEach((a) => {
-            const statusTxt = a.status === 'submitted' ? `${a.score}/${a.totalQuestions}` : 'Jarayonda...';
-            rows += `<tr>
-                <td>${escapeHtml(a.uid.slice(0, 8))}...</td>
-                <td>${statusTxt}</td>
-                <td>${a.tabSwitchCount || 0}</td>
-                <td>${a.submittedAt ? new Date(a.submittedAt.toMillis()).toLocaleString('uz-UZ') : '\u2014'}</td>
-            </tr>`;
-        });
-        tableEl.innerHTML = `<table>
-            <thead><tr><th>Foydalanuvchi (UID)</th><th>Natija</th><th>Chetga chiqishlar</th><th>Topshirilgan vaqt</th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table>`;
-    } catch (err) {
-        console.error(err);
-        tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-});
-
-document.getElementById('t-sync-scores-btn')?.addEventListener('click', async () => {
-    if (!currentTestAttempts.length || !currentTestContestId) return;
-    if (!confirm('Test ballarini shu tanlovdagi ishtirokchilar ro\u2018yxatiga (Ball ustuniga) ko\u2018chirasizmi?')) return;
-
-    const btn = document.getElementById('t-sync-scores-btn');
-    btn.disabled = true;
-    try {
-        const batch = writeBatch(db);
-        let count = 0;
-        currentTestAttempts.forEach((a) => {
-            if (a.status !== 'submitted') return;
-            const regId = `${currentTestContestId}_${a.uid}`;
-            const payload = { score: a.score };
-            if (a.openScoreAuto !== null && a.openScoreAuto !== undefined) payload.openScore = a.openScoreAuto;
-            batch.update(doc(db, 'registrations', regId), payload);
-            count++;
-        });
-        await batch.commit();
-        setStatus(`${count} ta ishtirokchining balli ko\u2018chirildi!`, 'success');
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi (ba\u2018zi ishtirokchilar ro\u2018yxatda topilmagan bo\u2018lishi mumkin).', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-document.getElementById('meet-contest-select')?.addEventListener('change', async (e) => {
-    const contestId = e.target.value;
-    const input = document.getElementById('meet-link-input');
-    const enabledInput = document.getElementById('meet-enabled-input');
-    const questionsInput = document.getElementById('meet-questions-count');
-    const maxScoreInput = document.getElementById('meet-max-score');
-    const emailInput = document.getElementById('meet-responsible-email');
-    input.value = '';
-    enabledInput.checked = true;
-    questionsInput.value = '';
-    maxScoreInput.value = '';
-    emailInput.value = '';
-    if (!contestId) return;
-    try {
-        const snap = await getDoc(doc(db, 'contests', contestId));
-        if (snap.exists()) {
-            const c = snap.data();
-            input.value = c.meetLink || '';
-            enabledInput.checked = c.meetLinkEnabled !== false;
-            questionsInput.value = c.interviewQuestionsCount || '';
-            maxScoreInput.value = c.interviewMaxScore || '';
-            emailInput.value = c.interviewResponsibleEmail || '';
-        }
-    } catch (err) {
-        console.error(err);
-    }
-});
-
-document.getElementById('meet-save-btn')?.addEventListener('click', async () => {
-    const contestId = document.getElementById('meet-contest-select').value;
-    const meetLink = document.getElementById('meet-link-input').value.trim();
-    const meetLinkEnabled = document.getElementById('meet-enabled-input').checked;
-    const interviewQuestionsCount = parseInt(document.getElementById('meet-questions-count').value, 10) || null;
-    const interviewMaxScore = parseFloat(document.getElementById('meet-max-score').value) || null;
-    const interviewResponsibleEmail = document.getElementById('meet-responsible-email').value.trim() || null;
-    if (!contestId) {
-        setStatus('Tanlovni tanlang.', 'error');
-        return;
-    }
-    const btn = document.getElementById('meet-save-btn');
-    btn.disabled = true;
-    try {
-        await updateDoc(doc(db, 'contests', contestId), { meetLink: meetLink || null, meetLinkEnabled, interviewQuestionsCount, interviewMaxScore, interviewResponsibleEmail });
-        setStatus('Suhbat havolasi saqlandi!', 'success');
-        loadMeetLinks();
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-async function loadMeetLinks() {
-    const listEl = document.getElementById('meetLinksList');
-    if (!listEl) return;
-    listEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
-    try {
-        const snap = await getDocs(collection(db, 'contests'));
-        let html = '';
-        snap.forEach((d) => {
-            const c = d.data();
-            if (!c.meetLink) return;
-            const enabled = c.meetLinkEnabled !== false;
-            const meta = [];
-            if (c.interviewQuestionsCount) meta.push(`${c.interviewQuestionsCount} ta savol`);
-            if (c.interviewMaxScore) meta.push(`umumiy ${c.interviewMaxScore} ball`);
-            html += `<div class="admin-row">
-                <span><b>${escapeHtml(c.title)}</b><br><a href="${escapeHtml(c.meetLink)}" target="_blank" rel="noopener" style="font-size:0.8rem">${escapeHtml(c.meetLink)}</a>
-                    <span class="badge ${enabled ? 'open' : 'closed'}" style="margin-left:6px">${enabled ? 'OCHIQ' : 'YOPIQ'}</span>
-                    ${meta.length ? `<div style="color:var(--muted);font-size:0.75rem;margin-top:2px">${escapeHtml(meta.join(' \u00b7 '))}</div>` : ''}</span>
-                <span style="display:flex;gap:8px">
-                    <button class="btn ${enabled ? 'btn-red' : 'btn-green'}" data-toggle-meet="${d.id}" data-next="${!enabled}" title="${enabled ? 'Yopish' : 'Ochish'}"><i class="fas ${enabled ? 'fa-lock' : 'fa-unlock'}"></i></button>
-                    <button class="btn btn-primary" data-edit-meet="${d.id}" title="Tahrirlash"><i class="fas fa-pen"></i></button>
-                    <button class="btn btn-red" data-delete-meet="${d.id}" title="O'chirish"><i class="fas fa-trash"></i></button>
-                </span>
-            </div>`;
-        });
-        listEl.innerHTML = html || '<div class="empty">Hali birorta suhbat havolasi qo\u2018shilmagan.</div>';
-
-        listEl.querySelectorAll('[data-toggle-meet]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const next = btn.dataset.next === 'true';
-                await updateDoc(doc(db, 'contests', btn.dataset.toggleMeet), { meetLinkEnabled: next });
-                loadMeetLinks();
-            });
-        });
-        listEl.querySelectorAll('[data-edit-meet]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                const select = document.getElementById('meet-contest-select');
-                select.value = btn.dataset.editMeet;
-                select.dispatchEvent(new Event('change'));
-                select.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            });
-        });
-        listEl.querySelectorAll('[data-delete-meet]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Bu suhbat havolasini o\u2018chirmoqchimisiz?')) return;
-                await updateDoc(doc(db, 'contests', btn.dataset.deleteMeet), { meetLink: null, meetLinkEnabled: null });
-                loadMeetLinks();
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
-
-/* ── ADMINLAR (faqat owner) ── */
-document.getElementById('a-add-btn')?.addEventListener('click', async () => {
-    const email = document.getElementById('a-email').value.trim().toLowerCase();
-    if (!email || !email.includes('@')) {
-        setStatus('To\u2018g\u2018ri email kiriting.', 'error');
-        return;
-    }
-    const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
-    const btn = document.getElementById('a-add-btn');
-    btn.disabled = true;
-    try {
-        // Email orqali foydalanuvchining UID'ini topamiz (u avval saytga
-        // kamida bir marta Google orqali kirgan bo'lishi kerak)
-        const userSnap = await getDocs(query(collection(db, 'users'), where('email', '==', email)));
-        if (userSnap.empty) {
-            setStatus('Bu email bilan hech kim saytga kirmagan. Avval o\u2018sha odam saytga Google orqali kirsin, keyin qo\u2018shing.', 'error');
-            btn.disabled = false;
-            return;
-        }
-        const targetUid = userSnap.docs[0].id;
-
-        await setDoc(doc(db, 'admins', targetUid), {
-            email,
-            addedAt: serverTimestamp(),
-            addedBy: currentUser?.email || 'owner',
-        });
-        document.getElementById('a-email').value = '';
-        setStatus('Admin qo\u2018shildi!', 'success');
-        loadAdmins();
-        loadStats();
-    } catch (err) {
-        console.error(err);
-        setStatus('Xatolik yuz berdi.', 'error');
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-async function loadAdmins() {
-    const listEl = document.getElementById('adminsList');
-    try {
-        const snap = await getDocs(collection(db, 'admins'));
-        const currentUser = window.ZiyomapUsage && ZiyomapUsage.getUser();
-        let html = `<div class="admin-row"><span><i class="fas fa-crown" style="color:#d97706"></i> ${escapeHtml(currentUser?.email || 'Siz')} (asosiy admin)</span></div>`;
-        snap.forEach((d) => {
-            const a = d.data();
-            html += `<div class="admin-row"><span>${escapeHtml(a.email || d.id)}</span>
-                <button class="btn btn-red" data-del-admin="${d.id}"><i class="fas fa-trash"></i></button></div>`;
-        });
-        listEl.innerHTML = html;
-        listEl.querySelectorAll('[data-del-admin]').forEach((btn) => {
-            btn.addEventListener('click', async () => {
-                if (!confirm('Bu admin olib tashlansinmi?')) return;
-                await deleteDoc(doc(db, 'admins', btn.dataset.delAdmin));
-                loadAdmins();
-                loadStats();
-            });
-        });
-    } catch (err) {
-        console.error(err);
-        listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
-    }
-}
+})();
+</script>
+</body>
+</html>
