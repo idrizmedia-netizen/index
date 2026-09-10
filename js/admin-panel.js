@@ -686,7 +686,8 @@ function renderPartnerLogoList(contestId, items) {
         .map(
             (p) => `<div style="width:100px;text-align:center;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;padding:10px">
                 <img src="${p.logoUrl}" alt="" style="width:46px;height:46px;object-fit:contain;margin-bottom:6px">
-                <div style="font-size:0.68rem;color:var(--muted);word-break:break-word;margin-bottom:6px">${escapeHtml(p.fileName || 'logotip')}</div>
+                <div style="font-size:0.72rem;font-weight:700;color:var(--text);word-break:break-word;margin-bottom:2px">${escapeHtml(p.name || '(nomsiz)')}</div>
+                <div style="font-size:0.66rem;color:var(--muted);word-break:break-word;margin-bottom:6px">${escapeHtml(p.fileName || 'logotip')}</div>
                 <button type="button" class="btn btn-red" data-remove-partner-logo="${p.id}" style="padding:4px 8px;font-size:0.72rem"><i class="fas fa-trash"></i></button>
             </div>`
         )
@@ -714,11 +715,13 @@ async function loadPartnerLogos(contestId) {
 document.getElementById('partner-contest-select')?.addEventListener('change', (e) => {
     const contestId = e.target.value;
     const fileInput = document.getElementById('partner-logo-file');
+    const nameInput = document.getElementById('partner-logo-name');
     const addBtn = document.getElementById('partner-logo-add-btn');
     const statusEl = document.getElementById('partner-logo-status');
     pendingPartnerLogoData = null;
     pendingPartnerLogoFileName = null;
     if (fileInput) { fileInput.disabled = !contestId; fileInput.value = ''; }
+    if (nameInput) { nameInput.disabled = !contestId; nameInput.value = ''; }
     if (addBtn) addBtn.disabled = !contestId;
     if (statusEl) statusEl.textContent = '';
     loadPartnerLogos(contestId);
@@ -757,6 +760,8 @@ document.getElementById('partner-logo-add-btn')?.addEventListener('click', async
     const contestId = document.getElementById('partner-contest-select')?.value;
     const statusEl = document.getElementById('partner-logo-status');
     const btn = document.getElementById('partner-logo-add-btn');
+    const nameInput = document.getElementById('partner-logo-name');
+    const partnerName = (nameInput?.value || '').trim();
     if (!contestId) {
         if (statusEl) { statusEl.textContent = 'Avval tanlovni tanlang.'; statusEl.style.color = 'var(--red)'; }
         return;
@@ -765,18 +770,24 @@ document.getElementById('partner-logo-add-btn')?.addEventListener('click', async
         if (statusEl) { statusEl.textContent = 'Avval logotip faylini tanlang.'; statusEl.style.color = 'var(--red)'; }
         return;
     }
+    if (!partnerName) {
+        if (statusEl) { statusEl.textContent = 'Hamkor nomini kiriting — u sertifikatda logotip ostida yoziladi.'; statusEl.style.color = 'var(--red)'; }
+        return;
+    }
     btn.disabled = true;
     try {
         const ref = doc(collection(db, 'contests', contestId, 'partners'));
         await setDoc(ref, {
             logoUrl: pendingPartnerLogoData,
             fileName: pendingPartnerLogoFileName,
+            name: partnerName,
             createdAt: serverTimestamp(),
         });
         pendingPartnerLogoData = null;
         pendingPartnerLogoFileName = null;
         const fileInput = document.getElementById('partner-logo-file');
         if (fileInput) fileInput.value = '';
+        if (nameInput) nameInput.value = '';
         if (statusEl) { statusEl.textContent = 'Hamkor logotipi qo\u2018shildi.'; statusEl.style.color = 'var(--green)'; }
         loadPartnerLogos(contestId);
     } catch (err) {
