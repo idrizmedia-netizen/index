@@ -434,12 +434,13 @@
                     <span class="cert-logo-caption">${esc(c.title || 'Tanlov')}</span>
                 </div>`
             : '';
-        // Hamkorlar logotiplari — tanlov logotipi ortidan qatorlashib chiqadi
+        // Hamkorlar logotiplari — tanlov logotipi ortidan qatorlashib chiqadi, har birining ostida nomi yoziladi
         const partnerLogoBlocks = (partnerLogos || [])
             .filter((p) => p && p.logoUrl)
             .map(
                 (p) => `<div class="cert-logo-block">
                     <img src="${esc(p.logoUrl)}" class="cert-corner-logo" alt="">
+                    ${p.name ? `<span class="cert-logo-caption">${esc(p.name)}</span>` : ''}
                 </div>`
             )
             .join('');
@@ -503,7 +504,8 @@
             .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
-            .cert-logo-row{position:absolute;top:20px;left:24px;right:24px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px 16px;max-width:64%}
+            .cert-logo-row{position:absolute;top:20px;left:24px;right:24px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px 16px;max-width:40%}
+            .cert-logo-pair{display:flex;align-items:flex-start;gap:6px;flex-shrink:0}
             .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:5px;width:56px;flex-shrink:0}
             .cert-logo-block-wide{display:flex;flex-direction:column;align-items:center;gap:5px;width:auto;flex-shrink:0}
             .cert-corner-logo{width:50px;height:50px;object-fit:contain;border-radius:11px}
@@ -565,11 +567,14 @@
                         <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
                         <span class="cert-logo-caption">Reja</span>
                     </div>
-                    <div class="cert-logo-block-wide">
-                        <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
-                    </div>
-                    <div class="cert-logo-block">
-                        <img src="${ziyomapMarkUrl}" class="cert-corner-logo" alt="">
+                    <div class="cert-logo-pair">
+                        <div class="cert-logo-block-wide">
+                            <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
+                        </div>
+                        <div class="cert-logo-block">
+                            <img src="${ziyomapMarkUrl}" class="cert-corner-logo" alt="">
+                            <span class="cert-logo-caption">Ziyomarket</span>
+                        </div>
                     </div>
                     ${contestLogoBlock}
                     ${partnerLogoBlocks}
