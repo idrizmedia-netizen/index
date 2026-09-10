@@ -427,23 +427,57 @@
         const svgLogoUrl = `${window.location.origin}/images/logo-full.svg`;
         const ziyomapMarkUrl = `${window.location.origin}/images/cert-logo-ziyomap-mark.png`;
         const verifyUrl = `${window.location.origin}/tasdiqlash.html?id=${encodeURIComponent(certNumber)}`;
+
+        // Barcha logotip bloklari bitta ro'yxatga yig'iladi. Agar bittasi qatorga sig'masa,
+        // ikkinchisi ikkita qatorga (yuqori/quyi) TENG bo'lib taqsimlanadi — hech biri
+        // medal bilan ustma-ust tushmaydi (chunki qator kengligi cheklangan).
+        const logoItems = [];
+        logoItems.push(`<div class="cert-logo-block">
+                    <img src="${logoUrl}" class="cert-corner-logo" alt="">
+                    <span class="cert-logo-caption">Ziyomap</span>
+                </div>`);
+        logoItems.push(`<div class="cert-logo-block">
+                    <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
+                    <span class="cert-logo-caption">Reja</span>
+                </div>`);
+        logoItems.push(`<div class="cert-logo-pair">
+                    <div class="cert-logo-block-wide">
+                        <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
+                    </div>
+                    <div class="cert-logo-block">
+                        <img src="${ziyomapMarkUrl}" class="cert-corner-logo" alt="">
+                        <span class="cert-logo-caption">Ziyomarket</span>
+                    </div>
+                </div>`);
         // Admin tanlov uchun alohida logotip yuklagan bo'lsa — boshqa logolar qatorida shu ham chiqadi
-        const contestLogoBlock = c.contestLogoUrl
-            ? `<div class="cert-logo-block">
+        if (c.contestLogoUrl) {
+            logoItems.push(`<div class="cert-logo-block">
                     <img src="${esc(c.contestLogoUrl)}" class="cert-corner-logo" alt="">
                     <span class="cert-logo-caption">${esc(c.title || 'Tanlov')}</span>
-                </div>`
-            : '';
+                </div>`);
+        }
         // Hamkorlar logotiplari — tanlov logotipi ortidan qatorlashib chiqadi, har birining ostida nomi yoziladi
-        const partnerLogoBlocks = (partnerLogos || [])
+        (partnerLogos || [])
             .filter((p) => p && p.logoUrl)
-            .map(
-                (p) => `<div class="cert-logo-block">
+            .forEach((p) => {
+                logoItems.push(`<div class="cert-logo-block">
                     <img src="${esc(p.logoUrl)}" class="cert-corner-logo" alt="">
                     ${p.name ? `<span class="cert-logo-caption">${esc(p.name)}</span>` : ''}
-                </div>`
-            )
-            .join('');
+                </div>`);
+            });
+
+        // Bir qatorga taxminan shuncha blok sig'adi (qator kengligi va blok o'lchamiga qarab).
+        // Shundan ko'p bo'lsa, ikki qatorga TENG (masalan 7 ta bo'lsa 4+3) bo'lib taqsimlaymiz.
+        const MAX_PER_ROW = 5;
+        let logoRowsHtml;
+        if (logoItems.length <= MAX_PER_ROW) {
+            logoRowsHtml = `<div class="cert-logo-row">${logoItems.join('')}</div>`;
+        } else {
+            const half = Math.ceil(logoItems.length / 2);
+            const row1 = logoItems.slice(0, half).join('');
+            const row2 = logoItems.slice(half).join('');
+            logoRowsHtml = `<div class="cert-logo-row">${row1}</div><div class="cert-logo-row">${row2}</div>`;
+        }
 
         // Rang mavzulari: 1/2/3-o'rin uchun tilla/kumush/bronza, boshqa o'rinlar va oddiy
         // ishtirok sertifikati uchun brendga mos alohida ranglar.
@@ -504,7 +538,8 @@
             .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
             .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
             .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
-            .cert-logo-row{position:absolute;top:20px;left:24px;right:24px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px 16px;max-width:40%}
+            .cert-logo-outer{position:absolute;top:20px;left:24px;max-width:46%;display:flex;flex-direction:column;gap:10px}
+            .cert-logo-row{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:14px 16px}
             .cert-logo-pair{display:flex;align-items:flex-start;gap:6px;flex-shrink:0}
             .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:5px;width:56px;flex-shrink:0}
             .cert-logo-block-wide{display:flex;flex-direction:column;align-items:center;gap:5px;width:auto;flex-shrink:0}
@@ -558,27 +593,7 @@
                 <div class="cert-corner cc-tr"></div>
                 <div class="cert-corner cc-bl"></div>
                 <div class="cert-corner cc-br"></div>
-                <div class="cert-logo-row">
-                    <div class="cert-logo-block">
-                        <img src="${logoUrl}" class="cert-corner-logo" alt="">
-                        <span class="cert-logo-caption">Ziyomap</span>
-                    </div>
-                    <div class="cert-logo-block">
-                        <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
-                        <span class="cert-logo-caption">Reja</span>
-                    </div>
-                    <div class="cert-logo-pair">
-                        <div class="cert-logo-block-wide">
-                            <img src="${svgLogoUrl}" class="cert-logo-svg" alt="">
-                        </div>
-                        <div class="cert-logo-block">
-                            <img src="${ziyomapMarkUrl}" class="cert-corner-logo" alt="">
-                            <span class="cert-logo-caption">Ziyomarket</span>
-                        </div>
-                    </div>
-                    ${contestLogoBlock}
-                    ${partnerLogoBlocks}
-                </div>
+                <div class="cert-logo-outer">${logoRowsHtml}</div>
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
                 <div class="cert-title">${esc(theme.label)}</div>
