@@ -1600,6 +1600,7 @@
   </div>
 </div>
           <a href="admin.html" class="nav-icon-btn" data-admin-only style="display:none" title="Admin panel"><i class="fas fa-user-shield"></i></a>
+          <button class="nav-icon-btn" id="pwa-install-btn" style="display:none" title="Ilovani yuklash"><i class="fas fa-download"></i></button>
           <button class="nav-icon-btn" id="search-toggle" onclick="ZiyomapSearch.open()" title="Qidirish (Ctrl+K)"><i class="fas fa-search"></i></button>
           <button class="nav-icon-btn" id="theme-toggle" title="Tun/Kun"><i class="fas fa-moon"></i></button>
           <a href="kirish.html" id="login-btn" class="user-btn">
@@ -1629,6 +1630,7 @@
   </div>
 </div>
         <a href="admin.html" class="nav-icon-btn" data-admin-only style="display:none" title="Admin panel"><i class="fas fa-user-shield"></i></a>
+        <button class="nav-icon-btn" id="pwa-install-btn-m" style="display:none" title="Ilovani yuklash"><i class="fas fa-download"></i></button>
         <button class="nav-icon-btn" onclick="ZiyomapSearch.open()" title="Qidirish"><i class="fas fa-search"></i></button>
         <button class="nav-icon-btn" id="theme-toggle-m" title="Tun/Kun"><i class="fas fa-moon"></i></button>
         <a href="kirish.html" id="login-btn-m" class="user-btn" style="padding:2px 8px 2px 2px;height:32px"><img id="btn-user-avatar-m" src="https://www.w3schools.com/howto/img_avatar.png" alt="" style="width:28px;height:28px"><span style="font-size:0.75rem;font-weight:600">Kirish</span></a>
@@ -2079,6 +2081,58 @@ document.getElementById('navMoreBtn')?.addEventListener('click', function (e) {
 document.addEventListener('click', function () {
   document.getElementById('navMoreDropdown')?.classList.remove('open');
 });
+</script>
+<script>
+/* ── Web ilovani o'rnatish (PWA install) tugmasi ── */
+(function () {
+  let deferredInstallPrompt = null;
+  const installBtns = [
+    document.getElementById('pwa-install-btn'),
+    document.getElementById('pwa-install-btn-m'),
+  ].filter(Boolean);
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  function showInstallBtns() {
+    if (isStandalone()) return;
+    installBtns.forEach((btn) => { btn.style.display = ''; });
+  }
+
+  function hideInstallBtns() {
+    installBtns.forEach((btn) => { btn.style.display = 'none'; });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallBtns();
+  });
+
+  installBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      btn.disabled = true;
+      deferredInstallPrompt.prompt();
+      try {
+        await deferredInstallPrompt.userChoice;
+      } catch (err) {
+        console.error('O\u2018rnatishda xatolik:', err);
+      }
+      deferredInstallPrompt = null;
+      btn.disabled = false;
+      hideInstallBtns();
+    });
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    hideInstallBtns();
+  });
+
+  if (isStandalone()) hideInstallBtns();
+})();
 </script>
 </body>
 </html>
