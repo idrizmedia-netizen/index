@@ -151,6 +151,7 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <button class="tab-btn active" data-tab="stats"><i class="fas fa-chart-simple"></i> Statistika</button>
     <button class="tab-btn" data-tab="contests"><i class="fas fa-trophy"></i> Tanlovlar</button>
     <button class="tab-btn" data-tab="certbuilder"><i class="fas fa-award"></i> Sertifikat konstruktori</button>
+    <button class="tab-btn" data-tab="obunarequests"><i class="fas fa-star"></i> Obuna so'rovlari</button>
     <button class="tab-btn" data-tab="tests"><i class="fas fa-file-pen"></i> Testlar</button>
     <button class="tab-btn" data-tab="registrants"><i class="fas fa-users"></i> Ishtirokchilar</button>
     <button class="tab-btn" data-tab="notify"><i class="fas fa-bullhorn"></i> Bildirishnoma</button>
@@ -444,6 +445,18 @@ Bilet 2
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- OBUNA SO'ROVLARI -->
+  <div class="panel" id="panel-obunarequests">
+    <div class="card">
+      <h3><i class="fas fa-star"></i> Obuna so'rovlari</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Foydalanuvchi <b>obuna.html</b> sahifasida biror rejani tanlab "Obuna bo'lish" tugmasini bosganda, so'rov shu yerga tushadi.
+        To'lovni (Telegram orqali) tasdiqlagandan so'ng, <b>"Faollashtirish"</b> tugmasini bosing — reja avtomatik shu foydalanuvchiga tayinlanadi.
+      </p>
+      <div class="table-scroll" id="obunaRequestsTable"><div class="empty">Yuklanmoqda...</div></div>
     </div>
   </div>
 
