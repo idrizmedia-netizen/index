@@ -2940,3 +2940,422 @@ async function loadAdmins() {
         listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
     }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   SERTIFIKAT KONSTRUKTORI
+   Qo'lda diplom/sertifikat to'ldirish -> saytdagi haqiqiy dizaynda
+   ko'rish -> saqlash (haqiqiy tekshirish QR'i faollashadi) ->
+   chop etish/PDF yoki PPTX qilib yuklab olish.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+    const CB_THEMES = {
+        1: { label: 'I DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fffdf3 0%,#fdf3d0 55%,#faedb0 100%)', border: '#c99a1e', ring: '#f2c94c', text: '#7a5b0a', deep: '#8a6512', medal: '\u{1F947}', isWinner: true, rank: 1 },
+        2: { label: 'II DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fbfcfe 0%,#e9edf3 55%,#dbe1ea 100%)', border: '#8b96a3', ring: '#c3cdd8', text: '#3f4a56', deep: '#526071', medal: '\u{1F948}', isWinner: true, rank: 2 },
+        3: { label: 'III DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '\u{1F949}', isWinner: true, rank: 3 },
+        0: { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '\u{1F393}', isWinner: false, rank: null },
+    };
+    const CB_RANK_WORD = { 1: "1-o'rin", 2: "2-o'rin", 3: "3-o'rin" };
+
+    function cbEsc(str) {
+        const d = document.createElement('div');
+        d.textContent = str == null ? '' : String(str);
+        return d.innerHTML;
+    }
+
+    function cbFmtDate(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const [y, m, d] = parts;
+        const months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+        const mi = parseInt(m, 10) - 1;
+        return `${parseInt(d, 10)}-${months[mi] || m}, ${y}-yil`;
+    }
+
+    function cbGenCertNumber() {
+        const rnd = Math.random().toString(36).slice(2, 10).toUpperCase();
+        return `ZM-M${rnd}-${new Date().getFullYear()}`;
+    }
+
+    function cbCollectData() {
+        const type = document.querySelector('#cb-type-btns .active')?.dataset.cbType || '1';
+        return {
+            type,
+            fullName: document.getElementById('cb-fullname').value.trim(),
+            contestTitle: document.getElementById('cb-contest').value.trim(),
+            score: document.getElementById('cb-score').value.trim(),
+            dateStr: document.getElementById('cb-date').value,
+            signer: document.getElementById('cb-signer').value.trim(),
+            certNumber: document.getElementById('cb-certnum').value.trim(),
+        };
+    }
+
+    // Saytdagi haqiqiy sertifikat dizayniga to'liq mos HTML hujjat quradi.
+    function cbBuildCertHtml(data, autoprint) {
+        const theme = CB_THEMES[data.type];
+        const origin = window.location.origin;
+        const logoUrl = `${origin}/images/nav-icon.png`;
+        const rightLogoUrl = `${origin}/images/cert-icon-right.png`;
+        const svgLogoUrl = `${origin}/images/logo-full.png`;
+        const ziyomapMarkUrl = `${origin}/images/cert-logo-ziyomap-mark.png`;
+        const verifyUrl = `${origin}/tasdiqlash.html?id=${encodeURIComponent(data.certNumber || '')}`;
+        const fullName = data.fullName || '[ Ishtirokchining F.I.Sh. ]';
+        const contestTitle = data.contestTitle || '[ Tanlov nomi ]';
+        const dateText = cbFmtDate(data.dateStr) || '[ Sana ]';
+        const signerName = data.signer || 'Ziyomap';
+
+        const mainText = theme.isWinner
+            ? `<b>${cbEsc(contestTitle)}</b> tanlovida<br><span class="cert-rank">${cbEsc(CB_RANK_WORD[theme.rank])}</span>ni egallagani uchun taqdim etiladi`
+            : `<b>${cbEsc(contestTitle)}</b> tanlovida faol ishtirok etganligi uchun taqdim etiladi`;
+        const scoreLine = data.score
+            ? `<div class="cert-score">Umumiy natija: <b>${cbEsc(data.score)} ball</b></div>`
+            : '';
+
+        return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${cbEsc(theme.label)}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
+        <style>
+            @page { size: landscape; margin: 0; }
+            *{box-sizing:border-box}
+            body{font-family:'Montserrat',sans-serif;margin:0;padding:36px;background:#e7e2d8;color:${theme.text}}
+            .cert-outer{position:relative;overflow:hidden;border:3px solid ${theme.border};border-radius:10px;background:${theme.bg};min-height:560px;padding:6px}
+            .cert-inner{position:relative;height:100%;border:2px solid ${theme.ring};border-radius:6px;padding:40px 60px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:540px}
+            .cert-watermark{position:absolute;top:50%;left:50%;width:340px;height:340px;transform:translate(-50%,-50%);opacity:0.14;pointer-events:none;background-image:url('${logoUrl}');background-size:contain;background-repeat:no-repeat;background-position:center}
+            .cert-corner{position:absolute;width:40px;height:40px;border:3px solid ${theme.border};opacity:0.65}
+            .cc-tl{top:14px;left:14px;border-right:none;border-bottom:none;border-top-left-radius:6px}
+            .cc-tr{top:14px;right:14px;border-left:none;border-bottom:none;border-top-right-radius:6px}
+            .cc-bl{bottom:14px;left:14px;border-right:none;border-top:none;border-bottom-left-radius:6px}
+            .cc-br{bottom:14px;right:14px;border-left:none;border-top:none;border-bottom-right-radius:6px}
+            .cert-logo-outer{position:absolute;top:20px;left:24px;max-width:46%;display:flex;flex-direction:column;gap:10px}
+            .cert-logo-row{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:14px 16px}
+            .cert-logo-pair{display:flex;align-items:flex-start;gap:6px;flex-shrink:0}
+            .cert-logo-block{display:flex;flex-direction:column;align-items:center;gap:5px;width:56px;flex-shrink:0}
+            .cert-logo-block-wide{display:flex;flex-direction:column;align-items:center;gap:5px;width:auto;flex-shrink:0}
+            .cert-corner-logo{width:50px;height:50px;object-fit:contain;border-radius:11px}
+            .cert-logo-svg{height:50px;width:auto;object-fit:contain;display:block}
+            .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:11px;letter-spacing:0.5px;color:${theme.deep};text-transform:uppercase;text-align:center;line-height:1.15}
+            .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
+            .cert-brand{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;letter-spacing:5px;color:${theme.deep};margin-bottom:20px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+            .cert-brand::before,.cert-brand::after{content:'';width:36px;height:1px;background:${theme.border}}
+            .cert-title{font-family:'Playfair Display',serif;font-weight:800;font-size:42px;letter-spacing:3px;color:${theme.deep};margin-bottom:24px;text-transform:uppercase;text-shadow:0 1px 0 rgba(255,255,255,0.5)}
+            .cert-given-to{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:${theme.text};opacity:0.65;margin-bottom:10px}
+            .cert-name{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:${theme.deep};padding:2px 36px 14px;margin-bottom:22px;position:relative}
+            .cert-name::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2px;background:${theme.border}}
+            .cert-text{font-size:16px;line-height:1.8;max-width:640px;margin-bottom:14px;color:${theme.text}}
+            .cert-rank{font-family:'Playfair Display',serif;font-weight:700;font-size:20px;color:${theme.deep}}
+            .cert-score{font-size:14px;color:${theme.deep};margin-bottom:20px;font-weight:600;letter-spacing:0.5px}
+            .cert-footer{display:flex;justify-content:space-between;align-items:flex-start;width:100%;max-width:660px;margin-top:16px;gap:14px}
+            .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
+            .cert-sig-block{display:flex;flex-direction:column;align-items:center}
+            .cert-sig-slot{height:20px;width:190px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:0}
+            .cert-sig-line{width:190px;height:0;border-top:2px solid ${theme.deep};margin-bottom:6px}
+            .cert-sig-name{font-weight:700;font-size:13px;margin-bottom:4px}
+            .cert-sig-org{font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin-top:2px;font-weight:600}
+            .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
+            #cert-qr{margin-bottom:4px}
+            .cert-num{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1px;color:${theme.text};opacity:0.5}
+        </style>
+        </head><body>
+        <div class="cert-outer">
+            <div class="cert-inner">
+                <div class="cert-watermark"></div>
+                <div class="cert-corner cc-tl"></div>
+                <div class="cert-corner cc-tr"></div>
+                <div class="cert-corner cc-bl"></div>
+                <div class="cert-corner cc-br"></div>
+                <div class="cert-logo-outer"><div class="cert-logo-row">
+                    <div class="cert-logo-block">
+                        <img src="${logoUrl}" class="cert-corner-logo" alt="">
+                        <span class="cert-logo-caption">Ziyomap</span>
+                    </div>
+                    <div class="cert-logo-block">
+                        <img src="${rightLogoUrl}" class="cert-corner-logo" alt="">
+                        <span class="cert-logo-caption">Reja</span>
+                    </div>
+                    <div class="cert-logo-pair">
+                        <div class="cert-logo-block-wide"><img src="${svgLogoUrl}" class="cert-logo-svg" alt=""></div>
+                        <div class="cert-logo-block">
+                            <img src="${ziyomapMarkUrl}" class="cert-corner-logo" alt="">
+                            <span class="cert-logo-caption">Ziyomarket</span>
+                        </div>
+                    </div>
+                </div></div>
+                <div class="cert-medal">${theme.medal}</div>
+                <div class="cert-brand">ZIYOMAP</div>
+                <div class="cert-title">${cbEsc(theme.label)}</div>
+                <div class="cert-given-to">Ushbu hujjat quyidagi shaxsga taqdim etiladi</div>
+                <div class="cert-name">${cbEsc(fullName)}</div>
+                <div class="cert-text">${mainText}</div>
+                ${scoreLine}
+                <div class="cert-footer">
+                    <div class="cert-footer-block cert-sig-block">
+                        <div class="cert-sig-slot"></div>
+                        <div class="cert-sig-line"></div>
+                        <div class="cert-sig-name">${cbEsc(dateText)}</div>
+                        Berilgan sana
+                    </div>
+                    <div class="cert-qr-block"><div id="cert-qr"></div>Haqiqiyligini tekshirish</div>
+                    <div class="cert-footer-block">
+                        <div class="cert-sig-slot"><span class="cert-sig-name" style="margin-bottom:0">${cbEsc(signerName)}</span></div>
+                        <div class="cert-sig-line"></div>
+                        <div class="cert-sig-org">Ziyomap</div>
+                    </div>
+                </div>
+                <div class="cert-num">${cbEsc(data.certNumber || 'saqlanmagan \u2014 QR faol emas')}</div>
+            </div>
+        </div>
+        <script>
+            window.onload = () => {
+                try { new QRCode(document.getElementById('cert-qr'), { text: ${JSON.stringify(verifyUrl)}, width: 64, height: 64 }); } catch (e) {}
+                ${autoprint ? 'setTimeout(() => window.print(), 500);' : ''}
+            };
+        <\/script>
+        </body></html>`;
+    }
+
+    function cbLoadScript(src) {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('Skript yuklanmadi: ' + src));
+            document.head.appendChild(s);
+        });
+    }
+
+    let cbSaved = false;
+
+    function cbSetStatus(text, kind) {
+        const el = document.getElementById('cb-status');
+        if (!el) return;
+        el.textContent = text || '';
+        el.style.color = kind === 'error' ? 'var(--red)' : kind === 'success' ? 'var(--green)' : 'var(--muted)';
+    }
+
+    function cbMarkDirty() {
+        cbSaved = false;
+        document.getElementById('cb-print-btn').disabled = true;
+        document.getElementById('cb-pptx-btn').disabled = true;
+        document.getElementById('cb-print-btn').title = 'Avval saqlang';
+        document.getElementById('cb-pptx-btn').title = 'Avval saqlang';
+    }
+
+    function cbRenderPreview() {
+        const data = cbCollectData();
+        const frame = document.getElementById('cb-preview-frame');
+        if (frame) frame.srcdoc = cbBuildCertHtml(data);
+    }
+
+    function cbInit() {
+        const dateInput = document.getElementById('cb-date');
+        if (dateInput && !dateInput.value) {
+            dateInput.value = new Date().toISOString().slice(0, 10);
+        }
+        if (!document.getElementById('cb-certnum').value) {
+            document.getElementById('cb-certnum').value = cbGenCertNumber();
+        }
+
+        document.querySelectorAll('#cb-type-btns [data-cb-type]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#cb-type-btns [data-cb-type]').forEach((b) => b.classList.remove('active'));
+                btn.classList.add('active');
+                cbMarkDirty();
+                cbRenderPreview();
+            });
+        });
+
+        ['cb-fullname', 'cb-contest', 'cb-score', 'cb-date', 'cb-signer'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('input', () => {
+                cbMarkDirty();
+                cbRenderPreview();
+            });
+        });
+
+        document.getElementById('cb-gen-num-btn')?.addEventListener('click', () => {
+            document.getElementById('cb-certnum').value = cbGenCertNumber();
+            cbMarkDirty();
+            cbRenderPreview();
+        });
+
+        document.getElementById('cb-save-btn')?.addEventListener('click', async () => {
+            const data = cbCollectData();
+            if (!data.fullName || !data.contestTitle) {
+                cbSetStatus('Ismi va tanlov nomini to\u2018ldiring.', 'error');
+                return;
+            }
+            if (!data.certNumber) {
+                data.certNumber = cbGenCertNumber();
+                document.getElementById('cb-certnum').value = data.certNumber;
+            }
+            const theme = CB_THEMES[data.type];
+            const btn = document.getElementById('cb-save-btn');
+            btn.disabled = true;
+            try {
+                await setDoc(doc(db, 'certificates', data.certNumber), {
+                    fullName: data.fullName,
+                    contestTitle: data.contestTitle,
+                    isWinner: theme.isWinner,
+                    rank: theme.isWinner ? theme.rank : null,
+                    score: data.score ? Number(data.score) : null,
+                    issuedDateText: cbFmtDate(data.dateStr),
+                    issuedAt: serverTimestamp(),
+                    manual: true,
+                }, { merge: true });
+                cbSaved = true;
+                document.getElementById('cb-print-btn').disabled = false;
+                document.getElementById('cb-pptx-btn').disabled = false;
+                document.getElementById('cb-print-btn').title = '';
+                document.getElementById('cb-pptx-btn').title = '';
+                cbSetStatus('Saqlandi \u2014 QR kod endi haqiqiy va tekshiriladi.', 'success');
+                cbRenderPreview();
+            } catch (err) {
+                console.error('Sertifikatni saqlashda xatolik:', err);
+                cbSetStatus('Saqlashda xatolik yuz berdi.', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        document.getElementById('cb-print-btn')?.addEventListener('click', () => {
+            if (!cbSaved) return;
+            const data = cbCollectData();
+            const w = window.open('', '_blank');
+            if (!w) return;
+            w.document.write(cbBuildCertHtml(data, true));
+            w.document.close();
+        });
+
+        document.getElementById('cb-pptx-btn')?.addEventListener('click', async () => {
+            if (!cbSaved) return;
+            const pbtn = document.getElementById('cb-pptx-btn');
+            pbtn.disabled = true;
+            try {
+                cbSetStatus('PPTX tayyorlanmoqda...', 'info');
+                await cbLoadScript('https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js');
+                await cbLoadScript('https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js');
+
+                const data = cbCollectData();
+                const theme = CB_THEMES[data.type];
+                const origin = window.location.origin;
+                const verifyUrl = `${origin}/tasdiqlash.html?id=${encodeURIComponent(data.certNumber)}`;
+
+                // Haqiqiy QR'ni vaqtinchalik yashirin konteynerda render qilib, rasmga aylantiramiz
+                const qrHost = document.createElement('div');
+                qrHost.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+                document.body.appendChild(qrHost);
+                // eslint-disable-next-line no-undef
+                new QRCode(qrHost, { text: verifyUrl, width: 240, height: 240 });
+                await new Promise((r) => setTimeout(r, 150));
+                const qrCanvas = qrHost.querySelector('canvas');
+                const qrDataUrl = qrCanvas ? qrCanvas.toDataURL('image/png') : null;
+                document.body.removeChild(qrHost);
+
+                // eslint-disable-next-line no-undef
+                const pres = new PptxGenJS();
+                pres.defineLayout({ name: 'CERT_A4L', width: 11.69, height: 8.27 });
+                pres.layout = 'CERT_A4L';
+                const W = 11.69, H = 8.27, CX = W / 2;
+
+                function lighten(hex, amt) {
+                    const r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+                    const mix = (c) => Math.round(c + (255 - c) * amt);
+                    const toHex = (c) => c.toString(16).padStart(2, '0').toUpperCase();
+                    return toHex(mix(r)) + toHex(mix(g)) + toHex(mix(b));
+                }
+                const border = theme.border.replace('#', '');
+                const ring = theme.ring.replace('#', '');
+                const deep = theme.deep.replace('#', '');
+                const textC = theme.text.replace('#', '');
+
+                const slide = pres.addSlide();
+                slide.background = { color: 'FFFCF0' };
+                slide.addShape('roundRect', { x: 0.28, y: 0.28, w: W - 0.56, h: H - 0.56, rectRadius: 0.07, fill: { type: 'none' }, line: { color: border, width: 2.25 } });
+                slide.addShape('roundRect', { x: 0.42, y: 0.42, w: W - 0.84, h: H - 0.84, rectRadius: 0.05, fill: { type: 'none' }, line: { color: ring, width: 1.5 } });
+
+                slide.addImage({ path: `${origin}/images/nav-icon.png`, x: CX - 1.9, y: H / 2 - 1.9, w: 3.8, h: 3.8, transparency: 88 });
+
+                const logoY = 0.62;
+                let lx = 0.68;
+                slide.addImage({ path: `${origin}/images/nav-icon.png`, x: lx, y: logoY, w: 0.5, h: 0.5 });
+                slide.addText('ZIYOMAP', { x: lx - 0.25, y: logoY + 0.52, w: 1.0, h: 0.22, align: 'center', fontFace: 'Cambria', fontSize: 7, bold: true, color: deep, charSpacing: 1, isTextBox: true, margin: 0 });
+                lx += 0.72;
+                slide.addImage({ path: `${origin}/images/cert-icon-right.png`, x: lx, y: logoY, w: 0.5, h: 0.5 });
+                slide.addText('REJA', { x: lx - 0.25, y: logoY + 0.52, w: 1.0, h: 0.22, align: 'center', fontFace: 'Cambria', fontSize: 7, bold: true, color: deep, charSpacing: 1, isTextBox: true, margin: 0 });
+                lx += 0.8;
+                slide.addImage({ path: `${origin}/images/logo-full.png`, x: lx, y: logoY + 0.03, w: 1.55, h: 0.45 });
+                lx += 1.77;
+                slide.addImage({ path: `${origin}/images/cert-logo-ziyomap-mark.png`, x: lx, y: logoY, w: 0.5, h: 0.5 });
+                slide.addText('ZIYOMARKET', { x: lx - 0.5, y: logoY + 0.52, w: 1.5, h: 0.22, align: 'center', fontFace: 'Cambria', fontSize: 7, bold: true, color: deep, charSpacing: 1, isTextBox: true, margin: 0 });
+
+                const medalD = 0.85, medalX = CX - medalD / 2, medalY = 0.62;
+                slide.addShape('ellipse', { x: medalX, y: medalY, w: medalD, h: medalD, fill: { color: ring }, line: { color: border, width: 2.5 } });
+                if (theme.rank) {
+                    slide.addText(String(theme.rank), { x: medalX, y: medalY, w: medalD, h: medalD, align: 'center', valign: 'middle', fontFace: 'Cambria', fontSize: 30, bold: true, color: deep, isTextBox: true, margin: 0 });
+                } else {
+                    slide.addShape('star5', { x: medalX + medalD * 0.22, y: medalY + medalD * 0.22, w: medalD * 0.56, h: medalD * 0.56, fill: { color: deep }, line: { type: 'none' } });
+                }
+                slide.addShape('triangle', { x: CX - 0.32, y: medalY + medalD - 0.06, w: 0.22, h: 0.42, fill: { color: border }, line: { type: 'none' }, rotate: 180 });
+                slide.addShape('triangle', { x: CX + 0.10, y: medalY + medalD - 0.06, w: 0.22, h: 0.42, fill: { color: deep }, line: { type: 'none' }, rotate: 180 });
+
+                const brandY = medalY + medalD + 0.14;
+                slide.addShape('line', { x: CX - 1.05, y: brandY + 0.12, w: 0.45, h: 0, line: { color: border, width: 1 } });
+                slide.addText('ZIYOMAP', { x: CX - 1.6, y: brandY, w: 3.2, h: 0.26, align: 'center', fontFace: 'Cambria', fontSize: 13, bold: true, color: deep, charSpacing: 5, isTextBox: true, margin: 0 });
+                slide.addShape('line', { x: CX + 0.60, y: brandY + 0.12, w: 0.45, h: 0, line: { color: border, width: 1 } });
+
+                slide.addText(theme.label, { x: 0.8, y: brandY + 0.32, w: W - 1.6, h: 0.62, align: 'center', fontFace: 'Cambria', fontSize: 34, bold: true, color: deep, charSpacing: 3, isTextBox: true, margin: 0 });
+
+                const givenY = brandY + 1.02;
+                slide.addText('USHBU HUJJAT QUYIDAGI SHAXSGA TAQDIM ETILADI', { x: 1.0, y: givenY, w: W - 2.0, h: 0.24, align: 'center', fontFace: 'Calibri', fontSize: 10.5, color: lighten('#' + textC, 0.35), charSpacing: 2, isTextBox: true, margin: 0 });
+
+                const nameY = givenY + 0.36;
+                slide.addText(data.fullName || '[ Ishtirokchining F.I.Sh. ]', { x: 1.2, y: nameY, w: W - 2.4, h: 0.52, align: 'center', fontFace: 'Cambria', fontSize: 26, bold: true, color: deep, isTextBox: true, margin: 0 });
+                slide.addShape('line', { x: CX - 2.2, y: nameY + 0.56, w: 4.4, h: 0, line: { color: border, width: 1.5 } });
+
+                const bodyY = nameY + 0.72;
+                const mainRuns = theme.isWinner
+                    ? [{ text: data.contestTitle || '[ Tanlov nomi ]', options: { bold: true } }, { text: ' tanlovida\n', options: {} }, { text: CB_RANK_WORD[theme.rank], options: { bold: true, color: deep } }, { text: 'ni egallagani uchun taqdim etiladi', options: {} }]
+                    : [{ text: data.contestTitle || '[ Tanlov nomi ]', options: { bold: true } }, { text: ' tanlovida faol ishtirok etganligi uchun taqdim etiladi', options: {} }];
+                slide.addText(mainRuns, { x: CX - 3.6, y: bodyY, w: 7.2, h: 0.62, align: 'center', fontFace: 'Calibri', fontSize: 13, color: textC, lineSpacing: 20, isTextBox: true, margin: 0 });
+
+                if (data.score) {
+                    slide.addText(`Umumiy natija: ${data.score} ball`, { x: CX - 2, y: bodyY + 0.66, w: 4, h: 0.26, align: 'center', fontFace: 'Calibri', fontSize: 11, bold: true, color: deep, charSpacing: 0.5, isTextBox: true, margin: 0 });
+                }
+
+                const footY = H - 2.05, colW = 2.6, gap = 0.35, footX0 = CX - (colW * 3 + gap * 2) / 2;
+                const c1x = footX0;
+                slide.addShape('line', { x: c1x + 0.3, y: footY + 0.42, w: colW - 0.6, h: 0, line: { color: deep, width: 1.5 } });
+                slide.addText(cbFmtDate(data.dateStr) || '[ Sana ]', { x: c1x, y: footY + 0.46, w: colW, h: 0.24, align: 'center', fontFace: 'Calibri', fontSize: 11, bold: true, color: textC, isTextBox: true, margin: 0 });
+                slide.addText('Berilgan sana', { x: c1x, y: footY + 0.70, w: colW, h: 0.22, align: 'center', fontFace: 'Calibri', fontSize: 9, color: lighten('#' + textC, 0.3), isTextBox: true, margin: 0 });
+
+                const c2x = footX0 + colW + gap, qrSize = 0.62;
+                if (qrDataUrl) {
+                    slide.addImage({ data: qrDataUrl, x: c2x + colW / 2 - qrSize / 2, y: footY + 0.06, w: qrSize, h: qrSize });
+                }
+                slide.addText('Haqiqiyligini tekshirish', { x: c2x, y: footY + 0.72, w: colW, h: 0.22, align: 'center', fontFace: 'Calibri', fontSize: 9, color: lighten('#' + textC, 0.3), isTextBox: true, margin: 0 });
+
+                const c3x = footX0 + (colW + gap) * 2;
+                slide.addText(data.signer || 'Ziyomap', { x: c3x, y: footY + 0.16, w: colW, h: 0.24, align: 'center', fontFace: 'Calibri', fontSize: 11, bold: true, color: textC, isTextBox: true, margin: 0 });
+                slide.addShape('line', { x: c3x + 0.3, y: footY + 0.42, w: colW - 0.6, h: 0, line: { color: deep, width: 1.5 } });
+                slide.addText('ZIYOMAP', { x: c3x, y: footY + 0.46, w: colW, h: 0.22, align: 'center', fontFace: 'Calibri', fontSize: 9, bold: true, color: lighten('#' + textC, 0.3), charSpacing: 2, isTextBox: true, margin: 0 });
+
+                slide.addText(data.certNumber, { x: CX - 2, y: H - 0.55, w: 4, h: 0.22, align: 'center', fontFace: 'Calibri', fontSize: 9, color: lighten('#' + textC, 0.45), charSpacing: 1, isTextBox: true, margin: 0 });
+
+                await pres.writeFile({ fileName: `${data.certNumber}.pptx` });
+                cbSetStatus('PPTX yuklandi.', 'success');
+            } catch (err) {
+                console.error('PPTX yaratishda xatolik:', err);
+                cbSetStatus('PPTX yaratishda xatolik yuz berdi.', 'error');
+            } finally {
+                document.getElementById('cb-pptx-btn').disabled = false;
+            }
+        });
+
+        cbRenderPreview();
+    }
+
+    if (document.getElementById('panel-certbuilder')) {
+        cbInit();
+    }
+})();
