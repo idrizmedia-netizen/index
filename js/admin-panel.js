@@ -3381,6 +3381,14 @@ async function loadAdmins() {
                 <div class="field"><label>Davri</label><input type="text" id="obuna-p${i}-period" placeholder="Masalan: oyiga"></div>
             </div>
             <div class="field"><label>Xususiyatlari (har birini alohida qatorga yozing)</label><textarea id="obuna-p${i}-features" placeholder="Barcha laboratoriya darslariga kirish&#10;Tanlovlarda ustuvor ro'yxatdan o'tish&#10;Reklamasiz interfeys"></textarea></div>
+            <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:12px">
+                <p style="font-size:0.78rem;font-weight:700;color:var(--muted);margin:0 0 8px">Cheklovlar (ixtiyoriy — bo'sh qoldirsangiz "cheklovsiz" deb hisoblanadi)</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="field" style="margin-bottom:0"><label>Kuniga dars ishlanmasi (dona)</label><input type="number" min="0" id="obuna-p${i}-daily" placeholder="Masalan: 3"></div>
+                    <div class="field" style="margin-bottom:0"><label>Oyiga dars ishlanmasi (dona)</label><input type="number" min="0" id="obuna-p${i}-monthly" placeholder="Masalan: 30"></div>
+                </div>
+                <div class="field" style="margin-top:10px;margin-bottom:0"><label>Nechta pullik tanlovda bepul ishtirok etish mumkin (oyiga)</label><input type="number" min="0" id="obuna-p${i}-freecontests" placeholder="Masalan: 1"></div>
+            </div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem">
                 <input type="checkbox" id="obuna-p${i}-popular" style="width:auto"> "Tavsiya etiladi" belgisi bilan ajratib ko'rsatilsin
             </label>
@@ -3404,6 +3412,9 @@ async function loadAdmins() {
                 const priceEl = document.getElementById(`obuna-p${i}-price`); if (priceEl) priceEl.value = p.price || '';
                 const periodEl = document.getElementById(`obuna-p${i}-period`); if (periodEl) periodEl.value = p.period || '';
                 const featEl = document.getElementById(`obuna-p${i}-features`); if (featEl) featEl.value = (p.features || []).join('\n');
+                const dailyEl = document.getElementById(`obuna-p${i}-daily`); if (dailyEl) dailyEl.value = p.dailyWorksheetLimit ?? '';
+                const monthlyEl = document.getElementById(`obuna-p${i}-monthly`); if (monthlyEl) monthlyEl.value = p.monthlyWorksheetLimit ?? '';
+                const freeEl = document.getElementById(`obuna-p${i}-freecontests`); if (freeEl) freeEl.value = p.freeContestsPerMonth ?? '';
                 const popEl = document.getElementById(`obuna-p${i}-popular`); if (popEl) popEl.checked = !!p.popular;
             });
         } catch (err) {
@@ -3428,6 +3439,9 @@ async function loadAdmins() {
                     period: document.getElementById(`obuna-p${i}-period`)?.value.trim() || '',
                     features: (document.getElementById(`obuna-p${i}-features`)?.value || '')
                         .split('\n').map((s) => s.trim()).filter(Boolean),
+                    dailyWorksheetLimit: document.getElementById(`obuna-p${i}-daily`)?.value !== '' ? Number(document.getElementById(`obuna-p${i}-daily`).value) : null,
+                    monthlyWorksheetLimit: document.getElementById(`obuna-p${i}-monthly`)?.value !== '' ? Number(document.getElementById(`obuna-p${i}-monthly`).value) : null,
+                    freeContestsPerMonth: document.getElementById(`obuna-p${i}-freecontests`)?.value !== '' ? Number(document.getElementById(`obuna-p${i}-freecontests`).value) : null,
                     popular: !!document.getElementById(`obuna-p${i}-popular`)?.checked,
                 });
             }
