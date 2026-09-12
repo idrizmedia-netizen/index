@@ -3359,3 +3359,90 @@ async function loadAdmins() {
         cbInit();
     }
 })();
+
+/* ══════════════════════════════════════════════════════════════
+   OBUNA BO'LIMI BOSHQARUVI (site-content/obuna-settings)
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+    const wrap = document.getElementById('obuna-plans-wrap');
+    if (!wrap) return;
+
+    const PLAN_COUNT = 4;
+    for (let i = 0; i < PLAN_COUNT; i++) {
+        const div = document.createElement('div');
+        div.style.cssText = 'border:1px solid var(--border);border-radius:14px;padding:14px 16px';
+        div.innerHTML = `
+            <label style="display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:10px;cursor:pointer">
+                <input type="checkbox" id="obuna-p${i}-active" style="width:auto"> ${i + 1}-reja faol
+            </label>
+            <div class="field"><label>Reja nomi</label><input type="text" id="obuna-p${i}-name" placeholder="Masalan: Premium"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="field"><label>Narxi</label><input type="text" id="obuna-p${i}-price" placeholder="Masalan: 49 000 so'm yoki Bepul"></div>
+                <div class="field"><label>Davri</label><input type="text" id="obuna-p${i}-period" placeholder="Masalan: oyiga"></div>
+            </div>
+            <div class="field"><label>Xususiyatlari (har birini alohida qatorga yozing)</label><textarea id="obuna-p${i}-features" placeholder="Barcha laboratoriya darslariga kirish&#10;Tanlovlarda ustuvor ro'yxatdan o'tish&#10;Reklamasiz interfeys"></textarea></div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem">
+                <input type="checkbox" id="obuna-p${i}-popular" style="width:auto"> "Tavsiya etiladi" belgisi bilan ajratib ko'rsatilsin
+            </label>
+        `;
+        wrap.appendChild(div);
+    }
+
+    async function loadObunaSettings() {
+        try {
+            const snap = await getDoc(doc(db, 'site-content', 'obuna-settings'));
+            if (!snap.exists()) return;
+            const data = snap.data();
+            document.getElementById('obuna-intro').value = data.intro || '';
+            document.getElementById('obuna-contact-note').value = data.contactNote || '';
+            document.getElementById('obuna-contact-link').value = data.contactLink || '';
+            (data.plans || []).forEach((p, i) => {
+                if (i >= PLAN_COUNT) return;
+                const activeEl = document.getElementById(`obuna-p${i}-active`);
+                if (activeEl) activeEl.checked = !!p.active;
+                const nameEl = document.getElementById(`obuna-p${i}-name`); if (nameEl) nameEl.value = p.name || '';
+                const priceEl = document.getElementById(`obuna-p${i}-price`); if (priceEl) priceEl.value = p.price || '';
+                const periodEl = document.getElementById(`obuna-p${i}-period`); if (periodEl) periodEl.value = p.period || '';
+                const featEl = document.getElementById(`obuna-p${i}-features`); if (featEl) featEl.value = (p.features || []).join('\n');
+                const popEl = document.getElementById(`obuna-p${i}-popular`); if (popEl) popEl.checked = !!p.popular;
+            });
+        } catch (err) {
+            console.error('Obuna sozlamalarini yuklashda xatolik:', err);
+        }
+    }
+    loadObunaSettings();
+
+    document.getElementById('obuna-save-btn')?.addEventListener('click', async () => {
+        const statusEl = document.getElementById('obuna-status');
+        const btn = document.getElementById('obuna-save-btn');
+        btn.disabled = true;
+        try {
+            const plans = [];
+            for (let i = 0; i < PLAN_COUNT; i++) {
+                const name = document.getElementById(`obuna-p${i}-name`)?.value.trim();
+                if (!name) continue;
+                plans.push({
+                    active: !!document.getElementById(`obuna-p${i}-active`)?.checked,
+                    name,
+                    price: document.getElementById(`obuna-p${i}-price`)?.value.trim() || '',
+                    period: document.getElementById(`obuna-p${i}-period`)?.value.trim() || '',
+                    features: (document.getElementById(`obuna-p${i}-features`)?.value || '')
+                        .split('\n').map((s) => s.trim()).filter(Boolean),
+                    popular: !!document.getElementById(`obuna-p${i}-popular`)?.checked,
+                });
+            }
+            await setDoc(doc(db, 'site-content', 'obuna-settings'), {
+                intro: document.getElementById('obuna-intro').value.trim(),
+                contactNote: document.getElementById('obuna-contact-note').value.trim(),
+                contactLink: document.getElementById('obuna-contact-link').value.trim(),
+                plans,
+            }, { merge: true });
+            if (statusEl) { statusEl.textContent = 'Saqlandi.'; statusEl.style.color = 'var(--green)'; }
+        } catch (err) {
+            console.error('Obuna sozlamalarini saqlashda xatolik:', err);
+            if (statusEl) { statusEl.textContent = 'Saqlashda xatolik yuz berdi.'; statusEl.style.color = 'var(--red)'; }
+        } finally {
+            btn.disabled = false;
+        }
+    });
+})();
