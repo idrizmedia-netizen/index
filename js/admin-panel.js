@@ -3422,8 +3422,13 @@ async function loadAdmins() {
             </label>
             <div class="field"><label>Reja nomi</label><input type="text" id="obuna-p${i}-name" placeholder="Masalan: Premium"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div class="field"><label>Narxi</label><input type="text" id="obuna-p${i}-price" placeholder="Masalan: 49 000 so'm yoki Bepul"></div>
+                <div class="field"><label>Narxi (hozirgi, chegirma bilan)</label><input type="text" id="obuna-p${i}-price" placeholder="Masalan: 49 000 so'm yoki Bepul"></div>
                 <div class="field"><label>Davri</label><input type="text" id="obuna-p${i}-period" placeholder="Masalan: oyiga"></div>
+            </div>
+            <div class="field">
+                <label>Asl narx (chegirmagacha, ixtiyoriy)</label>
+                <input type="text" id="obuna-p${i}-oldprice" placeholder="Masalan: 79 000 so'm — chegirma bo'lmasa bo'sh qoldiring">
+                <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">To'ldirilsa, sahifada bu narx <s>chizib qo'yiladi</s> va chegirma foizi avtomatik hisoblab ko'rsatiladi.</p>
             </div>
             <div class="field"><label>Xususiyatlari (har birini alohida qatorga yozing)</label><textarea id="obuna-p${i}-features" placeholder="Barcha laboratoriya darslariga kirish&#10;Tanlovlarda ustuvor ro'yxatdan o'tish&#10;Reklamasiz interfeys"></textarea></div>
             <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:12px">
@@ -3478,6 +3483,7 @@ async function loadAdmins() {
                 if (activeEl) activeEl.checked = !!p.active;
                 const nameEl = document.getElementById(`obuna-p${i}-name`); if (nameEl) nameEl.value = p.name || '';
                 const priceEl = document.getElementById(`obuna-p${i}-price`); if (priceEl) priceEl.value = p.price || '';
+                const oldPriceEl = document.getElementById(`obuna-p${i}-oldprice`); if (oldPriceEl) oldPriceEl.value = p.oldPrice || '';
                 const periodEl = document.getElementById(`obuna-p${i}-period`); if (periodEl) periodEl.value = p.period || '';
                 const featEl = document.getElementById(`obuna-p${i}-features`); if (featEl) featEl.value = (p.features || []).join('\n');
                 const limits = p.limits || {};
@@ -3515,6 +3521,7 @@ async function loadAdmins() {
                     active: !!document.getElementById(`obuna-p${i}-active`)?.checked,
                     name,
                     price: document.getElementById(`obuna-p${i}-price`)?.value.trim() || '',
+                    oldPrice: document.getElementById(`obuna-p${i}-oldprice`)?.value.trim() || '',
                     period: document.getElementById(`obuna-p${i}-period`)?.value.trim() || '',
                     features: (document.getElementById(`obuna-p${i}-features`)?.value || '')
                         .split('\n').map((s) => s.trim()).filter(Boolean),
