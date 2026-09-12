@@ -149,6 +149,7 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
   <div class="tabs">
     <button class="tab-btn active" data-tab="stats"><i class="fas fa-chart-simple"></i> Statistika</button>
     <button class="tab-btn" data-tab="contests"><i class="fas fa-trophy"></i> Tanlovlar</button>
+    <button class="tab-btn" data-tab="certbuilder"><i class="fas fa-award"></i> Sertifikat konstruktori</button>
     <button class="tab-btn" data-tab="tests"><i class="fas fa-file-pen"></i> Testlar</button>
     <button class="tab-btn" data-tab="registrants"><i class="fas fa-users"></i> Ishtirokchilar</button>
     <button class="tab-btn" data-tab="notify"><i class="fas fa-bullhorn"></i> Bildirishnoma</button>
@@ -395,6 +396,53 @@ Bilet 2
     <div class="card">
       <h3><i class="fas fa-ticket"></i> Suhbat biletlari (yuklangan)</h3>
       <div id="ticketsList"><div class="empty">Tanlov tanlanmagan.</div></div>
+    </div>
+  </div>
+
+  <!-- SERTIFIKAT KONSTRUKTORI -->
+  <div class="panel" id="panel-certbuilder">
+    <div class="card">
+      <h3><i class="fas fa-award"></i> Sertifikat konstruktori</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px;line-height:1.6">
+        Har qanday diplom yoki sertifikatni qo'lda to'ldiring, o'ng tomonda saytdagi haqiqiy dizaynda ko'ring, so'ng pastdagi tugmalar orqali
+        <b>chop eting / PDF qilib saqlang</b> yoki <b>PowerPoint (.pptx) qilib yuklab oling</b>. "Saqlash" tugmasi bosilgach, tizim shu sertifikat uchun
+        <b>haqiqiy tekshirish QR kodi</b>ni faollashtiradi — uni skanerlagan har qanday odam ma'lumotlarni to'g'ridan-to'g'ri saytdan (tasdiqlash.html) tekshira oladi.
+      </p>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px" id="cb-type-btns">
+        <button type="button" class="contest-filter-btn active" data-cb-type="1">🥇 I-o'rin diplomi</button>
+        <button type="button" class="contest-filter-btn" data-cb-type="2">🥈 II-o'rin diplomi</button>
+        <button type="button" class="contest-filter-btn" data-cb-type="3">🥉 III-o'rin diplomi</button>
+        <button type="button" class="contest-filter-btn" data-cb-type="0">🎓 Ishtirok sertifikati</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:26px;align-items:start" id="cb-grid">
+        <div>
+          <div class="field"><label>Ishtirokchi F.I.Sh.</label><input type="text" id="cb-fullname" placeholder="Masalan: Aliyev Ali Aliyevich"></div>
+          <div class="field"><label>Tanlov nomi</label><input type="text" id="cb-contest" placeholder="Masalan: Ziyomap yosh dasturchilar tanlovi"></div>
+          <div class="field"><label>Umumiy ball (ixtiyoriy)</label><input type="number" id="cb-score" placeholder="Masalan: 87"></div>
+          <div class="field"><label>Berilgan sana</label><input type="date" id="cb-date"></div>
+          <div class="field"><label>Mas'ul shaxs F.I.Sh.</label><input type="text" id="cb-signer" placeholder="Masalan: Normurodov I."></div>
+          <div class="field">
+            <label>Sertifikat raqami</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="cb-certnum" placeholder="Avtomatik yaratiladi" readonly style="flex:1;background:#f8fafc">
+              <button type="button" class="btn btn-primary" id="cb-gen-num-btn" style="white-space:nowrap;padding:0 14px"><i class="fas fa-shuffle"></i></button>
+            </div>
+          </div>
+          <p id="cb-status" style="font-size:0.82rem;margin-top:4px;min-height:18px"></p>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+            <button type="button" class="btn btn-primary" id="cb-save-btn"><i class="fas fa-cloud-arrow-up"></i> Saqlash (QR faollashtiriladi)</button>
+            <button type="button" class="btn" id="cb-print-btn" disabled title="Avval saqlang"><i class="fas fa-print"></i> Chop etish / PDF qilib saqlash</button>
+            <button type="button" class="btn" id="cb-pptx-btn" disabled title="Avval saqlang"><i class="fas fa-file-powerpoint"></i> PPTX qilib yuklab olish</button>
+          </div>
+        </div>
+        <div>
+          <div style="border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#e7e2d8;padding:16px">
+            <iframe id="cb-preview-frame" style="width:100%;aspect-ratio:1.414;border:0;border-radius:8px;background:#fff;display:block"></iframe>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
