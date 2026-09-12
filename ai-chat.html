@@ -623,6 +623,7 @@
     </div><!-- /chat-page-wrap -->
 
     <script src="js/ziyomap-usage.js"></script>
+    <script src="js/usage-limits.js"></script>
     <script src="js/auth-guard.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/search-modal.js"></script>
@@ -1379,6 +1380,17 @@
         const text = userInputAi.value.trim();
         if(!text && !currentFiles.length) return;
         const files = currentFiles;
+
+        // ── Obuna rejasiga bog'liq: kuniga nechta marta rasm yuborish mumkinligi ──
+        const hasImage = files.some(f => f.mimeType && f.mimeType.startsWith('image/'));
+        if (hasImage && window.ZiyomapLimits) {
+            const limitCheck = await ZiyomapLimits.checkAndConsume('chatphoto');
+            if (!limitCheck.allowed) {
+                alert('\u26D4 ' + limitCheck.message + '\n\nObuna rejalarini ko\u2018rish uchun "Obuna" bo\u2018limiga o\u2018ting.');
+                return;
+            }
+        }
+
         userInputAi.value = '';
         clearDraft();
         window.cancelImage();
