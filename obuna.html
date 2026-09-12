@@ -134,18 +134,25 @@ async function load() {
         const contactLink = data.contactLink || 'https://t.me/ziyomap';
         const contactNote = data.contactNote || 'Obuna bo\u2018lish uchun tugmani bosing';
 
-        container.innerHTML = `<div class="plans-grid">${plans.map((p) => `
+        container.innerHTML = `<div class="plans-grid">${plans.map((p) => {
+            const limitLines = [];
+            if (p.dailyWorksheetLimit != null) limitLines.push(`Kuniga <b>${esc(p.dailyWorksheetLimit)}</b> ta dars ishlanmasi`);
+            if (p.monthlyWorksheetLimit != null) limitLines.push(`Oyiga <b>${esc(p.monthlyWorksheetLimit)}</b> ta dars ishlanmasi`);
+            if (p.freeContestsPerMonth != null) limitLines.push(`Oyiga <b>${esc(p.freeContestsPerMonth)}</b> ta pullik tanlovda bepul ishtirok`);
+            return `
             <div class="plan-card ${p.popular ? 'popular' : ''}">
                 ${p.popular ? '<div class="plan-badge">Tavsiya etiladi</div>' : ''}
                 <div class="plan-name">${esc(p.name)}</div>
                 <div class="plan-price">${esc(p.price || '')}</div>
                 <div class="plan-period">${esc(p.period || '')}</div>
                 <ul class="plan-features">
+                    ${limitLines.map((l) => `<li><i class="fas fa-gauge-high"></i>${l}</li>`).join('')}
                     ${(p.features || []).map((f) => `<li><i class="fas fa-circle-check"></i>${esc(f)}</li>`).join('')}
                 </ul>
                 <a href="${esc(contactLink)}" target="_blank" rel="noopener" class="plan-cta"><i class="fab fa-telegram"></i> ${esc(contactNote)}</a>
             </div>
-        `).join('')}</div>`;
+        `;
+        }).join('')}</div>`;
     } catch (err) {
         console.error('Obuna ma\u2018lumotlarini yuklashda xatolik:', err);
         container.innerHTML = '<div class="empty-box"><i class="fas fa-triangle-exclamation"></i>Ma\u2018lumotlarni yuklashda xatolik yuz berdi.</div>';
