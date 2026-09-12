@@ -1867,6 +1867,15 @@ async function loadNotifications() {
 async function loadUsers() {
     const tableEl = document.getElementById('usersTable');
     try {
+        let planNames = ['Bepul'];
+        try {
+            const obunaSnap = await getDoc(doc(db, 'site-content', 'obuna-settings'));
+            if (obunaSnap.exists()) {
+                const plans = obunaSnap.data().plans || [];
+                if (plans.length) planNames = plans.map((p, i) => p.name || `${i + 1}-reja`);
+            }
+        } catch (e) { /* reja nomlarini olishda xatolik bo'lsa, standart "Bepul" ishlatiladi */ }
+
         const snap = await getDocs(query(collection(db, 'users'), orderBy('lastSeen', 'desc'), limit(200)));
         if (snap.empty) {
             tableEl.innerHTML = '<div class="empty">Hali hech kim qayd etilmagan.</div>';
@@ -1876,17 +1885,29 @@ async function loadUsers() {
         snap.forEach((d) => {
             const u = d.data();
             const blocked = !!u.blocked;
+            const planId = typeof u.planId === 'number' ? u.planId : 0;
+            const expiresVal = u.planExpiresAt
+                ? (u.planExpiresAt.toDate ? u.planExpiresAt.toDate() : new Date(u.planExpiresAt)).toISOString().slice(0, 10)
+                : '';
+            const planOptions = planNames.map((name, i) => `<option value="${i}" ${i === planId ? 'selected' : ''}>${escapeHtml(name)}</option>`).join('');
             rows += `<tr>
                 <td>${escapeHtml(u.displayName || '—')}</td>
                 <td>${escapeHtml(u.email || '—')}</td>
                 <td>${blocked ? '<span class="badge closed">BLOKLANGAN</span>' : '<span class="badge open">FAOL</span>'}</td>
+                <td>
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                        <select data-plan-select="${d.id}" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border);font-size:0.8rem">${planOptions}</select>
+                        <input type="date" data-plan-expiry="${d.id}" value="${expiresVal}" title="Muddati (bo'sh = cheksiz)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border);font-size:0.78rem">
+                        <button class="btn btn-primary" data-plan-save="${d.id}" style="padding:6px 10px;font-size:0.78rem"><i class="fas fa-check"></i></button>
+                    </div>
+                </td>
                 <td><button class="btn ${blocked ? 'btn-green' : 'btn-red'}" data-block="${d.id}" data-next="${blocked ? 'false' : 'true'}">
                     <i class="fas ${blocked ? 'fa-unlock' : 'fa-ban'}"></i> ${blocked ? 'Blokdan chiqarish' : 'Bloklash'}
                 </button></td>
             </tr>`;
         });
         tableEl.innerHTML = `<table>
-            <thead><tr><th>Ism</th><th>Email</th><th>Holati</th><th></th></tr></thead>
+            <thead><tr><th>Ism</th><th>Email</th><th>Holati</th><th>Obuna rejasi</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
         </table>`;
 
@@ -1899,6 +1920,30 @@ async function loadUsers() {
                 } catch (err) {
                     console.error(err);
                     setStatus('Xatolik yuz berdi.', 'error');
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        tableEl.querySelectorAll('[data-plan-save]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const uid = btn.dataset.planSave;
+                const selectEl = tableEl.querySelector(`[data-plan-select="${uid}"]`);
+                const expiryEl = tableEl.querySelector(`[data-plan-expiry="${uid}"]`);
+                const planId = Number(selectEl.value);
+                const expiryStr = expiryEl.value;
+                btn.disabled = true;
+                try {
+                    await updateDoc(doc(db, 'users', uid), {
+                        planId,
+                        planExpiresAt: expiryStr ? new Date(expiryStr + 'T23:59:59') : null,
+                    });
+                    btn.innerHTML = '<i class="fas fa-check" style="color:#fff"></i>';
+                    setTimeout(() => { btn.innerHTML = '<i class="fas fa-check"></i>'; }, 1500);
+                } catch (err) {
+                    console.error('Reja tayinlashda xatolik:', err);
+                    setStatus('Reja tayinlashda xatolik yuz berdi.', 'error');
+                } finally {
                     btn.disabled = false;
                 }
             });
@@ -3382,11 +3427,34 @@ async function loadAdmins() {
             </div>
             <div class="field"><label>Xususiyatlari (har birini alohida qatorga yozing)</label><textarea id="obuna-p${i}-features" placeholder="Barcha laboratoriya darslariga kirish&#10;Tanlovlarda ustuvor ro'yxatdan o'tish&#10;Reklamasiz interfeys"></textarea></div>
             <div style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:12px">
-                <p style="font-size:0.78rem;font-weight:700;color:var(--muted);margin:0 0 8px">Cheklovlar (ixtiyoriy — bo'sh qoldirsangiz "cheklovsiz" deb hisoblanadi)</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                    <div class="field" style="margin-bottom:0"><label>Kuniga dars ishlanmasi (dona)</label><input type="number" min="0" id="obuna-p${i}-daily" placeholder="Masalan: 3"></div>
-                    <div class="field" style="margin-bottom:0"><label>Oyiga dars ishlanmasi (dona)</label><input type="number" min="0" id="obuna-p${i}-monthly" placeholder="Masalan: 30"></div>
-                </div>
+                <p style="font-size:0.78rem;font-weight:700;color:var(--muted);margin:0 0 8px">AI va tanlov cheklovlari (ixtiyoriy — bo'sh qoldirsangiz "cheklovsiz" deb hisoblanadi)</p>
+                <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+                    <tr style="color:var(--muted)">
+                        <td style="padding:4px 6px 6px 0"></td>
+                        <td style="padding:4px 6px 6px;text-align:center">Kuniga</td>
+                        <td style="padding:4px 0 6px;text-align:center">Oyiga</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 6px 4px 0;white-space:nowrap">📄 Dars ishlanmasi</td>
+                        <td style="padding:4px 3px"><input type="number" min="0" id="obuna-p${i}-lesson-daily" placeholder="—" style="text-align:center"></td>
+                        <td style="padding:4px 0 4px 3px"><input type="number" min="0" id="obuna-p${i}-lesson-monthly" placeholder="—" style="text-align:center"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 6px 4px 0;white-space:nowrap">📝 AI test generator</td>
+                        <td style="padding:4px 3px"><input type="number" min="0" id="obuna-p${i}-quiz-daily" placeholder="—" style="text-align:center"></td>
+                        <td style="padding:4px 0 4px 3px"><input type="number" min="0" id="obuna-p${i}-quiz-monthly" placeholder="—" style="text-align:center"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 6px 4px 0;white-space:nowrap">🔎 Ma'lumot topish</td>
+                        <td style="padding:4px 3px"><input type="number" min="0" id="obuna-p${i}-info-daily" placeholder="—" style="text-align:center"></td>
+                        <td style="padding:4px 0 4px 3px"><input type="number" min="0" id="obuna-p${i}-info-monthly" placeholder="—" style="text-align:center"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding:4px 6px 4px 0;white-space:nowrap">💬 AI Chat — foto</td>
+                        <td style="padding:4px 3px"><input type="number" min="0" id="obuna-p${i}-chatphoto-daily" placeholder="—" style="text-align:center"></td>
+                        <td style="padding:4px 0 4px 3px;color:var(--muted);text-align:center">—</td>
+                    </tr>
+                </table>
                 <div class="field" style="margin-top:10px;margin-bottom:0"><label>Nechta pullik tanlovda bepul ishtirok etish mumkin (oyiga)</label><input type="number" min="0" id="obuna-p${i}-freecontests" placeholder="Masalan: 1"></div>
             </div>
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.85rem">
@@ -3412,8 +3480,15 @@ async function loadAdmins() {
                 const priceEl = document.getElementById(`obuna-p${i}-price`); if (priceEl) priceEl.value = p.price || '';
                 const periodEl = document.getElementById(`obuna-p${i}-period`); if (periodEl) periodEl.value = p.period || '';
                 const featEl = document.getElementById(`obuna-p${i}-features`); if (featEl) featEl.value = (p.features || []).join('\n');
-                const dailyEl = document.getElementById(`obuna-p${i}-daily`); if (dailyEl) dailyEl.value = p.dailyWorksheetLimit ?? '';
-                const monthlyEl = document.getElementById(`obuna-p${i}-monthly`); if (monthlyEl) monthlyEl.value = p.monthlyWorksheetLimit ?? '';
+                const limits = p.limits || {};
+                const setNum = (id, val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+                setNum(`obuna-p${i}-lesson-daily`, limits.lessonDaily);
+                setNum(`obuna-p${i}-lesson-monthly`, limits.lessonMonthly);
+                setNum(`obuna-p${i}-quiz-daily`, limits.quizDaily);
+                setNum(`obuna-p${i}-quiz-monthly`, limits.quizMonthly);
+                setNum(`obuna-p${i}-info-daily`, limits.infoDaily);
+                setNum(`obuna-p${i}-info-monthly`, limits.infoMonthly);
+                setNum(`obuna-p${i}-chatphoto-daily`, limits.chatphotoDaily);
                 const freeEl = document.getElementById(`obuna-p${i}-freecontests`); if (freeEl) freeEl.value = p.freeContestsPerMonth ?? '';
                 const popEl = document.getElementById(`obuna-p${i}-popular`); if (popEl) popEl.checked = !!p.popular;
             });
@@ -3432,6 +3507,10 @@ async function loadAdmins() {
             for (let i = 0; i < PLAN_COUNT; i++) {
                 const name = document.getElementById(`obuna-p${i}-name`)?.value.trim();
                 if (!name) continue;
+                const numOrNull = (id) => {
+                    const el = document.getElementById(id);
+                    return el && el.value !== '' ? Number(el.value) : null;
+                };
                 plans.push({
                     active: !!document.getElementById(`obuna-p${i}-active`)?.checked,
                     name,
@@ -3439,9 +3518,16 @@ async function loadAdmins() {
                     period: document.getElementById(`obuna-p${i}-period`)?.value.trim() || '',
                     features: (document.getElementById(`obuna-p${i}-features`)?.value || '')
                         .split('\n').map((s) => s.trim()).filter(Boolean),
-                    dailyWorksheetLimit: document.getElementById(`obuna-p${i}-daily`)?.value !== '' ? Number(document.getElementById(`obuna-p${i}-daily`).value) : null,
-                    monthlyWorksheetLimit: document.getElementById(`obuna-p${i}-monthly`)?.value !== '' ? Number(document.getElementById(`obuna-p${i}-monthly`).value) : null,
-                    freeContestsPerMonth: document.getElementById(`obuna-p${i}-freecontests`)?.value !== '' ? Number(document.getElementById(`obuna-p${i}-freecontests`).value) : null,
+                    limits: {
+                        lessonDaily: numOrNull(`obuna-p${i}-lesson-daily`),
+                        lessonMonthly: numOrNull(`obuna-p${i}-lesson-monthly`),
+                        quizDaily: numOrNull(`obuna-p${i}-quiz-daily`),
+                        quizMonthly: numOrNull(`obuna-p${i}-quiz-monthly`),
+                        infoDaily: numOrNull(`obuna-p${i}-info-daily`),
+                        infoMonthly: numOrNull(`obuna-p${i}-info-monthly`),
+                        chatphotoDaily: numOrNull(`obuna-p${i}-chatphoto-daily`),
+                    },
+                    freeContestsPerMonth: numOrNull(`obuna-p${i}-freecontests`),
                     popular: !!document.getElementById(`obuna-p${i}-popular`)?.checked,
                 });
             }
