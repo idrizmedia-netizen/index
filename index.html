@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdrizMedia | Portfolio</title>
+    <title>Ziyomat  Asosiy  sahifa</title>
      <link rel="icon" type="image/png" href="icon-192x192.png">
     <!-- PWA Manifest faylini ulash -->
 <link rel="manifest" href="/manifest.json">
@@ -1247,6 +1247,37 @@
         }
 
         /* ============================================================
+           NAV OBUNA TUGMASI (premium/subscription)
+           ============================================================ */
+        .nav-btn-obuna {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            color: #fff !important;
+            text-decoration: none;
+            background: linear-gradient(135deg, #7c3aed, #a855f7, #d946ef);
+            box-shadow: 0 4px 14px rgba(168,85,247,0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .nav-btn-obuna:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(168,85,247,0.5); }
+        .nav-btn-obuna i { animation: none; }
+
+        /* Nav ikonkalar qatoridagi kichik Donat tugmasi */
+        .nav-icon-donat {
+            background: linear-gradient(135deg, #f59e0b, #ef4444, #ec4899) !important;
+            color: #fff !important;
+        }
+        .nav-icon-donat i { animation: heartbeat 1.2s infinite; }
+        .nav-icon-donat:hover { box-shadow: 0 6px 16px rgba(239,68,68,0.45); }
+
+        /* ============================================================
            DONAT TUGMASI (HERO)
            ============================================================ */
         .donat-btn {
@@ -1570,18 +1601,8 @@
           <a href="oyin/index.html" class="nav-btn nav-btn-green" data-require-auth data-track="oyinlar"><i class="fas fa-gamepad"></i> O'yinlar</a>
           <a href="tanlov-royxat.html" class="nav-btn nav-btn-blue" data-track="tanlov" data-track-label="Tanlovga yozilish"><i class="fas fa-trophy"></i> Tanlov</a>
           <a href="gyoliblar.html" class="nav-btn nav-btn-gold" data-track="gyoliblar"><i class="fas fa-medal"></i> G'oliblar</a>
-
-          <div class="nav-more-wrap">
-            <button type="button" class="nav-btn nav-btn-blue nav-more-btn" id="navMoreBtn"><i class="fas fa-ellipsis"></i> Ko'proq</button>
-            <div class="nav-more-dropdown" id="navMoreDropdown">
-              <a href="#projects" data-nav="loyihalar"><i class="fas fa-diagram-project"></i> Loyihalar</a>
-              <a href="metodlar/index.html" data-track="metodlar"><i class="fas fa-wand-magic-sparkles"></i> Metodlar</a>
-            </div>
-          </div>
-
-          <button onclick="document.getElementById('donat-modal').classList.add('active')" class="nav-btn nav-btn-donat">
-            <img src="images/nav-icon.png" class="nav-donat-logo" alt=""><span>Donat</span><i class="fas fa-heart nav-donat-heart"></i>
-          </button>
+          <a href="metodlar/index.html" class="nav-link" data-nav="metodlar" data-track="metodlar">✨ Metodlar</a>
+          <a href="obuna.html" class="nav-btn-obuna" data-track="obuna"><i class="fas fa-star"></i> Obuna</a>
         </div>
 
         <div class="nav-icons">
@@ -1601,6 +1622,7 @@
 </div>
           <a href="admin.html" class="nav-icon-btn" data-admin-only style="display:none" title="Admin panel"><i class="fas fa-user-shield"></i></a>
           <button class="nav-icon-btn" id="pwa-install-btn" style="display:none" title="Ilovani yuklash"><i class="fas fa-download"></i></button>
+          <button onclick="document.getElementById('donat-modal').classList.add('active')" class="nav-icon-btn nav-icon-donat" title="Donat qilish"><i class="fas fa-heart"></i></button>
           <button class="nav-icon-btn" id="search-toggle" onclick="ZiyomapSearch.open()" title="Qidirish (Ctrl+K)"><i class="fas fa-search"></i></button>
           <button class="nav-icon-btn" id="theme-toggle" title="Tun/Kun"><i class="fas fa-moon"></i></button>
           <a href="kirish.html" id="login-btn" class="user-btn">
@@ -1631,6 +1653,7 @@
 </div>
         <a href="admin.html" class="nav-icon-btn" data-admin-only style="display:none" title="Admin panel"><i class="fas fa-user-shield"></i></a>
         <button class="nav-icon-btn" id="pwa-install-btn-m" style="display:none" title="Ilovani yuklash"><i class="fas fa-download"></i></button>
+        <button onclick="document.getElementById('donat-modal').classList.add('active')" class="nav-icon-btn nav-icon-donat" title="Donat qilish"><i class="fas fa-heart"></i></button>
         <button class="nav-icon-btn" onclick="ZiyomapSearch.open()" title="Qidirish"><i class="fas fa-search"></i></button>
         <button class="nav-icon-btn" id="theme-toggle-m" title="Tun/Kun"><i class="fas fa-moon"></i></button>
         <a href="kirish.html" id="login-btn-m" class="user-btn" style="padding:2px 8px 2px 2px;height:32px"><img id="btn-user-avatar-m" src="https://www.w3schools.com/howto/img_avatar.png" alt="" style="width:28px;height:28px"><span style="font-size:0.75rem;font-weight:600">Kirish</span></a>
@@ -1638,7 +1661,6 @@
 
       <!-- ===== MOBIL — scrollable menyu ===== -->
       <div class="mobile-nav-scroll" id="mobileNavScroll">
-        <a href="#projects" class="nav-link" data-nav="loyihalar">Loyihalar</a>
         <a href="labs/index.html" class="nav-link" data-nav="laboratoriya" data-require-auth>Laboratoriya</a>
         <a href="#blog" class="nav-link" data-nav="blog">Blog</a>
         <a href="metodlar/index.html" class="nav-link" data-nav="metodlar" data-track="metodlar">✨ Metodlar</a>
@@ -1646,9 +1668,7 @@
         <a href="gyoliblar.html" class="nav-btn nav-btn-gold" data-track="gyoliblar"><i class="fas fa-medal"></i> G'oliblar</a>
         <a href="oyin/index.html" class="nav-btn nav-btn-green" data-require-auth><i class="fas fa-gamepad"></i> O'yinlar</a>
         <a href="doska.html" class="nav-btn nav-btn-blue" data-require-auth><i class="fas fa-pencil-alt"></i> Onlayn Doska</a>
-        <button onclick="document.getElementById('donat-modal').classList.add('active')" class="nav-btn nav-btn-donat">
-          <img src="images/nav-icon.png" class="nav-donat-logo" alt=""><span>Donat</span><i class="fas fa-heart nav-donat-heart"></i>
-        </button>
+        <a href="obuna.html" class="nav-btn-obuna" data-track="obuna"><i class="fas fa-star"></i> Obuna</a>
       </div>
     </nav>
 
@@ -1801,33 +1821,6 @@
             <p class="donat-thanks">💛 Har qanday yordamingiz uchun chuqur minnatdorchilik!</p>
         </div>
     </div>
-
-    <section class="section photo-section" id="projects">
-        <div class="section-bg-layer">
-            <img src="images/loyihalar-day.jpg" class="bg-img bg-day" alt="">
-            <img src="images/loyihalar-night.jpg" class="bg-img bg-night" alt="">
-        </div>
-        <div class="section-inner">
-            <h2 style="text-align: center; font-size: 2.2rem;" data-aos="fade-down">Nimalar bilan shug'ullanaman?</h2>
-            <div class="grid">
-                <div class="card" data-aos="flip-left">
-                    <i class="fas fa-atom"></i>
-                    <h3>Fizika va Ta'lim</h3>
-                    <p>O'quvchilar uchun zamonaviy interaktiv darslar, jonli animatsiyalar va raqamli fizik modellar yarataman. Mexanika, termodinamika, elektr va optika — har bir mavzu ko'rgazmali va qiziqarli tarzda o'rgatiladi. Maqsad — o'quvchi formulani yodlamay, fizikaning mohiyatini his etsin.</p>
-                </div>
-                <div class="card" data-aos="flip-left" data-aos-delay="200">
-                    <i class="fas fa-code"></i>
-                    <h3>Dasturlash</h3>
-                    <p>Python (Streamlit), Flutter va zamonaviy Web texnologiyalar yordamida real hayotga foydali dasturiy yechimlar yarataman. Sun'iy intellekt integratsiyasi, ta'lim platformalari va avtomatlashtirish tizimlari — har birini ishonchli, tez va chiroyli qilib chiqaraman. Kod yozish — bu menga san'at.</p>
-                </div>
-                <div class="card" data-aos="flip-left" data-aos-delay="400">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>Tadbirkorlik</h3>
-                    <p>Biznes jarayonlarini raqamlashtirib, vaqt va resurslarni tejovchi tizimlar quriladi. Ijtimoiy tarmoqlarda samarali kontent strategiyasi, onlayn ta'lim marketingi va hamkorlik loyihalari — bularning barchasida real tajribam bor. Birgalikda o'sish va rivojlanish — asosiy tamoyilim.</p>
-                </div>
-            </div>
-        </div>
-    </section>
 
    <section class="section photo-section" id="blog">
         <div class="section-bg-layer">
@@ -2071,15 +2064,6 @@ document.addEventListener('keydown', function(e){
     e.preventDefault();
     if (window.ZiyomapSearch) ZiyomapSearch.open();
   }
-});
-</script>
-<script>
-document.getElementById('navMoreBtn')?.addEventListener('click', function (e) {
-  e.stopPropagation();
-  document.getElementById('navMoreDropdown')?.classList.toggle('open');
-});
-document.addEventListener('click', function () {
-  document.getElementById('navMoreDropdown')?.classList.remove('open');
 });
 </script>
 <script>
