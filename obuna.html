@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" href="icon-192x192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="css/notifications.css">
+<script src="js/ziyomap-usage.js"></script>
 <style>
 :root {
     --primary: #7c3aed; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
@@ -105,7 +106,7 @@ body {
 
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
-import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
@@ -124,6 +125,38 @@ function esc(str) {
     return d.innerHTML;
 }
 
+let CONTACT_LINK = 'https://t.me/ziyomap';
+
+window.requestObuna = async function (planIndex, planName, price) {
+    const user = window.ZiyomapUsage ? ZiyomapUsage.getUser() : null;
+    if (!user) {
+        const goLogin = confirm("Obuna so\u2018rovini yuborish uchun avval tizimga kirishingiz kerak.\n\nKirish sahifasiga o\u2018tasizmi?");
+        if (goLogin) window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
+        return;
+    }
+    const uid = user.uid;
+    if (!uid) {
+        alert("Hisobingiz bilan bog\u2018liq muammo bor \u2014 iltimos, qaytadan tizimga kiring.");
+        return;
+    }
+    try {
+        await setDoc(doc(db, 'obuna-requests', `${uid}_${Date.now()}`), {
+            uid,
+            userName: user.displayName || user.name || '',
+            userEmail: user.email || '',
+            planIndex,
+            planName,
+            price: price || '',
+            status: 'kutilmoqda',
+            requestedAt: serverTimestamp(),
+        });
+    } catch (err) {
+        console.error('Obuna so\u2018rovini yuborishda xatolik:', err);
+    }
+    alert(`So\u2018rovingiz qabul qilindi!\n\nReja: ${planName}\n\nEndi Telegram orqali to\u2018lovni amalga oshirib, admin bilan bog\u2018laning \u2014 tasdiqlangach obunangiz faollashadi.`);
+    window.open(CONTACT_LINK, '_blank');
+};
+
 async function load() {
     const container = document.getElementById('obuna-plans-container');
     const introEl = document.getElementById('obuna-intro-text');
@@ -132,7 +165,9 @@ async function load() {
         const data = snap.exists() ? snap.data() : {};
         introEl.textContent = data.intro || 'Ziyomap imkoniyatlaridan to\u2018liq foydalaning \u2014 sizga mos rejani tanlang.';
 
-        const plans = (data.plans || []).filter((p) => p.active);
+        const plans = (data.plans || [])
+            .map((p, i) => ({ ...p, _idx: i }))
+            .filter((p) => p.active);
         if (!plans.length) {
             container.innerHTML = '<div class="empty-box"><i class="fas fa-hourglass-half"></i>Hozircha obuna rejalari e\u2018lon qilinmagan. Tez orada shu yerda paydo bo\u2018ladi!</div>';
             return;
@@ -140,6 +175,7 @@ async function load() {
 
         const contactLink = data.contactLink || 'https://t.me/ziyomap';
         const contactNote = data.contactNote || 'Obuna bo\u2018lish uchun tugmani bosing';
+        CONTACT_LINK = contactLink;
 
         function parsePriceNumber(str) {
             if (!str) return null;
@@ -183,10 +219,16 @@ async function load() {
                     ${limitLines.map((l) => `<li><i class="fas fa-gauge-high"></i>${l}</li>`).join('')}
                     ${(p.features || []).map((f) => `<li><i class="fas fa-circle-check"></i>${esc(f)}</li>`).join('')}
                 </ul>
-                <a href="${esc(contactLink)}" target="_blank" rel="noopener" class="plan-cta"><i class="fab fa-telegram"></i> ${esc(contactNote)}</a>
+                <button type="button" class="plan-cta obuna-cta-btn" style="border:none;cursor:pointer;width:100%" data-plan-idx="${p._idx}" data-plan-name="${esc(p.name)}" data-plan-price="${esc(p.price || '')}"><i class="fab fa-telegram"></i> ${esc(contactNote)}</button>
             </div>
         `;
         }).join('')}</div>`;
+
+        container.querySelectorAll('.obuna-cta-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                window.requestObuna(Number(btn.dataset.planIdx), btn.dataset.planName, btn.dataset.planPrice);
+            });
+        });
     } catch (err) {
         console.error('Obuna ma\u2018lumotlarini yuklashda xatolik:', err);
         container.innerHTML = '<div class="empty-box"><i class="fas fa-triangle-exclamation"></i>Ma\u2018lumotlarni yuklashda xatolik yuz berdi.</div>';
