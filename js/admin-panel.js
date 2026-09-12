@@ -3553,3 +3553,109 @@ async function loadAdmins() {
         }
     });
 })();
+
+/* ══════════════════════════════════════════════════════════════
+   OBUNA SO'ROVLARI (obuna-requests kolleksiyasi)
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+    const tableEl = document.getElementById('obunaRequestsTable');
+    if (!tableEl) return;
+
+    function fmtReqDate(ts) {
+        if (!ts) return '—';
+        const d = ts.toDate ? ts.toDate() : new Date(ts);
+        return d.toLocaleDateString('uz-UZ') + ' ' + d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    const STATUS_LABELS = {
+        kutilmoqda: '<span class="badge open">KUTILMOQDA</span>',
+        faollashtirildi: '<span class="badge closed" style="background:#dcfce7;color:#166534">FAOLLASHTIRILDI</span>',
+        'bekor qilindi': '<span class="badge closed">BEKOR QILINDI</span>',
+    };
+
+    async function loadObunaRequests() {
+        try {
+            const snap = await getDocs(query(collection(db, 'obuna-requests'), orderBy('requestedAt', 'desc'), limit(200)));
+            if (snap.empty) {
+                tableEl.innerHTML = '<div class="empty">Hozircha obuna so\u2018rovlari yo\u2018q.</div>';
+                return;
+            }
+            let rows = '';
+            snap.forEach((d) => {
+                const r = d.data();
+                const statusHtml = STATUS_LABELS[r.status] || escapeHtml(r.status || 'kutilmoqda');
+                const actionBtns = r.status === 'kutilmoqda'
+                    ? `<div style="display:flex;gap:6px">
+                        <button class="btn btn-green" data-activate-req="${d.id}" style="padding:6px 10px;font-size:0.78rem"><i class="fas fa-check"></i> Faollashtirish</button>
+                        <button class="btn btn-red" data-reject-req="${d.id}" style="padding:6px 10px;font-size:0.78rem"><i class="fas fa-xmark"></i></button>
+                       </div>`
+                    : '';
+                rows += `<tr>
+                    <td>${escapeHtml(r.userName || '—')}</td>
+                    <td>${escapeHtml(r.userEmail || '—')}</td>
+                    <td><b>${escapeHtml(r.planName || '—')}</b></td>
+                    <td>${escapeHtml(r.price || '—')}</td>
+                    <td style="white-space:nowrap;font-size:0.8rem;color:var(--muted)">${fmtReqDate(r.requestedAt)}</td>
+                    <td>${statusHtml}</td>
+                    <td>${actionBtns}</td>
+                </tr>`;
+            });
+            tableEl.innerHTML = `<table>
+                <thead><tr><th>Ism</th><th>Email</th><th>Reja</th><th>Narx</th><th>Sana</th><th>Holati</th><th></th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+
+            tableEl.querySelectorAll('[data-activate-req]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const reqId = btn.dataset.activateReq;
+                    const reqSnap = await getDoc(doc(db, 'obuna-requests', reqId));
+                    if (!reqSnap.exists()) return;
+                    const r = reqSnap.data();
+                    const defaultExpiry = new Date();
+                    defaultExpiry.setMonth(defaultExpiry.getMonth() + 1);
+                    const expiryStr = prompt(
+                        `"${r.planName}" rejasi ${r.userName || r.userEmail} uchun qachongacha faol bo\u2018lsin?\n(YYYY-MM-DD formatida, bo\u2018sh qoldirsangiz cheksiz)`,
+                        defaultExpiry.toISOString().slice(0, 10)
+                    );
+                    if (expiryStr === null) return; // bekor qilindi
+                    btn.disabled = true;
+                    try {
+                        await updateDoc(doc(db, 'users', r.uid), {
+                            planId: r.planIndex,
+                            planExpiresAt: expiryStr ? new Date(expiryStr + 'T23:59:59') : null,
+                        });
+                        await updateDoc(doc(db, 'obuna-requests', reqId), {
+                            status: 'faollashtirildi',
+                            activatedAt: serverTimestamp(),
+                        });
+                        loadObunaRequests();
+                    } catch (err) {
+                        console.error('Obunani faollashtirishda xatolik:', err);
+                        alert('Xatolik yuz berdi.');
+                        btn.disabled = false;
+                    }
+                });
+            });
+
+            tableEl.querySelectorAll('[data-reject-req]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('Bu so\u2018rovni bekor qilishni tasdiqlaysizmi?')) return;
+                    btn.disabled = true;
+                    try {
+                        await updateDoc(doc(db, 'obuna-requests', btn.dataset.rejectReq), { status: 'bekor qilindi' });
+                        loadObunaRequests();
+                    } catch (err) {
+                        console.error('So\u2018rovni bekor qilishda xatolik:', err);
+                        alert('Xatolik yuz berdi.');
+                        btn.disabled = false;
+                    }
+                });
+            });
+        } catch (err) {
+            console.error('Obuna so\u2018rovlarini yuklashda xatolik:', err);
+            tableEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+        }
+    }
+
+    loadObunaRequests();
+})();
