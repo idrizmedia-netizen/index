@@ -612,6 +612,22 @@ Javob: A"></textarea>
     </div>
 
     <div class="card">
+      <h3><i class="fas fa-star"></i> Obuna bo'limi</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Bu yerdagi ma'lumotlar saytdagi <b>obuna.html</b> sahifasida (bosh menyudagi "Obuna" tugmasi) ko'rinadi. To'lov tizimi ulanmagan —
+        foydalanuvchi rejani ko'rib, pastdagi tugma orqali siz bilan (Telegram) bog'lanadi va siz obunani qo'lda faollashtirasiz.
+      </p>
+      <div class="field"><label>Sahifa kirish matni</label><textarea id="obuna-intro" placeholder="Ziyomap imkoniyatlaridan to'liq foydalaning — sizga mos rejani tanlang."></textarea></div>
+      <div class="field"><label>Bog'lanish tugmasi matni</label><input type="text" id="obuna-contact-note" placeholder="Obuna bo'lish uchun quyidagi tugma orqali biz bilan bog'laning"></div>
+      <div class="field"><label>Bog'lanish havolasi (masalan Telegram)</label><input type="text" id="obuna-contact-link" placeholder="https://t.me/ziyomap"></div>
+
+      <div id="obuna-plans-wrap" style="display:flex;flex-direction:column;gap:16px;margin-top:6px"></div>
+
+      <button class="btn btn-primary" id="obuna-save-btn" style="margin-top:14px"><i class="fas fa-check"></i> Saqlash</button>
+      <p id="obuna-status" style="font-size:0.82rem;margin-top:8px"></p>
+    </div>
+
+    <div class="card">
       <h3><i class="fab fa-telegram"></i> Telegram bildirishnomalari</h3>
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
         Yangi ro'yxatdan o'tish va "Men to'ladim" xabarlari haqida sizga (yoki xodimlar guruhingizga) Telegram orqali darhol xabar keladi.
