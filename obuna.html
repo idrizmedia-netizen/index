@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Obuna | Ziyomap</title>
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/notifications.css">
+<style>
+:root {
+    --primary: #7c3aed; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --page-bg: linear-gradient(160deg, #ede9fe 0%, #fce7f3 45%, #ffedd5 100%);
+}
+body.dark-theme {
+    --card: #1e1533; --text: #f1f5f9; --muted: #c4b5fd; --border: #3b2a5c;
+    --page-bg: linear-gradient(160deg, #1e1b4b 0%, #581c87 45%, #7c2d12 100%);
+}
+* { box-sizing: border-box; }
+body {
+    font-family: Inter, system-ui, sans-serif; margin: 0; min-height: 100dvh;
+    background: var(--page-bg); color: var(--text); padding: 16px 16px 40px;
+    transition: background .25s, color .25s;
+}
+.wrap { max-width: 980px; margin: 0 auto; }
+.top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); font-weight: 900; font-size: 1.05rem; }
+.brand img { height: 30px; width: 30px; object-fit: contain; }
+.brand span.b { color: #00bcd4; }
+.icon-btn {
+    width: 34px; height: 34px; border-radius: 10px; border: none; background: var(--card); color: var(--primary);
+    box-shadow: 0 2px 8px rgba(124,58,237,0.12); display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.9rem; text-decoration: none;
+}
+.page-head { text-align: center; margin-bottom: 30px; }
+.page-head .ic {
+    width: 66px; height: 66px; border-radius: 20px; background: linear-gradient(145deg,#7c3aed,#d946ef);
+    color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 1.9rem; margin-bottom: 12px;
+    box-shadow: 0 14px 30px rgba(124,58,237,0.35);
+}
+.page-head h1 { margin: 0 0 6px; font-size: 1.7rem; }
+.page-head p { margin: 0 auto; color: var(--muted); font-size: 0.92rem; max-width: 560px; line-height: 1.6; }
+
+.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin-bottom: 26px; }
+.plan-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 26px 22px;
+    display: flex; flex-direction: column; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    transition: transform .2s, box-shadow .2s;
+}
+.plan-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(124,58,237,0.16); }
+.plan-card.popular { border: 2px solid #a855f7; }
+.plan-badge {
+    position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg,#7c3aed,#d946ef); color: #fff; font-size: 0.7rem; font-weight: 800;
+    padding: 5px 14px; border-radius: 20px; letter-spacing: 0.4px; box-shadow: 0 6px 14px rgba(168,85,247,0.4);
+}
+.plan-name { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+.plan-price { font-size: 1.9rem; font-weight: 900; color: var(--primary); margin-bottom: 2px; }
+.plan-period { color: var(--muted); font-size: 0.8rem; margin-bottom: 18px; }
+.plan-features { list-style: none; padding: 0; margin: 0 0 22px; flex: 1; }
+.plan-features li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.86rem; margin-bottom: 10px; line-height: 1.4; }
+.plan-features li i { color: #16a34a; margin-top: 3px; flex-shrink: 0; }
+.plan-cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+    background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; font-weight: 700; font-size: 0.88rem;
+    padding: 12px 18px; border-radius: 12px; box-shadow: 0 8px 20px rgba(124,58,237,0.3);
+    transition: transform .2s, box-shadow .2s;
+}
+.plan-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(124,58,237,0.4); }
+
+.empty-box { text-align: center; color: var(--muted); padding: 50px 20px; font-size: 0.9rem; }
+.empty-box i { display: block; font-size: 1.8rem; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-row">
+    <a href="index.html" class="brand">
+      <img src="images/nav-icon.png" alt="Ziyomap">
+      <span><span class="b">Ziyo</span>map</span>
+    </a>
+    <div style="display:flex;gap:8px">
+      <button class="icon-btn" id="theme-toggle-obuna" title="Tun/Kun rejimi"><i class="fas fa-moon"></i></button>
+      <a href="index.html" class="icon-btn" title="Bosh sahifa"><i class="fas fa-house"></i></a>
+    </div>
+  </div>
+
+  <div class="page-head">
+    <div class="ic"><i class="fas fa-star"></i></div>
+    <h1>Obuna rejalari</h1>
+    <p id="obuna-intro-text">Yuklanmoqda...</p>
+  </div>
+
+  <div id="obuna-plans-container">
+    <div class="empty-box"><i class="fas fa-spinner fa-spin"></i>Rejalar yuklanmoqda...</div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+
+const firebaseConfig = {
+    apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
+    authDomain: 'ziyomap.firebaseapp.com',
+    projectId: 'ziyomap',
+    storageBucket: 'ziyomap.firebasestorage.app',
+    messagingSenderId: '982123868162',
+    appId: '1:982123868162:web:6845723988c030fcd1f71b',
+};
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str == null ? '' : String(str);
+    return d.innerHTML;
+}
+
+async function load() {
+    const container = document.getElementById('obuna-plans-container');
+    const introEl = document.getElementById('obuna-intro-text');
+    try {
+        const snap = await getDoc(doc(db, 'site-content', 'obuna-settings'));
+        const data = snap.exists() ? snap.data() : {};
+        introEl.textContent = data.intro || 'Ziyomap imkoniyatlaridan to\u2018liq foydalaning \u2014 sizga mos rejani tanlang.';
+
+        const plans = (data.plans || []).filter((p) => p.active);
+        if (!plans.length) {
+            container.innerHTML = '<div class="empty-box"><i class="fas fa-hourglass-half"></i>Hozircha obuna rejalari e\u2018lon qilinmagan. Tez orada shu yerda paydo bo\u2018ladi!</div>';
+            return;
+        }
+
+        const contactLink = data.contactLink || 'https://t.me/ziyomap';
+        const contactNote = data.contactNote || 'Obuna bo\u2018lish uchun tugmani bosing';
+
+        container.innerHTML = `<div class="plans-grid">${plans.map((p) => `
+            <div class="plan-card ${p.popular ? 'popular' : ''}">
+                ${p.popular ? '<div class="plan-badge">Tavsiya etiladi</div>' : ''}
+                <div class="plan-name">${esc(p.name)}</div>
+                <div class="plan-price">${esc(p.price || '')}</div>
+                <div class="plan-period">${esc(p.period || '')}</div>
+                <ul class="plan-features">
+                    ${(p.features || []).map((f) => `<li><i class="fas fa-circle-check"></i>${esc(f)}</li>`).join('')}
+                </ul>
+                <a href="${esc(contactLink)}" target="_blank" rel="noopener" class="plan-cta"><i class="fab fa-telegram"></i> ${esc(contactNote)}</a>
+            </div>
+        `).join('')}</div>`;
+    } catch (err) {
+        console.error('Obuna ma\u2018lumotlarini yuklashda xatolik:', err);
+        container.innerHTML = '<div class="empty-box"><i class="fas fa-triangle-exclamation"></i>Ma\u2018lumotlarni yuklashda xatolik yuz berdi.</div>';
+    }
+}
+load();
+</script>
+<script>
+(function () {
+    function applyTheme(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        const icon = document.getElementById('theme-toggle-obuna')?.querySelector('i');
+        if (icon) { icon.classList.toggle('fa-sun', isDark); icon.classList.toggle('fa-moon', !isDark); }
+    }
+    applyTheme(localStorage.getItem('theme') === 'dark');
+    document.getElementById('theme-toggle-obuna')?.addEventListener('click', () => {
+        const isDark = !document.body.classList.contains('dark-theme');
+        applyTheme(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+})();
+</script>
+</body>
+</html>
