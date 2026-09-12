@@ -135,9 +135,15 @@ async function load() {
         const contactNote = data.contactNote || 'Obuna bo\u2018lish uchun tugmani bosing';
 
         container.innerHTML = `<div class="plans-grid">${plans.map((p) => {
+            const lim = p.limits || {};
             const limitLines = [];
-            if (p.dailyWorksheetLimit != null) limitLines.push(`Kuniga <b>${esc(p.dailyWorksheetLimit)}</b> ta dars ishlanmasi`);
-            if (p.monthlyWorksheetLimit != null) limitLines.push(`Oyiga <b>${esc(p.monthlyWorksheetLimit)}</b> ta dars ishlanmasi`);
+            if (lim.lessonDaily != null) limitLines.push(`Kuniga <b>${esc(lim.lessonDaily)}</b> ta dars ishlanmasi`);
+            if (lim.lessonMonthly != null) limitLines.push(`Oyiga <b>${esc(lim.lessonMonthly)}</b> ta dars ishlanmasi`);
+            if (lim.quizDaily != null) limitLines.push(`Kuniga <b>${esc(lim.quizDaily)}</b> ta AI test generatsiyasi`);
+            if (lim.quizMonthly != null) limitLines.push(`Oyiga <b>${esc(lim.quizMonthly)}</b> ta AI test generatsiyasi`);
+            if (lim.infoDaily != null) limitLines.push(`Kuniga <b>${esc(lim.infoDaily)}</b> marta ma'lumot qidirish`);
+            if (lim.infoMonthly != null) limitLines.push(`Oyiga <b>${esc(lim.infoMonthly)}</b> marta ma'lumot qidirish`);
+            if (lim.chatphotoDaily != null) limitLines.push(`Kuniga <b>${esc(lim.chatphotoDaily)}</b> ta rasm AI Chat'ga yuborish`);
             if (p.freeContestsPerMonth != null) limitLines.push(`Oyiga <b>${esc(p.freeContestsPerMonth)}</b> ta pullik tanlovda bepul ishtirok`);
             return `
             <div class="plan-card ${p.popular ? 'popular' : ''}">
