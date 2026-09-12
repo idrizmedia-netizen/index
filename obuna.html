@@ -55,6 +55,13 @@ body {
     padding: 5px 14px; border-radius: 20px; letter-spacing: 0.4px; box-shadow: 0 6px 14px rgba(168,85,247,0.4);
 }
 .plan-name { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+.plan-price-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.plan-old-price { color: var(--muted); text-decoration: line-through; font-size: 1.05rem; font-weight: 600; }
+.plan-discount-badge {
+    display: inline-flex; align-items: center; font-size: 0.72rem; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg,#ef4444,#f97316); padding: 3px 10px; border-radius: 20px;
+    box-shadow: 0 4px 10px rgba(239,68,68,0.35); vertical-align: middle;
+}
 .plan-price { font-size: 1.9rem; font-weight: 900; color: var(--primary); margin-bottom: 2px; }
 .plan-period { color: var(--muted); font-size: 0.8rem; margin-bottom: 18px; }
 .plan-features { list-style: none; padding: 0; margin: 0 0 22px; flex: 1; }
@@ -134,6 +141,12 @@ async function load() {
         const contactLink = data.contactLink || 'https://t.me/ziyomap';
         const contactNote = data.contactNote || 'Obuna bo\u2018lish uchun tugmani bosing';
 
+        function parsePriceNumber(str) {
+            if (!str) return null;
+            const digits = String(str).replace(/[^0-9]/g, '');
+            return digits ? Number(digits) : null;
+        }
+
         container.innerHTML = `<div class="plans-grid">${plans.map((p) => {
             const lim = p.limits || {};
             const limitLines = [];
@@ -145,11 +158,26 @@ async function load() {
             if (lim.infoMonthly != null) limitLines.push(`Oyiga <b>${esc(lim.infoMonthly)}</b> marta ma'lumot qidirish`);
             if (lim.chatphotoDaily != null) limitLines.push(`Kuniga <b>${esc(lim.chatphotoDaily)}</b> ta rasm AI Chat'ga yuborish`);
             if (p.freeContestsPerMonth != null) limitLines.push(`Oyiga <b>${esc(p.freeContestsPerMonth)}</b> ta pullik tanlovda bepul ishtirok`);
+
+            const oldNum = parsePriceNumber(p.oldPrice);
+            const newNum = parsePriceNumber(p.price);
+            let discountPercent = null;
+            if (oldNum && newNum && oldNum > newNum) {
+                discountPercent = Math.round(((oldNum - newNum) / oldNum) * 100);
+            }
+            const priceRowHtml = discountPercent
+                ? `<div class="plan-price-row">
+                        <span class="plan-old-price">${esc(p.oldPrice)}</span>
+                        <span class="plan-discount-badge">-${discountPercent}%</span>
+                   </div>
+                   <div class="plan-price">${esc(p.price || '')}</div>`
+                : `<div class="plan-price">${esc(p.price || '')}</div>`;
+
             return `
             <div class="plan-card ${p.popular ? 'popular' : ''}">
                 ${p.popular ? '<div class="plan-badge">Tavsiya etiladi</div>' : ''}
                 <div class="plan-name">${esc(p.name)}</div>
-                <div class="plan-price">${esc(p.price || '')}</div>
+                ${priceRowHtml}
                 <div class="plan-period">${esc(p.period || '')}</div>
                 <ul class="plan-features">
                     ${limitLines.map((l) => `<li><i class="fas fa-gauge-high"></i>${l}</li>`).join('')}
