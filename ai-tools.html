@@ -336,6 +336,15 @@ async function generate(type, btn) {
 
     if(!topic) return alert("Iltimos, mavzuni kiriting!");
 
+    // ── Obuna rejasiga bog'liq kunlik/oylik limitni tekshiramiz ──
+    if (window.ZiyomapLimits) {
+        const limitCheck = await ZiyomapLimits.checkAndConsume(type);
+        if (!limitCheck.allowed) {
+            alert('\u26D4 ' + limitCheck.message + '\n\nObuna rejalarini ko\u2018rish uchun "Obuna" bo\u2018limiga o\u2018ting.');
+            return;
+        }
+    }
+
     const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI ' + label + ' tayyorlamoqda...') : null;
     const old = btn.innerHTML;
     btn.disabled = true;
@@ -767,6 +776,7 @@ async function perfectPrint(id) {
 </script>
 
 <script src="js/ziyomap-usage.js"></script>
+<script src="js/usage-limits.js"></script>
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/search-modal.js"></script>
