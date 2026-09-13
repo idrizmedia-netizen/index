@@ -54,22 +54,17 @@
     }
 
     async function getUserPlan(db, fs, uid) {
-        try {
-            const userSnap = await fs.getDoc(fs.doc(db, 'users', uid));
-            const u = userSnap.exists() ? userSnap.data() : {};
-            let planId = typeof u.planId === 'number' ? u.planId : 0;
-            const expiresAt = u.planExpiresAt;
-            if (expiresAt) {
-                const expiresMs = expiresAt.toMillis ? expiresAt.toMillis() : new Date(expiresAt).getTime();
-                if (expiresMs < Date.now()) planId = 0; // muddati o'tgan bo'lsa — Bepul rejaga tushadi
-            }
-            const settingsSnap = await fs.getDoc(fs.doc(db, 'site-content', 'obuna-settings'));
-            const plans = settingsSnap.exists() ? (settingsSnap.data().plans || []) : [];
-            return plans[planId] || plans[0] || null;
-        } catch (err) {
-            console.error('Reja ma\u2019lumotini olishda xatolik:', err);
-            return null;
+        const userSnap = await fs.getDoc(fs.doc(db, 'users', uid));
+        const u = userSnap.exists() ? userSnap.data() : {};
+        let planId = typeof u.planId === 'number' ? u.planId : 0;
+        const expiresAt = u.planExpiresAt;
+        if (expiresAt) {
+            const expiresMs = expiresAt.toMillis ? expiresAt.toMillis() : new Date(expiresAt).getTime();
+            if (expiresMs < Date.now()) planId = 0; // muddati o'tgan bo'lsa — Bepul rejaga tushadi
         }
+        const settingsSnap = await fs.getDoc(fs.doc(db, 'site-content', 'obuna-settings'));
+        const plans = settingsSnap.exists() ? (settingsSnap.data().plans || []) : [];
+        return plans[planId] || plans[0] || null;
     }
 
     // feature: 'lesson' | 'quiz' | 'info' | 'chatphoto'
@@ -84,10 +79,16 @@
             ({ db, fs } = await getFirestore());
         } catch (err) {
             console.error('Firestore ulanishida xatolik:', err);
-            return { allowed: true }; // ulanib bo'lmasa, foydalanuvchini bloklamaymiz
+            return { allowed: false, message: 'Texnik xatolik yuz berdi (internet aloqasini tekshiring). Iltimos, qayta urinib ko\u2018ring.' };
         }
 
-        const plan = await getUserPlan(db, fs, uid);
+        let plan;
+        try {
+            plan = await getUserPlan(db, fs, uid);
+        } catch (err) {
+            console.error('Reja ma\u2019lumotini olishda xatolik:', err);
+            return { allowed: false, message: 'Reja ma\u2019lumotini tekshirishda xatolik yuz berdi. Iltimos, sahifani yangilab qayta urinib ko\u2018ring.' };
+        }
         const limits = (plan && plan.limits) || {};
         const dailyLimit = limits[`${feature}Daily`];
         const monthlyLimit = limits[`${feature}Monthly`];
@@ -128,11 +129,56 @@
             return { allowed: true };
         } catch (err) {
             console.error('Limitni tekshirishda xatolik:', err);
-            return { allowed: true }; // texnik xatolikda foydalanuvchini bloklamaymiz
+            return { allowed: false, message: 'Texnik xatolik yuz berdi. Iltimos, sahifani yangilab qayta urinib ko\u2018ring.' };
         }
     }
 
-    window.ZiyomapLimits = { checkAndConsume, showUpgradeNotice };
+    // Boshqa sahifalarda (obuna.html, profil) joriy rejani ko'rsatish uchun ochiq funksiya
+    async function getCurrentPlanInfo() {
+        const uid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!uid) return null;
+        try {
+            const { db, fs } = await getFirestore();
+            const userSnap = await fs.getDoc(fs.doc(db, 'users', uid));
+            const u = userSnap.exists() ? userSnap.data() : {};
+            let planId = typeof u.planId === 'number' ? u.planId : 0;
+            let expiresAt = u.planExpiresAt || null;
+            let expired = false;
+            if (expiresAt) {
+                const expiresMs = expiresAt.toMillis ? expiresAt.toMillis() : new Date(expiresAt).getTime();
+                if (expiresMs < Date.now()) { expired = true; planId = 0; }
+            }
+            const settingsSnap = await fs.getDoc(fs.doc(db, 'site-content', 'obuna-settings'));
+            const plans = settingsSnap.exists() ? (settingsSnap.data().plans || []) : [];
+            const plan = plans[planId] || plans[0] || { name: 'Bepul' };
+            return {
+                uid,
+                planId,
+                planName: plan.name || 'Bepul',
+                expiresAt: expired ? null : expiresAt,
+                expired,
+            };
+        } catch (err) {
+            console.error('Joriy rejani olishda xatolik:', err);
+            return null;
+        }
+    }
+
+    // Foydalanuvchi o'zi obunani bekor qiladi (Bepul rejaga tushadi) — istalgan vaqt mumkin
+    async function cancelMyPlan() {
+        const uid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!uid) return { ok: false, message: 'Tizimga kiring.' };
+        try {
+            const { db, fs } = await getFirestore();
+            await fs.setDoc(fs.doc(db, 'users', uid), { planId: 0, planExpiresAt: null }, { merge: true });
+            return { ok: true };
+        } catch (err) {
+            console.error('Obunani bekor qilishda xatolik:', err);
+            return { ok: false, message: 'Bekor qilishda xatolik yuz berdi. Qayta urinib ko\u2018ring.' };
+        }
+    }
+
+    window.ZiyomapLimits = { checkAndConsume, showUpgradeNotice, getCurrentPlanInfo, cancelMyPlan };
 })();
 
 /* ── Limit tugaganda chiqadigan chiroyli bildirishnoma (oddiy alert() o'rniga) ── */
