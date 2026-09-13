@@ -340,7 +340,7 @@ async function generate(type, btn) {
     if (window.ZiyomapLimits) {
         const limitCheck = await ZiyomapLimits.checkAndConsume(type);
         if (!limitCheck.allowed) {
-            alert('\u26D4 ' + limitCheck.message + '\n\nObuna rejalarini ko\u2018rish uchun "Obuna" bo\u2018limiga o\u2018ting.');
+            ZiyomapLimits.showUpgradeNotice(limitCheck.message);
             return;
         }
     }
