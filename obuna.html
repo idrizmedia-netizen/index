@@ -104,6 +104,19 @@ body {
   </div>
 </div>
 
+<div id="obuna-tg-modal" style="display:none;position:fixed;inset:0;background:rgba(15,10,30,0.6);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--card);border-radius:20px;padding:26px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.35)">
+    <h3 style="margin:0 0 8px;font-size:1.15rem;color:var(--text)"><i class="fab fa-telegram" style="color:#0088cc"></i> Telegram ma'lumotingiz</h3>
+    <p style="color:var(--muted);font-size:0.85rem;margin:0 0 16px;line-height:1.5">Obuna so'rovingizni yuborish uchun Telegram foydalanuvchi nomingizni (yoki telefon raqamingizni) kiriting — biz aynan shu orqali siz bilan bog'lanamiz.</p>
+    <input type="text" id="obuna-tg-input" placeholder="@username yoki +998 90 123 45 67" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);font-size:0.9rem;margin-bottom:6px;box-sizing:border-box;background:var(--card);color:var(--text)">
+    <p id="obuna-tg-error" style="color:#ef4444;font-size:0.78rem;margin:0 0 14px;display:none">Iltimos, Telegram ma'lumotingizni kiriting — bu maydon majburiy.</p>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button type="button" id="obuna-tg-cancel" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text);font-weight:700;cursor:pointer">Bekor qilish</button>
+      <button type="button" id="obuna-tg-submit" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-weight:700;cursor:pointer">Yuborish</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
@@ -126,24 +139,48 @@ function esc(str) {
 }
 
 let CONTACT_LINK = 'https://t.me/ziyomap';
+let pendingPlan = null;
 
-window.requestObuna = async function (planIndex, planName, price) {
+function buildTelegramUrl(baseLink, message) {
+    try {
+        const url = new URL(baseLink);
+        if (url.hostname === 't.me' || url.hostname === 'telegram.me') {
+            return baseLink.replace(/\/+$/, '') + '?text=' + encodeURIComponent(message);
+        }
+    } catch (e) { /* to'g'ri URL bo'lmasa, xabarsiz ochamiz */ }
+    return baseLink;
+}
+
+function openTgModal(planIndex, planName, price) {
     const user = window.ZiyomapUsage ? ZiyomapUsage.getUser() : null;
     if (!user) {
         const goLogin = confirm("Obuna so\u2018rovini yuborish uchun avval tizimga kirishingiz kerak.\n\nKirish sahifasiga o\u2018tasizmi?");
         if (goLogin) window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
         return;
     }
-    const uid = user.uid;
-    if (!uid) {
+    if (!user.uid) {
         alert("Hisobingiz bilan bog\u2018liq muammo bor \u2014 iltimos, qaytadan tizimga kiring.");
         return;
     }
+    pendingPlan = { planIndex, planName, price, user };
+    const modal = document.getElementById('obuna-tg-modal');
+    const input = document.getElementById('obuna-tg-input');
+    const errEl = document.getElementById('obuna-tg-error');
+    input.value = '';
+    errEl.style.display = 'none';
+    modal.style.display = 'flex';
+    setTimeout(() => input.focus(), 50);
+}
+
+async function submitObunaRequest(telegramContact) {
+    const { planIndex, planName, price, user } = pendingPlan;
+    const uid = user.uid;
     try {
         await setDoc(doc(db, 'obuna-requests', `${uid}_${Date.now()}`), {
             uid,
             userName: user.displayName || user.name || '',
             userEmail: user.email || '',
+            telegramContact,
             planIndex,
             planName,
             price: price || '',
@@ -155,9 +192,33 @@ window.requestObuna = async function (planIndex, planName, price) {
         alert("So\u2018rovni yuborishda xatolik yuz berdi. Iltimos, birozdan so\u2018ng qayta urinib ko\u2018ring yoki to\u2018g\u2018ridan-to\u2018g\u2018ri Telegram orqali biz bilan bog\u2018laning: " + CONTACT_LINK);
         return;
     }
-    alert(`So\u2018rovingiz qabul qilindi!\n\nReja: ${planName}\n\nEndi Telegram orqali to\u2018lovni amalga oshirib, admin bilan bog\u2018laning \u2014 tasdiqlangach obunangiz faollashadi.`);
-    window.open(CONTACT_LINK, '_blank');
-};
+    const displayName = user.displayName || user.name || user.email || 'Foydalanuvchi';
+    const message = `Assalomu alaykum! Men ${displayName} \u2014 "${planName}" rejasiga obuna bo\u2018lishni so\u2018rayapman.\nNarxi: ${price || '-'}\nMening Telegram: ${telegramContact}\n\n(Ariza Ziyomap saytidan avtomatik yuborildi)`;
+    alert(`So\u2018rovingiz muvaffaqiyatli qabul qilindi!\n\nReja: ${planName}\n\nHozir Telegram ochiladi \u2014 xabaringiz tayyor turibdi, shunchaki yuborish tugmasini bosing. To\u2018lov tasdiqlangach, obunangiz faollashadi.`);
+    window.open(buildTelegramUrl(CONTACT_LINK, message), '_blank');
+}
+
+document.getElementById('obuna-tg-cancel')?.addEventListener('click', () => {
+    document.getElementById('obuna-tg-modal').style.display = 'none';
+    pendingPlan = null;
+});
+document.getElementById('obuna-tg-submit')?.addEventListener('click', () => {
+    const input = document.getElementById('obuna-tg-input');
+    const errEl = document.getElementById('obuna-tg-error');
+    const val = input.value.trim();
+    if (!val) {
+        errEl.style.display = 'block';
+        input.focus();
+        return;
+    }
+    document.getElementById('obuna-tg-modal').style.display = 'none';
+    submitObunaRequest(val);
+});
+document.getElementById('obuna-tg-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('obuna-tg-submit').click();
+});
+
+window.requestObuna = openTgModal;
 
 async function load() {
     const container = document.getElementById('obuna-plans-container');
@@ -221,7 +282,8 @@ async function load() {
                     ${limitLines.map((l) => `<li><i class="fas fa-gauge-high"></i>${l}</li>`).join('')}
                     ${(p.features || []).map((f) => `<li><i class="fas fa-circle-check"></i>${esc(f)}</li>`).join('')}
                 </ul>
-                <button type="button" class="plan-cta obuna-cta-btn" style="border:none;cursor:pointer;width:100%" data-plan-idx="${p._idx}" data-plan-name="${esc(p.name)}" data-plan-price="${esc(p.price || '')}"><i class="fab fa-telegram"></i> ${esc(contactNote)}</button>
+                <button type="button" class="plan-cta obuna-cta-btn" style="border:none;cursor:pointer;width:100%" data-plan-idx="${p._idx}" data-plan-name="${esc(p.name)}" data-plan-price="${esc(p.price || '')}"><i class="fab fa-telegram"></i> Obuna bo'lish</button>
+                <p style="text-align:center;color:var(--muted);font-size:0.72rem;margin:10px 0 0;line-height:1.4">${esc(contactNote)}</p>
             </div>
         `;
         }).join('')}</div>`;
