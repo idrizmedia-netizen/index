@@ -152,6 +152,8 @@ window.requestObuna = async function (planIndex, planName, price) {
         });
     } catch (err) {
         console.error('Obuna so\u2018rovini yuborishda xatolik:', err);
+        alert("So\u2018rovni yuborishda xatolik yuz berdi. Iltimos, birozdan so\u2018ng qayta urinib ko\u2018ring yoki to\u2018g\u2018ridan-to\u2018g\u2018ri Telegram orqali biz bilan bog\u2018laning: " + CONTACT_LINK);
+        return;
     }
     alert(`So\u2018rovingiz qabul qilindi!\n\nReja: ${planName}\n\nEndi Telegram orqali to\u2018lovni amalga oshirib, admin bilan bog\u2018laning \u2014 tasdiqlangach obunangiz faollashadi.`);
     window.open(CONTACT_LINK, '_blank');
