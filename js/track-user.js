@@ -54,9 +54,10 @@
             });
 
             const user = window.ZiyomapUsage && ZiyomapUsage.getUser();
-            if (!user || !user.uid || user.provider !== 'google') return; // faqat haqiqiy Firebase sessiyasi borlar
+            const uid = user && (user.uid || null);
+            if (!uid) return; // haqiqiy Firebase sessiyasi bo'lmasa, hech narsa qilmaymiz
 
-            const userRef = doc(db, 'users', user.uid);
+            const userRef = doc(db, 'users', uid);
             const existing = await getDoc(userRef);
             if (existing.exists() && existing.data().blocked) {
                 // Bloklangan foydalanuvchi — sayt ochiladi, lekin belgi qo'yiladi (yozish amallari qoidalar orqali cheklanadi)
@@ -67,13 +68,27 @@
                 userRef,
                 {
                     email: user.email || null,
-                    displayName: user.displayName || null,
+                    displayName: user.displayName || user.name || null,
                     photoURL: user.photoURL || null,
                     lastSeen: serverTimestamp(),
-                    ...(existing.exists() ? {} : { firstSeen: serverTimestamp() }),
+                    ...(existing.exists() ? {} : { firstSeen: serverTimestamp(), planId: 0 }),
                 },
                 { merge: true }
             );
+
+            // Yangi ro'yxatdan o'tgan foydalanuvchiga bir martalik "Siz Bepul tarifidasiz" xabari
+            if (!existing.exists() && !localStorage.getItem('zy_plan_intro_shown')) {
+                localStorage.setItem('zy_plan_intro_shown', '1');
+                setTimeout(() => {
+                    if (window.ZiyomapLimits && ZiyomapLimits.showUpgradeNotice) {
+                        ZiyomapLimits.showUpgradeNotice(
+                            "Xush kelibsiz! Hozircha siz <b>\u2018Bepul\u2019</b> tarifidasiz \u2014 ba'zi AI vositalarida kunlik/oylik cheklovlar mavjud. Ko\u2018proq imkoniyat uchun \u2018Obuna\u2019 bo\u2018limiga tashrif buyuring."
+                        );
+                    } else {
+                        alert("Xush kelibsiz! Hozircha siz \u2018Bepul\u2019 tarifidasiz. Ko\u2018proq imkoniyat uchun \u2018Obuna\u2019 bo\u2018limiga tashrif buyuring.");
+                    }
+                }, 1200);
+            }
         } catch (err) {
             console.error('Foydalanuvchini qayd etishda xatolik:', err);
         }
