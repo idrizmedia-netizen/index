@@ -124,5 +124,31 @@
         }
     }
 
-    window.ZiyomapLimits = { checkAndConsume };
+    window.ZiyomapLimits = { checkAndConsume, showUpgradeNotice };
 })();
+
+/* ── Limit tugaganda chiqadigan chiroyli bildirishnoma (oddiy alert() o'rniga) ── */
+function showUpgradeNotice(message) {
+    const existing = document.getElementById('zy-limit-modal');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'zy-limit-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,10,30,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Inter,system-ui,sans-serif';
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:20px;padding:28px 26px;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.35);text-align:center">
+            <div style="width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#d946ef);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 14px;box-shadow:0 12px 26px rgba(124,58,237,0.35)">
+                <i class="fas fa-star"></i>
+            </div>
+            <h3 style="margin:0 0 10px;font-size:1.1rem;color:#1e293b">Limit tugadi</h3>
+            <p style="margin:0 0 20px;font-size:0.9rem;color:#475569;line-height:1.6">${message}</p>
+            <div style="display:flex;gap:10px">
+                <button type="button" id="zy-limit-close" style="flex:1;padding:12px;border-radius:12px;border:1px solid #e2e8f0;background:transparent;color:#475569;font-weight:700;cursor:pointer">Yopish</button>
+                <a href="obuna.html" style="flex:1;padding:12px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-weight:700;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px"><i class="fas fa-star"></i> Obunani faollashtirish</a>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#zy-limit-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
