@@ -120,7 +120,7 @@ body {
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, doc, getDoc, setDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
@@ -131,7 +131,15 @@ const firebaseConfig = {
     appId: '1:982123868162:web:6845723988c030fcd1f71b',
 };
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
+// AdBlock/VPN/ba'zi tarmoqlar Firestore'ning striming (WebChannel) ulanishini
+// to'sib qo'yishi mumkin ("transport errored" xatoligi) — shu sababli avtomatik
+// uzun-so'rov (long-polling) rejimini aniqlab ishlatadigan qilib ulaymiz.
+let db;
+try {
+    db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
+} catch (e) {
+    db = getFirestore(app); // Firestore boshqa skriptda allaqachon ishga tushirilgan bo'lsa
+}
 const auth = getAuth(app);
 
 // Firestore qoidalari HAQIQIY Firebase Auth sessiyasini talab qiladi (localStorage'dagi
