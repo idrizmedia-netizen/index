@@ -360,6 +360,7 @@ body.dark-theme .ach-card.unlocked{background:#2e251a}
 </div>
 
 <script src="js/ziyomap-usage.js"></script>
+<script src="js/usage-limits.js"></script>
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/admin-guard.js"></script>
@@ -496,6 +497,20 @@ function loadDashboard(user) {
   if (S.aiCount >= 5) badges.push('🤖 AI Fan');
   document.getElementById('heroBadges').innerHTML =
     badges.map(b => `<span class="hero-badge">${b}</span>`).join('');
+
+  // ── Obuna rejasi belgisi (joriy tarifni bildirib turadi) ──
+  if (window.ZiyomapLimits && ZiyomapLimits.getCurrentPlanInfo) {
+    ZiyomapLimits.getCurrentPlanInfo().then((info) => {
+      if (!info) return;
+      const badgesEl = document.getElementById('heroBadges');
+      const planBadge = document.createElement('a');
+      planBadge.href = 'obuna.html';
+      planBadge.className = 'hero-badge';
+      planBadge.style.cssText = 'text-decoration:none;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none';
+      planBadge.innerHTML = `<i class="fas fa-star"></i> ${info.planName} tarifi`;
+      badgesEl.appendChild(planBadge);
+    }).catch(() => {});
+  }
 
   // Stats
   document.getElementById('statLab').textContent    = S.labCount;
