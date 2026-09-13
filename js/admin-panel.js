@@ -3590,9 +3590,15 @@ async function loadAdmins() {
                         <button class="btn btn-red" data-reject-req="${d.id}" style="padding:6px 10px;font-size:0.78rem"><i class="fas fa-xmark"></i></button>
                        </div>`
                     : '';
+                const tg = r.telegramContact || '';
+                const tgHref = tg.startsWith('@') ? `https://t.me/${tg.slice(1)}` : (tg.startsWith('+') || /^\d+$/.test(tg) ? null : (tg.startsWith('http') ? tg : null));
+                const tgHtml = tg
+                    ? (tgHref ? `<a href="${escapeHtml(tgHref)}" target="_blank" style="color:#0088cc;font-weight:700"><i class="fab fa-telegram"></i> ${escapeHtml(tg)}</a>` : `<span style="font-weight:700">${escapeHtml(tg)}</span>`)
+                    : '<span style="color:var(--muted)">—</span>';
                 rows += `<tr>
                     <td>${escapeHtml(r.userName || '—')}</td>
                     <td>${escapeHtml(r.userEmail || '—')}</td>
+                    <td>${tgHtml}</td>
                     <td><b>${escapeHtml(r.planName || '—')}</b></td>
                     <td>${escapeHtml(r.price || '—')}</td>
                     <td style="white-space:nowrap;font-size:0.8rem;color:var(--muted)">${fmtReqDate(r.requestedAt)}</td>
@@ -3601,7 +3607,7 @@ async function loadAdmins() {
                 </tr>`;
             });
             tableEl.innerHTML = `<table>
-                <thead><tr><th>Ism</th><th>Email</th><th>Reja</th><th>Narx</th><th>Sana</th><th>Holati</th><th></th></tr></thead>
+                <thead><tr><th>Ism</th><th>Email</th><th>Telegram</th><th>Reja</th><th>Narx</th><th>Sana</th><th>Holati</th><th></th></tr></thead>
                 <tbody>${rows}</tbody>
             </table>`;
 
