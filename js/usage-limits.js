@@ -30,7 +30,15 @@
                     appId: '1:982123868162:web:6845723988c030fcd1f71b',
                 };
                 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-                return { db: fs.getFirestore(app), fs };
+                // AdBlock/VPN/ba'zi tarmoqlar Firestore'ning striming ulanishini to'sib qo'yishi
+                // mumkin — avtomatik uzun-so'rov (long-polling) rejimini yoqamiz.
+                let db;
+                try {
+                    db = fs.initializeFirestore(app, { experimentalAutoDetectLongPolling: true, useFetchStreams: false });
+                } catch (e) {
+                    db = fs.getFirestore(app); // boshqa skriptda allaqachon ishga tushirilgan bo'lsa
+                }
+                return { db, fs };
             })();
         }
         return firestorePromise;
