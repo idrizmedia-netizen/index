@@ -119,6 +119,7 @@ body {
 
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -131,6 +132,17 @@ const firebaseConfig = {
 };
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Firestore qoidalari HAQIQIY Firebase Auth sessiyasini talab qiladi (localStorage'dagi
+// eski ma'lumot emas) — shuning uchun so'rov yuborishdan oldin buni kutib olamiz.
+let currentAuthUser = null;
+const authReady = new Promise((resolve) => {
+    onAuthStateChanged(auth, (u) => {
+        currentAuthUser = u;
+        resolve(u);
+    });
+});
 
 function esc(str) {
     const d = document.createElement('div');
@@ -151,18 +163,24 @@ function buildTelegramUrl(baseLink, message) {
     return baseLink;
 }
 
-function openTgModal(planIndex, planName, price) {
-    const user = window.ZiyomapUsage ? ZiyomapUsage.getUser() : null;
-    if (!user) {
+async function openTgModal(planIndex, planName, price) {
+    const localUser = window.ZiyomapUsage ? ZiyomapUsage.getUser() : null;
+    if (!localUser) {
         const goLogin = confirm("Obuna so\u2018rovini yuborish uchun avval tizimga kirishingiz kerak.\n\nKirish sahifasiga o\u2018tasizmi?");
         if (goLogin) window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
         return;
     }
-    if (!user.uid) {
-        alert("Hisobingiz bilan bog\u2018liq muammo bor \u2014 iltimos, qaytadan tizimga kiring.");
+
+    // Firebase Auth sessiyasi tiklanishini kutamiz (localStorage'dagi ma'lumot yetarli emas —
+    // Firestore qoidalari aynan shu haqiqiy sessiyani tekshiradi)
+    const authUser = await authReady;
+    if (!authUser) {
+        const goLogin = confirm("Tizimga kirish sessiyangiz tugagan ko\u2018rinadi. Qaytadan kirishingiz kerak.\n\nKirish sahifasiga o\u2018tasizmi?");
+        if (goLogin) window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
         return;
     }
-    pendingPlan = { planIndex, planName, price, user };
+
+    pendingPlan = { planIndex, planName, price, localUser, authUser };
     const modal = document.getElementById('obuna-tg-modal');
     const input = document.getElementById('obuna-tg-input');
     const errEl = document.getElementById('obuna-tg-error');
@@ -173,13 +191,13 @@ function openTgModal(planIndex, planName, price) {
 }
 
 async function submitObunaRequest(telegramContact) {
-    const { planIndex, planName, price, user } = pendingPlan;
-    const uid = user.uid;
+    const { planIndex, planName, price, localUser, authUser } = pendingPlan;
+    const uid = authUser.uid;
     try {
         await setDoc(doc(db, 'obuna-requests', `${uid}_${Date.now()}`), {
             uid,
-            userName: user.displayName || user.name || '',
-            userEmail: user.email || '',
+            userName: localUser.displayName || localUser.name || authUser.displayName || '',
+            userEmail: localUser.email || authUser.email || '',
             telegramContact,
             planIndex,
             planName,
@@ -192,7 +210,7 @@ async function submitObunaRequest(telegramContact) {
         alert("So\u2018rovni yuborishda xatolik yuz berdi. Iltimos, birozdan so\u2018ng qayta urinib ko\u2018ring yoki to\u2018g\u2018ridan-to\u2018g\u2018ri Telegram orqali biz bilan bog\u2018laning: " + CONTACT_LINK);
         return;
     }
-    const displayName = user.displayName || user.name || user.email || 'Foydalanuvchi';
+    const displayName = localUser.displayName || localUser.name || localUser.email || 'Foydalanuvchi';
     const message = `Assalomu alaykum! Men ${displayName} \u2014 "${planName}" rejasiga obuna bo\u2018lishni so\u2018rayapman.\nNarxi: ${price || '-'}\nMening Telegram: ${telegramContact}\n\n(Ariza Ziyomap saytidan avtomatik yuborildi)`;
     alert(`So\u2018rovingiz muvaffaqiyatli qabul qilindi!\n\nReja: ${planName}\n\nHozir Telegram ochiladi \u2014 xabaringiz tayyor turibdi, shunchaki yuborish tugmasini bosing. To\u2018lov tasdiqlangach, obunangiz faollashadi.`);
     window.open(buildTelegramUrl(CONTACT_LINK, message), '_blank');
