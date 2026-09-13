@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="css/notifications.css">
 <script src="js/ziyomap-usage.js"></script>
+<script src="js/usage-limits.js"></script>
 <style>
 :root {
     --primary: #7c3aed; --card: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
@@ -78,6 +79,32 @@ body {
 
 .empty-box { text-align: center; color: var(--muted); padding: 50px 20px; font-size: 0.9rem; }
 .empty-box i { display: block; font-size: 1.8rem; margin-bottom: 10px; }
+
+.current-plan-banner {
+    display: none; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(217,70,239,0.1));
+    border: 1px solid rgba(168,85,247,0.3); border-radius: 16px; padding: 16px 20px; margin-bottom: 24px;
+}
+.current-plan-banner .cp-icon {
+    width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg,#7c3aed,#d946ef);
+    color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+}
+.current-plan-banner .cp-text { flex: 1; min-width: 180px; font-size: 0.88rem; color: var(--text); }
+.current-plan-banner .cp-text b { color: var(--primary); }
+.current-plan-banner button {
+    background: transparent; border: 1px solid #ef4444; color: #ef4444; font-weight: 700; font-size: 0.8rem;
+    padding: 9px 16px; border-radius: 10px; cursor: pointer; white-space: nowrap;
+}
+.current-plan-banner button:hover { background: #ef4444; color: #fff; }
+
+.plan-current-badge {
+    position: absolute; top: -13px; right: 16px; background: linear-gradient(135deg,#16a34a,#22c55e);
+    color: #fff; font-size: 0.68rem; font-weight: 800; padding: 5px 12px; border-radius: 20px;
+    box-shadow: 0 6px 14px rgba(34,197,94,0.4);
+}
+.cancel-reminder {
+    text-align: center; color: var(--muted); font-size: 0.78rem; margin: -6px 0 26px; line-height: 1.6;
+}
 </style>
 </head>
 <body>
@@ -98,6 +125,14 @@ body {
     <h1>Obuna rejalari</h1>
     <p id="obuna-intro-text">Yuklanmoqda...</p>
   </div>
+
+  <div class="current-plan-banner" id="current-plan-banner">
+    <div class="cp-icon"><i class="fas fa-crown"></i></div>
+    <div class="cp-text" id="current-plan-text"></div>
+    <button type="button" id="cancel-plan-btn"><i class="fas fa-xmark"></i> Obunani bekor qilish</button>
+  </div>
+
+  <p class="cancel-reminder"><i class="fas fa-circle-info"></i> Obunangizni istalgan vaqt, hech qanday to'lovsiz bekor qilishingiz mumkin — yuqoridagi banner orqali.</p>
 
   <div id="obuna-plans-container">
     <div class="empty-box"><i class="fas fa-spinner fa-spin"></i>Rejalar yuklanmoqda...</div>
@@ -120,7 +155,7 @@ body {
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
-import { getFirestore, initializeFirestore, doc, getDoc, setDoc, collection, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, doc, getDoc, setDoc, collection, serverTimestamp, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
@@ -171,6 +206,20 @@ function buildTelegramUrl(baseLink, message) {
     return baseLink;
 }
 
+async function hasPendingRequest(uid) {
+    try {
+        const snap = await getDocs(query(
+            collection(db, 'obuna-requests'),
+            where('uid', '==', uid),
+            where('status', '==', 'kutilmoqda')
+        ));
+        return !snap.empty;
+    } catch (err) {
+        console.error('Oldingi so\u2018rovlarni tekshirishda xatolik:', err);
+        return false; // tekshirib bo'lmasa, bloklab qo'ymaymiz
+    }
+}
+
 async function openTgModal(planIndex, planName, price) {
     const localUser = window.ZiyomapUsage ? ZiyomapUsage.getUser() : null;
     if (!localUser) {
@@ -185,6 +234,13 @@ async function openTgModal(planIndex, planName, price) {
     if (!authUser) {
         const goLogin = confirm("Tizimga kirish sessiyangiz tugagan ko\u2018rinadi. Qaytadan kirishingiz kerak.\n\nKirish sahifasiga o\u2018tasizmi?");
         if (goLogin) window.location.href = 'kirish.html?return=' + encodeURIComponent(window.location.href);
+        return;
+    }
+
+    // Hali javob kutilayotgan so'rov bo'lsa — yangisini yuborishga ruxsat bermaymiz
+    const pending = await hasPendingRequest(authUser.uid);
+    if (pending) {
+        alert("Sizning oldingi obuna so\u2018rovingiz hali ko\u2018rib chiqilmoqda.\n\nAdmin uni tasdiqlagach yoki bekor qilgach, yangi so\u2018rov yuborishingiz mumkin bo\u2018ladi.");
         return;
     }
 
@@ -311,7 +367,7 @@ async function load() {
                 : `<div class="plan-price">${esc(p.price || '')}</div>`;
 
             return `
-            <div class="plan-card ${p.popular ? 'popular' : ''}">
+            <div class="plan-card ${p.popular ? 'popular' : ''}" data-plan-card="${p._idx}">
                 ${p.popular ? '<div class="plan-badge">Tavsiya etiladi</div>' : ''}
                 <div class="plan-name">${esc(p.name)}</div>
                 ${priceRowHtml}
@@ -336,7 +392,69 @@ async function load() {
         container.innerHTML = '<div class="empty-box"><i class="fas fa-triangle-exclamation"></i>Ma\u2018lumotlarni yuklashda xatolik yuz berdi.</div>';
     }
 }
-load();
+load().then(() => refreshCurrentPlanUI());
+
+async function refreshCurrentPlanUI() {
+    const authUser = await authReady;
+    const banner = document.getElementById('current-plan-banner');
+    const textEl = document.getElementById('current-plan-text');
+    if (!authUser || !window.ZiyomapLimits) {
+        if (banner) banner.style.display = 'none';
+        return;
+    }
+    const info = await ZiyomapLimits.getCurrentPlanInfo();
+    // Har bir reja kartochkasidan avvalgi belgini tozalaymiz
+    document.querySelectorAll('.plan-current-badge').forEach((el) => el.remove());
+
+    if (!info) {
+        if (banner) banner.style.display = 'none';
+        return;
+    }
+
+    const card = document.querySelector(`[data-plan-card="${info.planId}"]`);
+    if (card) {
+        const badge = document.createElement('div');
+        badge.className = 'plan-current-badge';
+        badge.innerHTML = '<i class="fas fa-check"></i> Joriy reja';
+        card.style.position = 'relative';
+        card.appendChild(badge);
+    }
+
+    if (info.planId === 0) {
+        if (banner) banner.style.display = 'none';
+    } else if (banner && textEl) {
+        const expiryText = info.expiresAt
+            ? ` (muddati: ${(info.expiresAt.toDate ? info.expiresAt.toDate() : new Date(info.expiresAt)).toLocaleDateString('uz-UZ')})`
+            : ' (muddatsiz)';
+        textEl.innerHTML = `Siz hozir <b>${esc(info.planName)}</b> tarifidasiz${expiryText}.`;
+        banner.style.display = 'flex';
+    }
+
+    // Kutilayotgan so'rov bo'lsa — barcha "Obuna bo'lish" tugmalarini shu haqda xabar bilan almashtiramiz
+    const pending = await hasPendingRequest(authUser.uid);
+    if (pending) {
+        document.querySelectorAll('.obuna-cta-btn').forEach((btn) => {
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+            btn.innerHTML = '<i class="fas fa-clock"></i> So\u2018rovingiz ko\u2018rib chiqilmoqda...';
+        });
+    }
+}
+
+document.getElementById('cancel-plan-btn')?.addEventListener('click', async () => {
+    if (!confirm("Obunangizni bekor qilishni tasdiqlaysizmi?\n\nSiz darhol 'Bepul' tarifiga tushasiz.")) return;
+    const btn = document.getElementById('cancel-plan-btn');
+    btn.disabled = true;
+    const res = window.ZiyomapLimits ? await ZiyomapLimits.cancelMyPlan() : { ok: false };
+    btn.disabled = false;
+    if (res.ok) {
+        alert("Obunangiz bekor qilindi. Siz endi 'Bepul' tarifidasiz.");
+        refreshCurrentPlanUI();
+    } else {
+        alert(res.message || 'Xatolik yuz berdi.');
+    }
+});
 </script>
 <script>
 (function () {
