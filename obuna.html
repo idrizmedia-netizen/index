@@ -190,7 +190,7 @@ async function openTgModal(planIndex, planName, price) {
     setTimeout(() => input.focus(), 50);
 }
 
-async function submitObunaRequest(telegramContact) {
+async function submitObunaRequest(telegramContact, tgWindow) {
     const { planIndex, planName, price, localUser, authUser } = pendingPlan;
     const uid = authUser.uid;
     try {
@@ -207,13 +207,22 @@ async function submitObunaRequest(telegramContact) {
         });
     } catch (err) {
         console.error('Obuna so\u2018rovini yuborishda xatolik:', err);
+        if (tgWindow) tgWindow.close();
         alert("So\u2018rovni yuborishda xatolik yuz berdi. Iltimos, birozdan so\u2018ng qayta urinib ko\u2018ring yoki to\u2018g\u2018ridan-to\u2018g\u2018ri Telegram orqali biz bilan bog\u2018laning: " + CONTACT_LINK);
         return;
     }
     const displayName = localUser.displayName || localUser.name || localUser.email || 'Foydalanuvchi';
     const message = `Assalomu alaykum! Men ${displayName} \u2014 "${planName}" rejasiga obuna bo\u2018lishni so\u2018rayapman.\nNarxi: ${price || '-'}\nMening Telegram: ${telegramContact}\n\n(Ariza Ziyomap saytidan avtomatik yuborildi)`;
-    alert(`So\u2018rovingiz muvaffaqiyatli qabul qilindi!\n\nReja: ${planName}\n\nHozir Telegram ochiladi \u2014 xabaringiz tayyor turibdi, shunchaki yuborish tugmasini bosing. To\u2018lov tasdiqlangach, obunangiz faollashadi.`);
-    window.open(buildTelegramUrl(CONTACT_LINK, message), '_blank');
+    const tgUrl = buildTelegramUrl(CONTACT_LINK, message);
+    if (tgWindow) {
+        tgWindow.location.href = tgUrl;
+    } else {
+        // Popup baribir bloklangan bo'lsa — foydalanuvchiga qo'lda bosish uchun havola beramiz
+        const openManually = confirm(`So\u2018rovingiz muvaffaqiyatli qabul qilindi!\n\nReja: ${planName}\n\nBrauzeringiz Telegram oynasini avtomatik ochishga to\u2018sqinlik qildi. Hoziroq qo\u2018lda ochamizmi?`);
+        if (openManually) window.open(tgUrl, '_blank');
+        return;
+    }
+    alert(`So\u2018rovingiz muvaffaqiyatli qabul qilindi!\n\nReja: ${planName}\n\nTelegram yangi oynada ochildi \u2014 xabaringiz tayyor turibdi, shunchaki yuborish tugmasini bosing. To\u2018lov tasdiqlangach, obunangiz faollashadi.`);
 }
 
 document.getElementById('obuna-tg-cancel')?.addEventListener('click', () => {
@@ -230,7 +239,10 @@ document.getElementById('obuna-tg-submit')?.addEventListener('click', () => {
         return;
     }
     document.getElementById('obuna-tg-modal').style.display = 'none';
-    submitObunaRequest(val);
+    // Popup-blokerdan qochish uchun oynani DARHOL, foydalanuvchi bosgan zahoti ochamiz
+    // (Firestore yozuvi tugagach, shu oynaning manzilini Telegram'ga o'zgartiramiz)
+    const tgWindow = window.open('', '_blank');
+    submitObunaRequest(val, tgWindow);
 });
 document.getElementById('obuna-tg-input')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') document.getElementById('obuna-tg-submit').click();
