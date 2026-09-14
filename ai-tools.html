@@ -715,9 +715,22 @@ Aniq fanlarda (Matematika, Fizika, Kimyo) formulalar $...$ LaTeX formatida yozil
         const r = await fetch('/api/chat', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ message: prompt })
+            body: JSON.stringify({
+                message: prompt,
+                system: `Siz o'quv materiallari tayyorlovchi ekspertisiz.
+1. Barcha matematik va fizik formulalarni doimo LaTeX formatida yozing (masalan: $F=ma$, $\\int x dx$).
+2. Javoblaringizda Markdown formatlash elementlaridan (sarlavhalar, jadvallar) keng foydalaning.
+3. O'zbek tilida aniq va mukammal tushuntiring.
+4. MUHIM: Javobni to'g'ridan-to'g'ri so'ralgan mazmun (dars ishlanmasi, test, ma'lumot) bilan boshlang. Hech qanday salomlashuv, o'zingizni tanishtirish yoki kirish gapi ("Salom", "Men Ziyomap AI...", "Albatta, mana..." kabi) yozmang — bu hujjat sifatida saqlanadi va bosib chiqariladi, shuning uchun faqat sof kontent kerak.`,
+            })
         });
         const data = await r.json();
+
+        // Ehtiyot chorasi: AI baribir kirish jumlasi yozib yuborsa, birinchi qatorni tozalaymiz
+        let reply = (data.reply || '').replace(
+            /^\s*(Salom|Assalomu alaykum|Albatta)[^\n]*\n+/i,
+            ''
+        );
 
         // Add mode badge for info
         let badgeHTML = '';
@@ -731,7 +744,7 @@ Aniq fanlarda (Matematika, Fizika, Kimyo) formulalar $...$ LaTeX formatida yozil
             badgeHTML = badges[mode] || '';
         }
 
-        resArea.innerHTML = badgeHTML + marked.parse(data.reply);
+        resArea.innerHTML = badgeHTML + marked.parse(reply);
         if(window.MathJax) await MathJax.typesetPromise([resArea]);
         btns.style.display = 'flex';
         if(notif && window.ZiyomapNotify) {
@@ -764,10 +777,6 @@ async function perfectPrint(id) {
             @media print { @page { size:A4; margin:1.5cm; } body { padding:0; } }
         </style></head>
         <body>
-        <div style="text-align:center;border-bottom:3px double #000;padding-bottom:12px;margin-bottom:25px">
-            <h1 style="margin:0;font-size:1.5rem;letter-spacing:1px">ZIYOMAP AI</h1>
-            <p style="margin:4px 0;font-size:0.9rem">O'zbekiston ta'lim tizimi uchun AI yordamchi</p>
-        </div>
         ${area.innerHTML}
         <script>window.onload=function(){setTimeout(()=>window.print(),800)}<\/script>
         </body></html>`);
