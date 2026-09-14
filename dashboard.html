@@ -500,16 +500,23 @@ function loadDashboard(user) {
 
   // ── Obuna rejasi belgisi (joriy tarifni bildirib turadi) ──
   if (window.ZiyomapLimits && ZiyomapLimits.getCurrentPlanInfo) {
-    ZiyomapLimits.getCurrentPlanInfo().then((info) => {
-      if (!info) return;
-      const badgesEl = document.getElementById('heroBadges');
-      const planBadge = document.createElement('a');
-      planBadge.href = 'obuna.html';
-      planBadge.className = 'hero-badge';
-      planBadge.style.cssText = 'text-decoration:none;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none';
-      planBadge.innerHTML = `<i class="fas fa-star"></i> ${info.planName} tarifi`;
-      badgesEl.appendChild(planBadge);
-    }).catch(() => {});
+    ZiyomapLimits.getCurrentPlanInfo()
+      .then((info) => {
+        const badgesEl = document.getElementById('heroBadges');
+        const planBadge = document.createElement('a');
+        planBadge.href = 'obuna.html';
+        planBadge.className = 'hero-badge';
+        planBadge.style.cssText = 'text-decoration:none;cursor:pointer;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none';
+        const planName = info ? info.planName : 'Bepul';
+        planBadge.innerHTML = `<i class="fas fa-star"></i> ${planName} tarifi`;
+        badgesEl.appendChild(planBadge);
+        if (!info) console.warn('Obuna rejasi ma\u2019lumoti topilmadi — standart "Bepul" ko\u2018rsatildi.');
+      })
+      .catch((err) => {
+        console.error('Obuna rejasini yuklashda xatolik:', err);
+      });
+  } else {
+    console.warn('ZiyomapLimits mavjud emas — js/usage-limits.js yuklanmagan bo\u2018lishi mumkin.');
   }
 
   // Stats
