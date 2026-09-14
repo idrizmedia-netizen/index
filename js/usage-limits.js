@@ -20,6 +20,7 @@
         if (!firestorePromise) {
             firestorePromise = (async () => {
                 const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js');
+                const authMod = await import('https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js');
                 const fs = await import('https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js');
                 const firebaseConfig = {
                     apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
@@ -38,7 +39,16 @@
                 } catch (e) {
                     db = fs.getFirestore(app); // boshqa skriptda allaqachon ishga tushirilgan bo'lsa
                 }
-                return { db, fs };
+                // Firestore qoidalari HAQIQIY Firebase Auth sessiyasini talab qiladi
+                // (localStorage'dagi ZiyomapUsage ma'lumoti emas) — shuni kutib olamiz.
+                const auth = authMod.getAuth(app);
+                const authUser = await new Promise((resolve) => {
+                    const unsub = authMod.onAuthStateChanged(auth, (u) => {
+                        unsub();
+                        resolve(u);
+                    });
+                });
+                return { db, fs, authUser };
             })();
         }
         return firestorePromise;
@@ -69,18 +79,22 @@
 
     // feature: 'lesson' | 'quiz' | 'info' | 'chatphoto'
     async function checkAndConsume(feature) {
-        const uid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
-        if (!uid) {
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid) {
             return { allowed: false, message: 'Davom etish uchun avval tizimga kiring.' };
         }
 
-        let db, fs;
+        let db, fs, authUser;
         try {
-            ({ db, fs } = await getFirestore());
+            ({ db, fs, authUser } = await getFirestore());
         } catch (err) {
             console.error('Firestore ulanishida xatolik:', err);
             return { allowed: false, message: 'Texnik xatolik yuz berdi (internet aloqasini tekshiring). Iltimos, qayta urinib ko\u2018ring.' };
         }
+        if (!authUser) {
+            return { allowed: false, message: 'Tizimga kirish sessiyangiz tugagan ko\u2018rinadi. Iltimos, sahifani yangilab qaytadan kiring.' };
+        }
+        const uid = authUser.uid;
 
         let plan;
         try {
@@ -135,10 +149,12 @@
 
     // Boshqa sahifalarda (obuna.html, profil) joriy rejani ko'rsatish uchun ochiq funksiya
     async function getCurrentPlanInfo() {
-        const uid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
-        if (!uid) return null;
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid) return null;
         try {
-            const { db, fs } = await getFirestore();
+            const { db, fs, authUser } = await getFirestore();
+            if (!authUser) return null;
+            const uid = authUser.uid;
             const userSnap = await fs.getDoc(fs.doc(db, 'users', uid));
             const u = userSnap.exists() ? userSnap.data() : {};
             let planId = typeof u.planId === 'number' ? u.planId : 0;
@@ -166,11 +182,12 @@
 
     // Foydalanuvchi o'zi obunani bekor qiladi (Bepul rejaga tushadi) — istalgan vaqt mumkin
     async function cancelMyPlan() {
-        const uid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
-        if (!uid) return { ok: false, message: 'Tizimga kiring.' };
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid) return { ok: false, message: 'Tizimga kiring.' };
         try {
-            const { db, fs } = await getFirestore();
-            await fs.setDoc(fs.doc(db, 'users', uid), { planId: 0, planExpiresAt: null }, { merge: true });
+            const { db, fs, authUser } = await getFirestore();
+            if (!authUser) return { ok: false, message: 'Tizimga kirish sessiyangiz tugagan. Sahifani yangilab qaytadan kiring.' };
+            await fs.setDoc(fs.doc(db, 'users', authUser.uid), { planId: 0, planExpiresAt: null }, { merge: true });
             return { ok: true };
         } catch (err) {
             console.error('Obunani bekor qilishda xatolik:', err);
