@@ -195,7 +195,65 @@
         }
     }
 
-    window.ZiyomapLimits = { checkAndConsume, showUpgradeNotice, getCurrentPlanInfo, cancelMyPlan };
+    // ── AI generatsiya tarixi (Natijalarni saqlash) ──
+    async function saveHistory(type, topic, content) {
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid) return { ok: false };
+        try {
+            const { db, fs, authUser } = await getFirestore();
+            if (!authUser) return { ok: false };
+            const ref = fs.doc(fs.collection(db, 'users', authUser.uid, 'ai-history'));
+            await fs.setDoc(ref, {
+                type,
+                topic: (topic || '').slice(0, 200),
+                content,
+                createdAt: fs.serverTimestamp(),
+            });
+            return { ok: true, id: ref.id };
+        } catch (err) {
+            console.error('Tarixga saqlashda xatolik:', err);
+            return { ok: false };
+        }
+    }
+
+    async function listHistory(maxItems) {
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid) return [];
+        try {
+            const { db, fs, authUser } = await getFirestore();
+            if (!authUser) return [];
+            const snap = await fs.getDocs(fs.query(
+                fs.collection(db, 'users', authUser.uid, 'ai-history'),
+                fs.orderBy('createdAt', 'desc'),
+                fs.limit(maxItems || 30)
+            ));
+            const items = [];
+            snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
+            return items;
+        } catch (err) {
+            console.error('Tarixni yuklashda xatolik:', err);
+            return [];
+        }
+    }
+
+    async function deleteHistoryItem(id) {
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid) return { ok: false };
+        try {
+            const { db, fs, authUser } = await getFirestore();
+            if (!authUser) return { ok: false };
+            await fs.deleteDoc(fs.doc(db, 'users', authUser.uid, 'ai-history', id));
+            return { ok: true };
+        } catch (err) {
+            console.error('Tarixdan o\u2018chirishda xatolik:', err);
+            return { ok: false };
+        }
+    }
+
+    window.ZiyomapLimits = {
+        checkAndConsume, showUpgradeNotice, getCurrentPlanInfo, cancelMyPlan,
+        saveHistory, listHistory, deleteHistoryItem,
+    };
 })();
 
 /* ── Limit tugaganda chiqadigan chiroyli bildirishnoma (oddiy alert() o'rniga) ── */
