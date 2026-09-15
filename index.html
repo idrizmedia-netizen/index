@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ziyomap  Asosiy  sahifa</title>
+    <title>Ziyomap | Bosh  sahifa</title>
      <link rel="icon" type="image/png" href="icon-192x192.png">
     <!-- PWA Manifest faylini ulash -->
 <link rel="manifest" href="/manifest.json">
@@ -1596,13 +1596,13 @@
         </a>
 
         <div class="nav-links">
-          <a href="labs/index.html" class="nav-link" data-nav="laboratoriya" data-require-auth data-track="laboratoriya">Laboratoriya</a>
-          <a href="#blog" class="nav-link" data-nav="blog">Blog</a>
-          <a href="oyin/index.html" class="nav-btn nav-btn-green" data-require-auth data-track="oyinlar"><i class="fas fa-gamepad"></i> O'yinlar</a>
-          <a href="tanlov-royxat.html" class="nav-btn nav-btn-blue" data-track="tanlov" data-track-label="Tanlovga yozilish"><i class="fas fa-trophy"></i> Tanlov</a>
-          <a href="gyoliblar.html" class="nav-btn nav-btn-gold" data-track="gyoliblar"><i class="fas fa-medal"></i> G'oliblar</a>
-          <a href="metodlar/index.html" class="nav-link" data-nav="metodlar" data-track="metodlar">✨ Metodlar</a>
-          <a href="obuna.html" class="nav-btn-obuna" data-track="obuna"><i class="fas fa-star"></i> Obuna</a>
+          <a href="labs/index.html" class="nav-link" data-nav="laboratoriya" data-require-auth data-track="laboratoriya" data-i18n="nav.lab">Laboratoriya</a>
+          <a href="#blog" class="nav-link" data-nav="blog" data-i18n="nav.blog">Blog</a>
+          <a href="oyin/index.html" class="nav-btn nav-btn-green" data-require-auth data-track="oyinlar"><i class="fas fa-gamepad"></i> <span data-i18n="nav.games">O'yinlar</span></a>
+          <a href="tanlov-royxat.html" class="nav-btn nav-btn-blue" data-track="tanlov" data-track-label="Tanlovga yozilish"><i class="fas fa-trophy"></i> <span data-i18n="nav.contest">Tanlov</span></a>
+          <a href="gyoliblar.html" class="nav-btn nav-btn-gold" data-track="gyoliblar"><i class="fas fa-medal"></i> <span data-i18n="nav.winners">G'oliblar</span></a>
+          <a href="metodlar/index.html" class="nav-link" data-nav="metodlar" data-track="metodlar" data-i18n="nav.methods">✨ Metodlar</a>
+          <a href="obuna.html" class="nav-btn-obuna" data-track="obuna"><i class="fas fa-star"></i> <span data-i18n="nav.subscribe">Obuna</span></a>
         </div>
 
         <div class="nav-icons">
@@ -1625,6 +1625,14 @@
           <button onclick="document.getElementById('donat-modal').classList.add('active')" class="nav-icon-btn nav-icon-donat" title="Donat qilish"><i class="fas fa-heart"></i></button>
           <button class="nav-icon-btn" id="search-toggle" onclick="ZiyomapSearch.open()" title="Qidirish (Ctrl+K)"><i class="fas fa-search"></i></button>
           <button class="nav-icon-btn" id="theme-toggle" title="Tun/Kun"><i class="fas fa-moon"></i></button>
+          <div class="zy-lang-wrap" style="position:relative">
+            <button class="nav-icon-btn" id="zy-lang-toggle" title="Til / Язык / Language"><i class="fas fa-globe"></i></button>
+            <div class="zy-lang-dropdown" id="zy-lang-dropdown" style="display:none;position:absolute;top:110%;right:0;background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.15);overflow:hidden;z-index:500;min-width:130px">
+              <button type="button" class="zy-lang-btn" data-lang="uz" onclick="ZiyomapI18n.setLang('uz')" style="display:flex;width:100%;padding:10px 14px;border:none;background:none;text-align:left;cursor:pointer;font-size:0.85rem;font-weight:600;color:inherit">🇺🇿 O'zbekcha</button>
+              <button type="button" class="zy-lang-btn" data-lang="ru" onclick="ZiyomapI18n.setLang('ru')" style="display:flex;width:100%;padding:10px 14px;border:none;background:none;text-align:left;cursor:pointer;font-size:0.85rem;font-weight:600;color:inherit">🇷🇺 Русский</button>
+              <button type="button" class="zy-lang-btn" data-lang="en" onclick="ZiyomapI18n.setLang('en')" style="display:flex;width:100%;padding:10px 14px;border:none;background:none;text-align:left;cursor:pointer;font-size:0.85rem;font-weight:600;color:inherit">🇬🇧 English</button>
+            </div>
+          </div>
           <a href="kirish.html" id="login-btn" class="user-btn">
             <img id="btn-user-avatar" src="https://www.w3schools.com/howto/img_avatar.png" alt=""> <span id="btn-user-name">Kirish</span>
           </a>
@@ -1911,6 +1919,7 @@
         <p style="opacity: 0.65; font-size:0.9rem;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
     </footer>
 
+    <script src="js/i18n.js"></script>
     <script src="js/ziyomap-usage.js"></script>
     <script src="js/auth-guard.js"></script>
     <script src="js/floating-widgets.js"></script>
@@ -2118,5 +2127,139 @@ document.addEventListener('keydown', function(e){
   if (isStandalone()) hideInstallBtns();
 })();
 </script>
+<!-- ══════════════════════════════════════════════════════
+     YANGI FOYDALANUVCHI UCHUN QISQA TANISHTIRUV (ONBOARDING)
+     ══════════════════════════════════════════════════════ -->
+<style>
+#zy-onboard-overlay {
+    position: fixed; inset: 0; background: rgba(15,10,30,0.65); z-index: 100000;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(3px);
+}
+#zy-onboard-card {
+    background: #fff; border-radius: 24px; max-width: 420px; width: 100%;
+    overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,0.4); position: relative;
+}
+body.dark-theme #zy-onboard-card { background: #1e1533; color: #f1f5f9; }
+.zy-ob-slide { display: none; padding: 40px 30px 26px; text-align: center; }
+.zy-ob-slide.active { display: block; }
+.zy-ob-icon {
+    width: 76px; height: 76px; border-radius: 22px; margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff;
+}
+.zy-ob-slide h3 { margin: 0 0 10px; font-size: 1.25rem; }
+.zy-ob-slide p { margin: 0; color: #64748b; font-size: 0.92rem; line-height: 1.6; }
+body.dark-theme .zy-ob-slide p { color: #c4b5fd; }
+.zy-ob-dots { display: flex; justify-content: center; gap: 7px; padding: 4px 0 20px; }
+.zy-ob-dot { width: 7px; height: 7px; border-radius: 50%; background: #e2e8f0; transition: all 0.25s; }
+.zy-ob-dot.active { width: 22px; border-radius: 4px; background: #7c3aed; }
+.zy-ob-footer { display: flex; gap: 10px; padding: 0 26px 26px; }
+.zy-ob-skip {
+    flex: 0 0 auto; background: none; border: none; color: #94a3b8; font-weight: 600;
+    font-size: 0.85rem; cursor: pointer; padding: 12px 6px;
+}
+.zy-ob-next {
+    flex: 1; background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; border: none;
+    border-radius: 12px; padding: 13px; font-weight: 700; font-size: 0.92rem; cursor: pointer;
+    box-shadow: 0 8px 20px rgba(124,58,237,0.3);
+}
+</style>
+<div id="zy-onboard-overlay">
+  <div id="zy-onboard-card">
+    <div class="zy-ob-slide active" data-slide="0">
+      <div class="zy-ob-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)"><i class="fas fa-hand-sparkles"></i></div>
+      <h3>Ziyomap'ga xush kelibsiz! 👋</h3>
+      <p>Bu — o'quvchilar, o'qituvchilar va ota-onalar uchun yagona ta'lim platformasi. Keling, asosiy imkoniyatlar bilan qisqacha tanishib chiqaylik.</p>
+    </div>
+    <div class="zy-ob-slide" data-slide="1">
+      <div class="zy-ob-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><i class="fas fa-flask"></i></div>
+      <h3>Laboratoriya</h3>
+      <p>Fanlar bo'yicha interaktiv darslar, animatsiyalar va amaliy mashqlar — bilimni ko'rgazmali va qiziqarli tarzda o'rganing.</p>
+    </div>
+    <div class="zy-ob-slide" data-slide="2">
+      <div class="zy-ob-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-trophy"></i></div>
+      <h3>Tanlovlar va g'oliblar</h3>
+      <p>Turli tanlovlarga ro'yxatdan o'ting, bilimingizni sinab ko'ring va g'oliblar ro'yxatida o'z ismingizni ko'ring.</p>
+    </div>
+    <div class="zy-ob-slide" data-slide="3">
+      <div class="zy-ob-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="fas fa-robot"></i></div>
+      <h3>AI vositalar</h3>
+      <p>Sun'iy intellekt yordamida dars ishlanmasi tuzing, test generatsiya qiling yoki istalgan mavzu bo'yicha ma'lumot toping.</p>
+    </div>
+    <div class="zy-ob-slide" data-slide="4">
+      <div class="zy-ob-icon" style="background:linear-gradient(135deg,#7c3aed,#d946ef)"><i class="fas fa-star"></i></div>
+      <h3>Ko'proq imkoniyat kerakmi?</h3>
+      <p>"Obuna" bo'limida sizga mos rejani tanlab, AI vositalardan cheklovsiz foydalanishingiz mumkin. Keling, boshlaymiz!</p>
+    </div>
+    <div class="zy-ob-dots" id="zy-ob-dots"></div>
+    <div class="zy-ob-footer">
+      <button type="button" class="zy-ob-skip" id="zy-ob-skip" data-i18n="onboard.skip">O'tkazib yuborish</button>
+      <button type="button" class="zy-ob-next" id="zy-ob-next" data-i18n="onboard.next">Keyingi</button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+    const SLIDE_COUNT = 5;
+    let current = 0;
+    const overlay = document.getElementById('zy-onboard-overlay');
+    const nextBtn = document.getElementById('zy-ob-next');
+    const skipBtn = document.getElementById('zy-ob-skip');
+    const dotsWrap = document.getElementById('zy-ob-dots');
+
+    for (let i = 0; i < SLIDE_COUNT; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'zy-ob-dot' + (i === 0 ? ' active' : '');
+        dotsWrap.appendChild(dot);
+    }
+
+    function render() {
+        document.querySelectorAll('.zy-ob-slide').forEach((s, i) => s.classList.toggle('active', i === current));
+        document.querySelectorAll('.zy-ob-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+        const i18n = window.ZiyomapI18n;
+        if (current === SLIDE_COUNT - 1) {
+            nextBtn.textContent = i18n ? i18n.t('onboard.start') : "Boshladik!";
+        } else {
+            nextBtn.textContent = i18n ? i18n.t('onboard.next') : 'Keyingi';
+        }
+    }
+
+    function close() {
+        overlay.style.display = 'none';
+        localStorage.setItem('zy_onboarding_done', '1');
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (current === SLIDE_COUNT - 1) { close(); return; }
+        current++;
+        render();
+    });
+    skipBtn.addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+    // Faqat birinchi marta ko'rsatamiz
+    if (!localStorage.getItem('zy_onboarding_done')) {
+        setTimeout(() => { overlay.style.display = 'flex'; render(); }, 900);
+    }
+})();
+</script>
+
+<script>
+/* ── Til tanlash dropdown ── */
+(function () {
+  const toggleBtn = document.getElementById('zy-lang-toggle');
+  const dropdown = document.getElementById('zy-lang-dropdown');
+  toggleBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  });
+  document.addEventListener('click', () => { if (dropdown) dropdown.style.display = 'none'; });
+})();
+</script>
+<style>
+.zy-lang-btn:hover { background: rgba(124,58,237,0.08) !important; }
+.zy-lang-btn.active { background: rgba(124,58,237,0.12) !important; color: #7c3aed !important; }
+</style>
+
 </body>
 </html>
