@@ -827,6 +827,11 @@ Aniq fanlarda (Matematika, Fizika, Kimyo) formulalar $...$ LaTeX formatida yozil
                 .then((res) => { if (res && res.ok) renderFeedbackWidget(feedbackEl, res.id); })
                 .catch(() => {});
         }
+        // Statistikaga qo'shamiz (admin panelda "Bo'limlar bo'yicha ishlatilish"da ko'rinadi)
+        if (window.ZiyomapUsage) {
+            const statLabels = { lesson: 'AI: Dars ishlanmasi', quiz: 'AI: Test generator', info: "AI: Ma'lumot topish" };
+            ZiyomapUsage.logUsage('ai-' + type, statLabels[type] || type);
+        }
     } catch(e) {
         resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi yuz berdi. Qayta urinib ko'ring.</span>";
         if(notif && window.ZiyomapNotify) ZiyomapNotify.update(notif, '❌ Xatolik', 'error');
@@ -952,6 +957,7 @@ document.getElementById('history-view-close-btn')?.addEventListener('click', () 
 </script>
 
 <script src="js/ziyomap-usage.js"></script>
+<script src="js/track-usage-stats.js"></script>
 <script src="js/usage-limits.js"></script>
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
