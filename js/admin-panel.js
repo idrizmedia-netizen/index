@@ -3104,10 +3104,12 @@ async function loadAdmins() {
    ══════════════════════════════════════════════════════════════ */
 (function () {
     const CB_THEMES = {
-        1: { label: 'I DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fffdf3 0%,#fdf3d0 55%,#faedb0 100%)', border: '#c99a1e', ring: '#f2c94c', text: '#7a5b0a', deep: '#8a6512', medal: '\u{1F947}', isWinner: true, rank: 1 },
-        2: { label: 'II DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fbfcfe 0%,#e9edf3 55%,#dbe1ea 100%)', border: '#8b96a3', ring: '#c3cdd8', text: '#3f4a56', deep: '#526071', medal: '\u{1F948}', isWinner: true, rank: 2 },
-        3: { label: 'III DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '\u{1F949}', isWinner: true, rank: 3 },
-        0: { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '\u{1F393}', isWinner: false, rank: null },
+        1: { label: 'I DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fffdf3 0%,#fdf3d0 55%,#faedb0 100%)', border: '#c99a1e', ring: '#f2c94c', text: '#7a5b0a', deep: '#8a6512', medal: '\u{1F947}', isWinner: true, rank: 1, kind: 'rank' },
+        2: { label: 'II DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fbfcfe 0%,#e9edf3 55%,#dbe1ea 100%)', border: '#8b96a3', ring: '#c3cdd8', text: '#3f4a56', deep: '#526071', medal: '\u{1F948}', isWinner: true, rank: 2, kind: 'rank' },
+        3: { label: 'III DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '\u{1F949}', isWinner: true, rank: 3, kind: 'rank' },
+        0: { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '\u{1F393}', isWinner: false, rank: null, kind: 'participation' },
+        4: { label: "RAG'BATLANTIRISH DIPLOMI", bg: 'linear-gradient(160deg,#f0fdf4 0%,#dcfce7 55%,#bbf7d0 100%)', border: '#16a34a', ring: '#4ade80', text: '#14532d', deep: '#166534', medal: '\u{1F396}\u{FE0F}', kind: 'encourage' },
+        5: { label: 'TASHAKURNOMA', bg: 'linear-gradient(160deg,#fdf2f8 0%,#fce7f3 55%,#fbcfe8 100%)', border: '#db2777', ring: '#f472b6', text: '#831843', deep: '#9d174d', medal: '\u{1F49D}', kind: 'thanks' },
     };
     const CB_RANK_WORD = { 1: "1-o'rin", 2: "2-o'rin", 3: "3-o'rin" };
 
@@ -3139,10 +3141,23 @@ async function loadAdmins() {
             fullName: document.getElementById('cb-fullname').value.trim(),
             contestTitle: document.getElementById('cb-contest').value.trim(),
             score: document.getElementById('cb-score').value.trim(),
+            reason: document.getElementById('cb-reason').value.trim(),
+            parentName: document.getElementById('cb-parent-name').value.trim(),
+            childName: document.getElementById('cb-child-name').value.trim(),
+            thanksText: document.getElementById('cb-thanks-text').value.trim(),
             dateStr: document.getElementById('cb-date').value,
             signer: document.getElementById('cb-signer').value.trim(),
             certNumber: document.getElementById('cb-certnum').value.trim(),
         };
+    }
+
+    function cbDefaultThanksText(parentName, childName) {
+        const child = childName || '[ Farzand ismi ]';
+        return `Hurmatli ${parentName || '[ Ota-ona F.I.Sh. ]'}!
+
+Farzandingiz ${child}ning ta'lim jarayonidagi faolligi, mas'uliyatliligi va ko'rsatgan yuqori natijalari uchun Sizga chin qalbdan minnatdorchilik bildiramiz. Farzandingizga bo'lgan e'tibor, g'amxo'rlik va qo'llab-quvvatlashingiz uning har bir muvaffaqiyatida muhim o'rin tutadi.
+
+Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun tashakkur!`;
     }
 
     // Saytdagi haqiqiy sertifikat dizayniga to'liq mos HTML hujjat quradi.
@@ -3159,12 +3174,34 @@ async function loadAdmins() {
         const dateText = cbFmtDate(data.dateStr) || '[ Sana ]';
         const signerName = data.signer || 'Ziyomap';
 
-        const mainText = theme.isWinner
-            ? `<b>${cbEsc(contestTitle)}</b> tanlovida<br><span class="cert-rank">${cbEsc(CB_RANK_WORD[theme.rank])}</span>ni egallagani uchun taqdim etiladi`
-            : `<b>${cbEsc(contestTitle)}</b> tanlovida faol ishtirok etganligi uchun taqdim etiladi`;
-        const scoreLine = data.score
-            ? `<div class="cert-score">Umumiy natija: <b>${cbEsc(data.score)} ball</b></div>`
-            : '';
+        let displayName, mainText, scoreLine;
+        if (theme.kind === 'thanks') {
+            displayName = data.parentName || '[ Ota-ona F.I.Sh. ]';
+            const thanksBody = data.thanksText || cbDefaultThanksText(data.parentName, data.childName);
+            mainText = cbEsc(thanksBody).replace(/\n/g, '<br>');
+            scoreLine = '';
+        } else if (theme.kind === 'encourage') {
+            displayName = fullName;
+            const reasonText = data.reason ? cbEsc(data.reason) : "faol ishtiroki va yuqori natijalari";
+            mainText = data.contestTitle
+                ? `<b>${cbEsc(contestTitle)}</b> doirasida ${reasonText}<br>uchun taqdirlanadi`
+                : `${reasonText}<br>uchun taqdirlanadi`;
+            scoreLine = data.score
+                ? `<div class="cert-score">Umumiy natija: <b>${cbEsc(data.score)} ball</b></div>`
+                : '';
+        } else if (theme.kind === 'rank') {
+            displayName = fullName;
+            mainText = `<b>${cbEsc(contestTitle)}</b> tanlovida<br><span class="cert-rank">${cbEsc(CB_RANK_WORD[theme.rank])}</span>ni egallagani uchun taqdim etiladi`;
+            scoreLine = data.score
+                ? `<div class="cert-score">Umumiy natija: <b>${cbEsc(data.score)} ball</b></div>`
+                : '';
+        } else {
+            displayName = fullName;
+            mainText = `<b>${cbEsc(contestTitle)}</b> tanlovida faol ishtirok etganligi uchun taqdim etiladi`;
+            scoreLine = data.score
+                ? `<div class="cert-score">Umumiy natija: <b>${cbEsc(data.score)} ball</b></div>`
+                : '';
+        }
 
         return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${cbEsc(theme.label)}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3240,7 +3277,7 @@ async function loadAdmins() {
                 <div class="cert-brand">ZIYOMAP</div>
                 <div class="cert-title">${cbEsc(theme.label)}</div>
                 <div class="cert-given-to">Ushbu hujjat quyidagi shaxsga taqdim etiladi</div>
-                <div class="cert-name">${cbEsc(fullName)}</div>
+                <div class="cert-name">${cbEsc(displayName)}</div>
                 <div class="cert-text">${mainText}</div>
                 ${scoreLine}
                 <div class="cert-footer">
@@ -3303,6 +3340,37 @@ async function loadAdmins() {
         if (frame) frame.srcdoc = cbBuildCertHtml(data);
     }
 
+    function cbUpdateFieldVisibility() {
+        const type = document.querySelector('#cb-type-btns .active')?.dataset.cbType || '1';
+        const kind = (CB_THEMES[type] || {}).kind || 'rank';
+
+        const showFullname = kind === 'rank' || kind === 'participation' || kind === 'encourage';
+        const showContest = kind === 'rank' || kind === 'participation';
+        const showScore = kind === 'rank' || kind === 'participation' || kind === 'encourage';
+        const showReason = kind === 'encourage';
+        const showParent = kind === 'thanks';
+
+        document.getElementById('cb-field-fullname').style.display = showFullname ? '' : 'none';
+        document.getElementById('cb-field-contest').style.display = showContest ? '' : 'none';
+        document.getElementById('cb-field-score').style.display = showScore ? '' : 'none';
+        document.getElementById('cb-field-reason').style.display = showReason ? '' : 'none';
+        document.getElementById('cb-field-parent').style.display = showParent ? '' : 'none';
+
+        // Tanlov nomi maydoni rag'batlantirish uchun ixtiyoriy label bilan
+        const contestLabel = document.querySelector('#cb-field-contest label');
+        if (contestLabel) contestLabel.textContent = 'Tanlov nomi';
+
+        if (kind === 'thanks') {
+            const thanksEl = document.getElementById('cb-thanks-text');
+            if (thanksEl && !thanksEl.value.trim()) {
+                thanksEl.value = cbDefaultThanksText(
+                    document.getElementById('cb-parent-name').value.trim(),
+                    document.getElementById('cb-child-name').value.trim()
+                );
+            }
+        }
+    }
+
     function cbInit() {
         const dateInput = document.getElementById('cb-date');
         if (dateInput && !dateInput.value) {
@@ -3316,16 +3384,27 @@ async function loadAdmins() {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('#cb-type-btns [data-cb-type]').forEach((b) => b.classList.remove('active'));
                 btn.classList.add('active');
+                cbUpdateFieldVisibility();
+                cbMarkDirty();
+                cbRenderPreview();
+            });
+        });
+        cbUpdateFieldVisibility();
+
+        ['cb-fullname', 'cb-contest', 'cb-score', 'cb-reason', 'cb-parent-name', 'cb-child-name', 'cb-thanks-text', 'cb-date', 'cb-signer'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('input', () => {
                 cbMarkDirty();
                 cbRenderPreview();
             });
         });
 
-        ['cb-fullname', 'cb-contest', 'cb-score', 'cb-date', 'cb-signer'].forEach((id) => {
-            document.getElementById(id)?.addEventListener('input', () => {
-                cbMarkDirty();
-                cbRenderPreview();
-            });
+        document.getElementById('cb-thanks-template-btn')?.addEventListener('click', () => {
+            document.getElementById('cb-thanks-text').value = cbDefaultThanksText(
+                document.getElementById('cb-parent-name').value.trim(),
+                document.getElementById('cb-child-name').value.trim()
+            );
+            cbMarkDirty();
+            cbRenderPreview();
         });
 
         document.getElementById('cb-gen-num-btn')?.addEventListener('click', () => {
@@ -3336,7 +3415,20 @@ async function loadAdmins() {
 
         document.getElementById('cb-save-btn')?.addEventListener('click', async () => {
             const data = cbCollectData();
-            if (!data.fullName || !data.contestTitle) {
+            const theme = CB_THEMES[data.type];
+            const kind = theme.kind || 'rank';
+
+            if (kind === 'thanks') {
+                if (!data.parentName || !data.childName) {
+                    cbSetStatus('Ota-ona F.I.Sh. va farzand ismini to\u2018ldiring.', 'error');
+                    return;
+                }
+            } else if (kind === 'encourage') {
+                if (!data.fullName || !data.reason) {
+                    cbSetStatus('Ismi va sababni to\u2018ldiring.', 'error');
+                    return;
+                }
+            } else if (!data.fullName || !data.contestTitle) {
                 cbSetStatus('Ismi va tanlov nomini to\u2018ldiring.', 'error');
                 return;
             }
@@ -3344,20 +3436,31 @@ async function loadAdmins() {
                 data.certNumber = cbGenCertNumber();
                 document.getElementById('cb-certnum').value = data.certNumber;
             }
-            const theme = CB_THEMES[data.type];
             const btn = document.getElementById('cb-save-btn');
             btn.disabled = true;
             try {
-                await setDoc(doc(db, 'certificates', data.certNumber), {
-                    fullName: data.fullName,
-                    contestTitle: data.contestTitle,
-                    isWinner: theme.isWinner,
-                    rank: theme.isWinner ? theme.rank : null,
-                    score: data.score ? Number(data.score) : null,
+                const payload = {
+                    certType: data.type,
+                    isWinner: kind === 'rank',
+                    rank: kind === 'rank' ? theme.rank : null,
                     issuedDateText: cbFmtDate(data.dateStr),
                     issuedAt: serverTimestamp(),
                     manual: true,
-                }, { merge: true });
+                };
+                if (kind === 'thanks') {
+                    payload.fullName = data.parentName;
+                    payload.parentName = data.parentName;
+                    payload.childName = data.childName;
+                    payload.thanksText = data.thanksText || cbDefaultThanksText(data.parentName, data.childName);
+                    payload.contestTitle = null;
+                    payload.score = null;
+                } else {
+                    payload.fullName = data.fullName;
+                    payload.contestTitle = data.contestTitle || null;
+                    payload.score = data.score ? Number(data.score) : null;
+                    payload.reason = kind === 'encourage' ? (data.reason || null) : null;
+                }
+                await setDoc(doc(db, 'certificates', data.certNumber), payload, { merge: true });
                 cbSaved = true;
                 document.getElementById('cb-print-btn').disabled = false;
                 document.getElementById('cb-pptx-btn').disabled = false;
@@ -3465,16 +3568,28 @@ async function loadAdmins() {
                 slide.addText('USHBU HUJJAT QUYIDAGI SHAXSGA TAQDIM ETILADI', { x: 1.0, y: givenY, w: W - 2.0, h: 0.24, align: 'center', fontFace: 'Calibri', fontSize: 10.5, color: lighten('#' + textC, 0.35), charSpacing: 2, isTextBox: true, margin: 0 });
 
                 const nameY = givenY + 0.36;
-                slide.addText(data.fullName || '[ Ishtirokchining F.I.Sh. ]', { x: 1.2, y: nameY, w: W - 2.4, h: 0.52, align: 'center', fontFace: 'Cambria', fontSize: 26, bold: true, color: deep, isTextBox: true, margin: 0 });
+                const pptxDisplayName = theme.kind === 'thanks' ? (data.parentName || '[ Ota-ona F.I.Sh. ]') : (data.fullName || '[ Ishtirokchining F.I.Sh. ]');
+                slide.addText(pptxDisplayName, { x: 1.2, y: nameY, w: W - 2.4, h: 0.52, align: 'center', fontFace: 'Cambria', fontSize: 26, bold: true, color: deep, isTextBox: true, margin: 0 });
                 slide.addShape('line', { x: CX - 2.2, y: nameY + 0.56, w: 4.4, h: 0, line: { color: border, width: 1.5 } });
 
                 const bodyY = nameY + 0.72;
-                const mainRuns = theme.isWinner
-                    ? [{ text: data.contestTitle || '[ Tanlov nomi ]', options: { bold: true } }, { text: ' tanlovida\n', options: {} }, { text: CB_RANK_WORD[theme.rank], options: { bold: true, color: deep } }, { text: 'ni egallagani uchun taqdim etiladi', options: {} }]
-                    : [{ text: data.contestTitle || '[ Tanlov nomi ]', options: { bold: true } }, { text: ' tanlovida faol ishtirok etganligi uchun taqdim etiladi', options: {} }];
-                slide.addText(mainRuns, { x: CX - 3.6, y: bodyY, w: 7.2, h: 0.62, align: 'center', fontFace: 'Calibri', fontSize: 13, color: textC, lineSpacing: 20, isTextBox: true, margin: 0 });
+                let mainRuns;
+                if (theme.kind === 'thanks') {
+                    const thanksBody = data.thanksText || cbDefaultThanksText(data.parentName, data.childName);
+                    mainRuns = [{ text: thanksBody, options: {} }];
+                } else if (theme.kind === 'encourage') {
+                    const reasonText = data.reason || "faol ishtiroki va yuqori natijalari";
+                    mainRuns = data.contestTitle
+                        ? [{ text: data.contestTitle, options: { bold: true } }, { text: ` doirasida ${reasonText}\n`, options: {} }, { text: 'uchun taqdirlanadi', options: {} }]
+                        : [{ text: `${reasonText}\n`, options: {} }, { text: 'uchun taqdirlanadi', options: {} }];
+                } else if (theme.kind === 'rank') {
+                    mainRuns = [{ text: data.contestTitle || '[ Tanlov nomi ]', options: { bold: true } }, { text: ' tanlovida\n', options: {} }, { text: CB_RANK_WORD[theme.rank], options: { bold: true, color: deep } }, { text: 'ni egallagani uchun taqdim etiladi', options: {} }];
+                } else {
+                    mainRuns = [{ text: data.contestTitle || '[ Tanlov nomi ]', options: { bold: true } }, { text: ' tanlovida faol ishtirok etganligi uchun taqdim etiladi', options: {} }];
+                }
+                slide.addText(mainRuns, { x: CX - 3.6, y: bodyY, w: 7.2, h: theme.kind === 'thanks' ? 1.6 : 0.62, align: 'center', fontFace: 'Calibri', fontSize: theme.kind === 'thanks' ? 11.5 : 13, color: textC, lineSpacing: theme.kind === 'thanks' ? 17 : 20, isTextBox: true, margin: 0 });
 
-                if (data.score) {
+                if (data.score && theme.kind !== 'thanks') {
                     slide.addText(`Umumiy natija: ${data.score} ball`, { x: CX - 2, y: bodyY + 0.66, w: 4, h: 0.26, align: 'center', fontFace: 'Calibri', fontSize: 11, bold: true, color: deep, charSpacing: 0.5, isTextBox: true, margin: 0 });
                 }
 
