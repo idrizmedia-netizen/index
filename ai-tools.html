@@ -77,6 +77,19 @@
         }
         .action-btns { display: none; gap: 10px; margin-top: 20px; }
         .btn-pdf { flex: 1; padding: 15px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; background: #ef4444; color: white; font-weight: bold; font-size: 1.1rem; transition: 0.3s; }
+        .feedback-widget {
+            margin-top: 16px; padding: 14px 18px; border-radius: 14px; background: #f8fafc;
+            border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            font-size: 0.9rem; color: #475569;
+        }
+        .feedback-widget .fb-btn {
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 14px;
+            cursor: pointer; font-size: 1.05rem; transition: 0.2s;
+        }
+        .feedback-widget .fb-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .feedback-widget .fb-btn.selected-up { background: #dcfce7; border-color: #16a34a; }
+        .feedback-widget .fb-btn.selected-down { background: #fee2e2; border-color: #dc2626; }
+        .feedback-widget .fb-thanks { color: #16a34a; font-weight: 700; }
         .btn-pdf:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(239,68,68,0.3); }
 
         table { width: 100%; border-collapse: collapse; margin: 20px 0; }
@@ -132,6 +145,7 @@
             </div>
             <div id="history-view-content" class="result-area" style="display:block;overflow-y:auto;padding:20px 22px;flex:1"></div>
             <div class="action-btns" id="history-view-btns" style="display:flex;padding:16px 22px;border-top:1px solid #e2e8f0;margin-top:0"></div>
+            <div class="feedback-widget" id="history-view-feedback" style="display:none;margin:0 22px 18px;border-radius:14px"></div>
         </div>
     </div>
 
@@ -207,6 +221,7 @@
                 <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
+        <div class="feedback-widget" id="feedback-lesson" style="display:none"></div>
     </div>
 
     <!-- ===== MA'LUMOT TOPISH ===== -->
@@ -245,6 +260,7 @@
                 <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
+        <div class="feedback-widget" id="feedback-info" style="display:none"></div>
     </div>
 
     <!-- ===== TEST GENERATOR ===== -->
@@ -302,6 +318,7 @@
                 <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
+        <div class="feedback-widget" id="feedback-quiz" style="display:none"></div>
     </div>
 
 </div>
@@ -341,7 +358,29 @@ function showQuizInfo() {
     alert("ℹ️ TEST GENERATOR:\n\n• Bitta mavzu yoki vergul bilan bir nechta mavzu yozing.\n• Daraja: Oson / O'rta / Qiyin / Aralash.\n\nMisol: Kvadrat tenglamalar, Viet teoremasi");
 }
 
-// ====== MAIN GENERATE ======
+// ====== BAHO BERISH (Foydali bo'ldimi?) ======
+function renderFeedbackWidget(el, historyId) {
+    if (!el || !historyId) return;
+    el.style.display = 'flex';
+    el.innerHTML = `
+        <span>Ushbu natija foydali bo'ldimi?</span>
+        <button type="button" class="fb-btn" data-fb="up" onclick="submitFeedback(this,'${historyId}','up')">👍</button>
+        <button type="button" class="fb-btn" data-fb="down" onclick="submitFeedback(this,'${historyId}','down')">👎</button>
+        <span class="fb-note" style="flex:1"></span>
+    `;
+}
+
+async function submitFeedback(btn, historyId, rating) {
+    const wrap = btn.closest('.feedback-widget');
+    wrap.querySelectorAll('.fb-btn').forEach((b) => b.classList.remove('selected-up', 'selected-down'));
+    btn.classList.add(rating === 'up' ? 'selected-up' : 'selected-down');
+    const noteEl = wrap.querySelector('.fb-note');
+    if (noteEl) noteEl.innerHTML = '<span class="fb-thanks">Rahmat, fikringiz uchun! ✅</span>';
+    if (window.ZiyomapLimits && ZiyomapLimits.rateHistory) {
+        await ZiyomapLimits.rateHistory(historyId, rating);
+    }
+}
+
 async function generate(type, btn) {
     let topic='', resArea, btns, prompt, label='';
 
@@ -379,6 +418,9 @@ async function generate(type, btn) {
     btn.innerHTML = '<i class="fas fa-sync fa-spin"></i> AI tayyorlamoqda...';
     resArea.style.display = 'block';
     resArea.innerHTML = "<div style='text-align:center;padding:30px'><i class='fas fa-brain fa-pulse' style='font-size:2rem;color:#2563eb'></i><br><br><b>AI ishlamoqda, iltimos kuting...</b></div>";
+    btns.style.display = 'none';
+    const oldFeedbackEl = document.getElementById('feedback-' + type);
+    if (oldFeedbackEl) { oldFeedbackEl.style.display = 'none'; oldFeedbackEl.innerHTML = ''; }
 
     // ---- BUILD PROMPTS ----
 
@@ -779,8 +821,11 @@ Aniq fanlarda (Matematika, Fizika, Kimyo) formulalar $...$ LaTeX formatida yozil
             ZiyomapNotify.update(notif, '✅ ' + (type==='lesson'?'Dars ishlanmasi':type==='info'?"Ma'lumot":'Testlar') + ' tayyor!', 'success');
         }
         // Tarixga saqlaymiz — foydalanuvchi keyinroq qayta ko'ra oladi
+        const feedbackEl = document.getElementById('feedback-' + type);
         if (window.ZiyomapLimits && ZiyomapLimits.saveHistory) {
-            ZiyomapLimits.saveHistory(type, topic, reply).catch(() => {});
+            ZiyomapLimits.saveHistory(type, topic, reply)
+                .then((res) => { if (res && res.ok) renderFeedbackWidget(feedbackEl, res.id); })
+                .catch(() => {});
         }
     } catch(e) {
         resArea.innerHTML = "<span style='color:red'>Tarmoq xatosi yuz berdi. Qayta urinib ko'ring.</span>";
@@ -879,6 +924,14 @@ async function viewHistoryItem(id) {
     btnsEl.innerHTML = `
         <button class="btn-pdf" onclick="perfectPrint('history-view-content')"><i class="fas fa-file-pdf"></i> PDF yuklab olish</button>
     `;
+    const historyFeedbackEl = document.getElementById('history-view-feedback');
+    renderFeedbackWidget(historyFeedbackEl, id);
+    if (item.rating) {
+        const selBtn = historyFeedbackEl.querySelector(`[data-fb="${item.rating}"]`);
+        if (selBtn) selBtn.classList.add(item.rating === 'up' ? 'selected-up' : 'selected-down');
+        const noteEl = historyFeedbackEl.querySelector('.fb-note');
+        if (noteEl) noteEl.innerHTML = '<span class="fb-thanks">Bahoingiz qayd etilgan ✅</span>';
+    }
     viewModal.style.display = 'flex';
     if (window.MathJax) await MathJax.typesetPromise([contentEl]);
 }
