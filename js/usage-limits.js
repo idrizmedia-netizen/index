@@ -250,9 +250,28 @@
         }
     }
 
+    // Foydalanuvchi natijaga baho beradi: 'up' (foydali) yoki 'down' (foydali emas)
+    async function rateHistory(id, rating) {
+        const localUid = window.ZiyomapUsage ? ZiyomapUsage.getUserId() : null;
+        if (!localUid || !id) return { ok: false };
+        try {
+            const { db, fs, authUser } = await getFirestore();
+            if (!authUser) return { ok: false };
+            await fs.setDoc(fs.doc(db, 'users', authUser.uid, 'ai-history', id), { rating }, { merge: true });
+            // Umumiy statistika uchun ham (admin tahlili uchun) alohida hisoblagichga qo'shamiz
+            try {
+                await fs.setDoc(fs.doc(db, 'usage-stats', 'ai-feedback'), { [rating]: fs.increment(1) }, { merge: true });
+            } catch (e) { /* statistikaga yozib bo'lmasa ham asosiy baho saqlangan bo'ladi */ }
+            return { ok: true };
+        } catch (err) {
+            console.error('Baho berishda xatolik:', err);
+            return { ok: false };
+        }
+    }
+
     window.ZiyomapLimits = {
         checkAndConsume, showUpgradeNotice, getCurrentPlanInfo, cancelMyPlan,
-        saveHistory, listHistory, deleteHistoryItem,
+        saveHistory, listHistory, deleteHistoryItem, rateHistory,
     };
 })();
 
