@@ -98,8 +98,6 @@
             .tool-card { padding: 15px; }
             .result-area { padding: 15px; font-size: 11pt; }
             .mode-btn { min-width: 80px; font-size: 0.75rem; }
-            .action-btns { flex-wrap: wrap; }
-            .action-btns .btn-pdf { flex: 1 1 100px; font-size: 0.9rem; padding: 12px 8px; }
         }
     </style>
 </head>
@@ -206,13 +204,7 @@
         <div id="res-lesson" class="result-area"></div>
         <div class="action-btns" id="btns-lesson">
             <button class="btn-pdf" onclick="perfectPrint('res-lesson')">
-                <i class="fas fa-print"></i> Chop etish
-            </button>
-            <button class="btn-pdf" style="background:#dc2626" onclick="downloadAsPDF('res-lesson','dars-ishlanmasi')">
-                <i class="fas fa-file-pdf"></i> PDF
-            </button>
-            <button class="btn-pdf" style="background:#2563eb" onclick="downloadAsWord('res-lesson','dars-ishlanmasi')">
-                <i class="fas fa-file-word"></i> Word
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
     </div>
@@ -250,13 +242,7 @@
         <div id="res-info" class="result-area"></div>
         <div class="action-btns" id="btns-info">
             <button class="btn-pdf" onclick="perfectPrint('res-info')">
-                <i class="fas fa-print"></i> Chop etish
-            </button>
-            <button class="btn-pdf" style="background:#dc2626" onclick="downloadAsPDF('res-info','malumot')">
-                <i class="fas fa-file-pdf"></i> PDF
-            </button>
-            <button class="btn-pdf" style="background:#2563eb" onclick="downloadAsWord('res-info','malumot')">
-                <i class="fas fa-file-word"></i> Word
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
     </div>
@@ -313,13 +299,7 @@
         <div id="res-quiz" class="result-area"></div>
         <div class="action-btns" id="btns-quiz">
             <button class="btn-pdf" onclick="perfectPrint('res-quiz')">
-                <i class="fas fa-print"></i> Chop etish
-            </button>
-            <button class="btn-pdf" style="background:#dc2626" onclick="downloadAsPDF('res-quiz','test')">
-                <i class="fas fa-file-pdf"></i> PDF
-            </button>
-            <button class="btn-pdf" style="background:#2563eb" onclick="downloadAsWord('res-quiz','test')">
-                <i class="fas fa-file-word"></i> Word
+                <i class="fas fa-file-pdf"></i> PDF yuklab olish
             </button>
         </div>
     </div>
@@ -835,77 +815,6 @@ async function perfectPrint(id) {
     pWin.document.close();
 }
 
-// ====== YORDAMCHI: TASHQI SKRIPTNI BIR MARTA YUKLASH ======
-function loadScriptOnce(src) {
-    return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-        const s = document.createElement('script');
-        s.src = src;
-        s.onload = () => resolve();
-        s.onerror = () => reject(new Error('Skript yuklanmadi: ' + src));
-        document.head.appendChild(s);
-    });
-}
-
-// ====== TO'G'RIDAN-TO'G'RI PDF YUKLAB OLISH (chop etish oynasiz) ======
-async function downloadAsPDF(id, filenameBase) {
-    const area = document.getElementById(id);
-    if (!area || !area.innerHTML.trim()) return;
-    if (window.MathJax) await MathJax.typesetPromise([area]);
-    try {
-        await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
-    } catch (e) {
-        alert('PDF vositasini yuklashda xatolik. Internetni tekshiring.');
-        return;
-    }
-    const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'font-family:"Times New Roman",serif;color:#000;background:#fff;padding:10px;line-height:1.7';
-    wrapper.innerHTML = area.innerHTML;
-    const opt = {
-        margin: 10,
-        filename: (filenameBase || 'ziyomap-hujjat') + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-    window.html2pdf().set(opt).from(wrapper).save();
-}
-
-// ====== TO'G'RIDAN-TO'G'RI WORD (.DOCX) YUKLAB OLISH ======
-async function downloadAsWord(id, filenameBase) {
-    const area = document.getElementById(id);
-    if (!area || !area.innerHTML.trim()) return;
-    if (window.MathJax) await MathJax.typesetPromise([area]);
-    try {
-        await loadScriptOnce('https://cdn.jsdelivr.net/npm/html-docx-js/dist/html-docx.js');
-    } catch (e) {
-        alert('Word vositasini yuklashda xatolik. Internetni tekshiring.');
-        return;
-    }
-    const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-        body{font-family:'Times New Roman',serif;font-size:14px;line-height:1.6;color:#000}
-        table{width:100%;border-collapse:collapse;margin:14px 0}
-        th,td{border:1px solid #000;padding:8px;text-align:left}
-        th{background:#f2f2f2}
-        h1,h2,h3{color:#000}
-    </style></head><body>${area.innerHTML}</body></html>`;
-    try {
-        const blob = window.htmlDocx.asBlob(fullHtml);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = (filenameBase || 'ziyomap-hujjat') + '.docx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 3000);
-    } catch (e) {
-        console.error(e);
-        alert('Word faylini yaratishda xatolik yuz berdi. Formulalar murakkab bo\u2018lsa, buning o\u2018rniga PDF yoki Chop etishdan foydalaning.');
-    }
-}
-
 // ====== TARIX (natijalarni qayta ko'rish) ======
 const HISTORY_TYPE_META = {
     lesson: { icon: 'fa-chalkboard-teacher', color: '#2563eb', label: 'Dars ishlanmasi' },
@@ -967,11 +876,8 @@ async function viewHistoryItem(id) {
     const btnsEl = document.getElementById('history-view-btns');
     titleEl.textContent = `${meta.label}: ${item.topic || ''}`;
     contentEl.innerHTML = marked.parse(item.content || '');
-    const fileBase = (item.type || 'ziyomap') + '-tarix';
     btnsEl.innerHTML = `
-        <button class="btn-pdf" onclick="perfectPrint('history-view-content')"><i class="fas fa-print"></i> Chop etish</button>
-        <button class="btn-pdf" style="background:#dc2626" onclick="downloadAsPDF('history-view-content','${fileBase}')"><i class="fas fa-file-pdf"></i> PDF</button>
-        <button class="btn-pdf" style="background:#2563eb" onclick="downloadAsWord('history-view-content','${fileBase}')"><i class="fas fa-file-word"></i> Word</button>
+        <button class="btn-pdf" onclick="perfectPrint('history-view-content')"><i class="fas fa-file-pdf"></i> PDF yuklab olish</button>
     `;
     viewModal.style.display = 'flex';
     if (window.MathJax) await MathJax.typesetPromise([contentEl]);
