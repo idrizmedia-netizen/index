@@ -76,6 +76,18 @@
                 { merge: true }
             );
 
+            // ── Kunlik faol foydalanuvchilar hisoblagichi (bir kunga bitta marta) ──
+            try {
+                const { increment } = await import('https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js');
+                const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+                if (localStorage.getItem('zy_last_active_day') !== today) {
+                    localStorage.setItem('zy_last_active_day', today);
+                    await setDoc(doc(db, 'daily-active-users', today), { count: increment(1) }, { merge: true });
+                }
+            } catch (err) {
+                console.error('Kunlik faollikni qayd etishda xatolik:', err);
+            }
+
             // Yangi ro'yxatdan o'tgan foydalanuvchiga bir martalik "Siz Bepul tarifidasiz" xabari
             if (!existing.exists() && !localStorage.getItem('zy_plan_intro_shown')) {
                 localStorage.setItem('zy_plan_intro_shown', '1');
