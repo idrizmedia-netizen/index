@@ -426,13 +426,31 @@ Bilet 2
         <button type="button" class="contest-filter-btn" data-cb-type="2">🥈 II-o'rin diplomi</button>
         <button type="button" class="contest-filter-btn" data-cb-type="3">🥉 III-o'rin diplomi</button>
         <button type="button" class="contest-filter-btn" data-cb-type="0">🎓 Ishtirok sertifikati</button>
+        <button type="button" class="contest-filter-btn" data-cb-type="4">🏅 Rag'batlantirish diplomi</button>
+        <button type="button" class="contest-filter-btn" data-cb-type="5">💐 Tashakurnoma</button>
       </div>
 
       <div style="display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:26px;align-items:start" id="cb-grid">
         <div>
-          <div class="field"><label>Ishtirokchi F.I.Sh.</label><input type="text" id="cb-fullname" placeholder="Masalan: Aliyev Ali Aliyevich"></div>
-          <div class="field"><label>Tanlov nomi</label><input type="text" id="cb-contest" placeholder="Masalan: Ziyomap yosh dasturchilar tanlovi"></div>
-          <div class="field"><label>Umumiy ball (ixtiyoriy)</label><input type="number" id="cb-score" placeholder="Masalan: 87"></div>
+          <div id="cb-field-fullname" class="field"><label>Ishtirokchi F.I.Sh.</label><input type="text" id="cb-fullname" placeholder="Masalan: Aliyev Ali Aliyevich"></div>
+          <div id="cb-field-contest" class="field"><label>Tanlov nomi</label><input type="text" id="cb-contest" placeholder="Masalan: Ziyomap yosh dasturchilar tanlovi"></div>
+          <div id="cb-field-score" class="field"><label>Umumiy ball (ixtiyoriy)</label><input type="number" id="cb-score" placeholder="Masalan: 87"></div>
+
+          <div id="cb-field-reason" class="field" style="display:none">
+            <label>Sabab — nima uchun berilmoqda</label>
+            <textarea id="cb-reason" rows="3" placeholder="Masalan: darslarga faol qatnashib, yuqori natijalar ko'rsatgani uchun"></textarea>
+          </div>
+
+          <div id="cb-field-parent" style="display:none">
+            <div class="field"><label>Ota-ona (yoki vasiy) F.I.Sh.</label><input type="text" id="cb-parent-name" placeholder="Masalan: Aliyeva Malika Aliyevna"></div>
+            <div class="field"><label>Farzandining ismi</label><input type="text" id="cb-child-name" placeholder="Masalan: Aliyev Ali"></div>
+            <div class="field">
+              <label>Tashakurnoma matni</label>
+              <textarea id="cb-thanks-text" rows="5"></textarea>
+              <button type="button" id="cb-thanks-template-btn" style="margin-top:8px;padding:8px 14px;font-size:0.78rem;border:1px solid var(--border,#e2e8f0);background:#f8fafc;color:var(--primary,#7c3aed);border-radius:8px;cursor:pointer;font-weight:600"><i class="fas fa-wand-magic-sparkles"></i> Andoza matnni qo'llash</button>
+            </div>
+          </div>
+
           <div class="field"><label>Berilgan sana</label><input type="date" id="cb-date"></div>
           <div class="field"><label>Mas'ul shaxs F.I.Sh.</label><input type="text" id="cb-signer" placeholder="Masalan: Normurodov I."></div>
           <div class="field">
