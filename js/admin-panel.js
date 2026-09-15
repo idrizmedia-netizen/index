@@ -89,6 +89,8 @@ async function boot(isAdmin) {
     }
     initTabs();
     loadStats();
+    loadSubscriptionStats();
+    loadActiveUsersChart();
     loadContests();
     loadNotifications();
     loadUsers();
@@ -177,6 +179,114 @@ function renderBarChart(items, maxItems = 8) {
             </div>`
         )
         .join('');
+}
+
+// items: [{label, value}] — BERILGAN TARTIBDA chiziladi (qiymat bo'yicha saralanmaydi) —
+// xronologik (kun-kunma-kun) grafiklar uchun, masalan faol foydalanuvchilar tendensiyasi.
+function renderTrendChart(items) {
+    if (!items.length) return '<div class="empty">Ma\u2019lumot yo\u2018q.</div>';
+    const max = Math.max(...items.map((i) => i.value), 1);
+    return `<div style="display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:10px">
+        ${items
+            .map(
+                (i) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%">
+                    <div style="font-size:0.7rem;font-weight:700;color:var(--primary);margin-bottom:4px">${i.value || ''}</div>
+                    <div style="width:100%;max-width:26px;background:var(--primary);border-radius:5px 5px 0 0;height:${Math.max(Math.round((i.value / max) * 100), i.value > 0 ? 4 : 0)}%;transition:height .3s"></div>
+                    <div style="font-size:0.66rem;color:var(--muted);margin-top:6px;white-space:nowrap">${escapeHtml(i.label)}</div>
+                </div>`
+            )
+            .join('')}
+    </div>`;
+}
+
+/* ── OBUNA STATISTIKASI ── */
+async function loadSubscriptionStats() {
+    const box = document.getElementById('obunaStatsBox');
+    if (!box) return;
+    try {
+        const settingsSnap = await getDoc(doc(db, 'site-content', 'obuna-settings'));
+        const plans = settingsSnap.exists() ? (settingsSnap.data().plans || []) : [];
+        if (!plans.length) {
+            box.innerHTML = '<div class="empty">Hali obuna rejalari sozlanmagan.</div>';
+            return;
+        }
+        const counts = await Promise.all(
+            plans.map((_, i) => getCountFromServer(query(collection(db, 'users'), where('planId', '==', i))))
+        );
+        let totalRevenue = 0;
+        let totalPaidUsers = 0;
+        const rows = plans
+            .map((p, i) => {
+                const count = counts[i].data().count;
+                const priceNum = Number(String(p.price || '').replace(/[^0-9]/g, '')) || 0;
+                const revenue = count * priceNum;
+                if (i > 0) { totalRevenue += revenue; totalPaidUsers += count; }
+                return { name: p.name || `${i + 1}-reja`, count, priceNum, revenue, isFree: i === 0 };
+            });
+        box.innerHTML = `
+            <table style="width:100%;border-collapse:collapse;font-size:0.86rem">
+                <thead><tr style="text-align:left;color:var(--muted);font-size:0.78rem">
+                    <th style="padding:6px 8px 10px 0">Reja</th>
+                    <th style="padding:6px 8px 10px">Foydalanuvchilar</th>
+                    <th style="padding:6px 0 10px">Taxminiy oylik daromad</th>
+                </tr></thead>
+                <tbody>
+                ${rows.map((r) => `<tr style="border-top:1px solid var(--border,#e2e8f0)">
+                    <td style="padding:9px 8px 9px 0;font-weight:700">${escapeHtml(r.name)}</td>
+                    <td style="padding:9px 8px">${r.count}</td>
+                    <td style="padding:9px 0">${r.isFree ? '<span style="color:var(--muted)">—</span>' : r.revenue.toLocaleString('uz-UZ') + " so'm"}</td>
+                </tr>`).join('')}
+                </tbody>
+            </table>
+            <div style="display:flex;gap:28px;margin-top:18px;flex-wrap:wrap">
+                <div><div style="font-size:1.5rem;font-weight:800;color:var(--primary)">${totalPaidUsers}</div><div style="font-size:0.78rem;color:var(--muted)">Jami pullik obunachi</div></div>
+                <div><div style="font-size:1.5rem;font-weight:800;color:var(--green,#059669)">${totalRevenue.toLocaleString('uz-UZ')} so'm</div><div style="font-size:0.78rem;color:var(--muted)">Taxminiy jami oylik daromad</div></div>
+            </div>
+            <p style="color:var(--muted);font-size:0.72rem;margin-top:12px">* "Taxminiy" — chunki hozircha to'lov avtomatik emas; bu faqat admin tomonidan faollashtirilgan rejalar asosida hisoblangan.</p>
+        `;
+    } catch (err) {
+        console.error('Obuna statistikasini yuklashda xatolik:', err);
+        box.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
+}
+
+/* ── FAOL FOYDALANUVCHILAR GRAFIGI ── */
+async function loadActiveUsersChart() {
+    const chartBox = document.getElementById('activeUsersChartBox');
+    const summaryBox = document.getElementById('activeUsersSummary');
+    if (!chartBox) return;
+    try {
+        const days = [];
+        for (let i = 13; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            days.push(d.toISOString().slice(0, 10));
+        }
+        const snaps = await Promise.all(days.map((day) => getDoc(doc(db, 'daily-active-users', day))));
+        const items = days.map((day, i) => {
+            const count = snaps[i].exists() ? (snaps[i].data().count || 0) : 0;
+            const d = new Date(day);
+            return { label: `${d.getDate()}/${d.getMonth() + 1}`, value: count };
+        });
+        chartBox.innerHTML = renderTrendChart(items);
+
+        const todayCount = items[items.length - 1].value;
+        const last7 = items.slice(-7).reduce((s, i) => s + i.value, 0);
+        const prev7 = items.slice(-14, -7).reduce((s, i) => s + i.value, 0);
+        const growthPct = prev7 > 0 ? Math.round(((last7 - prev7) / prev7) * 100) : (last7 > 0 ? 100 : 0);
+        const growthColor = growthPct >= 0 ? 'var(--green,#059669)' : 'var(--red,#dc2626)';
+        const growthSign = growthPct >= 0 ? '+' : '';
+        if (summaryBox) {
+            summaryBox.innerHTML = `
+                <div><div style="font-size:1.4rem;font-weight:800;color:var(--primary)">${todayCount}</div><div style="font-size:0.78rem;color:var(--muted)">Bugungi faollar</div></div>
+                <div><div style="font-size:1.4rem;font-weight:800">${last7}</div><div style="font-size:0.78rem;color:var(--muted)">Oxirgi 7 kun</div></div>
+                <div><div style="font-size:1.4rem;font-weight:800;color:${growthColor}">${growthSign}${growthPct}%</div><div style="font-size:0.78rem;color:var(--muted)">O'tgan haftaga nisbatan</div></div>
+            `;
+        }
+    } catch (err) {
+        console.error('Faol foydalanuvchilar grafigini yuklashda xatolik:', err);
+        chartBox.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+    }
 }
 
 document.getElementById('stats-contest-select')?.addEventListener('change', async (e) => {
