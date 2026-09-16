@@ -3240,7 +3240,8 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
             .cert-footer{display:flex;justify-content:space-between;align-items:flex-start;width:100%;max-width:660px;margin-top:16px;gap:14px}
             .cert-footer-block{font-size:12px;color:${theme.text};opacity:0.85;text-align:center;flex:1}
             .cert-sig-block{display:flex;flex-direction:column;align-items:center}
-            .cert-sig-slot{height:20px;width:190px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:0}
+            .cert-sig-slot{height:56px;width:190px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:0}
+            .cert-signature-img{max-height:52px;max-width:180px;object-fit:contain}
             .cert-sig-line{width:190px;height:0;border-top:2px solid ${theme.deep};margin-bottom:6px}
             .cert-sig-name{font-weight:700;font-size:13px;margin-bottom:4px}
             .cert-sig-org{font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.7;margin-top:2px;font-weight:600}
@@ -3282,7 +3283,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                 ${scoreLine}
                 <div class="cert-footer">
                     <div class="cert-footer-block cert-sig-block">
-                        <div class="cert-sig-slot"></div>
+                        <div class="cert-sig-slot">${cbSignatureUrl ? `<img src="${cbSignatureUrl}" class="cert-signature-img" alt="">` : ''}</div>
                         <div class="cert-sig-line"></div>
                         <div class="cert-sig-name">${cbEsc(dateText)}</div>
                         Berilgan sana
@@ -3318,6 +3319,8 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
     }
 
     let cbSaved = false;
+    let cbSignatureUrl = null;
+    let cbSignerDefaultName = '';
 
     function cbSetStatus(text, kind) {
         const el = document.getElementById('cb-status');
@@ -3379,6 +3382,25 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         if (!document.getElementById('cb-certnum').value) {
             document.getElementById('cb-certnum').value = cbGenCertNumber();
         }
+
+        // Admin "Diplom imzosi" bo'limida yuklagan imzo va F.I.Sh.ni olib, shu yerda ham qo'llaymiz
+        (async () => {
+            try {
+                const sigSnap = await getDoc(doc(db, 'site-content', 'diploma-signature'));
+                if (sigSnap.exists()) {
+                    const d = sigSnap.data();
+                    cbSignatureUrl = d.signatureImageUrl || null;
+                    cbSignerDefaultName = d.signerName || '';
+                    const signerInput = document.getElementById('cb-signer');
+                    if (signerInput && !signerInput.value.trim() && cbSignerDefaultName) {
+                        signerInput.value = cbSignerDefaultName;
+                    }
+                    cbRenderPreview();
+                }
+            } catch (err) {
+                console.error('Imzo sozlamalarini yuklashda xatolik:', err);
+            }
+        })();
 
         document.querySelectorAll('#cb-type-btns [data-cb-type]').forEach((btn) => {
             btn.addEventListener('click', () => {
@@ -3595,6 +3617,10 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
 
                 const footY = H - 2.05, colW = 2.6, gap = 0.35, footX0 = CX - (colW * 3 + gap * 2) / 2;
                 const c1x = footX0;
+                if (cbSignatureUrl) {
+                    const sigW = 1.3, sigH = 0.36;
+                    slide.addImage({ data: cbSignatureUrl, x: c1x + colW / 2 - sigW / 2, y: footY + 0.02, w: sigW, h: sigH, sizing: { type: 'contain', w: sigW, h: sigH } });
+                }
                 slide.addShape('line', { x: c1x + 0.3, y: footY + 0.42, w: colW - 0.6, h: 0, line: { color: deep, width: 1.5 } });
                 slide.addText(cbFmtDate(data.dateStr) || '[ Sana ]', { x: c1x, y: footY + 0.46, w: colW, h: 0.24, align: 'center', fontFace: 'Calibri', fontSize: 11, bold: true, color: textC, isTextBox: true, margin: 0 });
                 slide.addText('Berilgan sana', { x: c1x, y: footY + 0.70, w: colW, h: 0.22, align: 'center', fontFace: 'Calibri', fontSize: 9, color: lighten('#' + textC, 0.3), isTextBox: true, margin: 0 });
