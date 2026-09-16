@@ -419,8 +419,8 @@
         return `${surname} ${initials}`;
     }
 
-    function buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings, partnerLogos) {
-        const today = fmtCertDate(new Date());
+    function buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings, partnerLogos, issuedDateText) {
+        const today = issuedDateText || fmtCertDate(new Date());
         const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
         const logoUrl = `${window.location.origin}/images/nav-icon.png`;
         const rightLogoUrl = `${window.location.origin}/images/cert-icon-right.png`;
@@ -652,24 +652,35 @@
                 const isWinner = !!btn.dataset.diploma;
                 const certNumber = `ZM-${(r.customId || '').replace(/[^0-9A-Za-z]/g, '')}-${new Date().getFullYear()}`;
 
-                // Tasdiqlash uchun ommaviy o'qiladigan qisqa yozuv saqlanadi (QR shu yerga ishora qiladi)
+                // Tasdiqlash uchun ommaviy o'qiladigan qisqa yozuv saqlanadi (QR shu yerga ishora qiladi).
+                // MUHIM: "Berilgan sana" faqat BIRINCHI marta yaratilganda belgilanadi — keyingi
+                // safar yuklab olinganda ham o'sha (asl) sana ko'rsatiladi, bugungi sana emas.
+                let issuedDateText = fmtCertDate(new Date());
                 try {
-                    await setDocFn(docFn(db, 'certificates', certNumber), {
+                    const existingSnap = await getDocFn(docFn(db, 'certificates', certNumber));
+                    const payload = {
                         uid: (authInst.currentUser && authInst.currentUser.uid) || null,
                         fullName: r.fullName,
                         contestTitle: r.contestTitle,
                         isWinner,
                         rank: isWinner ? r.rank : null,
                         score: (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0),
-                        issuedDateText: fmtCertDate(new Date()),
-                        issuedAt: serverTimestampFn(),
-                    }, { merge: true });
+                    };
+                    if (existingSnap.exists() && existingSnap.data().issuedDateText) {
+                        // Avval yaratilgan — asl sanani saqlab qolamiz, qayta yozmaymiz
+                        issuedDateText = existingSnap.data().issuedDateText;
+                    } else {
+                        // Birinchi marta yaratilmoqda — bugungi sanani belgilaymiz
+                        payload.issuedDateText = issuedDateText;
+                        payload.issuedAt = serverTimestampFn();
+                    }
+                    await setDocFn(docFn(db, 'certificates', certNumber), payload, { merge: true });
                 } catch (err) {
                     console.error('Sertifikat yozuvini saqlashda xatolik:', err);
                 }
 
                 const partnerLogos = await getPartnerLogos(r.contestId);
-                const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {}, partnerLogos);
+                const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {}, partnerLogos, issuedDateText);
                 const w = window.open('', '_blank');
                 if (!w) return;
                 w.document.write(html);
