@@ -1227,11 +1227,30 @@ document.getElementById('reg-contest-select').addEventListener('change', async (
             }
             if (testSnap.exists()) {
                 const t = testSnap.data();
-                const mcCount = (t.questions || []).filter((q) => q.type !== 'open').length;
+                const mcQuestions = (t.questions || []).filter((q) => q.type !== 'open');
+                const mcCount = mcQuestions.length;
                 const openCount = (t.questions || []).filter((q) => q.type === 'open').length;
                 const servedMc = t.mcQuestionsPerAttempt ? Math.min(t.mcQuestionsPerAttempt, mcCount) : mcCount;
                 const servedOpen = t.openQuestionsPerAttempt ? Math.min(t.openQuestionsPerAttempt, openCount) : openCount;
-                currentContestMeta.testMax = mcCount ? +(servedMc * (t.pointsPerCorrect || 1)).toFixed(2) : null;
+                let testMax = null;
+                if (mcCount) {
+                    const pbd = t.pointsByDifficulty;
+                    if (pbd) {
+                        // Har bir daraja ulushiga qarab taxminiy maksimal ball (buildBalancedSelection mantig'iga mos)
+                        const tiers = ['oson', "o'rta", 'qiyin'];
+                        let sum = 0;
+                        tiers.forEach((tier) => {
+                            const cnt = mcQuestions.filter((q) => (q.difficulty || "o'rta") === tier).length;
+                            if (!cnt) return;
+                            const servedInTier = Math.round((cnt / mcCount) * servedMc);
+                            sum += servedInTier * (pbd[tier] ?? 1);
+                        });
+                        testMax = +sum.toFixed(2);
+                    } else {
+                        testMax = +(servedMc * (t.pointsPerCorrect || 1)).toFixed(2);
+                    }
+                }
+                currentContestMeta.testMax = testMax;
                 currentContestMeta.openMax = openCount ? +(servedOpen * (t.openMaxPointsPerQuestion || 5)).toFixed(2) : null;
             }
         } catch (err) {
@@ -2423,11 +2442,20 @@ function questionsToRaw(questions) {
         .join('\n---\n');
 }
 
+// Formadagi 3 ta qiyinlik darajasi input'idan { oson, o'rta, qiyin } ballar ob'ektini o'qiydi
+function readPointsByDifficulty() {
+    return {
+        oson: parseFloat(document.getElementById('t-points-easy')?.value) || 1,
+        "o'rta": parseFloat(document.getElementById('t-points-medium')?.value) || 1,
+        qiyin: parseFloat(document.getElementById('t-points-hard')?.value) || 1,
+    };
+}
+
 function updatePointsPreview() {
     const previewEl = document.getElementById('t-points-preview');
     if (!previewEl) return;
     const raw = document.getElementById('t-questions').value;
-    const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
+    const pointsByDifficulty = readPointsByDifficulty();
     const openMax = parseFloat(document.getElementById('t-open-max-points').value) || 5;
     const mcPerAttemptRaw = document.getElementById('t-mc-per-attempt').value.trim();
     const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
@@ -2436,17 +2464,35 @@ function updatePointsPreview() {
         previewEl.textContent = '';
         return;
     }
-    const mcTotal = questions.filter((q) => q.type !== 'open').length;
+    const mcQuestions = questions.filter((q) => q.type !== 'open');
     const openTotal = questions.filter((q) => q.type === 'open').length;
+    const mcTotal = mcQuestions.length;
     const mcServed = mcPerAttemptRaw ? Math.min(parseInt(mcPerAttemptRaw, 10), mcTotal) : mcTotal;
     const openServed = openPerAttemptRaw ? Math.min(parseInt(openPerAttemptRaw, 10), openTotal) : openTotal;
     const bits = [];
-    if (mcTotal) bits.push(`${mcServed} ta yopiq savol beriladi (bazada ${mcTotal} ta) \u00d7 ${pointsPerCorrect} ball = jami ${(mcServed * pointsPerCorrect).toFixed(1).replace(/\.0$/, '')} ball`);
+    if (mcTotal) {
+        // Har bir daraja bo'yicha savollar soni va shu darajadagi savol ulushi asosida
+        // xizmat qilinadigan (served) savollar taxminiy taqsimlanadi — buildBalancedSelection bilan bir xil mantiq.
+        const tiers = ['oson', "o'rta", 'qiyin'];
+        const counts = {};
+        tiers.forEach((t) => { counts[t] = mcQuestions.filter((q) => (q.difficulty || "o'rta") === t).length; });
+        const tierBits = [];
+        let maxTotal = 0;
+        tiers.forEach((t) => {
+            if (!counts[t]) return;
+            const servedInTier = mcTotal ? Math.round((counts[t] / mcTotal) * mcServed) : 0;
+            maxTotal += servedInTier * pointsByDifficulty[t];
+            tierBits.push(`${t}: ${counts[t]} ta \u00d7 ${pointsByDifficulty[t]} ball`);
+        });
+        bits.push(`${mcServed} ta yopiq savol beriladi (bazada ${mcTotal} ta: ${tierBits.join(', ')}) \u2248 maksimal ${maxTotal.toFixed(1).replace(/\.0$/, '')} ball`);
+    }
     if (openTotal) bits.push(`${openServed} ta ochiq savol beriladi (bazada ${openTotal} ta) \u00d7 max ${openMax} ball = maksimal ${(openServed * openMax).toFixed(1).replace(/\.0$/, '')} ball`);
     previewEl.textContent = bits.join(' \u00b7 ');
 }
 document.getElementById('t-questions')?.addEventListener('input', updatePointsPreview);
-document.getElementById('t-points-per-correct')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-points-easy')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-points-medium')?.addEventListener('input', updatePointsPreview);
+document.getElementById('t-points-hard')?.addEventListener('input', updatePointsPreview);
 document.getElementById('t-open-max-points')?.addEventListener('input', updatePointsPreview);
 document.getElementById('t-mc-per-attempt')?.addEventListener('input', updatePointsPreview);
 document.getElementById('t-open-per-attempt')?.addEventListener('input', updatePointsPreview);
@@ -2458,7 +2504,9 @@ function resetTestForm() {
     document.getElementById('t-time-limit').value = '20';
     document.getElementById('t-mc-per-attempt').value = '';
     document.getElementById('t-open-per-attempt').value = '';
-    document.getElementById('t-points-per-correct').value = '1';
+    document.getElementById('t-points-easy').value = '1';
+    document.getElementById('t-points-medium').value = '1';
+    document.getElementById('t-points-hard').value = '1';
     document.getElementById('t-open-max-points').value = '5';
     document.getElementById('t-max-tab-switches').value = '1';
     document.getElementById('t-points-preview').textContent = '';
@@ -2734,7 +2782,7 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
     const timeLimitMinutes = parseInt(document.getElementById('t-time-limit').value, 10) || 20;
     const mcPerAttemptRaw = document.getElementById('t-mc-per-attempt').value.trim();
     const openPerAttemptRaw = document.getElementById('t-open-per-attempt').value.trim();
-    const pointsPerCorrect = parseFloat(document.getElementById('t-points-per-correct').value) || 1;
+    const pointsByDifficulty = readPointsByDifficulty();
     const openMaxPointsPerQuestion = parseFloat(document.getElementById('t-open-max-points').value) || 5;
     const maxTabSwitches = parseInt(document.getElementById('t-max-tab-switches').value, 10) || 1;
     const rawQuestions = document.getElementById('t-questions').value;
@@ -2767,7 +2815,8 @@ document.getElementById('t-create-btn')?.addEventListener('click', async () => {
             timeLimitMinutes,
             mcQuestionsPerAttempt,
             openQuestionsPerAttempt,
-            pointsPerCorrect,
+            pointsByDifficulty,
+            pointsPerCorrect: pointsByDifficulty["o'rta"], // eski kod/hisobotlar uchun orqaga moslik
             openMaxPointsPerQuestion,
             maxTabSwitches,
             questions,
@@ -2807,7 +2856,12 @@ async function loadTests() {
             if (mcCount) perAttemptBits.push(t.mcQuestionsPerAttempt ? `${t.mcQuestionsPerAttempt} ta yopiq beriladi` : 'barcha yopiq beriladi');
             if (openCount) perAttemptBits.push(t.openQuestionsPerAttempt ? `${t.openQuestionsPerAttempt} ta ochiq beriladi` : 'barcha ochiq beriladi');
             const pointsInfo = [];
-            if (mcCount) pointsInfo.push(`yopiq: ${t.pointsPerCorrect || 1} ball/savol`);
+            if (mcCount) {
+                const pbd = t.pointsByDifficulty;
+                pointsInfo.push(pbd
+                    ? `yopiq: oson ${pbd.oson ?? 1} / o'rta ${pbd["o'rta"] ?? 1} / qiyin ${pbd.qiyin ?? 1} ball`
+                    : `yopiq: ${t.pointsPerCorrect || 1} ball/savol`);
+            }
             if (openCount) pointsInfo.push(`ochiq: max ${t.openMaxPointsPerQuestion || 5} ball/savol`);
             html += `<div class="admin-row"><span><b>${escapeHtml(t.title)}</b> — ${t.questions?.length || 0} ta savol (${escapeHtml(perAttemptBits.join(', '))}), ${t.timeLimitMinutes} daqiqa${pointsInfo.length ? ', ' + escapeHtml(pointsInfo.join(', ')) : ''}</span>
                 <span style="display:flex;gap:8px">
@@ -2826,7 +2880,11 @@ async function loadTests() {
                 document.getElementById('t-time-limit').value = t.timeLimitMinutes || 20;
                 document.getElementById('t-mc-per-attempt').value = t.mcQuestionsPerAttempt || '';
                 document.getElementById('t-open-per-attempt').value = t.openQuestionsPerAttempt || '';
-                document.getElementById('t-points-per-correct').value = t.pointsPerCorrect || 1;
+                const pbd = t.pointsByDifficulty || {};
+                const fallback = t.pointsPerCorrect || 1;
+                document.getElementById('t-points-easy').value = pbd.oson ?? fallback;
+                document.getElementById('t-points-medium').value = pbd["o'rta"] ?? fallback;
+                document.getElementById('t-points-hard').value = pbd.qiyin ?? fallback;
                 document.getElementById('t-open-max-points').value = t.openMaxPointsPerQuestion || 5;
                 document.getElementById('t-max-tab-switches').value = t.maxTabSwitches || 1;
                 document.getElementById('t-questions').value = questionsToRaw(t.questions || []);
