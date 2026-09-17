@@ -469,11 +469,25 @@ async function submitTest() {
     window.removeEventListener('beforeunload', handleBeforeUnload);
     document.removeEventListener('visibilitychange', handleVisibilityChange);
 
+    // Yopiq savol uchun ball — qiyinlik darajasiga qarab (eski testlarda pointsByDifficulty
+    // bo'lmasa, flat pointsPerCorrect'ga qaytadi — orqaga moslik saqlanadi)
+    const pointsByDifficulty = testData.pointsByDifficulty || null;
+    const flatPointsPerCorrect = testData.pointsPerCorrect || 1;
+    function pointsForQuestion(q) {
+        if (pointsByDifficulty) {
+            const d = q.difficulty && pointsByDifficulty[q.difficulty] != null ? q.difficulty : "o'rta";
+            return pointsByDifficulty[d] != null ? pointsByDifficulty[d] : flatPointsPerCorrect;
+        }
+        return flatPointsPerCorrect;
+    }
+
     let correctCount = 0;
     let mcCount = 0;
     let openCount = 0;
     let openScoreAuto = 0;
     let openGradedCount = 0;
+    let score = 0;
+    let maxScore = 0;
     questionOrder.forEach((origIdx, qi) => {
         const q = testData.questions[origIdx];
         if (q.type === 'open') {
@@ -487,12 +501,16 @@ async function submitTest() {
             return; // ochiq savollar (etalon javobsizlari) administrator tomonidan qo'lda baholanadi
         }
         mcCount++;
-        if (answers[qi] === q.correctIndex) correctCount++;
+        const qPoints = pointsForQuestion(q);
+        maxScore += qPoints;
+        if (answers[qi] === q.correctIndex) {
+            correctCount++;
+            score += qPoints;
+        }
     });
     openScoreAuto = +openScoreAuto.toFixed(2);
-    const pointsPerCorrect = testData.pointsPerCorrect || 1;
-    const score = +(correctCount * pointsPerCorrect).toFixed(2);
-    const maxScore = +(mcCount * pointsPerCorrect).toFixed(2);
+    score = +score.toFixed(2);
+    maxScore = +maxScore.toFixed(2);
 
     try {
         await updateDoc(attemptRef, {
