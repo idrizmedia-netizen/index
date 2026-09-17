@@ -215,7 +215,8 @@
                 const hasScore = r.score !== null && r.score !== undefined;
                 const hasInterview = r.interviewScore !== null && r.interviewScore !== undefined;
                 const hasOpen = r.openScore !== null && r.openScore !== undefined;
-                const hasRank = r.rank !== null && r.rank !== undefined;
+                const isDisqualified = !!r.disqualified;
+                const hasRank = !isDisqualified && r.rank !== null && r.rank !== undefined;
                 const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
                 const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
                 const c = contestDates[r.contestId] || {};
@@ -276,7 +277,9 @@
                 if (c.meetLink && meetEnabled && interviewEnabled && !belowThreshold && withinInterviewWindow) {
                     actionBtns.push(`<a href="${esc(c.meetLink)}" target="_blank" rel="noopener" class="dash-action-btn" style="background:#059669"><i class="fas fa-video"></i> Suhbatga kirish</a>`);
                 }
-                if (hasRank) {
+                if (isDisqualified) {
+                    // Diskvalifikatsiya qilingan ishtirokchiga diplom ham, ishtirok sertifikati ham berilmaydi
+                } else if (hasRank) {
                     actionBtns.push(`<button type="button" class="dash-action-btn" data-diploma="${r.id}" style="background:linear-gradient(135deg,#f59e0b,#ea580c)"><i class="fas fa-award"></i> Diplomni yuklab olish</button>`);
                 } else if (hasScore || hasInterview) {
                     actionBtns.push(`<button type="button" class="dash-action-btn" data-certificate="${r.id}" style="background:#6366f1"><i class="fas fa-certificate"></i> Ishtirok sertifikati</button>`);
@@ -361,6 +364,7 @@
                             ${contactBits.length ? `<div class="act-time" style="color:var(--muted)">${esc(contactBits.join(' \u00b7 '))}</div>` : ''}
                             ${countdown ? `<div class="act-time countdown-timer" data-countdown-target="${esc(countdown.target)}" data-countdown-label="${esc(countdown.label)}" style="color:#ea580c;font-weight:700"></div>` : ''}
                             ${hasRank ? `<div style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;font-size:11px;font-weight:800">${esc(r.rank)}-o\u2018rin</div>` : ''}
+                            ${isDisqualified ? `<div style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:20px;background:#fee2e2;color:#b91c1c;font-size:11px;font-weight:800">Natijangiz bekor qilindi</div>` : ''}
                         </div>
                         <div style="font-weight:800;color:${hasScore || hasInterview || hasOpen ? 'var(--primary)' : 'var(--muted)'};text-align:right">
                             ${hasScore || hasInterview || hasOpen ? esc(total) + ' ball<br><span style=\'font-size:11px;font-weight:600;color:var(--muted)\'>jami</span>' : 'Kutilmoqda'}
@@ -648,6 +652,7 @@
                 const id = btn.dataset.diploma || btn.dataset.certificate;
                 const r = regs.find((x) => x.id === id);
                 if (!r) return;
+                if (r.disqualified) return; // diskvalifikatsiya qilingan ishtirokchiga diplom/sertifikat berilmaydi
                 const c = contestDates[r.contestId] || {};
                 const isWinner = !!btn.dataset.diploma;
                 const certNumber = `ZM-${(r.customId || '').replace(/[^0-9A-Za-z]/g, '')}-${new Date().getFullYear()}`;
