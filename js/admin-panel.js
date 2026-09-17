@@ -1344,7 +1344,7 @@ function renderRegistrantsTable(list) {
         rows += `<tr data-row="${r.id}">
             <td>${hasPayment ? `<input type="checkbox" class="payment-row-check" data-id="${r.id}" style="width:auto">` : ''}</td>
             <td>${i + 1}</td>
-            <td>${r.photoUrl ? `<img src="${r.photoUrl}" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px">` : ''}${escapeHtml(r.fullName)}</td>
+            <td>${r.photoUrl ? `<img src="${r.photoUrl}" alt="" style="width:32px;height:32px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:6px">` : ''}${escapeHtml(r.fullName)}${r.disqualified ? `<br><span class="badge closed" title="${escapeHtml(r.disqualifyReason || '')}">DISKVALIFIKATSIYA</span>` : ''}</td>
             <td><b>${escapeHtml(r.customId)}</b></td>
             <td>${escapeHtml(r.maktab)}${(r.viloyat || r.tuman) ? `<br><span style="color:var(--muted);font-size:0.75rem">${escapeHtml([r.tuman, r.viloyat].filter(Boolean).join(', '))}</span>` : ''}</td>
             <td>${escapeHtml(r.yosh)}</td>
@@ -1358,6 +1358,7 @@ function renderRegistrantsTable(list) {
                 <button class="btn btn-primary" data-save="${r.id}" title="Saqlash"><i class="fas fa-save"></i></button>
                 <button class="btn" data-view-open="${r.id}" title="Ochiq savollarga javoblarni ko'rish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-eye"></i></button>
                 <button class="btn" data-retake="${r.id}" title="Testni qayta topshirishga ruxsat berish" style="background:var(--primary-light);color:var(--primary);box-shadow:none"><i class="fas fa-rotate"></i></button>
+                <button class="btn ${r.disqualified ? 'btn-green' : 'btn-red'}" data-disqualify="${r.id}" data-next="${r.disqualified ? 'false' : 'true'}" title="${r.disqualified ? 'Diskvalifikatsiyani bekor qilish' : 'Aldov/soxta ma\u2019lumot sababli natijani bekor qilish (diskvalifikatsiya)'}"><i class="fas ${r.disqualified ? 'fa-rotate-left' : 'fa-user-slash'}"></i></button>
             </td>
         </tr>
         <tr data-retake-info="${r.id}"><td colspan="13" style="border-bottom:1px solid var(--border);font-size:0.75rem;color:var(--muted);padding-top:0">
@@ -1575,6 +1576,56 @@ function renderRegistrantsTable(list) {
                 console.error(err);
                 setStatus('Xatolik yuz berdi.', 'error');
                 btn.disabled = false;
+            }
+        });
+    });
+
+    tableEl.querySelectorAll('[data-disqualify]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.disqualify;
+            const goingToDisqualify = btn.dataset.next === 'true';
+            const cached = currentRegistrants.find((x) => x.id === id);
+
+            if (goingToDisqualify) {
+                const wasWinner = cached && cached.rank != null;
+                const confirmMsg = wasWinner
+                    ? `Diqqat: bu ishtirokchi hozir g\u2018olib sifatida e\u2018lon qilingan (${cached.rank}-o\u2018rin). Diskvalifikatsiya qilinsa, uning natijasi va diplomi darhol bekor bo\u2018ladi. G\u2018oliblar reytingidan to\u2018liq olib tashlash uchun buni tasdiqlagandan keyin "G\u2018oliblarni e\u2018lon qilish" tugmasini qayta bosishni unutmang. Davom etilsinmi?`
+                    : 'Bu ishtirokchining natijasi (aldov, soxta rasm yoki boshqa birov nomidan qatnashgan bo\u2018lsa) bekor qilinsinmi (diskvalifikatsiya)?';
+                if (!confirm(confirmMsg)) return;
+                const reason = prompt('Sababini kiriting (ixtiyoriy — masalan: "boshqa birovning rasmi/hujjati bilan qatnashgan"):', cached?.disqualifyReason || '') || '';
+                btn.disabled = true;
+                try {
+                    // rank darhol tozalanadi — shaxsiy kabinetda diplom/g'olib belgisi bir zumda yo'qoladi,
+                    // ommaviy g'oliblar sahifasi esa admin "G'oliblarni e'lon qilish"ni qayta bosganda yangilanadi.
+                    await updateDoc(doc(db, 'registrations', id), { disqualified: true, disqualifyReason: reason, rank: null });
+                    if (cached) {
+                        cached.disqualified = true;
+                        cached.disqualifyReason = reason;
+                        cached.rank = null;
+                    }
+                    setStatus('Ishtirokchi diskvalifikatsiya qilindi. Ommaviy g\u2018oliblar sahifasini yangilash uchun "G\u2018oliblarni e\u2018lon qilish"ni qayta bosing.', 'success');
+                    renderRegistrantsTable(currentRegistrants);
+                } catch (err) {
+                    console.error(err);
+                    setStatus('Xatolik yuz berdi.', 'error');
+                    btn.disabled = false;
+                }
+            } else {
+                if (!confirm('Diskvalifikatsiya bekor qilinsinmi? Ishtirokchi qayta baholanadigan holatga qaytadi (g\u2018olib maqomini tiklash uchun reytingni qayta e\u2018lon qilish kerak bo\u2018ladi).')) return;
+                btn.disabled = true;
+                try {
+                    await updateDoc(doc(db, 'registrations', id), { disqualified: false, disqualifyReason: null });
+                    if (cached) {
+                        cached.disqualified = false;
+                        cached.disqualifyReason = null;
+                    }
+                    setStatus('Diskvalifikatsiya bekor qilindi.', 'success');
+                    renderRegistrantsTable(currentRegistrants);
+                } catch (err) {
+                    console.error(err);
+                    setStatus('Xatolik yuz berdi.', 'error');
+                    btn.disabled = false;
+                }
             }
         });
     });
@@ -1805,6 +1856,7 @@ document.getElementById('publish-leaderboard-btn')?.addEventListener('click', as
     if (!currentRegistrants.length || !currentContestId) return;
 
     const withTotal = currentRegistrants
+        .filter((r) => !r.disqualified)
         .map((r) => ({ ...r, total: (r.score ?? null) === null && (r.interviewScore ?? null) === null && (r.openScore ?? null) === null ? null : (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0) }))
         .filter((r) => r.total !== null);
     if (!withTotal.length) {
