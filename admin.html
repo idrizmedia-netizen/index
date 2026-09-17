@@ -503,12 +503,17 @@ Bilet 2
       </div>
       <div class="field"><label>Ishtirokchiga nechta ochiq savol beriladi (bo'sh — hammasi)</label><input type="number" id="t-open-per-attempt" min="1" placeholder="masalan: 2" style="max-width:calc(50% - 6px)"></div>
       <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Savollar bazasida xohlagancha savol bo'lishi mumkin — har bir ishtirokchiga shu yerda ko'rsatilgan sondagi yopiq va ochiq savollar alohida-alohida, tasodifiy va aralashtirilgan holda beriladi.</p>
-      <div class="row2">
-        <div class="field"><label>Yopiq (test) savol uchun ball — har biriga</label><input type="number" id="t-points-per-correct" value="1" min="0.1" step="0.1"></div>
-        <div class="field"><label>Ochiq savol uchun maksimal ball — har biriga</label><input type="number" id="t-open-max-points" value="5" min="0.1" step="0.1"></div>
+      <div class="field">
+        <label>Yopiq (test) savol uchun ball — qiyinlik darajasiga qarab, har biriga</label>
+        <div class="row2" style="grid-template-columns:1fr 1fr 1fr;display:grid;gap:12px">
+          <div><label style="font-weight:400;font-size:0.8rem;color:var(--muted)">Oson</label><input type="number" id="t-points-easy" value="1" min="0.1" step="0.1"></div>
+          <div><label style="font-weight:400;font-size:0.8rem;color:var(--muted)">O'rta</label><input type="number" id="t-points-medium" value="1" min="0.1" step="0.1"></div>
+          <div><label style="font-weight:400;font-size:0.8rem;color:var(--muted)">Qiyin</label><input type="number" id="t-points-hard" value="1" min="0.1" step="0.1"></div>
+        </div>
       </div>
+      <div class="field"><label>Ochiq savol uchun maksimal ball — har biriga</label><input type="number" id="t-open-max-points" value="5" min="0.1" step="0.1" style="max-width:calc(50% - 6px)"></div>
       <p id="t-points-preview" style="color:var(--primary);font-size:0.8rem;font-weight:700;margin:-6px 0 12px"></p>
-      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Yopiq savollar uchun umumiy ball avtomatik hisoblanadi va to'g'ri javoblarga qarab avtomatik qo'yiladi. Ochiq savollar uchun bu yerdagi son — admin qo'lda ball qo'yayotganda ruxsat etilgan maksimal chegara (ishtirokchilar bo'limida eslatma sifatida ko'rinadi).</p>
+      <p style="color:var(--muted);font-size:0.78rem;margin:-6px 0 12px">Yopiq savollar uchun ball har bir savolning "Daraja" (qiyinlik) belgisiga qarab avtomatik hisoblanadi va to'g'ri javoblarga qarab avtomatik qo'yiladi — masalan, qiyin savolga ko'proq, oson savolga kamroq ball berishingiz mumkin. Ochiq savollar uchun bu yerdagi son — admin qo'lda ball qo'yayotganda ruxsat etilgan maksimal chegara (ishtirokchilar bo'limida eslatma sifatida ko'rinadi).</p>
       <div class="field">
         <label>Test paytida sahifadan chiqib ketishga ruxsat (necha marta)</label>
         <input type="number" id="t-max-tab-switches" value="1" min="1" step="1" style="max-width:200px">
