@@ -658,6 +658,79 @@ Javob: A"></textarea>
     </div>
 
     <div class="card">
+      <h3><i class="fas fa-gamepad"></i> O'yinlar uchun savollar yuklash</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Har bir o'yin turi va fan uchun alohida <b>JSON fayl</b> yuklaysiz — u saytdagi mavjud savollar qatoriga qo'shiladi (ularni almashtirmaydi).
+        Fayl formati o'yin turiga qarab farq qiladi — pastda har biri uchun namuna ko'rsatilgan.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field">
+          <label>O'yin turi</label>
+          <select id="oyin-game-type">
+            <option value="quiz">Test (Viktorina)</option>
+            <option value="flashcard">Flashcard</option>
+            <option value="tezkor">Tezkor savol-javob</option>
+            <option value="puzzle">So'z topish</option>
+            <option value="memory">Xotira (juftlik)</option>
+          </select>
+        </div>
+        <div class="field"><label>Fan nomi (lotin, kichik harf)</label><input type="text" id="oyin-subject" placeholder="Masalan: fizika"></div>
+      </div>
+      <p id="oyin-format-hint" style="background:#f8fafc;border-radius:10px;padding:10px 12px;font-size:0.76rem;color:var(--muted);white-space:pre-wrap;font-family:monospace;margin-bottom:14px"></p>
+      <div class="field">
+        <label>JSON fayl</label>
+        <input type="file" id="oyin-json-file" accept=".json,application/json">
+        <p id="oyin-file-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+      </div>
+      <button class="btn btn-primary" id="oyin-upload-btn"><i class="fas fa-upload"></i> Yuklash (mavjudlarga qo'shiladi)</button>
+      <p id="oyin-status" style="font-size:0.82rem;margin-top:8px"></p>
+      <div id="oyinSavollarList" style="display:flex;flex-direction:column;gap:10px;margin-top:18px"></div>
+    </div>
+
+    <div class="card">
+      <h3><i class="fas fa-wand-magic-sparkles"></i> Metodlar boshqaruvi</h3>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Bu yerdan qo'shgan metodlar <b>metodlar</b> bo'limida, saytda oldindan mavjud bo'lgan metodlar qatorida chiqadi.
+        Ixtiyoriy ravishda fayl (PDF, Word yoki rasm — 700 KB gacha) ham biriktirishingiz mumkin, u metod sahifasida yuklab olish uchun havola bo'lib chiqadi.
+      </p>
+      <div class="field"><label>Metod nomi</label><input type="text" id="metod-title" placeholder="Masalan: Aqliy hujum (Brainstorming)"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field">
+          <label>Turkumi</label>
+          <select id="metod-category">
+            <option value="yangi-mavzu">Yangi mavzu uchun</option>
+            <option value="mustahkamlash">Mavzuni mustahkamlash</option>
+            <option value="refleksiya">Dars oxirida (Refleksiya)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Qiyinlik darajasi</label>
+          <select id="metod-difficulty">
+            <option value="Oddiy">Oddiy</option>
+            <option value="O'rta">O'rta</option>
+            <option value="Yuqori">Yuqori</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Davomiyligi</label><input type="text" id="metod-duration" placeholder="Masalan: 10-15 daqiqa"></div>
+      <div class="field"><label>Qisqacha tavsif</label><textarea id="metod-description" placeholder="Metodning qisqacha mohiyati..."></textarea></div>
+      <div class="field"><label>Kerakli jihozlar (vergul bilan ajrating)</label><input type="text" id="metod-equipment" placeholder="Masalan: Doska, Rangli markerlar, Vatman"></div>
+      <div class="field"><label>Dars ssenariysi — bosqichlar (har birini alohida qatorga yozing)</label><textarea id="metod-steps" rows="5" placeholder="O'qituvchi doskaga savol yozadi&#10;O'quvchilar fikr bildiradi&#10;Yakunda eng yaxshi g'oyalar tanlanadi"></textarea></div>
+      <div class="field">
+        <label>Qo'shimcha fayl (ixtiyoriy)</label>
+        <input type="file" id="metod-file" accept=".pdf,.doc,.docx,image/*">
+        <p id="metod-file-status" style="color:var(--muted);font-size:0.78rem;margin-top:6px"></p>
+      </div>
+      <input type="hidden" id="metod-edit-id" value="">
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" id="metod-save-btn"><i class="fas fa-check"></i> Qo'shish</button>
+        <button class="btn" id="metod-cancel-edit-btn" style="display:none;background:#f1f5f9;color:var(--text)"><i class="fas fa-xmark"></i> Bekor qilish</button>
+      </div>
+      <p id="metod-status" style="font-size:0.82rem;margin-top:8px"></p>
+      <div id="metodlarAdminList" style="display:flex;flex-direction:column;gap:10px;margin-top:18px"></div>
+    </div>
+
+    <div class="card">
       <h3><i class="fas fa-star"></i> Obuna bo'limi</h3>
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
         Bu yerdagi ma'lumotlar saytdagi <b>obuna.html</b> sahifasida (bosh menyudagi "Obuna" tugmasi) ko'rinadi. To'lov tizimi ulanmagan —
