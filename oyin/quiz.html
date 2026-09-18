@@ -393,6 +393,7 @@ function renderLB(elId){
 function show(id){["setupScreen","quizScreen","resultScreen"].forEach(s=>document.getElementById(s).style.display="none");document.getElementById(id).style.display="block";}
 function goSetup(){show("setupScreen");renderLB("lbA");}
 init();
+window.addEventListener('ziyomap:oyin-savollar-updated', () => { try { buildFans(); } catch (e) {} });
 </script>
 <script src="../js/ziyomap-usage.js"></script>
 <script src="../js/auth-guard.js"></script>
