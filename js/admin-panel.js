@@ -3219,7 +3219,7 @@ async function loadAdmins() {
         3: { label: 'III DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '\u{1F949}', isWinner: true, rank: 3, kind: 'rank' },
         0: { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '\u{1F393}', isWinner: false, rank: null, kind: 'participation' },
         4: { label: "RAG'BATLANTIRISH DIPLOMI", bg: 'linear-gradient(160deg,#f0fdf4 0%,#dcfce7 55%,#bbf7d0 100%)', border: '#16a34a', ring: '#4ade80', text: '#14532d', deep: '#166534', medal: '\u{1F396}\u{FE0F}', kind: 'encourage' },
-        5: { label: 'TASHAKURNOMA', bg: 'linear-gradient(160deg,#fdf2f8 0%,#fce7f3 55%,#fbcfe8 100%)', border: '#db2777', ring: '#f472b6', text: '#831843', deep: '#9d174d', medal: '\u{1F49D}', kind: 'thanks' },
+        5: { label: 'TASHAKURNOMA', bg: 'linear-gradient(160deg,#fdf2f8 0%,#fce7f3 55%,#fbcfe8 100%)', border: '#db2777', ring: '#f472b6', text: '#831843', deep: '#9d174d', medal: '<span style="font-family:\'Playfair Display\',serif;font-weight:800;font-size:22px;letter-spacing:4px;color:#9d174d;text-transform:uppercase;">Ziyomap</span>', kind: 'thanks' },
     };
     const CB_RANK_WORD = { 1: "1-o'rin", 2: "2-o'rin", 3: "3-o'rin" };
 
