@@ -74,4 +74,44 @@
             return (window.QUIZ_QUESTIONS?.[fan] || []).length;
         },
     };
+
+    /* ── Admin panel orqali yuklangan qo'shimcha savollarni Firestore'dan olib qo'shamiz ──
+       Diqqat: bu ASINXRON — sahifa ochilgan zahoti ko'rinadigan "N ta savol" hisoblagichi
+       biroz keyinroq yangilanishi mumkin, lekin o'yin BOSHLANGANDA (foydalanuvchi tugma
+       bosgandan keyin) savollar to'plamiga albatta ulangan bo'ladi. ──*/
+    const GAME_TYPE_TO_VAR = {
+        quiz: 'QUIZ_QUESTIONS',
+        flashcard: 'FLASHCARD_CARDS',
+        tezkor: 'TEZKOR_QUESTIONS',
+        puzzle: 'PUZZLE_WORDS',
+        memory: 'MEMORY_PAIRS',
+    };
+
+    window.ZiyomapOyinReady = (async function loadAdminOyinSavollar() {
+        try {
+            const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js');
+            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js');
+            const firebaseConfig = {
+                apiKey: 'AIzaSyA2LiNy7o7l6kn1FTvOcXqBs14M3PVsjbI',
+                authDomain: 'ziyomap.firebaseapp.com',
+                projectId: 'ziyomap',
+                storageBucket: 'ziyomap.firebasestorage.app',
+                messagingSenderId: '982123868162',
+                appId: '1:982123868162:web:6845723988c030fcd1f71b',
+            };
+            const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            const snap = await getDocs(collection(db, 'oyin-savollar'));
+            snap.forEach((d) => {
+                const data = d.data();
+                const varName = GAME_TYPE_TO_VAR[data.gameType];
+                if (!varName || !data.subject || !Array.isArray(data.items)) return;
+                if (!window[varName]) window[varName] = {};
+                window[varName][data.subject] = [...(window[varName][data.subject] || []), ...data.items];
+            });
+            window.dispatchEvent(new CustomEvent('ziyomap:oyin-savollar-updated'));
+        } catch (err) {
+            console.error("Admin qo'shgan o'yin savollarini yuklashda xatolik:", err);
+        }
+    })();
 })();
