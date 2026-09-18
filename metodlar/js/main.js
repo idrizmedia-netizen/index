@@ -1,8 +1,19 @@
 // metodlar/js/main.js
 
+let allMetodlar = [...metodlarData];
+let currentCategory = 'all';
+
 // Sahifa to'liq yuklanganda barcha metodlarni ko'rsatish
 document.addEventListener("DOMContentLoaded", () => {
-    displayMetodlar(metodlarData);
+    displayMetodlar(allMetodlar);
+
+    if (window.loadRemoteMetodlar) {
+        loadRemoteMetodlar().then((remoteItems) => {
+            if (!remoteItems.length) return;
+            allMetodlar = [...remoteItems, ...metodlarData];
+            filterMetodlar(currentCategory);
+        });
+    }
 });
 
 function displayMetodlar(data) {
@@ -52,20 +63,26 @@ function displayMetodlar(data) {
 }
 
 // Kategoriyalar bo'yicha saralash (Filtrlash) funksiyasi
-function filterMetodlar(category) {
+function filterMetodlar(category, evt) {
+    currentCategory = category;
     const buttons = document.querySelectorAll("#filter-buttons button");
     buttons.forEach(btn => {
         btn.classList.remove("active");
     });
 
-    const clickedButton = event.currentTarget;
-    clickedButton.classList.add("active");
+    const clickedButton = (evt || window.event) && (evt || window.event).currentTarget;
+    if (clickedButton) {
+        clickedButton.classList.add("active");
+    } else {
+        const matchBtn = document.querySelector(`#filter-buttons button[data-category="${category}"]`);
+        if (matchBtn) matchBtn.classList.add("active");
+    }
 
     // Ma'lumotlarni saralash
     if (category === "all") {
-        displayMetodlar(metodlarData);
+        displayMetodlar(allMetodlar);
     } else {
-        const filtered = metodlarData.filter(m => m.category === category);
+        const filtered = allMetodlar.filter(m => m.category === category);
         displayMetodlar(filtered);
     }
 }
