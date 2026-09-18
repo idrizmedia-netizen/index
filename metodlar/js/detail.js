@@ -1,12 +1,17 @@
 // metodlar/js/detail.js
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     // 1. URL tarkibidagi query-parametrdan metod ID'sini ajratib olish (?id=aqliy-hujum)
     const params = new URLSearchParams(window.location.search);
     const metodId = params.get("id");
 
-    // 2. data.js ichidagi massivdan shu ID'ga mos keladigan metod ob'ektini qidirish
-    const metod = metodlarData.find(m => m.id === metodId);
+    // 2. Avval data.js ichidagi statik massivdan, topilmasa admin panel orqali
+    //    qo'shilgan (Firestore) metodlar orasidan qidiramiz
+    let metod = metodlarData.find(m => String(m.id) === String(metodId));
+    if (!metod && window.loadRemoteMetodlar) {
+        const remoteItems = await loadRemoteMetodlar();
+        metod = remoteItems.find(m => String(m.id) === String(metodId));
+    }
 
     const container = document.getElementById("metod-content");
 
@@ -40,6 +45,12 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
     `).join("");
 
+    const fileHtml = metod.fileUrl
+        ? `<a href="${metod.fileUrl}" download="${metod.fileName || 'metod-fayli'}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold mb-6 transition" style="background:#059669;color:#fff">
+                <i class="fas fa-file-arrow-down"></i> Qo'shimcha faylni yuklab olish${metod.fileName ? ` (${metod.fileName})` : ''}
+           </a>`
+        : '';
+
     // 5. Tayyorlangan ma'lumotlarni asosiy HTML blok ichiga joylashtirish
     container.innerHTML = `
         <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">
@@ -51,6 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="text-sm md:text-base leading-relaxed mb-6 italic" style="color: var(--metod-muted);">
             "${metod.description}"
         </p>
+
+        ${fileHtml}
         
         <div class="flex flex-wrap gap-4 p-4 rounded-2xl mb-8 border text-xs md:text-sm" style="background: var(--metod-btn); border-color: var(--metod-border); color: var(--metod-text);">
             <div><span style="color: var(--metod-muted);">⏱ Davomiyligi:</span> <strong>${metod.duration}</strong></div>
