@@ -115,16 +115,16 @@
     <main class="max-w-6xl mx-auto px-4 py-10">
         
         <div class="flex flex-wrap justify-center gap-3 mb-10" id="filter-buttons">
-            <button onclick="filterMetodlar('all')" class="metod-filter active px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition cursor-pointer text-sm border">
+            <button data-category="all" onclick="filterMetodlar('all')" class="metod-filter active px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/20 transition cursor-pointer text-sm border">
                 📌 Barchasi
             </button>
-            <button onclick="filterMetodlar('yangi-mavzu')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
+            <button data-category="yangi-mavzu" onclick="filterMetodlar('yangi-mavzu')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
                 🚀 Yangi mavzu uchun
             </button>
-            <button onclick="filterMetodlar('mustahkamlash')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
+            <button data-category="mustahkamlash" onclick="filterMetodlar('mustahkamlash')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
                 🧠 Mavzuni mustahkamlash
             </button>
-            <button onclick="filterMetodlar('refleksiya')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
+            <button data-category="refleksiya" onclick="filterMetodlar('refleksiya')" class="metod-filter px-5 py-2.5 rounded-xl font-medium transition cursor-pointer text-sm border">
                 🎯 Dars oxirida (Refleksiya)
             </button>
         </div>
@@ -134,6 +134,7 @@
     </main>
 
     <script src="js/data.js"></script>
+    <script src="js/data-remote.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
