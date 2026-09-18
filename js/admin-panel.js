@@ -4026,3 +4026,321 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
 
     loadObunaRequests();
 })();
+
+/* ══════════════════════════════════════════════════════════════
+   METODLAR BOSHQARUVI (metodlar kolleksiyasi)
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+    const listEl = document.getElementById('metodlarAdminList');
+    if (!listEl) return;
+
+    const METOD_FILE_MAX_BYTES = 700 * 1024; // 700 KB
+    const CATEGORY_LABELS = {
+        'yangi-mavzu': 'Yangi mavzu uchun',
+        'mustahkamlash': 'Mavzuni mustahkamlash',
+        'refleksiya': 'Dars oxirida (Refleksiya)',
+    };
+
+    let pendingFileData = null;
+    let pendingFileName = null;
+
+    function metodSetStatus(text, kind) {
+        const el = document.getElementById('metod-status');
+        if (!el) return;
+        el.textContent = text || '';
+        el.style.color = kind === 'error' ? 'var(--red)' : kind === 'success' ? 'var(--green)' : 'var(--muted)';
+    }
+
+    document.getElementById('metod-file')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        const statusEl = document.getElementById('metod-file-status');
+        if (!file) return;
+        if (file.size > METOD_FILE_MAX_BYTES) {
+            if (statusEl) { statusEl.textContent = `Fayl juda katta (${Math.round(file.size / 1024)} KB). 700 KB dan kichik fayl tanlang.`; statusEl.style.color = 'var(--red)'; }
+            e.target.value = '';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            pendingFileData = reader.result;
+            pendingFileName = file.name;
+            if (statusEl) { statusEl.textContent = `Tanlandi: ${file.name} (${Math.round(file.size / 1024)} KB)`; statusEl.style.color = 'var(--muted)'; }
+        };
+        reader.readAsDataURL(file);
+    });
+
+    function resetMetodForm() {
+        document.getElementById('metod-title').value = '';
+        document.getElementById('metod-category').value = 'yangi-mavzu';
+        document.getElementById('metod-difficulty').value = 'Oddiy';
+        document.getElementById('metod-duration').value = '';
+        document.getElementById('metod-description').value = '';
+        document.getElementById('metod-equipment').value = '';
+        document.getElementById('metod-steps').value = '';
+        document.getElementById('metod-file').value = '';
+        document.getElementById('metod-file-status').textContent = '';
+        document.getElementById('metod-edit-id').value = '';
+        document.getElementById('metod-save-btn').innerHTML = '<i class="fas fa-check"></i> Qo\u2018shish';
+        document.getElementById('metod-cancel-edit-btn').style.display = 'none';
+        pendingFileData = null;
+        pendingFileName = null;
+    }
+
+    document.getElementById('metod-cancel-edit-btn')?.addEventListener('click', resetMetodForm);
+
+    async function loadMetodlarAdminList() {
+        listEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+        try {
+            const snap = await getDocs(query(collection(db, 'metodlar'), orderBy('createdAt', 'desc')));
+            if (snap.empty) {
+                listEl.innerHTML = '<div class="empty">Hali admin panel orqali metod qo\u2018shilmagan. (Saytdagi asosiy metodlar ro\u2018yxati alohida saqlanadi va bu yerda ko\u2018rinmaydi.)</div>';
+                return;
+            }
+            let html = '';
+            snap.forEach((d) => {
+                const m = d.data();
+                html += `<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+                    <div style="min-width:0">
+                        <div style="font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(m.title || '(nomsiz)')}</div>
+                        <div style="font-size:0.76rem;color:var(--muted)">${escapeHtml(CATEGORY_LABELS[m.category] || m.category || '')}${m.fileName ? ' \u2022 \uD83D\uDCCE ' + escapeHtml(m.fileName) : ''}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-shrink:0">
+                        <button class="btn btn-primary" data-metod-edit="${d.id}" style="padding:6px 10px;font-size:0.76rem"><i class="fas fa-pen"></i></button>
+                        <button class="btn btn-red" data-metod-delete="${d.id}" style="padding:6px 10px;font-size:0.76rem"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            });
+            listEl.innerHTML = html;
+
+            listEl.querySelectorAll('[data-metod-edit]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.dataset.metodEdit;
+                    const mSnap = await getDoc(doc(db, 'metodlar', id));
+                    if (!mSnap.exists()) return;
+                    const m = mSnap.data();
+                    document.getElementById('metod-title').value = m.title || '';
+                    document.getElementById('metod-category').value = m.category || 'yangi-mavzu';
+                    document.getElementById('metod-difficulty').value = m.difficulty || 'Oddiy';
+                    document.getElementById('metod-duration').value = m.duration || '';
+                    document.getElementById('metod-description').value = m.description || '';
+                    document.getElementById('metod-equipment').value = (m.equipment || []).join(', ');
+                    document.getElementById('metod-steps').value = (m.steps || []).join('\n');
+                    document.getElementById('metod-edit-id').value = id;
+                    pendingFileData = null;
+                    pendingFileName = m.fileName || null;
+                    document.getElementById('metod-file').value = '';
+                    document.getElementById('metod-file-status').textContent = m.fileName ? `Joriy fayl: ${m.fileName} (yangi fayl tanlasangiz almashadi)` : '';
+                    document.getElementById('metod-save-btn').innerHTML = '<i class="fas fa-check"></i> O\u2018zgarishlarni saqlash';
+                    document.getElementById('metod-cancel-edit-btn').style.display = '';
+                    document.getElementById('metod-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+            });
+
+            listEl.querySelectorAll('[data-metod-delete]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('Ushbu metodni o\u2018chirishni tasdiqlaysizmi?')) return;
+                    btn.disabled = true;
+                    try {
+                        await deleteDoc(doc(db, 'metodlar', btn.dataset.metodDelete));
+                        loadMetodlarAdminList();
+                    } catch (err) {
+                        console.error('Metodni o\u2018chirishda xatolik:', err);
+                        alert('O\u2018chirishda xatolik yuz berdi.');
+                        btn.disabled = false;
+                    }
+                });
+            });
+        } catch (err) {
+            console.error('Metodlarni yuklashda xatolik:', err);
+            listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+        }
+    }
+    loadMetodlarAdminList();
+
+    document.getElementById('metod-save-btn')?.addEventListener('click', async () => {
+        const title = document.getElementById('metod-title').value.trim();
+        const description = document.getElementById('metod-description').value.trim();
+        if (!title || !description) {
+            metodSetStatus('Metod nomi va tavsifini to\u2018ldiring.', 'error');
+            return;
+        }
+        const category = document.getElementById('metod-category').value;
+        const editId = document.getElementById('metod-edit-id').value;
+        const btn = document.getElementById('metod-save-btn');
+        btn.disabled = true;
+        try {
+            const payload = {
+                title,
+                category,
+                categoryLabel: CATEGORY_LABELS[category] || category,
+                difficulty: document.getElementById('metod-difficulty').value,
+                duration: document.getElementById('metod-duration').value.trim(),
+                description,
+                equipment: document.getElementById('metod-equipment').value.split(',').map((s) => s.trim()).filter(Boolean),
+                steps: document.getElementById('metod-steps').value.split('\n').map((s) => s.trim()).filter(Boolean),
+            };
+            if (pendingFileData) {
+                payload.fileUrl = pendingFileData;
+                payload.fileName = pendingFileName;
+            } else if (!editId) {
+                payload.fileUrl = null;
+                payload.fileName = null;
+            }
+            if (editId) {
+                await updateDoc(doc(db, 'metodlar', editId), payload);
+            } else {
+                payload.createdAt = serverTimestamp();
+                await setDoc(doc(collection(db, 'metodlar')), payload);
+            }
+            metodSetStatus(editId ? 'O\u2018zgarishlar saqlandi.' : 'Metod qo\u2018shildi.', 'success');
+            resetMetodForm();
+            loadMetodlarAdminList();
+        } catch (err) {
+            console.error('Metodni saqlashda xatolik:', err);
+            metodSetStatus('Saqlashda xatolik yuz berdi.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   O'YINLAR UCHUN SAVOLLAR YUKLASH (oyin-savollar kolleksiyasi)
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+    const listEl = document.getElementById('oyinSavollarList');
+    if (!listEl) return;
+
+    const GAME_LABELS = {
+        quiz: 'Test (Viktorina)',
+        flashcard: 'Flashcard',
+        tezkor: 'Tezkor savol-javob',
+        puzzle: "So'z topish",
+        memory: 'Xotira (juftlik)',
+    };
+
+    const FORMAT_HINTS = {
+        quiz: '[\n  { "q": "Savol matni?", "a": 0, "o": ["To\'g\'ri javob","2-variant","3-variant","4-variant"],\n    "e": "Izoh (ixtiyoriy)", "d": "easy" }\n]\n("a" — to\'g\'ri javobning "o" massividagi indeksi, 0 dan boshlanadi)',
+        flashcard: '[\n  { "q": "Old tomon matni", "a": "Orqa tomon (javob) matni" }\n]',
+        tezkor: '[\n  { "q": "Qisqa savol", "a": "Qisqa javob" }\n]',
+        puzzle: '[\n  { "word": "PROTON", "hint": "Ta\'rif yoki maslahat matni" }\n]',
+        memory: '[\n  { "term": "F = ma", "definition": "Nyuton II qonuni" }\n]',
+    };
+
+    function updateFormatHint() {
+        const type = document.getElementById('oyin-game-type').value;
+        document.getElementById('oyin-format-hint').textContent = 'Namuna format:\n' + (FORMAT_HINTS[type] || '');
+    }
+    document.getElementById('oyin-game-type')?.addEventListener('change', updateFormatHint);
+    updateFormatHint();
+
+    let pendingItems = null;
+
+    document.getElementById('oyin-json-file')?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        const statusEl = document.getElementById('oyin-file-status');
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const parsed = JSON.parse(reader.result);
+                if (!Array.isArray(parsed) || !parsed.length) {
+                    throw new Error("JSON fayl bo'sh bo'lmagan massiv (array) bo'lishi kerak.");
+                }
+                pendingItems = parsed;
+                statusEl.textContent = `Tayyor: ${file.name} — ${parsed.length} ta element topildi.`;
+                statusEl.style.color = 'var(--green)';
+            } catch (err) {
+                pendingItems = null;
+                statusEl.textContent = "Fayl JSON formatida emas yoki noto'g'ri tuzilgan: " + err.message;
+                statusEl.style.color = 'var(--red)';
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    async function loadOyinSavollarList() {
+        listEl.innerHTML = '<div class="empty">Yuklanmoqda...</div>';
+        try {
+            const snap = await getDocs(collection(db, 'oyin-savollar'));
+            if (snap.empty) {
+                listEl.innerHTML = '<div class="empty">Hali hech narsa yuklanmagan.</div>';
+                return;
+            }
+            let html = '';
+            snap.forEach((d) => {
+                const data = d.data();
+                html += `<div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+                    <div>
+                        <div style="font-weight:700;font-size:0.88rem">${escapeHtml(GAME_LABELS[data.gameType] || data.gameType)} \u2014 ${escapeHtml(data.subject)}</div>
+                        <div style="font-size:0.76rem;color:var(--muted)">${(data.items || []).length} ta element</div>
+                    </div>
+                    <button class="btn btn-red" data-oyin-delete="${d.id}" style="padding:6px 10px;font-size:0.76rem"><i class="fas fa-trash"></i></button>
+                </div>`;
+            });
+            listEl.innerHTML = html;
+            listEl.querySelectorAll('[data-oyin-delete]').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm("Ushbu savollar to'plamini o'chirishni tasdiqlaysizmi?")) return;
+                    btn.disabled = true;
+                    try {
+                        await deleteDoc(doc(db, 'oyin-savollar', btn.dataset.oyinDelete));
+                        loadOyinSavollarList();
+                    } catch (err) {
+                        console.error("O'yin savollarini o'chirishda xatolik:", err);
+                        alert("O'chirishda xatolik yuz berdi.");
+                        btn.disabled = false;
+                    }
+                });
+            });
+        } catch (err) {
+            console.error("O'yin savollarini yuklashda xatolik:", err);
+            listEl.innerHTML = '<div class="empty">Yuklashda xatolik.</div>';
+        }
+    }
+    loadOyinSavollarList();
+
+    document.getElementById('oyin-upload-btn')?.addEventListener('click', async () => {
+        const gameType = document.getElementById('oyin-game-type').value;
+        const subject = document.getElementById('oyin-subject').value.trim().toLowerCase();
+        const statusEl = document.getElementById('oyin-status');
+        if (!subject) {
+            statusEl.textContent = "Fan nomini kiriting.";
+            statusEl.style.color = 'var(--red)';
+            return;
+        }
+        if (!pendingItems) {
+            statusEl.textContent = "Avval to'g'ri JSON fayl tanlang.";
+            statusEl.style.color = 'var(--red)';
+            return;
+        }
+        const btn = document.getElementById('oyin-upload-btn');
+        btn.disabled = true;
+        const docId = `${gameType}_${subject}`;
+        try {
+            const existingSnap = await getDoc(doc(db, 'oyin-savollar', docId));
+            let finalItems = pendingItems;
+            if (existingSnap.exists()) {
+                finalItems = [...(existingSnap.data().items || []), ...pendingItems];
+            }
+            await setDoc(doc(db, 'oyin-savollar', docId), {
+                gameType,
+                subject,
+                items: finalItems,
+                updatedAt: serverTimestamp(),
+            }, { merge: true });
+            statusEl.textContent = `Saqlandi! Endi "${subject}" fanida jami ${finalItems.length} ta element bor.`;
+            statusEl.style.color = 'var(--green)';
+            pendingItems = null;
+            document.getElementById('oyin-json-file').value = '';
+            document.getElementById('oyin-file-status').textContent = '';
+            loadOyinSavollarList();
+        } catch (err) {
+            console.error("O'yin savollarini saqlashda xatolik:", err);
+            statusEl.textContent = 'Saqlashda xatolik yuz berdi.';
+            statusEl.style.color = 'var(--red)';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+})();
