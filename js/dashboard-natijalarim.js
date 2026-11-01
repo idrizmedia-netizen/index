@@ -508,6 +508,11 @@
             ? `<img src="${signatureSettings.signatureImageUrl}" class="cert-signature-img" alt="">`
             : '';
 
+        // Universal pechat (js/cert-stamp.js) — rangi hujjat mavzusiga moslashadi
+        const stampOk = !!window.ZiyomapStamp;
+        const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(today) }) : '';
+        const stampCss = stampOk ? window.ZiyomapStamp.css : '';
+
         return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${esc(theme.label)} \u2014 ${esc(r.fullName)}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -588,6 +593,7 @@
             .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
             #cert-qr{margin-bottom:4px}
             .cert-num{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1px;color:${theme.text};opacity:0.5}
+            ${stampCss}
         </style>
         </head><body>
         <div class="cert-outer">
@@ -607,6 +613,7 @@
                 ${scoreLine}
                 <div class="cert-footer">
                     <div class="cert-footer-block cert-sig-block">
+                        ${stampHtml}
                         <div class="cert-sig-slot">${signatureImg}</div>
                         <div class="cert-sig-line"></div>
                         <div class="cert-sig-name">${esc(today)}</div>
