@@ -3283,6 +3283,10 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         const contestTitle = data.contestTitle || '[ Tanlov nomi ]';
         const dateText = cbFmtDate(data.dateStr) || '[ Sana ]';
         const signerName = data.signer || 'Ziyomap';
+        // Universal pechat (js/cert-stamp.js) — rangi hujjat mavzusiga moslashadi
+        const stampOk = !!window.ZiyomapStamp;
+        const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(data.dateStr) }) : '';
+        const stampCss = stampOk ? window.ZiyomapStamp.css : '';
 
         let displayName, mainText, scoreLine;
         if (theme.kind === 'thanks') {
@@ -3358,6 +3362,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
             .cert-qr-block{display:flex;flex-direction:column;align-items:center;font-size:10px;color:${theme.text};opacity:0.85}
             #cert-qr{margin-bottom:4px}
             .cert-num{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:1px;color:${theme.text};opacity:0.5}
+            ${stampCss}
         </style>
         </head><body>
         <div class="cert-outer">
@@ -3393,6 +3398,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                 ${scoreLine}
                 <div class="cert-footer">
                     <div class="cert-footer-block cert-sig-block">
+                        ${stampHtml}
                         <div class="cert-sig-slot">${cbSignatureUrl ? `<img src="${cbSignatureUrl}" class="cert-signature-img" alt="">` : ''}</div>
                         <div class="cert-sig-line"></div>
                         <div class="cert-sig-name">${cbEsc(dateText)}</div>
@@ -3642,6 +3648,14 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                 const qrDataUrl = qrCanvas ? qrCanvas.toDataURL('image/png') : null;
                 document.body.removeChild(qrHost);
 
+                // Pechat (PNG) — imzo ostida, yarim shaffof va biroz qiyshiq joylashadi
+                let stampPng = null;
+                try {
+                    if (window.ZiyomapStamp) {
+                        stampPng = await window.ZiyomapStamp.png({ color: CB_THEMES[cbCollectData().type].deep, year: window.ZiyomapStamp.yearFrom(cbCollectData().dateStr) });
+                    }
+                } catch (e) { console.error('Pechat yaratilmadi:', e); }
+
                 // eslint-disable-next-line no-undef
                 const pres = new PptxGenJS();
                 pres.defineLayout({ name: 'CERT_A4L', width: 11.69, height: 8.27 });
@@ -3727,6 +3741,10 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
 
                 const footY = H - 2.05, colW = 2.6, gap = 0.35, footX0 = CX - (colW * 3 + gap * 2) / 2;
                 const c1x = footX0;
+                if (stampPng) {
+                    const stSize = 0.9;
+                    slide.addImage({ data: stampPng, x: c1x + colW / 2 - stSize / 2 + 0.15, y: footY - 0.5, w: stSize, h: stSize, rotate: 348, transparency: 8 });
+                }
                 if (cbSignatureUrl) {
                     const sigW = 1.3, sigH = 0.36;
                     slide.addImage({ data: cbSignatureUrl, x: c1x + colW / 2 - sigW / 2, y: footY + 0.02, w: sigW, h: sigH, sizing: { type: 'contain', w: sigW, h: sigH } });
