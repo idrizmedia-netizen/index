@@ -32,17 +32,28 @@ h2 { margin: 0 0 8px; font-size: 1.25rem; }
 .row:last-child { border-bottom: none; }
 .row b { color: var(--muted); font-weight: 600; display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
 .muted { color: var(--muted); font-size: 0.85rem; margin-top: 16px; }
+.seal { width: 124px; height: 124px; margin: -4px auto 4px; transform: rotate(-10deg); opacity: .95; }
+.seal svg { width: 100%; height: 100%; display: block; }
+.verified-pill {
+    display: inline-flex; align-items: center; gap: 8px; background: #dcfce7; color: #166534;
+    font-weight: 800; letter-spacing: 1.5px; font-size: 0.95rem; padding: 8px 18px; border-radius: 999px; margin: 6px 0 4px;
+}
+.issuer { color: var(--muted); font-size: 0.82rem; margin: 6px 0 14px; }
+.name-big { font-size: 1.35rem; font-weight: 800; line-height: 1.25; padding: 14px 0 6px; border-top: 1px solid var(--border); }
+.type-badge { display: inline-block; margin: 6px 0 10px; padding: 5px 14px; border-radius: 999px; font-weight: 700; font-size: 0.85rem; color: #fff; }
+.checked-at { color: var(--muted); font-size: 0.75rem; margin-top: 16px; }
 </style>
 </head>
 <body>
 <div class="wrap">
-    <a href="index.html" class="brand"><img src="images/nav-icon.png" alt="Ziyomap"> Ziyo<span class="b">map</span></a>
+    <a href="index.html" class="brand"><img src="images/nav-icon.png" alt="Ziyomap"> <span>Ziyo<span class="b">map</span></span></a>
     <div class="card" id="result">
         <div class="state-icon"><i class="fas fa-spinner fa-spin"></i></div>
         <h2>Tekshirilmoqda...</h2>
     </div>
 </div>
 
+<script src="js/cert-stamp.js"></script>
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
@@ -62,12 +73,25 @@ function esc(str) {
     return d.innerHTML;
 }
 
+// Hujjat turini aniqlaydi: rangi (pechat va belgi uchun) va nomi
+function describe(c) {
+    const t = c.certType != null ? String(c.certType) : null;
+    const rank = c.rank;
+    if (t === '1' || (t == null && c.isWinner && rank === 1)) return { label: 'I darajali diplom', color: '#8a6512' };
+    if (t === '2' || (t == null && c.isWinner && rank === 2)) return { label: 'II darajali diplom', color: '#526071' };
+    if (t === '3' || (t == null && c.isWinner && rank === 3)) return { label: 'III darajali diplom', color: '#87491c' };
+    if (t === '4') return { label: 'Rag\u2018batlantirish sertifikati', color: '#166534', reason: c.reason || '' };
+    if (t === '5') return { label: 'Tashakkurnoma', color: '#5b21b6', childName: c.childName || '' };
+    if (t == null && c.isWinner) return { label: (rank != null ? rank + '-o\u2018rin diplomi' : 'Diplom'), color: '#5b21b6' };
+    return { label: 'Ishtirok sertifikati', color: '#1e40af' };
+}
+
 async function verify() {
     const resultEl = document.getElementById('result');
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (!id) {
-        resultEl.className = 'fail';
+        resultEl.className = 'card fail';
         resultEl.innerHTML = '<div class="state-icon"><i class="fas fa-circle-question"></i></div><h2>Kod topilmadi</h2><p class="muted">Havolada tasdiqlash kodi yo\u2018q.</p>';
         return;
     }
@@ -76,25 +100,37 @@ async function verify() {
         const db = getFirestore(app);
         const snap = await getDoc(doc(db, 'certificates', id));
         if (!snap.exists()) {
-            resultEl.className = 'fail';
+            resultEl.className = 'card fail';
             resultEl.innerHTML = '<div class="state-icon"><i class="fas fa-triangle-exclamation"></i></div><h2>Hujjat topilmadi</h2><p class="muted">Bu kod bo\u2018yicha hech qanday diplom/sertifikat ro\u2018yxatda yo\u2018q. Hujjat soxta bo\u2018lishi mumkin.</p>';
             return;
         }
         const c = snap.data();
-        resultEl.className = 'ok';
+        const info = describe(c);
+        const stamp = window.ZiyomapStamp
+            ? '<div class="seal">' + window.ZiyomapStamp.svg({ color: info.color, year: window.ZiyomapStamp.yearFrom(c.issuedDateText), style: c.stampStyle }) + '</div>'
+            : '<div class="state-icon"><i class="fas fa-circle-check"></i></div>';
+        const now = new Date();
+        const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+        const pad = (n) => String(n).padStart(2, '0');
+        const checkedAt = `${now.getDate()}-${MONTHS[now.getMonth()]} ${now.getFullYear()}, ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        resultEl.className = 'card ok';
         resultEl.innerHTML = `
-            <div class="state-icon"><i class="fas fa-circle-check"></i></div>
-            <h2>Hujjat haqiqiy \u2705</h2>
-            <div class="row"><b>Ism-familiya</b>${esc(c.fullName)}</div>
-            <div class="row"><b>Tanlov</b>${esc(c.contestTitle)}</div>
-            <div class="row"><b>Turi</b>${esc(c.isWinner ? (c.rank + '-o\u2018rin (diplom)') : 'Ishtirok sertifikati')}</div>
-            ${c.score != null ? `<div class="row"><b>Umumiy ball</b>${esc(c.score)}</div>` : ''}
+            ${stamp}
+            <div class="verified-pill"><i class="fas fa-circle-check"></i> HUJJAT HAQIQIY</div>
+            <p class="issuer">Ziyomap platformasi tomonidan berilgan va tizimda ro\u2018yxatdan o\u2018tgan</p>
+            <div class="name-big">${esc(c.fullName)}</div>
+            <span class="type-badge" style="background:${info.color}">${esc(info.label)}</span>
+            ${c.contestTitle ? `<div class="row"><b>Tanlov</b>${esc(c.contestTitle)}</div>` : ''}
+            ${info.childName ? `<div class="row"><b>Farzandi</b>${esc(info.childName)}</div>` : ''}
+            ${info.reason ? `<div class="row"><b>Sabab</b>${esc(info.reason)}</div>` : ''}
+            ${c.score != null && c.score !== '' ? `<div class="row"><b>Umumiy ball</b>${esc(c.score)}</div>` : ''}
             <div class="row"><b>Berilgan sana</b>${esc(c.issuedDateText || '')}</div>
             <div class="row"><b>Hujjat raqami</b>${esc(id)}</div>
+            <p class="checked-at"><i class="fas fa-clock"></i> Tekshirilgan vaqt: ${esc(checkedAt)}</p>
         `;
     } catch (err) {
         console.error(err);
-        resultEl.className = 'fail';
+        resultEl.className = 'card fail';
         resultEl.innerHTML = '<div class="state-icon"><i class="fas fa-xmark"></i></div><h2>Xatolik yuz berdi</h2><p class="muted">Qayta urinib ko\u2018ring.</p>';
     }
 }
