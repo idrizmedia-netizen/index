@@ -8,7 +8,7 @@
      ZiyomapStamp.html({ color, year, style })  -> HTML'ga qo'yiladigan tayyor blok
      ZiyomapStamp.svg({ color, year, style })   -> sof SVG matn
      await ZiyomapStamp.png({ color, year, style }) -> PNG (dataURL), PPTX uchun
-     style: 'classic' (standart) | 'atom' | 'none' (pechatsiz)
+     style: 'classic' (standart) | 'star8' | 'laurel' | 'none' (pechatsiz)
      Yangi pechat qo'shish: centerXxx() funksiya yozing va svg() / STYLES ga ulang.
    ══════════════════════════════════════════════════════════════ */
 (function () {
@@ -56,24 +56,39 @@
             '<text x="100" y="135" text-anchor="middle" font-family="' + FONT + '" font-size="13" font-weight="700" letter-spacing="1.5" fill="' + c + '">' + year + '</text>';
     }
 
-    // 2) ATOM: uchta orbita, yadro va elektronlar (fan/ta'lim ramzi)
-    function centerAtom(c) {
-        var e = '<g fill="none" stroke="' + c + '" stroke-width="2">' +
-            '<ellipse cx="100" cy="100" rx="52" ry="19"/>' +
-            '<ellipse cx="100" cy="100" rx="52" ry="19" transform="rotate(60 100 100)"/>' +
-            '<ellipse cx="100" cy="100" rx="52" ry="19" transform="rotate(120 100 100)"/>' +
-            '</g>';
-        return e + '<g fill="' + c + '">' +
-            '<circle cx="100" cy="100" r="7.5"/>' +
-            '<circle cx="152" cy="100" r="4.2"/>' +
-            '<circle cx="126" cy="145.03" r="4.2"/>' +
-            '<circle cx="74" cy="145.03" r="4.2"/>' +
-            '</g>';
+    // 2) SAKKIZ QIRRALI YULDUZ: milliy naqsh (ikki kvadrat), markazda "Z", pastda yil
+    function centerStar8(c, fg) {
+        return '<g fill="' + c + '" fill-opacity="0.10" stroke="' + c + '" stroke-width="2.2" stroke-linejoin="round">' +
+            '<rect x="65" y="65" width="70" height="70"/>' +
+            '<rect x="65" y="65" width="70" height="70" transform="rotate(45 100 100)"/>' +
+            '</g>' +
+            '<circle cx="100" cy="100" r="16" fill="' + c + '"/>' +
+            '<text x="100" y="108" text-anchor="middle" font-family="' + FONT + '" font-size="22" font-weight="700" fill="' + fg + '">Z</text>';
+    }
+
+    // 3) LAVR SHOXI: ikki tomonda lavr barglari, markazda yulduz, ZIYOMAP va yil
+    function centerLaurel(c, year) {
+        var leaves = '';
+        var angles = [30, 52, 74, 96, 118, 140, 162];
+        for (var i = 0; i < angles.length; i++) {
+            leaves += '<ellipse cx="100" cy="48" rx="9.5" ry="4.2" transform="rotate(' + angles[i] + ' 100 100) rotate(25 100 48)"/>';
+            leaves += '<ellipse cx="100" cy="48" rx="9.5" ry="4.2" transform="rotate(' + (-angles[i]) + ' 100 100) rotate(-25 100 48)"/>';
+        }
+        return '<g fill="' + c + '">' + leaves + '</g>' +
+            '<g fill="none" stroke="' + c + '" stroke-width="1.4">' +
+            '<path d="M 121.97,52.88 A 52,52 0 0,1 109.03,151.2"/>' +
+            '<path d="M 78.03,52.88 A 52,52 0 0,0 90.97,151.2"/>' +
+            '</g>' +
+            '<polygon points="' + starPoints(100, 76, 9, 3.8) + '" fill="' + c + '"/>' +
+            '<text x="100" y="105" text-anchor="middle" font-family="' + FONT + '" font-size="13" font-weight="700" letter-spacing="1.5" fill="' + c + '">ZIYOMAP</text>' +
+            '<line x1="80" y1="112" x2="120" y2="112" stroke="' + c + '" stroke-width="1"/>' +
+            '<text x="100" y="127" text-anchor="middle" font-family="' + FONT + '" font-size="12" font-weight="700" letter-spacing="1.2" fill="' + c + '">' + year + '</text>';
     }
 
     var STYLES = [
         { id: 'classic', label: 'Klassik' },
-        { id: 'atom', label: 'Atom' },
+        { id: 'star8', label: 'Sakkiz qirrali yulduz' },
+        { id: 'laurel', label: 'Lavr shoxi' },
         { id: 'none', label: 'Pechatsiz' }
     ];
 
@@ -84,9 +99,12 @@
         var style = opts.style || 'classic';
         var topText = esc(opts.topText || 'ZIYOMAP PLATFORMASI');
         var inner, botText;
-        if (style === 'atom') {
+        if (style === 'star8') {
             botText = esc(opts.bottomText || '\u2605 ' + year + ' \u2605');
-            inner = centerAtom(c);
+            inner = centerStar8(c, opts.textOnInk || '#ffffff');
+        } else if (style === 'laurel') {
+            botText = esc(opts.bottomText || '\u2605 O\u2018ZBEKISTON \u2605');
+            inner = centerLaurel(c, year);
         } else {
             botText = esc(opts.bottomText || '\u2605 O\u2018ZBEKISTON \u2605');
             inner = centerClassic(c, year);
