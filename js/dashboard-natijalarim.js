@@ -510,7 +510,7 @@
 
         // Universal pechat (js/cert-stamp.js) — rangi hujjat mavzusiga moslashadi
         const stampOk = !!window.ZiyomapStamp;
-        const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(today) }) : '';
+        const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(today), style: c.stampStyle }) : '';
         const stampCss = stampOk ? window.ZiyomapStamp.css : '';
 
         return `<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8"><title>${esc(theme.label)} \u2014 ${esc(r.fullName)}</title>
