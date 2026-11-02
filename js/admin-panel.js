@@ -3354,8 +3354,9 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
         <style>
-            @page { size: landscape; margin: 0; }
+            @page { size: A4 landscape; margin: 0; }
             *{box-sizing:border-box}
+            @media print{html,body{height:auto}.cert-outer{break-inside:avoid;page-break-inside:avoid}}
             body{font-family:'Montserrat',sans-serif;margin:0;padding:36px;background:#e7e2d8;color:${theme.text}}
             .cert-outer{position:relative;overflow:hidden;border:3px solid ${theme.border};border-radius:10px;background:${theme.bg};min-height:560px;padding:6px}
             .cert-inner{position:relative;height:100%;border:2px solid ${theme.ring};border-radius:6px;padding:40px 60px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:540px}
@@ -3451,6 +3452,38 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
             </div>
         </div>
         <script>
+            // Chop etishdan oldin hujjatni bitta A4 gorizontal sahifaga sig'diramiz (uzun matnli hujjat 2 sahifaga bo'linmasin)
+            (function () {
+                var PAGE_W = 1120, PAGE_H = 786, PAD = 16;
+                function fit() {
+                    var o = document.querySelector('.cert-outer');
+                    if (!o) return;
+                    var availW = PAGE_W - 2 * PAD, availH = PAGE_H - 2 * PAD;
+                    document.body.style.padding = PAD + 'px';
+                    o.style.zoom = '';
+                    o.style.width = availW + 'px';
+                    var z = 1;
+                    for (var i = 0; i < 5; i++) {
+                        o.style.width = (availW / z) + 'px';
+                        var h = o.offsetHeight;
+                        var next = Math.min(1, availH / h);
+                        if (Math.abs(next - z) < 0.002) { z = next; break; }
+                        z = next;
+                    }
+                    z = z * 0.99;
+                    o.style.width = (availW / z) + 'px';
+                    o.style.zoom = z;
+                }
+                function reset() {
+                    var o = document.querySelector('.cert-outer');
+                    if (!o) return;
+                    o.style.zoom = '';
+                    o.style.width = '';
+                    document.body.style.padding = '';
+                }
+                window.addEventListener('beforeprint', fit);
+                window.addEventListener('afterprint', reset);
+            })();
             window.onload = () => {
                 try { new QRCode(document.getElementById('cert-qr'), { text: ${JSON.stringify(verifyUrl)}, width: 64, height: 64 }); } catch (e) {}
                 ${autoprint ? 'setTimeout(() => window.print(), 500);' : ''}
