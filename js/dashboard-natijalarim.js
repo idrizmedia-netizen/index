@@ -687,16 +687,43 @@
                         payload.issuedAt = serverTimestampFn();
                     }
                     await setDocFn(docFn(db, 'certificates', certNumber), payload, { merge: true });
+                    // Tasdiqlash sahifasida pechat mos chiqishi uchun (ixtiyoriy — xato bo'lsa e'tiborsiz)
+                    try {
+                        await setDocFn(docFn(db, 'certificates', certNumber), { contestId: r.contestId || null, stampStyle: c.stampStyle || 'classic' }, { merge: true });
+                    } catch (e2) { /* ignore */ }
                 } catch (err) {
                     console.error('Sertifikat yozuvini saqlashda xatolik:', err);
                 }
 
                 const partnerLogos = await getPartnerLogos(r.contestId);
                 const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {}, partnerLogos, issuedDateText);
-                const w = window.open('', '_blank');
-                if (!w) return;
-                w.document.write(html);
-                w.document.close();
+                // To'g'ridan-to'g'ri PDF yuklab olish (chop etish oynasisiz). Kutubxona yuklanmasa — eski usul.
+                const origBtnHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PDF tayyorlanmoqda...';
+                try {
+                    if (!window.ZiyomapCertExport) {
+                        await new Promise((resolve, reject) => {
+                            const sc = document.createElement('script');
+                            sc.src = 'js/cert-export.js';
+                            sc.onload = resolve;
+                            sc.onerror = () => reject(new Error('cert-export.js yuklanmadi'));
+                            document.head.appendChild(sc);
+                        });
+                    }
+                    const pdfName = `${isWinner ? 'Diplom' : 'Sertifikat'}_${r.fullName || certNumber}`;
+                    await window.ZiyomapCertExport.downloadPdf(html, pdfName);
+                } catch (pdfErr) {
+                    console.error('PDF yaratilmadi, chop etish oynasi ochiladi:', pdfErr);
+                    const w = window.open('', '_blank');
+                    if (w) {
+                        w.document.write(html);
+                        w.document.close();
+                    }
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = origBtnHtml;
+                }
             });
         });
     }
