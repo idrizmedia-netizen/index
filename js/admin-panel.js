@@ -469,6 +469,7 @@ async function loadContests() {
                 document.getElementById('c-desc').value = c.description || '';
                 document.getElementById('c-organizer').value = c.organizer || '';
                 document.getElementById('c-responsible-name').value = c.responsibleName || '';
+                { const stSel = document.getElementById('c-stamp-style'); if (stSel) stSel.value = [...stSel.options].some((o) => o.value === c.stampStyle) ? c.stampStyle : 'classic'; }
                 document.getElementById('c-responsible-phone').value = c.responsiblePhone || '';
                 document.getElementById('c-min-age').value = c.minAge ?? '';
                 document.getElementById('c-max-age').value = c.maxAge ?? '';
@@ -950,12 +951,31 @@ document.addEventListener('click', (e) => {
     }
 });
 
+/* ── Tanlov uchun pechat uslubi (shu tanlovning diplom/sertifikatlarida kabinetda chiqadi) ── */
+(function () {
+    const logoField = document.getElementById('c-logo-file')?.closest('.field');
+    if (!logoField || document.getElementById('c-stamp-style')) return;
+    const styles = (window.ZiyomapStamp && window.ZiyomapStamp.styles) || [{ id: 'classic', label: 'Klassik' }];
+    const wrap = document.createElement('div');
+    wrap.className = 'field';
+    wrap.innerHTML = '<label>Sertifikat pechati (shu tanlov ishtirokchilari kabinetida chiqadigan diplom va sertifikatlarga qo\u2018yiladi)</label><select id="c-stamp-style"></select>';
+    const sel = wrap.querySelector('select');
+    styles.forEach((st) => {
+        const o = document.createElement('option');
+        o.value = st.id;
+        o.textContent = st.label;
+        sel.appendChild(o);
+    });
+    logoField.parentNode.insertBefore(wrap, logoField);
+})();
+
 function resetContestForm() {
     document.getElementById('c-edit-id').value = '';
     document.getElementById('c-title').value = '';
     document.getElementById('c-desc').value = '';
     document.getElementById('c-organizer').value = '';
     document.getElementById('c-responsible-name').value = '';
+    { const stSel = document.getElementById('c-stamp-style'); if (stSel) stSel.value = 'classic'; }
     document.getElementById('c-responsible-phone').value = '';
     document.getElementById('c-min-age').value = '';
     document.getElementById('c-max-age').value = '';
@@ -1104,6 +1124,7 @@ document.getElementById('c-create-btn').addEventListener('click', async () => {
             paymentAmount,
             paymentAccount,
             paymentReceiver,
+            stampStyle: document.getElementById('c-stamp-style')?.value || 'classic',
         };
 
         // Nizom hujjati: yangi fayl tanlangan bo'lsa — shuni yozadi; "olib tashlash"
@@ -3436,7 +3457,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
     }
 
     let cbSaved = false;
-    let cbStampStyle = 'classic'; // pechat uslubi: classic | atom | none (js/cert-stamp.js)
+    let cbStampStyle = 'classic'; // pechat uslubi: classic | star8 | laurel | none (js/cert-stamp.js)
     let cbSignatureUrl = null;
     let cbSignerDefaultName = '';
 
