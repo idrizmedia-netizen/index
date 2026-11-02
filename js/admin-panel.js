@@ -3309,6 +3309,16 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         const stampOk = !!window.ZiyomapStamp;
         const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(data.dateText || data.dateStr), style: data.stampStyle }) : '';
         const stampCss = stampOk ? window.ZiyomapStamp.css : '';
+        // Qo'shimcha logotiplar (4 ta asosiy logo yoniga)
+        const extraLogos = (cbExtraLogos || []).filter((l) => l && l.enabled !== false && l.dataUrl).slice(0, 2);
+        const extraLogosHtml = extraLogos.map((l) => `
+                    <div class="cert-logo-block-wide">
+                        <img src="${l.dataUrl}" class="cert-extra-logo" alt="">
+                        ${l.caption ? `<span class="cert-logo-caption">${cbEsc(l.caption)}</span>` : ''}
+                    </div>`).join('');
+        const extraLogosCss = extraLogos.length
+            ? '.cert-extra-logo{height:50px;width:auto;max-width:80px;object-fit:contain;display:block}'
+            : '';
 
         let displayName, mainText, scoreLine;
         if (theme.kind === 'thanks') {
@@ -3362,6 +3372,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
             .cert-logo-block-wide{display:flex;flex-direction:column;align-items:center;gap:5px;width:auto;flex-shrink:0}
             .cert-corner-logo{width:50px;height:50px;object-fit:contain;border-radius:11px}
             .cert-logo-svg{height:50px;width:auto;object-fit:contain;display:block}
+            ${extraLogosCss}
             .cert-logo-caption{font-family:'Playfair Display',serif;font-weight:700;font-size:11px;letter-spacing:0.5px;color:${theme.deep};text-transform:uppercase;text-align:center;line-height:1.15}
             .cert-medal{font-size:52px;margin-bottom:2px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15))}
             .cert-brand{font-family:'Playfair Display',serif;font-weight:700;font-size:15px;letter-spacing:5px;color:${theme.deep};margin-bottom:20px;text-transform:uppercase;display:flex;align-items:center;gap:10px}
@@ -3410,7 +3421,10 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                             <span class="cert-logo-caption">Ziyomarket</span>
                         </div>
                     </div>
-                </div></div>
+                </div>
+                ${extraLogosHtml ? `<div class="cert-logo-row">${extraLogosHtml}
+                </div>` : ''}
+                </div>
                 <div class="cert-medal">${theme.medal}</div>
                 <div class="cert-brand">ZIYOMAP</div>
                 <div class="cert-title">${cbEsc(theme.label)}</div>
@@ -3459,6 +3473,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
     let cbSaved = false;
     let cbStampStyle = 'classic'; // pechat uslubi: classic | star8 | laurel | none (js/cert-stamp.js)
     let cbSignatureUrl = null;
+    let cbExtraLogos = []; // admin yuklagan qo'shimcha logotiplar (site-content/diploma-logos)
     let cbSignerDefaultName = '';
 
     function cbSetStatus(text, kind) {
@@ -3511,6 +3526,162 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                 );
             }
         }
+    }
+
+    // ── QO'SHIMCHA LOGOTIPLAR: 4 ta asosiy logo yoniga logo yuklash (hammasi bir joyda saqlanadi) ──
+    function cbInitLogos() {
+        const dateField = document.getElementById('cb-date')?.closest('.field');
+        if (!dateField || document.getElementById('cb-logos-field')) return;
+        const MAX_LOGOS = 2;
+        const wrap = document.createElement('div');
+        wrap.className = 'field';
+        wrap.id = 'cb-logos-field';
+        wrap.innerHTML = `
+            <label>Qo\u2018shimcha logotip <span style="font-weight:400;color:var(--muted)">(4 ta asosiy logo yoniga, ko\u2018pi bilan ${MAX_LOGOS} ta)</span></label>
+            <div id="cb-logos-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+            <button type="button" id="cb-logo-add" class="contest-filter-btn"><i class="fas fa-plus"></i> Logo yuklash</button>
+            <input type="file" id="cb-logo-file" accept="image/png,image/jpeg,image/webp" style="display:none">
+            <p id="cb-logos-status" style="font-size:0.78rem;margin-top:6px;min-height:16px"></p>`;
+        dateField.parentNode.insertBefore(wrap, dateField);
+
+        const listEl = wrap.querySelector('#cb-logos-list');
+        const addBtn = wrap.querySelector('#cb-logo-add');
+        const fileInp = wrap.querySelector('#cb-logo-file');
+        const statusEl = wrap.querySelector('#cb-logos-status');
+        const setSt = (msg, color) => { statusEl.textContent = msg || ''; statusEl.style.color = color || 'var(--muted)'; };
+
+        async function persist(okMsg) {
+            try {
+                await setDoc(doc(db, 'site-content', 'diploma-logos'), { logos: cbExtraLogos, updatedAt: serverTimestamp() });
+                setSt(okMsg || 'Saqlandi.', 'var(--green)');
+            } catch (err) {
+                console.error('Logotiplarni saqlashda xatolik:', err);
+                setSt('Saqlanmadi \u2014 internetni tekshirib, qayta urinib ko\u2018ring.', 'var(--red)');
+            }
+        }
+
+        let captionTimer = null;
+        function renderList() {
+            listEl.innerHTML = '';
+            cbExtraLogos.forEach((l, idx) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px;border:1px solid var(--border);border-radius:10px';
+
+                const thumb = document.createElement('img');
+                thumb.src = l.dataUrl;
+                thumb.alt = '';
+                thumb.style.cssText = 'height:40px;max-width:70px;object-fit:contain;border-radius:6px;background:repeating-conic-gradient(#e2e8f0 0% 25%, #fff 0% 50%) 50% / 12px 12px;flex-shrink:0';
+
+                const cap = document.createElement('input');
+                cap.type = 'text';
+                cap.value = l.caption || '';
+                cap.placeholder = 'Yozuv (ixtiyoriy)';
+                cap.maxLength = 24;
+                cap.style.cssText = 'flex:1;min-width:0';
+                cap.addEventListener('input', () => {
+                    l.caption = cap.value.trim();
+                    cbRenderPreview();
+                    clearTimeout(captionTimer);
+                    captionTimer = setTimeout(() => persist('Saqlandi.'), 700);
+                });
+
+                const lab = document.createElement('label');
+                lab.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:0.75rem;white-space:nowrap;margin:0';
+                const chk = document.createElement('input');
+                chk.type = 'checkbox';
+                chk.checked = l.enabled !== false;
+                chk.addEventListener('change', () => {
+                    l.enabled = chk.checked;
+                    cbRenderPreview();
+                    persist(chk.checked ? 'Hujjatda ko\u2018rsatiladi.' : 'Hujjatda yashirildi (o\u2018chirilmadi).');
+                });
+                lab.appendChild(chk);
+                lab.appendChild(document.createTextNode('Ko\u2018rsatish'));
+
+                const del = document.createElement('button');
+                del.type = 'button';
+                del.title = 'O\u2018chirish';
+                del.innerHTML = '<i class="fas fa-trash"></i>';
+                del.style.cssText = 'border:none;background:transparent;color:var(--red);cursor:pointer;padding:6px';
+                del.addEventListener('click', () => {
+                    cbExtraLogos.splice(idx, 1);
+                    renderList();
+                    cbRenderPreview();
+                    persist('Logo o\u2018chirildi.');
+                });
+
+                row.append(thumb, cap, lab, del);
+                listEl.appendChild(row);
+            });
+            addBtn.disabled = cbExtraLogos.length >= MAX_LOGOS;
+            addBtn.style.opacity = addBtn.disabled ? '0.5' : '1';
+        }
+
+        // Rasmni kichraytirib (shaffoflikni saqlab) PNG data URL qiladi — Firestore hujjati og'irlashmasin
+        function shrink(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Fayl o\u2018qilmadi'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Rasm ochilmadi'));
+                    img.onload = () => {
+                        const encode = (maxSide) => {
+                            const k = Math.min(1, maxSide / Math.max(img.width, img.height));
+                            const w = Math.max(1, Math.round(img.width * k));
+                            const h = Math.max(1, Math.round(img.height * k));
+                            const c = document.createElement('canvas');
+                            c.width = w;
+                            c.height = h;
+                            c.getContext('2d').drawImage(img, 0, 0, w, h);
+                            return { dataUrl: c.toDataURL('image/png'), w, h };
+                        };
+                        let out = encode(256);
+                        if (out.dataUrl.length > 160000) out = encode(160);
+                        if (out.dataUrl.length > 160000) { reject(new Error('Rasm juda murakkab \u2014 soddaroq logo tanlang.')); return; }
+                        resolve(out);
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        addBtn.addEventListener('click', () => { if (cbExtraLogos.length < MAX_LOGOS) fileInp.click(); });
+        fileInp.addEventListener('change', async () => {
+            const file = fileInp.files && fileInp.files[0];
+            fileInp.value = '';
+            if (!file) return;
+            if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { setSt('Faqat PNG, JPG yoki WEBP rasm yuklang.', 'var(--red)'); return; }
+            if (file.size > 5 * 1024 * 1024) { setSt('Rasm 5 MB dan oshmasin.', 'var(--red)'); return; }
+            setSt('Rasm tayyorlanmoqda...');
+            try {
+                const out = await shrink(file);
+                cbExtraLogos.push({ id: 'l' + Date.now().toString(36), dataUrl: out.dataUrl, w: out.w, h: out.h, caption: '', enabled: true });
+                renderList();
+                cbRenderPreview();
+                await persist('Logo qo\u2018shildi va saqlandi.');
+            } catch (err) {
+                console.error(err);
+                setSt(err.message || 'Logo yuklanmadi.', 'var(--red)');
+            }
+        });
+
+        renderList();
+
+        // Oldin saqlangan logotiplarni yuklaymiz
+        (async () => {
+            try {
+                const snap = await getDoc(doc(db, 'site-content', 'diploma-logos'));
+                if (snap.exists() && Array.isArray(snap.data().logos)) {
+                    cbExtraLogos = snap.data().logos.filter((l) => l && typeof l.dataUrl === 'string').slice(0, MAX_LOGOS);
+                    renderList();
+                    cbRenderPreview();
+                }
+            } catch (err) {
+                console.error('Logotiplarni yuklashda xatolik:', err);
+            }
+        })();
     }
 
     // ── OMMAVIY CHIQARISH: butun tanlov uchun diplom/sertifikatlarni ZIP yoki bitta PDF qilib olish ──
@@ -3737,6 +3908,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
             }
         }
 
+        cbInitLogos();
         cbInitBulk();
 
         cbUpdateFieldVisibility();
@@ -3905,6 +4077,18 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                 lx += 1.77;
                 slide.addImage({ path: `${origin}/images/cert-logo-ziyomap-mark.png`, x: lx, y: logoY, w: 0.5, h: 0.5 });
                 slide.addText('ZIYOMARKET', { x: lx - 0.5, y: logoY + 0.52, w: 1.5, h: 0.22, align: 'center', fontFace: 'Cambria', fontSize: 7, bold: true, color: deep, charSpacing: 1, isTextBox: true, margin: 0 });
+                // Qo'shimcha logotiplar (admin yuklagan) — 4 ta asosiy logo ostidagi alohida qatorda (HTML dagi kabi)
+                let row2x = 0.68;
+                (cbExtraLogos || []).filter((l) => l && l.enabled !== false && l.dataUrl).slice(0, 2).forEach((l) => {
+                    const ratio = l.w && l.h ? l.w / l.h : 1;
+                    const lw = Math.max(0.3, Math.min(0.5 * ratio, 0.9));
+                    const y2 = logoY + 0.85;
+                    slide.addImage({ data: l.dataUrl, x: row2x, y: y2, w: lw, h: 0.5 });
+                    if (l.caption) {
+                        slide.addText(String(l.caption).toUpperCase(), { x: row2x - 0.2, y: y2 + 0.52, w: lw + 0.4, h: 0.22, align: 'center', fontFace: 'Cambria', fontSize: 7, bold: true, color: deep, charSpacing: 1, isTextBox: true, margin: 0 });
+                    }
+                    row2x += lw + 0.25;
+                });
 
                 const medalD = 0.85, medalX = CX - medalD / 2, medalY = 0.62;
                 slide.addShape('ellipse', { x: medalX, y: medalY, w: medalD, h: medalD, fill: { color: ring }, line: { color: border, width: 2.5 } });
