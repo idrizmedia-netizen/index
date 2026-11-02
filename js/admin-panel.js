@@ -3303,11 +3303,11 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         const verifyUrl = `${origin}/tasdiqlash.html?id=${encodeURIComponent(data.certNumber || '')}`;
         const fullName = data.fullName || '[ Ishtirokchining F.I.Sh. ]';
         const contestTitle = data.contestTitle || '[ Tanlov nomi ]';
-        const dateText = cbFmtDate(data.dateStr) || '[ Sana ]';
+        const dateText = data.dateText || cbFmtDate(data.dateStr) || '[ Sana ]';
         const signerName = data.signer || 'Ziyomap';
         // Universal pechat (js/cert-stamp.js) — rangi hujjat mavzusiga moslashadi
         const stampOk = !!window.ZiyomapStamp;
-        const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(data.dateStr), style: data.stampStyle }) : '';
+        const stampHtml = stampOk ? window.ZiyomapStamp.html({ color: theme.deep, year: window.ZiyomapStamp.yearFrom(data.dateText || data.dateStr), style: data.stampStyle }) : '';
         const stampCss = stampOk ? window.ZiyomapStamp.css : '';
 
         let displayName, mainText, scoreLine;
@@ -3513,6 +3513,164 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         }
     }
 
+    // ── OMMAVIY CHIQARISH: butun tanlov uchun diplom/sertifikatlarni ZIP yoki bitta PDF qilib olish ──
+    function cbInitBulk() {
+        const anchor = document.getElementById('cb-pptx-btn')?.parentElement;
+        if (!anchor || document.getElementById('cbb-panel')) return;
+        const MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+        const panel = document.createElement('div');
+        panel.id = 'cbb-panel';
+        panel.style.cssText = 'margin-top:18px;padding:14px;border:1px dashed var(--border);border-radius:14px';
+        panel.innerHTML = `
+            <p style="font-weight:800;margin:0 0 4px"><i class="fas fa-layer-group"></i> Ommaviy chiqarish</p>
+            <p style="color:var(--muted);font-size:0.78rem;margin:0 0 10px">Tanlangan tanlov bo\u2018yicha hamma diplom va sertifikatlarni bir tugma bilan yuklab oladi. Hujjat raqami ishtirokchi kabinetidagi bilan bir xil, QR esa shu raqamga ishora qiladi. Pechat \u2014 tanlov sozlamasidagi uslubda chiqadi.</p>
+            <div class="field"><label>Tanlov</label><select id="cbb-contest"></select></div>
+            <div class="field"><label>Kimlarga</label><select id="cbb-scope">
+                <option value="all">Hammasiga (1\u20133-o\u2018rin diplomlari + qolganlarga ishtirok sertifikati)</option>
+                <option value="winners">Faqat g\u2018oliblarga (1\u20133-o\u2018rin diplomlari)</option>
+                <option value="participants">Faqat ishtirok sertifikatlari</option>
+            </select></div>
+            <div class="field"><label>Format</label><select id="cbb-format">
+                <option value="zip">ZIP (har bir ishtirokchi uchun alohida PDF)</option>
+                <option value="pdf">Bitta PDF (har sahifada bitta hujjat \u2014 chop etish uchun qulay)</option>
+            </select></div>
+            <div style="display:flex;gap:8px">
+                <button type="button" class="btn btn-primary" id="cbb-start" style="flex:1"><i class="fas fa-download"></i> Ommaviy yuklab olish</button>
+                <button type="button" class="btn" id="cbb-cancel" style="display:none">To\u2018xtatish</button>
+            </div>
+            <p id="cbb-status" style="font-size:0.82rem;margin-top:8px;min-height:18px"></p>`;
+        anchor.insertAdjacentElement('afterend', panel);
+
+        const contestSel = panel.querySelector('#cbb-contest');
+        const statusEl = panel.querySelector('#cbb-status');
+        const startBtn = panel.querySelector('#cbb-start');
+        const cancelBtn = panel.querySelector('#cbb-cancel');
+        const setSt = (msg, color) => { statusEl.textContent = msg; statusEl.style.color = color || 'var(--muted)'; };
+
+        function fillContests() {
+            const keep = contestSel.value;
+            const entries = Object.entries(contestsCache || {}).sort((a, b) => String(a[1].title || '').localeCompare(String(b[1].title || '')));
+            contestSel.innerHTML = '<option value="">\u2014 Tanlovni tanlang \u2014</option>' +
+                entries.map(([id, c]) => `<option value="${cbEsc(id)}">${cbEsc(c.title || id)}</option>`).join('');
+            if (keep) contestSel.value = keep;
+        }
+        fillContests();
+        contestSel.addEventListener('focus', fillContests);
+        setTimeout(fillContests, 2500);
+
+        let cancelFlag = false;
+        cancelBtn.addEventListener('click', () => { cancelFlag = true; setSt('To\u2018xtatilmoqda...'); });
+
+        startBtn.addEventListener('click', async () => {
+            const contestId = contestSel.value;
+            if (!contestId) { setSt('Avval tanlovni tanlang.', 'var(--red)'); return; }
+            const scope = panel.querySelector('#cbb-scope').value;
+            const format = panel.querySelector('#cbb-format').value;
+            const contest = (contestsCache || {})[contestId] || {};
+            startBtn.disabled = true;
+            cancelBtn.style.display = '';
+            cancelFlag = false;
+            try {
+                setSt('Ishtirokchilar yuklanmoqda...');
+                const snap = await getDocs(query(collection(db, 'registrations'), where('contestId', '==', contestId)));
+                const regs = [];
+                snap.forEach((d) => regs.push({ id: d.id, ...d.data() }));
+                const eligible = regs.filter((r) => !r.disqualified && ((r.score ?? null) !== null || (r.interviewScore ?? null) !== null));
+                const isWin = (r) => r.rank === 1 || r.rank === 2 || r.rank === 3;
+                let list = eligible;
+                if (scope === 'winners') list = eligible.filter(isWin);
+                else if (scope === 'participants') list = eligible.filter((r) => !isWin(r));
+                list.sort((a, b) => (isWin(b) ? 1 : 0) - (isWin(a) ? 1 : 0) || (a.rank ?? 9999) - (b.rank ?? 9999) || String(a.fullName || '').localeCompare(String(b.fullName || '')));
+                if (!list.length) {
+                    setSt(scope === 'winners'
+                        ? 'G\u2018oliblar topilmadi. Natijalar bo\u2018limida \u201CG\u2018oliblarni e\u2019lon qilish\u201D tugmasi bosilganini tekshiring.'
+                        : 'Bu tanlovda ball qo\u2018yilgan (diskvalifikatsiya qilinmagan) ishtirokchi topilmadi.', 'var(--red)');
+                    return;
+                }
+                if (list.length > 60 && !confirm(`${list.length} ta hujjat tayyorlanadi \u2014 bu bir necha daqiqa olishi mumkin. Sahifani yopmang. Davom etilsinmi?`)) { setSt(''); return; }
+
+                await cbLoadScript('js/cert-export.js');
+                const now = new Date();
+                const todayText = `${now.getFullYear()}-yil ${now.getDate()}-${MONTHS[now.getMonth()]}`;
+                const signer = document.getElementById('cb-signer')?.value.trim() || '';
+                const stampStyle = contest.stampStyle || 'classic';
+                const items = [];
+                let writeFailed = 0;
+
+                for (let i = 0; i < list.length; i++) {
+                    if (cancelFlag) { setSt('To\u2018xtatildi.'); return; }
+                    const r = list[i];
+                    setSt(`Hujjatlar tayyorlanmoqda: ${i + 1}/${list.length}`);
+                    const win = isWin(r);
+                    const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
+                    const certNumber = `ZM-${String(r.customId || r.id).replace(/[^0-9A-Za-z]/g, '')}-${now.getFullYear()}`;
+                    const title = r.contestTitle || contest.title || '';
+
+                    // Tasdiqlash yozuvi: "Berilgan sana" faqat birinchi marta belgilanadi;
+                    // mavjud yozuvning turi/o'rniga tegilmaydi (ishtirokchi kabinetidan olingan bo'lishi mumkin)
+                    let issuedDateText = todayText;
+                    try {
+                        const ref = doc(db, 'certificates', certNumber);
+                        const ex = await getDoc(ref);
+                        if (ex.exists()) {
+                            if (ex.data().issuedDateText) issuedDateText = ex.data().issuedDateText;
+                            await setDoc(ref, { contestId, stampStyle }, { merge: true });
+                        } else {
+                            await setDoc(ref, {
+                                fullName: r.fullName || '',
+                                contestTitle: title,
+                                isWinner: win,
+                                rank: win ? r.rank : null,
+                                score: total,
+                                issuedDateText,
+                                issuedAt: serverTimestamp(),
+                                contestId,
+                                stampStyle,
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Sertifikat yozuvi saqlanmadi:', certNumber, err);
+                        writeFailed++;
+                    }
+
+                    const data = {
+                        type: win ? String(r.rank) : '0',
+                        fullName: r.fullName || '',
+                        contestTitle: title,
+                        score: total ? String(total) : '',
+                        reason: '', parentName: '', childName: '', thanksText: '',
+                        dateStr: '', dateText: issuedDateText,
+                        signer, certNumber, stampStyle,
+                    };
+                    items.push({
+                        html: cbBuildCertHtml(data, false),
+                        filename: `${win ? r.rank + '-orin_Diplom' : 'Sertifikat'}_${r.fullName || certNumber}`,
+                    });
+                }
+
+                setSt(`PDF tayyorlanmoqda: 0/${items.length}`);
+                const res = await window.ZiyomapCertExport.downloadBulk(items, {
+                    format,
+                    name: `${contest.title || 'Tanlov'} \u2014 sertifikatlar`,
+                    onProgress: (i, n, fn) => setSt(`PDF tayyorlanmoqda: ${Math.min(i + 1, n)}/${n}${fn ? ' \u2014 ' + fn : ''}`),
+                    shouldCancel: () => cancelFlag,
+                });
+                if (res.cancelled) { setSt('To\u2018xtatildi.'); return; }
+                if (!res.done) { setSt('PDF yaratib bo\u2018lmadi. Internet aloqasini tekshirib, qayta urinib ko\u2018ring.', 'var(--red)'); return; }
+                let msg = `Tayyor: ${res.done} ta hujjat yuklab olindi.`;
+                if (res.failed.length) msg += ` ${res.failed.length} tasi chiqmadi: ${res.failed.slice(0, 3).join(', ')}${res.failed.length > 3 ? '...' : ''}.`;
+                if (writeFailed) msg += ` Diqqat: ${writeFailed} ta hujjatning tasdiqlash yozuvi saqlanmadi (QR ishlamasligi mumkin).`;
+                setSt(msg, res.failed.length || writeFailed ? 'var(--orange)' : 'var(--green)');
+            } catch (err) {
+                console.error('Ommaviy chiqarish xatosi:', err);
+                setSt('Xatolik yuz berdi. Qayta urinib ko\u2018ring.', 'var(--red)');
+            } finally {
+                startBtn.disabled = false;
+                cancelBtn.style.display = 'none';
+            }
+        });
+    }
+
     function cbInit() {
         const dateInput = document.getElementById('cb-date');
         if (dateInput && !dateInput.value) {
@@ -3579,6 +3737,8 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
             }
         }
 
+        cbInitBulk();
+
         cbUpdateFieldVisibility();
 
         ['cb-fullname', 'cb-contest', 'cb-score', 'cb-reason', 'cb-parent-name', 'cb-child-name', 'cb-thanks-text', 'cb-date', 'cb-signer'].forEach((id) => {
@@ -3636,6 +3796,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
                     issuedDateText: cbFmtDate(data.dateStr),
                     issuedAt: serverTimestamp(),
                     manual: true,
+                    stampStyle: data.stampStyle || 'classic',
                 };
                 if (kind === 'thanks') {
                     payload.fullName = data.parentName;
