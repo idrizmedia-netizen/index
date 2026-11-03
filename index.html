@@ -876,6 +876,45 @@
         .social-links a { font-size: 1.8rem; color: white; margin: 0 20px; transition: 0.3s; }
         .social-links a:hover { color: var(--primary-color); transform: scale(1.2); }
 
+        /* ===== SAYT XARITASI (footer) ===== */
+        footer.site-footer { background: #020617; color: #e2e8f0; padding: 56px 20px 28px; text-align: left; }
+        .sf-inner { max-width: 1200px; margin: 0 auto; }
+        .sf-top { display: flex; gap: 32px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; padding-bottom: 32px; border-bottom: 1px solid rgba(148,163,184,0.18); }
+        .sf-brand { max-width: 440px; }
+        .sf-logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.6rem; color: #fff; text-decoration: none; }
+        .sf-logo img { width: 34px; height: 34px; object-fit: contain; }
+        .sf-logo span span { color: #22d3ee; }
+        .sf-tagline { opacity: 0.7; font-size: 0.92rem; line-height: 1.65; margin: 12px 0 0; }
+        .sf-social { display: flex; gap: 10px; margin-top: 16px; }
+        .sf-social a { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(148,163,184,0.14); border: 1px solid rgba(148,163,184,0.28); color: #e2e8f0; font-size: 1.05rem; text-decoration: none; transition: 0.2s; }
+        .sf-social a:hover { background: rgba(34,211,238,0.18); border-color: #22d3ee; color: #22d3ee; transform: translateY(-2px); }
+        .sf-verify { min-width: 280px; max-width: 360px; flex: 1 1 280px; }
+        .sf-verify label { display: block; font-size: 0.78rem; letter-spacing: 1.4px; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px; font-weight: 700; }
+        .sf-verify-row { display: flex; gap: 8px; }
+        .sf-verify input { flex: 1; min-width: 0; background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.28); color: #fff; border-radius: 10px; padding: 11px 12px; font-size: 0.9rem; font-family: inherit; outline: none; }
+        .sf-verify input::placeholder { color: #64748b; }
+        .sf-verify input:focus { border-color: #22d3ee; }
+        .sf-verify button { background: linear-gradient(135deg, #06b6d4, #3b82f6); color: #fff; border: none; border-radius: 10px; padding: 0 16px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+        .sf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 30px 24px; padding: 34px 0; }
+        .sf-col h4 { font-size: 0.78rem; letter-spacing: 1.4px; text-transform: uppercase; color: #94a3b8; margin: 0 0 14px; font-weight: 700; }
+        .sf-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+        .sf-col a { color: #cbd5e1; text-decoration: none; font-size: 0.9rem; opacity: 0.88; transition: color 0.2s, opacity 0.2s; }
+        .sf-col a:hover { color: #22d3ee; opacity: 1; }
+        .sf-col a.sf-more { color: #22d3ee; font-weight: 700; opacity: 1; }
+        .sf-bottom { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; padding-top: 22px; border-top: 1px solid rgba(148,163,184,0.18); }
+        .sf-bottom p { opacity: 0.65; font-size: 0.9rem; margin: 0; }
+        .sf-legal { display: flex; gap: 18px; flex-wrap: wrap; }
+        .sf-legal a { color: #94a3b8; font-size: 0.82rem; text-decoration: none; }
+        .sf-legal a:hover { color: #22d3ee; }
+        .sf-top-btn { display: inline-flex; align-items: center; gap: 8px; color: #e2e8f0; text-decoration: none; font-size: 0.85rem; font-weight: 600; background: rgba(148,163,184,0.12); border: 1px solid rgba(148,163,184,0.25); border-radius: 999px; padding: 8px 16px; transition: 0.2s; }
+        .sf-top-btn:hover { background: rgba(34,211,238,0.15); border-color: #22d3ee; color: #22d3ee; }
+        @media (max-width: 640px) {
+            footer.site-footer { padding: 40px 18px 90px; }
+            .sf-grid { grid-template-columns: repeat(2, 1fr); gap: 26px 18px; }
+            .sf-verify { max-width: none; }
+            .sf-bottom { flex-direction: column; align-items: flex-start; }
+        }
+
         .fab-hint {
             position: fixed;
             bottom: 8px;
@@ -1915,9 +1954,118 @@
     </div>
     <span class="fab-hint">Kompyuterda ⋯ ushlab suring · Telefonda bosib oching</span>
 
-    <footer>
-        <p style="opacity: 0.65; font-size:0.9rem;">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
+    <footer class="site-footer" aria-label="Sayt xaritasi">
+        <div class="sf-inner">
+            <div class="sf-top">
+                <div class="sf-brand">
+                    <a href="#home" class="sf-logo"><img src="images/nav-icon.png" alt="Ziyomap"><span><span>Ziyo</span>map</span></a>
+                    <p class="sf-tagline" data-i18n="footer.tagline">Fizika, kimyo, biologiya va matematika bo'yicha interaktiv ta'lim platformasi: virtual laboratoriyalar, o'yinlar, tanlovlar va metodlar.</p>
+                    <div class="sf-social">
+                        <a href="https://t.me/Ziyomap" target="_blank" rel="noopener" aria-label="Telegram"><i class="fab fa-telegram-plane"></i></a>
+                        <a href="https://instagram.com/normurodov_izzatillo" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <form class="sf-verify" id="sf-verify-form" autocomplete="off">
+                    <label for="sf-verify-input" data-i18n="footer.verify_title">Hujjatni tekshirish</label>
+                    <div class="sf-verify-row">
+                        <input type="text" id="sf-verify-input" placeholder="ZM-XXXXXXXX-2026" data-i18n-placeholder="footer.verify_ph" maxlength="48" required>
+                        <button type="submit" data-i18n="footer.verify_btn">Tekshirish</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="sf-grid">
+                <div class="sf-col">
+                    <h4 data-i18n="footer.physics">Fizika</h4>
+                    <ul>
+                        <li><a href="labs/lab-erkin-tushish.html" data-require-auth>Erkin tushish</a></li>
+                        <li><a href="labs/lab-mayatnik.html" data-require-auth>Mayatnik</a></li>
+                        <li><a href="labs/lab-optika.html" data-require-auth>Optika</a></li>
+                        <li><a href="labs/lab-elektr-zanjir.html" data-require-auth>Elektr zanjiri</a></li>
+                        <li><a href="labs/lab-magnit-maydon.html" data-require-auth>Magnit maydon</a></li>
+                        <li><a href="labs/lab-termodinamika.html" data-require-auth>Termodinamika</a></li>
+                        <li><a href="labs/index.html" class="sf-more" data-require-auth data-track="laboratoriya"><span data-i18n="footer.all_labs">Barcha laboratoriyalar</span> →</a></li>
+                    </ul>
+                </div>
+                <div class="sf-col">
+                    <h4 data-i18n="footer.chembio">Kimyo va biologiya</h4>
+                    <ul>
+                        <li><a href="labs/lab-davriy-jadval.html" data-require-auth>Davriy jadval</a></li>
+                        <li><a href="labs/lab-kimyo-reaksiya.html" data-require-auth>Reaksiya kinetikasi</a></li>
+                        <li><a href="labs/lab-kimyo-titrimetria.html" data-require-auth>Titrimetriya</a></li>
+                        <li><a href="labs/lab-biologiya-dna.html" data-require-auth>DNK replikatsiyasi</a></li>
+                        <li><a href="labs/lab-biologiya-ekosistema.html" data-require-auth>Ekosistem modeli</a></li>
+                        <li><a href="labs/lab-fotosintez.html" data-require-auth>Fotosintez</a></li>
+                    </ul>
+                </div>
+                <div class="sf-col">
+                    <h4 data-i18n="footer.math">Matematika</h4>
+                    <ul>
+                        <li><a href="labs/lab-matematika-grafik.html" data-require-auth>Funksiya grafigi</a></li>
+                        <li><a href="labs/lab-matematika-vektor.html" data-require-auth>Vektor maydon</a></li>
+                        <li><a href="labs/lab-matritsa-amallar.html" data-require-auth>Matritsa amallari</a></li>
+                        <li><a href="labs/lab-ehtimollar.html" data-require-auth>Ehtimollar nazariyasi</a></li>
+                        <li><a href="labs/lab-fraktallar.html" data-require-auth>Fraktallar</a></li>
+                        <li><a href="labs/lab-3d-geometriya.html" data-require-auth>3D geometrik jismlar</a></li>
+                    </ul>
+                </div>
+                <div class="sf-col">
+                    <h4 data-i18n="footer.games">O'yinlar</h4>
+                    <ul>
+                        <li><a href="oyin/quiz.html" data-require-auth>Quiz</a></li>
+                        <li><a href="oyin/flashcard.html" data-require-auth>Flashcard</a></li>
+                        <li><a href="oyin/tezkor.html" data-require-auth>Tezkor</a></li>
+                        <li><a href="oyin/memory.html" data-require-auth>Memory</a></li>
+                        <li><a href="oyin/puzzle.html" data-require-auth>Puzzle</a></li>
+                        <li><a href="oyin/reytin.html" data-require-auth>Peshqadamlar reytingi</a></li>
+                        <li><a href="oyin/index.html" class="sf-more" data-require-auth data-track="oyinlar"><span data-i18n="footer.all_games">Barcha o'yinlar</span> →</a></li>
+                    </ul>
+                </div>
+                <div class="sf-col">
+                    <h4 data-i18n="footer.platform">Platforma</h4>
+                    <ul>
+                        <li><a href="#blog" data-i18n="footer.blog">Blog</a></li>
+                        <li><a href="metodlar/index.html" data-track="metodlar" data-i18n="footer.methods">Interaktiv metodlar</a></li>
+                        <li><a href="doska.html" data-require-auth data-i18n="footer.board">Onlayn doska</a></li>
+                        <li><a href="ai-chat.html" data-require-auth>Ziyomap AI</a></li>
+                        <li><a href="ai-tools.html" data-require-auth>Ziyo AI Studio</a></li>
+                        <li><a href="guruhlar.html" data-require-auth data-i18n="footer.groups">Guruhlar</a></li>
+                        <li><a href="obuna.html" data-track="obuna" data-i18n="footer.subscribe">Obuna</a></li>
+                    </ul>
+                </div>
+                <div class="sf-col">
+                    <h4 data-i18n="footer.contest">Tanlovlar</h4>
+                    <ul>
+                        <li><a href="tanlov-royxat.html" data-track="tanlov" data-track-label="Tanlovga yozilish" data-i18n="footer.register">Tanlovga yozilish</a></li>
+                        <li><a href="gyoliblar.html" data-track="gyoliblar" data-i18n="footer.winners">G'oliblar</a></li>
+                        <li><a href="dashboard.html" data-require-auth data-i18n="footer.cabinet">Shaxsiy kabinet</a></li>
+                        <li><a href="kirish.html" data-i18n="footer.login">Kirish</a></li>
+                        <li><a href="#contact" data-i18n="footer.contact">Bog'lanish</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="sf-bottom">
+                <p data-i18n="footer.rights">&copy; 2026 IdrizMedia. Barcha huquqlar himoyalangan. Ziyomap jamoasi.</p>
+                <div class="sf-legal">
+                    <a href="maxfiylik-kirish.html" data-i18n="footer.privacy_account">Maxfiylik siyosati (hisob)</a>
+                    <a href="maxfiylik-tanlov.html" data-i18n="footer.privacy_contest">Maxfiylik siyosati (tanlovlar)</a>
+                </div>
+                <a href="#home" class="sf-top-btn"><i class="fas fa-arrow-up"></i> <span data-i18n="footer.top">Yuqoriga</span></a>
+            </div>
+        </div>
     </footer>
+    <script>
+        (function () {
+            var f = document.getElementById('sf-verify-form');
+            if (!f) return;
+            f.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var v = (document.getElementById('sf-verify-input').value || '').trim();
+                if (v) window.location.href = 'tasdiqlash.html?id=' + encodeURIComponent(v);
+            });
+        })();
+    </script>
 
     <script src="js/i18n.js"></script>
     <script src="js/ziyomap-usage.js"></script>
