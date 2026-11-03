@@ -3875,6 +3875,299 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         });
     }
 
+    // ── OFLAYN / O'TGAN TANLOVLAR: ishtirokchilar ro'yxatidan (Excel yoki CSV) ommaviy diplom va sertifikat ──
+    function cbHash8(str) {
+        // Bir xil kirish -> har doim bir xil raqam (qayta chiqarilganda dublikat yaratilmasin)
+        let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+        for (let i = 0; i < str.length; i++) {
+            const ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+        const n = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+        return n.toString(36).toUpperCase().padStart(8, '0').slice(-8);
+    }
+
+    // CSV matnini qatorlarga ajratadi (vergul, nuqta-vergul yoki Tab; qo'shtirnoqlar qo'llab-quvvatlanadi)
+    function cbParseCsv(text) {
+        const clean = String(text).replace(/^\uFEFF/, '');
+        const first = clean.split(/\r?\n/)[0] || '';
+        const counts = { ',': (first.match(/,/g) || []).length, ';': (first.match(/;/g) || []).length, '\t': (first.match(/\t/g) || []).length };
+        const delim = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || ',';
+        const rows = [];
+        let row = [], cur = '', q = false;
+        for (let i = 0; i < clean.length; i++) {
+            const c = clean[i];
+            if (q) {
+                if (c === '"' && clean[i + 1] === '"') { cur += '"'; i++; }
+                else if (c === '"') q = false;
+                else cur += c;
+            } else if (c === '"') q = true;
+            else if (c === delim) { row.push(cur); cur = ''; }
+            else if (c === '\n' || c === '\r') {
+                if (c === '\r' && clean[i + 1] === '\n') i++;
+                row.push(cur); cur = '';
+                rows.push(row); row = [];
+            } else cur += c;
+        }
+        if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+        return rows;
+    }
+
+    const cbNorm = (v) => String(v == null ? '' : v).toLowerCase().replace(/[^a-z0-9\u0400-\u04ff]/g, '');
+
+    function cbParseRank(v) {
+        const t = String(v == null ? '' : v).trim().toLowerCase();
+        if (!t) return null;
+        const num = t.match(/\d+/);
+        if (num) { const n = parseInt(num[0], 10); return n >= 1 ? n : null; }
+        const flat = t.replace(/[^a-z\u0400-\u04ff]/g, '');
+        // Rim raqamlari faqat o'zi yoki "-o'rin"/"daraja" bilan (masalan, "Ishtirokchi" 1-o'rin deb o'qilmasin)
+        const roman = flat.match(/^(iii|ii|i)(orin|orni|darajali|daraja)?$/);
+        if (roman) return { i: 1, ii: 2, iii: 3 }[roman[1]];
+        if (/^(birinchi|\u0431\u0438\u0440\u0438\u043d\u0447\u0438)/.test(flat)) return 1;
+        if (/^(ikkinchi|\u0438\u043a\u043a\u0438\u043d\u0447\u0438)/.test(flat)) return 2;
+        if (/^(uchinchi|\u0443\u0447\u0438\u043d\u0447\u0438)/.test(flat)) return 3;
+        return null;
+    }
+
+    // Jadval qatorlaridan [{ name, rank, score, reason }] ro'yxatini quradi
+    function cbExtractParticipants(table) {
+        const nameKeys = ['fish', 'fio', 'ism', 'familiya', 'oquvchi', 'ishtirokchi', 'name', 'talaba', '\u0444\u0438\u0448', '\u0438\u0441\u043c', '\u045e\u049b\u0443\u0432\u0447\u0438'];
+        const rankKeys = ['orin', 'orni', 'rank', 'place', 'joy', '\u045e\u0440\u0438\u043d'];
+        const scoreKeys = ['ball', 'score', 'natija', 'bal', '\u0431\u0430\u043b', '\u043d\u0430\u0442\u0438\u0436\u0430'];
+        const reasonKeys = ['sabab', 'izoh', 'reason'];
+        const find = (cells, keys) => cells.findIndex((c) => c && keys.some((k) => c.includes(k)));
+        let headerAt = -1, idx = { name: -1, rank: -1, score: -1, reason: -1 };
+        for (let i = 0; i < Math.min(table.length, 8); i++) {
+            const cells = (table[i] || []).map(cbNorm);
+            const n = find(cells, nameKeys);
+            if (n >= 0) {
+                headerAt = i;
+                idx = { name: n, rank: find(cells, rankKeys), score: find(cells, scoreKeys), reason: find(cells, reasonKeys) };
+                break;
+            }
+        }
+        let start = headerAt + 1;
+        if (headerAt < 0) {
+            // Sarlavha topilmadi: A = F.I.Sh., B = o'rin, C = ball deb olamiz
+            idx = { name: 0, rank: 1, score: 2, reason: -1 };
+            const r0 = table[0] || [];
+            const textual = (c) => { const t = String(c == null ? '' : c).trim(); return t !== '' && isNaN(Number(t.replace(',', '.'))); };
+            start = table.length > 1 && textual(r0[1]) && textual(r0[2]) ? 1 : 0;
+        }
+        const out = [];
+        let skipped = 0;
+        for (let i = start; i < table.length; i++) {
+            const r = table[i] || [];
+            const name = String(r[idx.name] == null ? '' : r[idx.name]).replace(/\s+/g, ' ').trim();
+            if (!name || /^\d+[.)]?$/.test(name)) {
+                if (r.some((c) => String(c).trim())) skipped++;
+                continue;
+            }
+            const rank = idx.rank >= 0 ? cbParseRank(r[idx.rank]) : null;
+            const rawScore = idx.score >= 0 ? String(r[idx.score] == null ? '' : r[idx.score]).trim().replace(',', '.') : '';
+            out.push({
+                name,
+                rank: rank && rank <= 3 ? rank : null,
+                score: rawScore && !isNaN(Number(rawScore)) ? rawScore : '',
+                reason: idx.reason >= 0 ? String(r[idx.reason] == null ? '' : r[idx.reason]).trim() : '',
+            });
+        }
+        return { rows: out, skipped, headerFound: headerAt >= 0 };
+    }
+
+    function cbInitOffline() {
+        const anchor = document.getElementById('cbb-panel') || document.getElementById('cb-pptx-btn')?.parentElement;
+        if (!anchor || document.getElementById('cbo-panel')) return;
+        const todayISO = new Date().toISOString().slice(0, 10);
+        const panel = document.createElement('div');
+        panel.id = 'cbo-panel';
+        panel.style.cssText = 'margin-top:18px;padding:14px;border:1px dashed var(--border);border-radius:14px';
+        panel.innerHTML = `
+            <p style="font-weight:800;margin:0 0 4px"><i class="fas fa-file-excel"></i> O\u2018tgan va oflayn tanlovlar (ro\u2018yxatdan)</p>
+            <p style="color:var(--muted);font-size:0.78rem;margin:0 0 10px">Tizimda yo\u2018q tanlov ishtirokchilari ro\u2018yxatini (Excel yoki CSV) yuklang \u2014 hammasi uchun diplom va sertifikatlar bir yo\u2018la tayyorlanadi, QR kodlar ham ishlaydi. Ustunlar: <b>F.I.Sh.</b>, <b>O\u2018rin</b> (1, 2, 3 \u2014 diplom; bo\u2018sh qolsa \u2014 boshqa hujjat), <b>Ball</b>, <b>Sabab</b> (ixtiyoriy, rag\u2018batlantirish uchun; \u201Cuchun\u201D so\u2018zisiz yozing, masalan: darslarga faol qatnashgani).</p>
+            <button type="button" class="contest-filter-btn" id="cbo-sample" style="margin-bottom:10px"><i class="fas fa-download"></i> Namuna ro\u2018yxatni yuklab olish</button>
+            <div class="field"><label>Tanlov nomi</label><input type="text" id="cbo-title" placeholder="Masalan: Fizika olimpiadasi (maktab bosqichi)"></div>
+            <div class="field"><label>Berilgan sana</label><input type="date" id="cbo-date" value="${todayISO}"></div>
+            <div class="field"><label>O\u2018rin berilmaganlarga</label><select id="cbo-other">
+                <option value="0">Ishtirok sertifikati</option>
+                <option value="4">Rag\u2018batlantirish sertifikati</option>
+            </select></div>
+            <div class="field"><label>Format</label><select id="cbo-format">
+                <option value="zip">ZIP (har bir o\u2018quvchi uchun alohida PDF)</option>
+                <option value="pdf">Bitta PDF (har sahifada bitta hujjat)</option>
+            </select></div>
+            <div class="field"><label>Ro\u2018yxat fayli (.xlsx, .xls, .csv)</label><input type="file" id="cbo-file" accept=".xlsx,.xls,.csv,.txt"></div>
+            <p id="cbo-info" style="font-size:0.8rem;margin:4px 0 10px;min-height:16px"></p>
+            <div style="display:flex;gap:8px">
+                <button type="button" class="btn btn-primary" id="cbo-start" style="flex:1"><i class="fas fa-download"></i> Tayyorlash va yuklab olish</button>
+                <button type="button" class="btn" id="cbo-cancel" style="display:none">To\u2018xtatish</button>
+            </div>
+            <p id="cbo-status" style="font-size:0.82rem;margin-top:8px;min-height:18px"></p>`;
+        anchor.insertAdjacentElement('afterend', panel);
+
+        const infoEl = panel.querySelector('#cbo-info');
+        const statusEl = panel.querySelector('#cbo-status');
+        const startBtn = panel.querySelector('#cbo-start');
+        const cancelBtn = panel.querySelector('#cbo-cancel');
+        const setInfo = (msg, color) => { infoEl.textContent = msg; infoEl.style.color = color || 'var(--muted)'; };
+        const setSt = (msg, color) => { statusEl.textContent = msg; statusEl.style.color = color || 'var(--muted)'; };
+        let parsed = null;
+
+        // Namuna ro'yxat
+        panel.querySelector('#cbo-sample').addEventListener('click', async () => {
+            try {
+                if (!window.XLSX) { setSt('Excel kutubxonasi yuklanmagan. Sahifani yangilab ko\u2018ring.', 'var(--red)'); return; }
+                const aoa = [
+                    ['\u2116', 'F.I.Sh.', 'O\u2018rin', 'Ball', 'Sabab (ixtiyoriy)'],
+                    [1, 'Aliyev Vali Karimovich', 1, 95, ''],
+                    [2, 'Karimova Dilnoza Rustamovna', 2, 90, ''],
+                    [3, 'Rahimov Jasur Anvarovich', 3, 86, ''],
+                    [4, 'Soliyeva Malika Botirovna', '', 70, ''],
+                    [5, 'Toshmatov Sardor Akmalovich', '', '', 'darslarga faol qatnashgani'],
+                ];
+                const ws = window.XLSX.utils.aoa_to_sheet(aoa);
+                ws['!cols'] = [{ wch: 5 }, { wch: 36 }, { wch: 8 }, { wch: 8 }, { wch: 34 }];
+                const wb = window.XLSX.utils.book_new();
+                window.XLSX.utils.book_append_sheet(wb, ws, 'Royxat');
+                window.XLSX.writeFile(wb, 'sertifikat-royxati-namuna.xlsx');
+            } catch (err) {
+                console.error(err);
+                setSt('Namuna yaratilmadi.', 'var(--red)');
+            }
+        });
+
+        // Faylni o'qish
+        panel.querySelector('#cbo-file').addEventListener('change', async (e) => {
+            parsed = null;
+            setSt('');
+            const file = e.target.files && e.target.files[0];
+            if (!file) { setInfo(''); return; }
+            try {
+                setInfo('Fayl o\u2018qilmoqda...');
+                const ext = (file.name.split('.').pop() || '').toLowerCase();
+                let table;
+                if (ext === 'csv' || ext === 'txt') {
+                    table = cbParseCsv(await file.text());
+                } else {
+                    if (!window.XLSX) throw new Error('Excel kutubxonasi yuklanmagan. Sahifani yangilab ko\u2018ring.');
+                    const wb = window.XLSX.read(await file.arrayBuffer(), { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    table = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+                }
+                const res = cbExtractParticipants(table);
+                if (!res.rows.length) { setInfo('Ro\u2018yxatda ism topilmadi. Namuna faylga qarang: birinchi qatorda "F.I.Sh." ustuni bo\u2018lsin.', 'var(--red)'); return; }
+                parsed = res;
+                const winners = res.rows.filter((r) => r.rank).sort((a, b) => a.rank - b.rank);
+                let msg = `Topildi: ${res.rows.length} ta o\u2018quvchi, shundan ${winners.length} ta g\u2018olib.`;
+                if (winners.length) msg += ' ' + winners.slice(0, 4).map((w) => `${w.rank}-o\u2018rin: ${w.name}`).join('; ') + (winners.length > 4 ? '...' : '') + '.';
+                if (res.skipped) msg += ` O\u2018tkazib yuborilgan qator: ${res.skipped}.`;
+                if (!res.headerFound) msg += ' (Sarlavha topilmadi \u2014 1-ustun ism, 2-ustun o\u2018rin, 3-ustun ball deb olindi.)';
+                setInfo(msg, 'var(--green)');
+            } catch (err) {
+                console.error('Ro\u2018yxat o\u2018qilmadi:', err);
+                setInfo(err.message || 'Faylni o\u2018qib bo\u2018lmadi.', 'var(--red)');
+            }
+        });
+
+        let cancelFlag = false;
+        cancelBtn.addEventListener('click', () => { cancelFlag = true; setSt('To\u2018xtatilmoqda...'); });
+
+        startBtn.addEventListener('click', async () => {
+            const title = panel.querySelector('#cbo-title').value.trim();
+            const dateISO = panel.querySelector('#cbo-date').value;
+            const otherType = panel.querySelector('#cbo-other').value;
+            const format = panel.querySelector('#cbo-format').value;
+            if (!parsed || !parsed.rows.length) { setSt('Avval ro\u2018yxat faylini tanlang.', 'var(--red)'); return; }
+            if (!title) { setSt('Tanlov nomini yozing.', 'var(--red)'); return; }
+            if (!dateISO) { setSt('Berilgan sanani tanlang.', 'var(--red)'); return; }
+            const list = parsed.rows;
+            if (list.length > 60 && !confirm(`${list.length} ta hujjat tayyorlanadi \u2014 bu bir necha daqiqa olishi mumkin. Sahifani yopmang. Davom etilsinmi?`)) return;
+
+            startBtn.disabled = true;
+            cancelBtn.style.display = '';
+            cancelFlag = false;
+            try {
+                await cbLoadScript('js/cert-export.js');
+                const year = dateISO.slice(0, 4);
+                const dateText = cbFmtDate(dateISO);
+                const signer = document.getElementById('cb-signer')?.value.trim() || '';
+                const stampStyle = cbStampStyle || 'classic';
+                const seen = {};
+                const prepared = list.map((r) => {
+                    const key = cbNorm(r.name);
+                    seen[key] = (seen[key] || 0) + 1;
+                    const certNumber = `ZM-O${cbHash8(`${title}|${dateISO}|${key}|${seen[key]}`)}-${year}`;
+                    const type = r.rank ? String(r.rank) : otherType;
+                    return { r, type, certNumber };
+                });
+
+                // Tasdiqlash yozuvlari (QR shu orqali ishlaydi) — 400 tadan paketlarda
+                setSt('Tasdiqlash yozuvlari saqlanmoqda...');
+                let writeFailed = 0;
+                for (let i = 0; i < prepared.length; i += 400) {
+                    const chunk = prepared.slice(i, i + 400);
+                    try {
+                        const batch = writeBatch(db);
+                        chunk.forEach(({ r, type, certNumber }) => {
+                            const kind = CB_THEMES[type].kind;
+                            batch.set(doc(db, 'certificates', certNumber), {
+                                certType: type,
+                                isWinner: kind === 'rank',
+                                rank: kind === 'rank' ? CB_THEMES[type].rank : null,
+                                issuedDateText: dateText,
+                                issuedAt: serverTimestamp(),
+                                manual: true,
+                                stampStyle,
+                                fullName: r.name,
+                                contestTitle: title,
+                                score: r.score ? Number(r.score) : null,
+                                reason: kind === 'encourage' ? (r.reason || null) : null,
+                            }, { merge: true });
+                        });
+                        await batch.commit();
+                    } catch (err) {
+                        console.error('Sertifikat yozuvlari saqlanmadi:', err);
+                        writeFailed += chunk.length;
+                    }
+                }
+
+                const items = prepared.map(({ r, type, certNumber }) => {
+                    const data = {
+                        type, fullName: r.name, contestTitle: title, score: r.score || '',
+                        reason: type === '4' ? r.reason : '', parentName: '', childName: '', thanksText: '',
+                        dateStr: dateISO, dateText: '', signer, certNumber, stampStyle,
+                    };
+                    const win = ['1', '2', '3'].includes(type);
+                    return { html: cbBuildCertHtml(data, false), filename: `${win ? type + '-orin_Diplom' : 'Sertifikat'}_${r.name}` };
+                });
+
+                setSt(`PDF tayyorlanmoqda: 0/${items.length}`);
+                const res = await window.ZiyomapCertExport.downloadBulk(items, {
+                    format,
+                    name: `${title} \u2014 sertifikatlar`,
+                    onProgress: (i, n, fn) => setSt(`PDF tayyorlanmoqda: ${Math.min(i + 1, n)}/${n}${fn ? ' \u2014 ' + fn : ''}`),
+                    shouldCancel: () => cancelFlag,
+                });
+                if (res.cancelled) { setSt('To\u2018xtatildi.'); return; }
+                if (!res.done) { setSt('PDF yaratib bo\u2018lmadi. Internet aloqasini tekshirib, qayta urinib ko\u2018ring.', 'var(--red)'); return; }
+                let msg = `Tayyor: ${res.done} ta hujjat yuklab olindi.`;
+                if (res.failed.length) msg += ` ${res.failed.length} tasi chiqmadi: ${res.failed.slice(0, 3).join(', ')}${res.failed.length > 3 ? '...' : ''}.`;
+                if (writeFailed) msg += ` Diqqat: ${writeFailed} ta hujjatning tasdiqlash yozuvi saqlanmadi (QR ishlamasligi mumkin).`;
+                setSt(msg, res.failed.length || writeFailed ? 'var(--orange)' : 'var(--green)');
+            } catch (err) {
+                console.error('Oflayn ommaviy chiqarish xatosi:', err);
+                setSt('Xatolik yuz berdi. Qayta urinib ko\u2018ring.', 'var(--red)');
+            } finally {
+                startBtn.disabled = false;
+                cancelBtn.style.display = 'none';
+            }
+        });
+    }
+
     function cbInit() {
         const dateInput = document.getElementById('cb-date');
         if (dateInput && !dateInput.value) {
@@ -3943,6 +4236,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
 
         cbInitLogos();
         cbInitBulk();
+        cbInitOffline();
 
         cbUpdateFieldVisibility();
 
