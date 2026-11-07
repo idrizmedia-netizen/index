@@ -8,6 +8,19 @@
     <!-- PWA Manifest faylini ulash -->
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1A73E8">
+    <meta name="description" content="Ziyomap — fizika, kimyo, biologiya va matematika bo'yicha virtual laboratoriyalar, ta'limiy o'yinlar, tanlovlar va interaktiv metodlar.">
+    <link rel="canonical" href="https://ziyomap.vercel.app/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Ziyomap">
+    <meta property="og:locale" content="uz_UZ">
+    <meta property="og:title" content="Ziyomap | Bilimga yo'l">
+    <meta property="og:description" content="Virtual laboratoriyalar, ta'limiy o'yinlar, tanlovlar va interaktiv metodlar — fizika, kimyo, biologiya va matematika.">
+    <meta property="og:url" content="https://ziyomap.vercel.app/">
+    <meta property="og:image" content="https://ziyomap.vercel.app/icon-512x512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Ziyomap | Bilimga yo'l">
+    <meta name="twitter:description" content="Virtual laboratoriyalar, ta'limiy o'yinlar, tanlovlar va interaktiv metodlar.">
+    <meta name="twitter:image" content="https://ziyomap.vercel.app/icon-512x512.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
@@ -875,6 +888,34 @@
         footer { background: #020617; color: white; padding: 60px 20px; text-align: center; }
         .social-links a { font-size: 1.8rem; color: white; margin: 0 20px; transition: 0.3s; }
         .social-links a:hover { color: var(--primary-color); transform: scale(1.2); }
+
+        /* ===== BOSH SAHIFA YANGILIKLARI ===== */
+        #news[hidden] { display: none; }
+        #news { padding: 80px 20px 40px; }
+        #news .zn-inner { max-width: 1200px; margin: 0 auto; }
+        #news .zn-title-main { text-align: center; font-size: 2.2rem; margin: 0 0 34px; }
+        .zn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 22px; align-items: start; }
+        .zn-card { background: #fff; border: 1px solid rgba(148,163,184,0.32); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 8px 24px rgba(15,23,42,0.06); transition: transform 0.25s, box-shadow 0.25s; }
+        .zn-card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(15,23,42,0.12); }
+        .zn-img { aspect-ratio: 16 / 9; background: #e2e8f0; overflow: hidden; }
+        .zn-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .zn-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .zn-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.78rem; color: #64748b; }
+        .zn-pin { background: #fef3c7; color: #92400e; padding: 2px 9px; border-radius: 999px; font-weight: 700; }
+        .zn-title { margin: 0; font-size: 1.1rem; line-height: 1.35; color: #0f172a; }
+        .zn-text { margin: 0; color: #475569; font-size: 0.92rem; line-height: 1.6; white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .zn-card.open .zn-text { display: block; -webkit-line-clamp: unset; }
+        .zn-more { align-self: flex-start; background: none; border: none; color: #2563eb; font-weight: 700; font-size: 0.85rem; cursor: pointer; padding: 0; font-family: inherit; }
+        .zn-link { align-self: flex-start; margin-top: auto; color: #fff; background: linear-gradient(135deg, #06b6d4, #3b82f6); text-decoration: none; font-weight: 700; font-size: 0.85rem; padding: 8px 16px; border-radius: 999px; }
+        .zn-all-wrap { text-align: center; margin-top: 26px; }
+        .zn-all { background: transparent; border: 2px solid #3b82f6; color: #3b82f6; font-weight: 700; padding: 10px 24px; border-radius: 999px; cursor: pointer; font-family: inherit; }
+        .zn-all:hover { background: #3b82f6; color: #fff; }
+        body.dark-theme .zn-card { background: #0f172a; border-color: rgba(148,163,184,0.2); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+        body.dark-theme .zn-title { color: #f1f5f9; }
+        body.dark-theme .zn-text { color: #cbd5e1; }
+        body.dark-theme .zn-meta { color: #94a3b8; }
+        body.dark-theme .zn-more { color: #60a5fa; }
+        @media (max-width: 640px) { #news { padding: 60px 16px 20px; } #news .zn-title-main { font-size: 1.7rem; } }
 
         /* ===== SAYT XARITASI (footer) ===== */
         footer.site-footer { background: #020617; color: #e2e8f0; padding: 56px 20px 28px; text-align: left; }
@@ -1869,6 +1910,13 @@
         </div>
     </div>
 
+    <section class="section" id="news" hidden>
+        <div class="zn-inner">
+            <h2 class="zn-title-main" data-i18n="news.title">Yangiliklar</h2>
+            <div id="news-grid" class="zn-grid"></div>
+        </div>
+    </section>
+
    <section class="section photo-section" id="blog">
         <div class="section-bg-layer">
             <img src="images/blog-day.jpg" class="bg-img bg-day" alt="">
@@ -2024,6 +2072,7 @@
                 <div class="sf-col">
                     <h4 data-i18n="footer.platform">Platforma</h4>
                     <ul>
+                        <li hidden><a href="#news" data-i18n="footer.news">Yangiliklar</a></li>
                         <li><a href="#blog" data-i18n="footer.blog">Blog</a></li>
                         <li><a href="metodlar/index.html" data-track="metodlar" data-i18n="footer.methods">Interaktiv metodlar</a></li>
                         <li><a href="doska.html" data-require-auth data-i18n="footer.board">Onlayn doska</a></li>
@@ -2068,6 +2117,7 @@
     </script>
 
     <script src="js/i18n.js"></script>
+    <script type="module" src="js/home-news.js"></script>
     <script src="js/ziyomap-usage.js"></script>
     <script src="js/auth-guard.js"></script>
     <script src="js/floating-widgets.js"></script>
