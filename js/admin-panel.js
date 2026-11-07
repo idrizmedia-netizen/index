@@ -108,6 +108,262 @@ setTimeout(() => {
     }
 }, 2500);
 
+/* ── YANGI BO'LIMLAR UCHUN QO'SHIMCHA TABLAR ── */
+function registerExtraTab({ name, icon, label, after, before, onShow }) {
+    const existing = document.getElementById('panel-' + name);
+    if (existing) return existing;
+    const refName = after || before;
+    const refBtn = document.querySelector(`.tab-btn[data-tab="${refName}"]`);
+    const refPanel = document.getElementById('panel-' + refName);
+    if (!refBtn || !refPanel) return null;
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn';
+    btn.dataset.tab = name;
+    btn.innerHTML = `<i class="fas ${icon}"></i> ${label}`;
+    refBtn.insertAdjacentElement(after ? 'afterend' : 'beforebegin', btn);
+    const panel = document.createElement('div');
+    panel.className = 'panel';
+    panel.id = 'panel-' + name;
+    refPanel.insertAdjacentElement(after ? 'afterend' : 'beforebegin', panel);
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach((pp) => pp.classList.remove('active'));
+        btn.classList.add('active');
+        panel.classList.add('active');
+        if (onShow) onShow();
+    });
+    return panel;
+}
+
+/* ── BOSH SAHIFA YANGILIKLARI (admin) ── */
+function initNewsAdmin() {
+    const esc2 = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    let loaded = false;
+    let items = [];
+    let editingId = null;
+    let imageUrl = '';
+
+    const panel = registerExtraTab({ name: 'news', icon: 'fa-newspaper', label: 'Yangiliklar', before: 'content', onShow: () => { if (!loaded) loadList(); } });
+    if (!panel) return;
+    panel.innerHTML = `
+        <div class="card">
+            <h3><i class="fas fa-newspaper"></i> Bosh sahifa yangiliklari</h3>
+            <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Bu yerda yozgan yangilik bosh sahifadagi \u201CYangiliklar\u201D bo\u2018limida kartochka bo\u2018lib chiqadi. Yangilik bo\u2018lmasa, bo\u2018lim sahifada ko\u2018rinmaydi.</p>
+            <div class="field"><label>Sarlavha</label><input type="text" id="nw-title" maxlength="120" placeholder="Masalan: Fizika olimpiadasi g\u2018oliblari e\u2019lon qilindi"></div>
+            <div class="field"><label>Matn</label><textarea id="nw-body" rows="5" maxlength="2000" placeholder="Yangilik matni..."></textarea></div>
+            <div class="field"><label>Rasm (ixtiyoriy)</label>
+                <input type="file" id="nw-image" accept="image/png,image/jpeg,image/webp">
+                <img id="nw-preview" alt="" style="display:none;max-height:120px;margin-top:8px;border-radius:10px">
+                <button type="button" class="contest-filter-btn" id="nw-image-clear" style="display:none;margin-top:8px"><i class="fas fa-xmark"></i> Rasmni olib tashlash</button>
+            </div>
+            <div class="field"><label>Havola (ixtiyoriy \u2014 \u201CBatafsil\u201D tugmasi uchun)</label><input type="text" id="nw-link" placeholder="https://..."></div>
+            <div class="field"><label>Sana</label><input type="date" id="nw-date"></div>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;margin:8px 0 14px">
+                <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="nw-pinned"> Yuqorida mahkamlash</label>
+                <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="nw-published" checked> E\u2019lon qilingan (bosh sahifada ko\u2018rinadi)</label>
+            </div>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" id="nw-save"><i class="fas fa-check"></i> Saqlash</button>
+                <button class="btn" id="nw-reset" style="display:none">Bekor qilish</button>
+            </div>
+            <p id="nw-status" style="font-size:0.85rem;margin-top:10px;min-height:18px"></p>
+        </div>
+        <div class="card">
+            <h3><i class="fas fa-list"></i> Yangiliklar ro\u2018yxati</h3>
+            <div id="nw-list"><div class="empty">Yuklanmoqda...</div></div>
+        </div>`;
+
+    const $ = (id) => panel.querySelector('#' + id);
+    const setSt = (msg, color) => { $('nw-status').textContent = msg || ''; $('nw-status').style.color = color || 'var(--muted)'; };
+    const todayISO = () => new Date().toISOString().slice(0, 10);
+    $('nw-date').value = todayISO();
+
+    function showPreview() {
+        const img = $('nw-preview');
+        img.style.display = imageUrl ? 'block' : 'none';
+        if (imageUrl) img.src = imageUrl;
+        $('nw-image-clear').style.display = imageUrl ? '' : 'none';
+    }
+
+    // Rasmni kichraytiramiz (Firestore hujjati 1 MB dan oshmasin)
+    function shrinkImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error('Fayl o\u2018qilmadi'));
+            reader.onload = () => {
+                const img = new Image();
+                img.onerror = () => reject(new Error('Rasm ochilmadi'));
+                img.onload = () => {
+                    const k = Math.min(1, 900 / Math.max(img.width, img.height));
+                    const w = Math.max(1, Math.round(img.width * k));
+                    const h = Math.max(1, Math.round(img.height * k));
+                    const c = document.createElement('canvas');
+                    c.width = w;
+                    c.height = h;
+                    const ctx = c.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    let q = 0.85, out = c.toDataURL('image/jpeg', q);
+                    while (out.length > 380000 && q > 0.4) { q -= 0.1; out = c.toDataURL('image/jpeg', q); }
+                    if (out.length > 380000) reject(new Error('Rasm juda og\u2018ir \u2014 kichikroq rasm tanlang.'));
+                    else resolve(out);
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    $('nw-image').addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        if (!/^image\/(png|jpeg|webp)$/.test(file.type)) { setSt('Faqat PNG, JPG yoki WEBP rasm yuklang.', 'var(--red)'); return; }
+        try {
+            setSt('Rasm tayyorlanmoqda...');
+            imageUrl = await shrinkImage(file);
+            showPreview();
+            setSt('');
+        } catch (err) {
+            console.error(err);
+            setSt(err.message || 'Rasm yuklanmadi.', 'var(--red)');
+        }
+    });
+    $('nw-image-clear').addEventListener('click', () => { imageUrl = ''; showPreview(); });
+
+    function resetForm() {
+        editingId = null;
+        imageUrl = '';
+        $('nw-title').value = '';
+        $('nw-body').value = '';
+        $('nw-link').value = '';
+        $('nw-date').value = todayISO();
+        $('nw-pinned').checked = false;
+        $('nw-published').checked = true;
+        $('nw-reset').style.display = 'none';
+        $('nw-save').innerHTML = '<i class="fas fa-check"></i> Saqlash';
+        showPreview();
+    }
+    $('nw-reset').addEventListener('click', () => { resetForm(); setSt(''); });
+
+    function safeLink(v) {
+        const t = String(v || '').trim();
+        if (!t) return '';
+        if (/^https?:\/\//i.test(t)) return t;
+        if (/^[\w\-./]+\.html(\?[\w=&\-]*)?(#[\w\-]*)?$/.test(t)) return t;
+        return null; // yaroqsiz
+    }
+
+    $('nw-save').addEventListener('click', async () => {
+        const title = $('nw-title').value.trim();
+        const body = $('nw-body').value.trim();
+        if (!title) { setSt('Sarlavhani yozing.', 'var(--red)'); return; }
+        if (!body) { setSt('Matnni yozing.', 'var(--red)'); return; }
+        const link = safeLink($('nw-link').value);
+        if (link === null) { setSt('Havola https:// bilan boshlansin (yoki sayt ichidagi .html sahifa bo\u2018lsin).', 'var(--red)'); return; }
+        const id = editingId || ('news_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+        const btn = $('nw-save');
+        btn.disabled = true;
+        try {
+            const payload = {
+                type: 'news',
+                title,
+                body,
+                link,
+                imageUrl: imageUrl || '',
+                date: $('nw-date').value || todayISO(),
+                pinned: $('nw-pinned').checked,
+                published: $('nw-published').checked,
+                updatedAt: serverTimestamp(),
+            };
+            if (!editingId) payload.createdAt = serverTimestamp();
+            await setDoc(doc(db, 'site-content', id), payload, { merge: true });
+            setSt('Saqlandi.', 'var(--green)');
+            resetForm();
+            await loadList();
+        } catch (err) {
+            console.error('Yangilikni saqlashda xatolik:', err);
+            setSt('Saqlanmadi \u2014 internetni tekshirib, qayta urinib ko\u2018ring.', 'var(--red)');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    function renderList() {
+        const el = $('nw-list');
+        if (!items.length) { el.innerHTML = '<div class="empty">Hali yangilik yo\u2018q.</div>'; return; }
+        el.innerHTML = '';
+        items.forEach((n) => {
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;flex-wrap:wrap';
+            const thumb = n.imageUrl && /^data:image\//.test(n.imageUrl)
+                ? `<img src="${n.imageUrl}" alt="" style="width:64px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0">`
+                : '<div style="width:64px;height:48px;border-radius:8px;background:rgba(148,163,184,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-newspaper" style="opacity:.5"></i></div>';
+            const chips = [
+                n.pinned ? '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">Mahkamlangan</span>' : '',
+                n.published === false ? '<span style="background:#e2e8f0;color:#475569;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">Yashirin</span>' : '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">E\u2019lon qilingan</span>',
+            ].join(' ');
+            row.innerHTML = `${thumb}
+                <div style="flex:1;min-width:180px"><div style="font-weight:700">${esc2(n.title)}</div>
+                <div style="font-size:0.78rem;color:var(--muted);margin:2px 0 4px">${esc2(n.date || '')}</div>${chips}</div>`;
+            const edit = document.createElement('button');
+            edit.type = 'button';
+            edit.className = 'btn';
+            edit.innerHTML = '<i class="fas fa-pen"></i> Tahrirlash';
+            edit.addEventListener('click', () => {
+                editingId = n.id;
+                imageUrl = n.imageUrl || '';
+                $('nw-title').value = n.title || '';
+                $('nw-body').value = n.body || '';
+                $('nw-link').value = n.link || '';
+                $('nw-date').value = n.date || todayISO();
+                $('nw-pinned').checked = !!n.pinned;
+                $('nw-published').checked = n.published !== false;
+                $('nw-reset').style.display = '';
+                $('nw-save').innerHTML = '<i class="fas fa-check"></i> Yangilash';
+                showPreview();
+                setSt('Tahrirlash rejimi.');
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'btn';
+            del.style.color = 'var(--red)';
+            del.innerHTML = '<i class="fas fa-trash"></i>';
+            del.title = 'O\u2018chirish';
+            del.addEventListener('click', async () => {
+                if (!confirm(`\u201C${n.title}\u201D yangiligi o\u2018chirilsinmi?`)) return;
+                try {
+                    await deleteDoc(doc(db, 'site-content', n.id));
+                    if (editingId === n.id) resetForm();
+                    await loadList();
+                } catch (err) {
+                    console.error(err);
+                    setSt('O\u2018chirilmadi.', 'var(--red)');
+                }
+            });
+            row.append(edit, del);
+            el.appendChild(row);
+        });
+    }
+
+    async function loadList() {
+        try {
+            const snap = await getDocs(query(collection(db, 'site-content'), where('type', '==', 'news')));
+            items = [];
+            snap.forEach((d) => items.push({ id: d.id, ...d.data() }));
+            items.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || String(b.date || '').localeCompare(String(a.date || '')));
+            loaded = true;
+            renderList();
+        } catch (err) {
+            console.error('Yangiliklarni yuklashda xatolik:', err);
+            $('nw-list').innerHTML = '<div class="empty">Yuklanmadi. Sahifani yangilab ko\u2018ring.</div>';
+        }
+    }
+}
+initNewsAdmin();
+
 /* ── TABLAR ── */
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -3240,7 +3496,7 @@ async function loadAdmins() {
         3: { label: 'III DARAJALI DIPLOM', bg: 'linear-gradient(160deg,#fdf5ec 0%,#f3ddc2 55%,#e8c69e 100%)', border: '#a5622a', ring: '#cb8a4f', text: '#6b3d17', deep: '#87491c', medal: '\u{1F949}', isWinner: true, rank: 3, kind: 'rank' },
         0: { label: 'SERTIFIKAT', bg: 'linear-gradient(160deg,#f0f7ff 0%,#dbeafe 55%,#c3ddfb 100%)', border: '#2563eb', ring: '#60a5fa', text: '#1e3a8a', deep: '#1e40af', medal: '\u{1F393}', isWinner: false, rank: null, kind: 'participation' },
         4: { label: "RAG'BATLANTIRISH DIPLOMI", bg: 'linear-gradient(160deg,#f0fdf4 0%,#dcfce7 55%,#bbf7d0 100%)', border: '#16a34a', ring: '#4ade80', text: '#14532d', deep: '#166534', medal: '\u{1F396}\u{FE0F}', kind: 'encourage' },
-        5: { label: 'TASHAKURNOMA', bg: 'linear-gradient(160deg,#f5f3ff 0%,#ede9fe 55%,#ddd6fe 100%)', border: '#7c3aed', ring: '#a78bfa', text: '#4c1d95', deep: '#5b21b6', medal: '<span style="font-family:\'Playfair Display\',serif;font-weight:800;font-size:22px;letter-spacing:4px;color:#5b21b6;text-transform:uppercase;">Ziyomap</span>', kind: 'thanks' },
+        5: { label: 'TASHAKURNOMA', bg: 'linear-gradient(160deg,#f5f3ff 0%,#ede9fe 55%,#ddd6fe 100%)', border: '#7c3aed', ring: '#a78bfa', text: '#4c1d95', deep: '#5b21b6', medal: '💜', kind: 'thanks' },
     };
     const CB_RANK_WORD = { 1: "1-o'rin", 2: "2-o'rin", 3: "3-o'rin" };
 
@@ -4168,6 +4424,185 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         });
     }
 
+    // ── HUJJATLAR ARXIVI: chiqarilgan barcha diplom/sertifikatlar, qayta yuklab olish va bekor qilish ──
+    function cbInitArchive() {
+        let loaded = false;
+        let all = [];
+        let shown = 100;
+        const panel = registerExtraTab({ name: 'certarchive', icon: 'fa-box-archive', label: 'Hujjatlar arxivi', after: 'certbuilder', onShow: () => { if (!loaded) load(); } });
+        if (!panel) return;
+        panel.innerHTML = `
+            <div class="card">
+                <h3><i class="fas fa-box-archive"></i> Chiqarilgan hujjatlar arxivi</h3>
+                <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">Barcha chiqarilgan diplom va sertifikatlar (so\u2018nggi 500 tasi). Xato berilgan hujjatni <b>bekor qilsangiz</b>, QR kod skanerlanganda \u201CHaqiqiy\u201D o\u2018rniga \u201CBekor qilingan\u201D deb ko\u2018rsatiladi.</p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                    <input type="text" id="ca-search" placeholder="Ism, tanlov yoki hujjat raqami bo\u2018yicha qidirish" style="flex:1;min-width:220px">
+                    <select id="ca-filter"><option value="all">Hammasi</option><option value="active">Faqat faol</option><option value="revoked">Bekor qilinganlar</option></select>
+                    <button type="button" class="btn" id="ca-refresh"><i class="fas fa-rotate"></i> Yangilash</button>
+                </div>
+                <p id="ca-count" style="color:var(--muted);font-size:0.8rem;margin:0 0 8px;min-height:16px"></p>
+                <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+                    <thead><tr style="text-align:left;color:var(--muted)">
+                        <th style="padding:8px">Hujjat raqami</th><th style="padding:8px">Ism</th><th style="padding:8px">Turi</th><th style="padding:8px">Tanlov</th><th style="padding:8px">Sana</th><th style="padding:8px">Holat</th><th style="padding:8px">Amallar</th>
+                    </tr></thead>
+                    <tbody id="ca-body"></tbody>
+                </table></div>
+                <button type="button" class="btn" id="ca-more" style="display:none;margin-top:10px">Yana ko\u2018rsatish</button>
+                <p id="ca-status" style="font-size:0.82rem;margin-top:10px;min-height:16px"></p>
+            </div>`;
+        const $ = (id) => panel.querySelector('#' + id);
+        const setSt = (msg, color) => { $('ca-status').textContent = msg || ''; $('ca-status').style.color = color || 'var(--muted)'; };
+
+        const typeOf = (d) => d.certType != null ? String(d.certType) : (d.isWinner && [1, 2, 3].includes(d.rank) ? String(d.rank) : '0');
+        const typeLabel = (d) => {
+            if (d.certType == null && d.isWinner && d.rank && ![1, 2, 3].includes(d.rank)) return `${d.rank}-o\u2018rin diplomi`;
+            const t = CB_THEMES[typeOf(d)];
+            return t ? t.label.charAt(0) + t.label.slice(1).toLowerCase() : 'Hujjat';
+        };
+
+        function filtered() {
+            const q = $('ca-search').value.trim().toLowerCase();
+            const f = $('ca-filter').value;
+            return all.filter((d) => {
+                if (f === 'active' && d.revoked) return false;
+                if (f === 'revoked' && !d.revoked) return false;
+                if (!q) return true;
+                return [d.id, d.fullName, d.contestTitle, d.childName].some((v) => String(v || '').toLowerCase().includes(q));
+            });
+        }
+
+        function render() {
+            const list = filtered();
+            const body = $('ca-body');
+            body.innerHTML = '';
+            $('ca-count').textContent = `${list.length} ta hujjat${all.length !== list.length ? ` (jami ${all.length} tadan)` : ''}`;
+            if (!list.length) {
+                body.innerHTML = '<tr><td colspan="7" style="padding:18px;text-align:center;color:var(--muted)">Hujjat topilmadi.</td></tr>';
+                $('ca-more').style.display = 'none';
+                return;
+            }
+            list.slice(0, shown).forEach((d) => {
+                const tr = document.createElement('tr');
+                tr.style.borderTop = '1px solid var(--border)';
+                const status = d.revoked
+                    ? `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:999px;font-weight:700;font-size:0.7rem">Bekor qilingan</span>`
+                    : `<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-weight:700;font-size:0.7rem">Faol</span>`;
+                tr.innerHTML = `
+                    <td style="padding:8px;white-space:nowrap;font-family:monospace">${cbEsc(d.id)}</td>
+                    <td style="padding:8px">${cbEsc(d.fullName || '')}${d.childName ? `<div style="color:var(--muted);font-size:0.75rem">farzandi: ${cbEsc(d.childName)}</div>` : ''}</td>
+                    <td style="padding:8px">${cbEsc(typeLabel(d))}</td>
+                    <td style="padding:8px">${cbEsc(d.contestTitle || '\u2014')}</td>
+                    <td style="padding:8px;white-space:nowrap">${cbEsc(d.issuedDateText || '')}</td>
+                    <td style="padding:8px">${status}${d.revoked && d.revokedReason ? `<div style="color:var(--muted);font-size:0.72rem;margin-top:3px">${cbEsc(d.revokedReason)}</div>` : ''}</td>
+                    <td style="padding:8px;white-space:nowrap"></td>`;
+                const cell = tr.lastElementChild;
+
+                const mk = (html, title, onClick, danger) => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'btn';
+                    b.style.cssText = 'padding:5px 9px;margin-right:4px;font-size:0.78rem' + (danger ? ';color:var(--red)' : '');
+                    b.innerHTML = html;
+                    b.title = title;
+                    b.addEventListener('click', onClick);
+                    return b;
+                };
+                if (!d.revoked) {
+                    cell.appendChild(mk('<i class="fas fa-file-pdf"></i>', 'PDF yuklab olish', async (e) => {
+                        const btn = e.currentTarget;
+                        btn.disabled = true;
+                        try {
+                            await cbLoadScript('js/cert-export.js');
+                            const type = typeOf(d);
+                            const isThanks = CB_THEMES[type].kind === 'thanks';
+                            const data = {
+                                type,
+                                fullName: isThanks ? '' : (d.fullName || ''),
+                                contestTitle: d.contestTitle || '',
+                                score: d.score != null ? String(d.score) : '',
+                                reason: d.reason || '',
+                                parentName: d.parentName || (isThanks ? d.fullName || '' : ''),
+                                childName: d.childName || '',
+                                thanksText: d.thanksText || '',
+                                dateStr: '', dateText: d.issuedDateText || '',
+                                signer: document.getElementById('cb-signer')?.value.trim() || '',
+                                certNumber: d.id,
+                                stampStyle: d.stampStyle || 'classic',
+                            };
+                            await window.ZiyomapCertExport.downloadPdf(cbBuildCertHtml(data, false), `${isThanks ? 'Tashakkurnoma' : 'Hujjat'}_${d.fullName || d.id}`);
+                            setSt('');
+                        } catch (err) {
+                            console.error(err);
+                            setSt('PDF yaratib bo\u2018lmadi. Internetni tekshirib, qayta urinib ko\u2018ring.', 'var(--red)');
+                        } finally {
+                            btn.disabled = false;
+                        }
+                    }));
+                }
+                cell.appendChild(mk('<i class="fas fa-qrcode"></i>', 'Tekshirish sahifasini ochish', () => {
+                    window.open('tasdiqlash.html?id=' + encodeURIComponent(d.id), '_blank', 'noopener');
+                }));
+                if (d.revoked) {
+                    cell.appendChild(mk('<i class="fas fa-rotate-left"></i> Tiklash', 'Hujjatni qayta faollashtirish', async () => {
+                        if (!confirm('Hujjat qayta faollashtirilsinmi?')) return;
+                        try {
+                            await updateDoc(doc(db, 'certificates', d.id), { revoked: false, revokedReason: null });
+                            d.revoked = false;
+                            d.revokedReason = null;
+                            render();
+                        } catch (err) {
+                            console.error(err);
+                            setSt('Tiklanmadi.', 'var(--red)');
+                        }
+                    }));
+                } else {
+                    cell.appendChild(mk('<i class="fas fa-ban"></i> Bekor qilish', 'Hujjatni yaroqsiz qilish', async () => {
+                        const reason = prompt(`\u201C${d.fullName || d.id}\u201D hujjati bekor qilinadi.\n\nSababi (ixtiyoriy, tekshirish sahifasida ko\u2018rinadi):`, '');
+                        if (reason === null) return;
+                        try {
+                            await updateDoc(doc(db, 'certificates', d.id), { revoked: true, revokedAt: serverTimestamp(), revokedReason: reason.trim() || null });
+                            d.revoked = true;
+                            d.revokedReason = reason.trim() || null;
+                            render();
+                        } catch (err) {
+                            console.error(err);
+                            setSt('Bekor qilinmadi.', 'var(--red)');
+                        }
+                    }, true));
+                }
+                body.appendChild(tr);
+            });
+            $('ca-more').style.display = list.length > shown ? '' : 'none';
+        }
+
+        async function load() {
+            setSt('Yuklanmoqda...');
+            try {
+                let snap;
+                try {
+                    snap = await getDocs(query(collection(db, 'certificates'), orderBy('issuedAt', 'desc'), limit(500)));
+                } catch (err) {
+                    console.warn('issuedAt bo\u2018yicha saralab bo\u2018lmadi, oddiy so\u2018rov ishlatiladi:', err);
+                    snap = await getDocs(query(collection(db, 'certificates'), limit(500)));
+                }
+                all = [];
+                snap.forEach((d) => all.push({ id: d.id, ...d.data() }));
+                loaded = true;
+                shown = 100;
+                setSt('');
+                render();
+            } catch (err) {
+                console.error('Arxivni yuklashda xatolik:', err);
+                setSt('Yuklanmadi. Internetni tekshiring yoki sahifani yangilang.', 'var(--red)');
+            }
+        }
+
+        $('ca-search').addEventListener('input', () => { shown = 100; render(); });
+        $('ca-filter').addEventListener('change', () => { shown = 100; render(); });
+        $('ca-refresh').addEventListener('click', load);
+        $('ca-more').addEventListener('click', () => { shown += 100; render(); });
+    }
+
     function cbInit() {
         const dateInput = document.getElementById('cb-date');
         if (dateInput && !dateInput.value) {
@@ -4237,6 +4672,7 @@ Kelajakda ham hamkorligimiz davom etishiga umid qilamiz. Hamkorligingiz uchun ta
         cbInitLogos();
         cbInitBulk();
         cbInitOffline();
+        cbInitArchive();
 
         cbUpdateFieldVisibility();
 
