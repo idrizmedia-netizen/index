@@ -217,6 +217,7 @@
                 const hasOpen = r.openScore !== null && r.openScore !== undefined;
                 const isDisqualified = !!r.disqualified;
                 const hasRank = !isDisqualified && r.rank !== null && r.rank !== undefined;
+                const isTopThree = hasRank && (r.rank === 1 || r.rank === 2 || r.rank === 3); // diplom faqat 1–3-o'rin uchun
                 const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '🏆';
                 const total = (r.score ?? 0) + (r.interviewScore ?? 0) + (r.openScore ?? 0);
                 const c = contestDates[r.contestId] || {};
@@ -279,7 +280,7 @@
                 }
                 if (isDisqualified) {
                     // Diskvalifikatsiya qilingan ishtirokchiga diplom ham, ishtirok sertifikati ham berilmaydi
-                } else if (hasRank) {
+                } else if (isTopThree) {
                     actionBtns.push(`<button type="button" class="dash-action-btn" data-diploma="${r.id}" style="background:linear-gradient(135deg,#f59e0b,#ea580c)"><i class="fas fa-award"></i> Diplomni yuklab olish</button>`);
                 } else if (hasScore || hasInterview) {
                     actionBtns.push(`<button type="button" class="dash-action-btn" data-certificate="${r.id}" style="background:#6366f1"><i class="fas fa-certificate"></i> Ishtirok sertifikati</button>`);
@@ -654,6 +655,22 @@
                 return [];
             }
         }
+        let globalLogosCache = null;
+        async function getGlobalLogos() {
+            if (globalLogosCache) return globalLogosCache;
+            try {
+                const snap = await getDocFn(docFn(db, 'site-content', 'diploma-logos'));
+                const list = snap.exists() && Array.isArray(snap.data().logos) ? snap.data().logos : [];
+                globalLogosCache = list
+                    .filter((l) => l && l.enabled !== false && typeof l.dataUrl === 'string' && l.dataUrl.indexOf('data:image/') === 0)
+                    .slice(0, 2)
+                    .map((l) => ({ logoUrl: l.dataUrl, name: l.caption || '' }));
+            } catch (err) {
+                console.error('Qo\u2018shimcha logotiplarni yuklashda xatolik:', err);
+                globalLogosCache = [];
+            }
+            return globalLogosCache;
+        }
         container.querySelectorAll('[data-diploma], [data-certificate]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.diploma || btn.dataset.certificate;
@@ -670,6 +687,10 @@
                 let issuedDateText = fmtCertDate(new Date());
                 try {
                     const existingSnap = await getDocFn(docFn(db, 'certificates', certNumber));
+                    if (existingSnap.exists() && existingSnap.data().revoked) {
+                        alert('Bu hujjat bekor qilingan, shuning uchun yuklab olib bo\u2018lmaydi. Savol bo\u2018lsa, Ziyomap jamoasiga murojaat qiling.');
+                        return;
+                    }
                     const payload = {
                         uid: (authInst.currentUser && authInst.currentUser.uid) || null,
                         fullName: r.fullName,
@@ -695,7 +716,7 @@
                     console.error('Sertifikat yozuvini saqlashda xatolik:', err);
                 }
 
-                const partnerLogos = await getPartnerLogos(r.contestId);
+                const partnerLogos = [...(await getGlobalLogos()), ...(await getPartnerLogos(r.contestId))];
                 const html = buildCertificateHtml(r, c, isWinner, certNumber, signatureSettings || {}, partnerLogos, issuedDateText);
                 // To'g'ridan-to'g'ri PDF yuklab olish (chop etish oynasisiz). Kutubxona yuklanmasa — eski usul.
                 const origBtnHtml = btn.innerHTML;
