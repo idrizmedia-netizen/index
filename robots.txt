@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /admin-xabarlar.html
+Disallow: /dashboard.html
+Disallow: /tasdiqlash.html
+Disallow: /api/
+Disallow: /studio/
+
+Sitemap: https://ziyomap.vercel.app/sitemap.xml
