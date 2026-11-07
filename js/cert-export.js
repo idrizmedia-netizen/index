@@ -139,7 +139,8 @@
             .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '')
             .replace(/\s+/g, ' ')
             .trim()
-            .slice(0, 80) || 'sertifikat';
+            .slice(0, 80)
+            .replace(/[.\s]+$/, '') || 'sertifikat';
         return base + (ext || '');
     }
 
