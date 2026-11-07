@@ -105,6 +105,17 @@ async function verify() {
             return;
         }
         const c = snap.data();
+        if (c.revoked) {
+            // Bekor qilingan hujjat: haqiqiy deb ko'rsatilmaydi
+            resultEl.className = 'card fail';
+            resultEl.innerHTML = `
+                <div class="state-icon"><i class="fas fa-ban"></i></div>
+                <h2>Hujjat bekor qilingan</h2>
+                <p class="muted" style="margin-top:8px">${esc(c.fullName || '')} nomiga berilgan <b>${esc(id)}</b> raqamli hujjat bekor qilingan va haqiqiy hisoblanmaydi.</p>
+                ${c.revokedReason ? `<div class="row"><b>Sabab</b>${esc(c.revokedReason)}</div>` : ''}
+                <p class="muted">Savollar bo\u2018lsa, Ziyomap jamoasiga murojaat qiling.</p>`;
+            return;
+        }
         const info = describe(c);
         const stamp = window.ZiyomapStamp
             ? '<div class="seal">' + window.ZiyomapStamp.svg({ color: info.color, year: window.ZiyomapStamp.yearFrom(c.issuedDateText), style: c.stampStyle }) + '</div>'
