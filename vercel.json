@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "ziyomap.vercel.app" }],
+      "destination": "https://www.ziyomap.uz/$1",
+      "permanent": true
+    }
+  ]
+}
