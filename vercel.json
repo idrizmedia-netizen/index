@@ -2,9 +2,20 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "ziyomap.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "ziyomap.vercel.app"
+        }
+      ],
       "destination": "https://www.ziyomap.uz/$1",
       "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:folder(labs|oyin|metodlar)/icon-192x192.png",
+      "destination": "/icon-192x192.png"
     }
   ]
 }
