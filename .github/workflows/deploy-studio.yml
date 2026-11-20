@@ -3,6 +3,11 @@ name: Deploy Sanity Studio
 on:
   push:
     branches: [ main ]
+    # Faqat studio o'zgarganda deploy qilamiz (har pushda emas)
+    paths:
+      - 'studio/**'
+      - '.github/workflows/deploy-studio.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -17,7 +22,6 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        # defaults: run: working-directory o'rniga toza va xavfsiz zanjir usuli
         run: |
           cd studio
           npm install --legacy-peer-deps
