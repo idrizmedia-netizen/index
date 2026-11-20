@@ -155,7 +155,7 @@ Javobda JSON dan boshqa hech narsa bo'lmasin. Markdown \`\`\` ham kerak emas.`;
         const level = window.essayLevel || 'standard';
 
         try {
-            const res = await fetch('/api/chat', {
+            const res = await (window.ZiyomapApiFetch || fetch)('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -234,7 +234,7 @@ Har bir savol uchun:
 Formatni qat'iy saqlang. O'zbek tilida yozing.`;
 
         try {
-            const res = await fetch('/api/chat', {
+            const res = await (window.ZiyomapApiFetch || fetch)('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

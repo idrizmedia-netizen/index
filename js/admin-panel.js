@@ -2537,6 +2537,8 @@ async function loadTelegramSettings() {
             document.getElementById('telegram-chat-id').value = data.chatId || '';
             document.getElementById('telegram-bot-username').value = data.botUsername || '';
             document.getElementById('telegram-channel-username').value = data.channelUsername || '';
+            // Eski ma'lumotlarni ommaviy hujjatga bir marta ko'chirib qo'yamiz (token ko'chirilmaydi)
+            setDoc(doc(db, 'site-content', 'telegram-public'), { botUsername: data.botUsername || null, channelUsername: data.channelUsername || null }, { merge: true }).catch(() => {});
         }
     } catch (err) {
         console.error(err);
@@ -2554,6 +2556,8 @@ document.getElementById('telegram-save-btn')?.addEventListener('click', async ()
     btn.disabled = true;
     try {
         await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId, botUsername, channelUsername }, { merge: true });
+        // Ommaviy hujjat (token YO'Q): bot/kanal username'lari hammaga ko'rinadi
+        await setDoc(doc(db, 'site-content', 'telegram-public'), { botUsername, channelUsername }, { merge: true });
         statusEl.textContent = 'Saqlandi!';
         statusEl.style.color = 'var(--green)';
     } catch (err) {

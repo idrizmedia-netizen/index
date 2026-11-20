@@ -50,14 +50,11 @@ let currentUser = null;
 // ── Adminga Telegram orqali bildirishnoma yuborish (bot sozlangan bo'lsa) ──
 async function notifyTelegram(text) {
     try {
-        const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
-        if (!snap.exists()) return;
-        const { botToken, chatId } = snap.data();
-        if (!botToken || !chatId) return;
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        if (!window.ZiyomapApiFetch) return;
+        await ZiyomapApiFetch('/api/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text }),
+            body: JSON.stringify({ text }),
         });
     } catch (err) {
         console.error('Telegram bildirishnomasini yuborishda xatolik:', err);
@@ -114,7 +111,7 @@ async function nextRegistrationId() {
 // ── Rasmiy Telegram kanali banneri (nizom/e'lonlar shu yerda joylashtiriladi) ──
 async function loadTelegramChannelBanner() {
     try {
-        const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        const snap = await getDoc(doc(db, 'site-content', 'telegram-public'));
         const channelUsername = snap.exists() ? snap.data().channelUsername : null;
         const banner = document.getElementById('telegram-channel-banner');
         const link = document.getElementById('telegram-channel-link');
@@ -496,7 +493,7 @@ async function showAlreadyRegistered(customId, cId, regData) {
 
     // Telegram bog'lash tugmasi (agar admin bot username'ni sozlagan bo'lsa)
     try {
-        const tgSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+        const tgSnap = await getDoc(doc(db, 'site-content', 'telegram-public'));
         const tgLink = document.getElementById('telegram-connect-link');
         const tgHint = document.getElementById('telegram-connect-hint');
         if (tgSnap.exists() && tgSnap.data().botUsername && tgLink && authInst.currentUser) {

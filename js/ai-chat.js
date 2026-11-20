@@ -171,7 +171,7 @@ async function sendAiMessage() {
     const notif = window.ZiyomapNotify ? ZiyomapNotify.loading('AI fikrlayapti...') : null;
 
     try {
-        const response = await fetch('/api/chat', {
+        const response = await (window.ZiyomapApiFetch || fetch)('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

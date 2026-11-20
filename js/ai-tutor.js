@@ -114,7 +114,7 @@ Qo'shimcha ko'rsatmalar:
                 window.tutorMode    || 'explain'
             );
 
-            const res = await fetch('/api/chat', {
+            const res = await (window.ZiyomapApiFetch || fetch)('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

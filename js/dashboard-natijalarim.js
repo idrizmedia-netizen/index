@@ -24,14 +24,11 @@
     // ── Adminga Telegram orqali bildirishnoma yuborish (bot sozlangan bo'lsa) ──
     async function notifyTelegram(text) {
         try {
-            const snap = await getDocFn(docFn(db, 'site-content', 'telegram-settings'));
-            if (!snap.exists()) return;
-            const { botToken, chatId } = snap.data();
-            if (!botToken || !chatId) return;
-            await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            if (!window.ZiyomapApiFetch) return;
+            await ZiyomapApiFetch('/api/notify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text }),
+                body: JSON.stringify({ text }),
             });
         } catch (err) {
             console.error('Telegram bildirishnomasini yuborishda xatolik:', err);
@@ -146,7 +143,7 @@
             try {
                 const [userSnap, tgSnap] = await Promise.all([
                     getDoc(doc(db, 'users', queryUid)),
-                    getDoc(doc(db, 'site-content', 'telegram-settings')),
+                    getDoc(doc(db, 'site-content', 'telegram-public')),
                 ]);
                 const alreadyLinked = userSnap.exists() && userSnap.data().telegramChatId;
                 const botUsername = tgSnap.exists() ? tgSnap.data().botUsername : null;
