@@ -113,6 +113,7 @@
             .mode-btn { min-width: 80px; font-size: 0.75rem; }
         }
     </style>
+<script src="js/api-auth.js"></script>
 </head>
 <body>
 <div class="container">
@@ -782,7 +783,7 @@ Aniq fanlarda (Matematika, Fizika, Kimyo) formulalar $...$ LaTeX formatida yozil
 
     // ---- API CALL ----
     try {
-        const r = await fetch('/api/chat', {
+        const r = await ZiyomapApiFetch('/api/chat', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({

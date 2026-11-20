@@ -15,12 +15,13 @@ va 2 ta joyga bittadan `<script>` qatori qo'shish kifoya.
 ## 2-QADAM — Xavfsizlik qoidalarini qo'yish
 
 1. Firestore → **Rules** bo'limiga o'ting
-2. `firestore.rules` faylidagi kodni to'liq nusxalab, joylashtiring — email allaqachon
-   **idrizmedia@gmail.com** qilib to'ldirilgan, hech narsa o'zgartirish shart emas
+2. `firestore.rules` faylidagi kodni to'liq nusxalab, joylashtiring. Qoidalarda admin
+   **UID** orqali aniqlanadi (`ownerUid()` funksiyasi) — u `js/admin-guard.js` dagi `OWNER_UID` bilan
+   bir xil bo'lishi shart. Publish qilishdan oldin **Rules Playground**da sinab ko'ring.
 3. **Publish** tugmasini bosing
 
-   ✅ `js/admin-guard.js` faylida ham email allaqachon **idrizmedia@gmail.com**
-   qilib to'ldirilgan — bu sizning doimiy asosiy admin (owner) emailingiz.
+   ✅ `js/admin-guard.js` faylida owner **UID** yozilgan (email emas) — account linking
+   emailni o'zgartirib yuborishi mumkin, UID esa hech qachon o'zgarmaydi.
 
 ## 3-QADAM — Fayllarni GitHub repo'ga yuklash
 

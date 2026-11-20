@@ -397,6 +397,7 @@
     .essay-history-chart-wrap{background:var(--card-bg);border:1px solid rgba(56,189,248,.2);border-radius:14px;padding:12px}
     .essay-pdf-btn,.essay-mic-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--primary-color);background:transparent;color:var(--primary-color);font-size:.75rem;font-weight:700;cursor:pointer;font-family:inherit}
     </style>
+<script src="js/api-auth.js"></script>
 </head>
 <body>
     <script>
@@ -1289,7 +1290,7 @@
 
         while(attempt <= RETRY_ATTEMPTS){
             try{
-                const response = await fetch('/api/chat', {
+                const response = await ZiyomapApiFetch('/api/chat', {
                     method:'POST', headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({
                         message: text,
@@ -1833,7 +1834,7 @@ O'zbek tilida yoz. Matematik formulalarni LaTeX da yoz: inline $x^2$ yoki blok $
             tutorHistory.push({role:'user',content:text});
             const thinking=addThinking();
             try{
-                const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+                const res=await ZiyomapApiFetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
                     body:JSON.stringify({
                         message:text,
                         history:tutorHistory.slice(0,-1).map(h=>({role:h.role==='assistant'?'model':'user',parts:[{text:h.content}]})),
@@ -2036,7 +2037,7 @@ TAVSIYA: [yaxshilash bo'yicha 2-3 aniq tavsiya]
 TUZATILGAN: [matnning to'liq qayta yozilgan, tuzatilgan versiyasi]`;
 
             try {
-                const res = await fetch('/api/chat', {
+                const res = await ZiyomapApiFetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: prompt, history: [] })

@@ -1,9 +1,15 @@
 rules_version = '2';
 
+// ZIYOMAP — Firestore xavfsizlik qoidalari (to'liq, barcha kolleksiyalar uchun).
+// Nashr qilishdan oldin Firebase konsolidagi "Rules Playground" yoki emulyatorda sinab ko'ring.
+// Firestore'da qoida yozilmagan kolleksiya avtomatik YOPIQ bo'ladi.
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ⚠️ Shu yerga ham admin-guard.js dagi bilan BIR XIL UID'ni yozing
+    // ───────────── Yordamchi funksiyalar ─────────────
+
+    // js/admin-guard.js dagi OWNER_UID bilan bir xil bo'lishi shart
     function ownerUid() {
       return "PhFPRmGQdnVNu3dsepFLem5Xzmg2";
     }
@@ -19,93 +25,286 @@ service cloud.firestore {
       );
     }
 
-    // ── Tanlovlar: hammaga ochiq o'qish, faqat admin yozadi ──
+    // Bloklangan foydalanuvchi (users/{uid}.blocked == true) yozish amallarini bajara olmaydi
+    function notBlocked() {
+      return isSignedIn() && (
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('blocked', false)
+      );
+    }
+
+    // Shu yozuvda aynan qaysi maydonlar o'zgaryapti (yaratishda — barcha maydonlar)
+    function changedKeys() {
+      return resource == null
+        ? request.resource.data.keys().toSet()
+        : request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function oldNum(field) {
+      return resource == null ? 0 : resource.data.get(field, 0);
+    }
+
+    // Hisoblagich maydoni o'zgarmagan yoki aynan +1 oshgan
+    function stepOk(field) {
+      let n = request.resource.data.get(field, 0);
+      return n == oldNum(field) || n == oldNum(field) + 1;
+    }
+
+    // Foydalanuvchi O'ZINI o'zi yangilaganda: bloklashni olib tashlay olmaydi,
+    // tarifni (planId) o'zi oshira olmaydi (faqat Bepul = 0 ga tusha oladi),
+    // telegramChatId ni faqat admin yozadi.
+    function selfUserWriteSafe() {
+      let ch = changedKeys();
+      return !ch.hasAny(['blocked', 'telegramChatId'])
+        && (
+          !ch.hasAny(['planId', 'planExpiresAt'])
+          || (request.resource.data.get('planId', 0) == 0
+              && request.resource.data.get('planExpiresAt', null) == null)
+        );
+    }
+
+    // ───────────── Foydalanuvchilar ─────────────
+
+    match /users/{uid} {
+      // Eslatma: do'st qidirish (email bo'yicha) va guruh chat uchun boshqa foydalanuvchi
+      // profilini o'qish kerak. Kelajakda ochiq maydonlarni alohida "profiles" ga ajratish ma'qul.
+      allow read: if isSignedIn();
+      allow create: if isAdmin() || (isSignedIn() && request.auth.uid == uid && selfUserWriteSafe());
+      allow update: if isAdmin() || (isSignedIn() && request.auth.uid == uid && selfUserWriteSafe());
+      allow delete: if isAdmin();
+
+      // Kunlik/oylik foydalanish hisoblagichlari (usage-limits.js)
+      match /usage/{key} {
+        allow read, write: if isSignedIn() && request.auth.uid == uid;
+        allow read: if isAdmin();
+      }
+      // AI natijalar tarixi
+      match /ai-history/{id} {
+        allow read, write: if isSignedIn() && request.auth.uid == uid;
+        allow read: if isAdmin();
+      }
+    }
+
+    // ───────────── Adminlar ro'yxati ─────────────
+    // Faqat o'z hujjatini (admin-guard tekshiruvi) yoki admin/owner o'qiydi; yozish — faqat owner
+    match /admins/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow write: if isSignedIn() && request.auth.uid == ownerUid();
+    }
+
+    // ───────────── Tanlovlar va ro'yxatdan o'tish ─────────────
+
     match /contests/{contestId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ── Ro'yxatdan o'tishlar ──
     match /registrations/{regId} {
       allow get: if isSignedIn() && (resource == null || resource.data.uid == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn()
+      // Foydalanuvchi o'ziga ball/o'rin/to'lov holatini yozib qo'ya olmaydi
+      allow create: if notBlocked()
                     && request.resource.data.uid == request.auth.uid
-                    && request.resource.data.score == null;
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+                    && request.resource.data.score == null
+                    && request.resource.data.get('rank', null) == null
+                    && request.resource.data.get('interviewScore', null) == null
+                    && request.resource.data.get('openScore', null) == null
+                    && request.resource.data.get('paymentStatus', null) in [null, 'kutilmoqda'];
+      allow update, delete: if isAdmin();
     }
 
-    // ── Barcha saytga kirgan foydalanuvchilar (bloklash uchun ham) ──
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.auth.uid == uid;
-      allow update: if isAdmin();
-    }
-
-    // ── Bo'limlar qanchalik ishlatilishi (statistika) ──
-    match /usage-stats/{featureId} {
-      allow read: if isAdmin();
-      allow write: if isSignedIn();
-    }
-
-    // ── Bosh sahifa kontenti (rasm, matn) — admin tahrirlaydi, hammaga ochiq o'qish ──
-    match /site-content/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // ── Ketma-ket ID hisoblagich ──
+    // Ketma-ket ID hisoblagich: faqat "registrations" hujjati, faqat +1
     match /counters/{counterId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow create, update: if isSignedIn()
+                            && counterId == 'registrations'
+                            && changedKeys().hasOnly(['count'])
+                            && stepOk('count');
+      allow create, update, delete: if isAdmin();
     }
 
-    // ── Bildirishnomalar: hammaga ochiq o'qish, faqat admin yozadi ──
-    match /notifications/{notifId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // ── Adminlar ro'yxati (UID bo'yicha): kiruvchilar o'qiy oladi, faqat owner o'zgartiradi ──
-    match /admins/{uid} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && request.auth.uid == ownerUid();
-    }
-
-    // ── Login/parol hisoblari (barcha qurilmalarda ishlashi uchun) ──
-    match /local-accounts/{login} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid;
-      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
-    }
-
-    // ── Ochiq statistika: hammaga o'qish, kirgan foydalanuvchi yangilay oladi ──
+    // Ochiq statistika: hammaga o'qish; kirgan foydalanuvchi faqat totalRegistrations'ni +1 qila oladi
     match /stats/{docId} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow create, update: if isSignedIn()
+                            && docId == 'public'
+                            && changedKeys().hasOnly(['totalRegistrations'])
+                            && stepOk('totalRegistrations');
+      allow create, update, delete: if isAdmin();
     }
 
-    // ── G'oliblar reytingi: admin e'lon qiladi, hammaga ochiq (shaxsiy ma'lumotsiz) ──
     match /leaderboards/{contestId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ── Testlar: hammaga ochiq o'qish (e'lon qilingandan keyin), faqat admin yozadi/tahrirlaydi ──
+    match /interview-tickets/{contestId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Sertifikatlar: tasdiqlash sahifasi (tasdiqlash.html) uchun ochiq o'qish.
+    // Foydalanuvchi faqat O'Z sertifikatini yaratadi/yangilaydi va "bekor qilish" belgisiga tega olmaydi.
+    match /certificates/{certNumber} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        isSignedIn()
+        && request.resource.data.get('uid', null) == request.auth.uid
+        && !request.resource.data.keys().hasAny(['revoked', 'revokedAt', 'revokedReason'])
+      );
+      allow update: if isAdmin() || (
+        isSignedIn()
+        && resource.data.get('uid', null) == request.auth.uid
+        && request.resource.data.get('uid', null) == request.auth.uid
+        && !changedKeys().hasAny(['revoked', 'revokedAt', 'revokedReason', 'issuedAt', 'issuedDateText'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ───────────── Testlar ─────────────
+
     match /tests/{testId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // ── Test topshirishlar: faqat egasi va admin ko'ra oladi; foydalanuvchi o'z urinishini yozadi ──
     match /test-attempts/{attemptId} {
       allow get: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow create: if notBlocked() && request.resource.data.uid == request.auth.uid;
+      allow update: if notBlocked()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.get('contestId', null) == resource.data.get('contestId', null);
       allow delete: if isAdmin();
+    }
+
+    // ───────────── Sayt kontenti ─────────────
+
+    // Telegram sozlamalari (bot tokeni shu yerda) — FAQAT admin o'qiydi va yozadi.
+    // Ommaviy maydonlar (bot/kanal username) "telegram-public" hujjatida.
+    match /site-content/telegram-settings {
+      allow read, write: if isAdmin();
+    }
+    match /site-content/{docId} {
+      allow read: if docId != 'telegram-settings';
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /metodlar/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /oyin-savollar/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ───────────── Obuna so'rovlari ─────────────
+
+    match /obuna-requests/{reqId} {
+      allow get: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if notBlocked()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == 'kutilmoqda';
+      allow update, delete: if isAdmin();
+    }
+
+    // ───────────── Statistika ─────────────
+
+    // Bo'lim ishlatilishi: faqat admin o'qiydi; kirgan foydalanuvchi faqat hisoblagichni +1 qila oladi
+    match /usage-stats/{featureId} {
+      allow read: if isAdmin();
+      allow create, update: if isSignedIn()
+                            && changedKeys().hasOnly(['label', 'count', 'up', 'down'])
+                            && stepOk('count') && stepOk('up') && stepOk('down')
+                            && request.resource.data.get('label', '') is string
+                            && request.resource.data.get('label', '').size() <= 100;
+      allow delete: if isAdmin();
+    }
+
+    match /daily-active-users/{day} {
+      allow read: if isAdmin();
+      allow create, update: if isSignedIn()
+                            && changedKeys().hasOnly(['count'])
+                            && stepOk('count');
+      allow delete: if isAdmin();
+    }
+
+    // ───────────── Login/parol ko'rsatish ma'lumotlari ─────────────
+    // Faqat egasi (yoki admin) o'qiydi — boshqalarning email/rasmi ochiq emas
+    match /local-accounts/{login} {
+      allow read: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.uid == request.auth.uid && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // ───────────── Guruh chat va do'stlar ─────────────
+
+    match /chat-groups/{groupId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isAdmin();
+
+      match /members/{uid} {
+        allow read: if isSignedIn();
+        allow create, update, delete: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      }
+      match /messages/{msgId} {
+        allow read: if isSignedIn();
+        allow create: if notBlocked()
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() > 0
+                      && request.resource.data.text.size() <= 2000;
+        allow delete: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+        allow update: if false;
+      }
+    }
+
+    match /friend-requests/{reqId} {
+      allow get, list: if isSignedIn()
+                       && (resource.data.toUid == request.auth.uid || resource.data.fromUid == request.auth.uid);
+      allow create: if notBlocked()
+                    && request.resource.data.fromUid == request.auth.uid
+                    && request.resource.data.toUid != request.auth.uid
+                    && request.resource.data.status == 'pending';
+      // Faqat qabul qiluvchi holatni o'zgartira oladi
+      allow update: if isSignedIn()
+                    && resource.data.toUid == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+                    && request.resource.data.status in ['accepted', 'declined'];
+      allow delete: if isSignedIn()
+                    && (resource.data.toUid == request.auth.uid || resource.data.fromUid == request.auth.uid);
+    }
+
+    match /friendships/{pairId} {
+      allow get, list: if isSignedIn() && request.auth.uid in resource.data.uids;
+      allow create: if isSignedIn()
+                    && request.auth.uid in request.resource.data.uids
+                    && request.resource.data.uids.size() == 2;
+      allow update: if false;
+      allow delete: if isSignedIn() && request.auth.uid in resource.data.uids;
+
+      match /messages/{msgId} {
+        allow read: if isSignedIn()
+                    && request.auth.uid in get(/databases/$(database)/documents/friendships/$(pairId)).data.uids;
+        allow create: if notBlocked()
+                      && request.auth.uid in get(/databases/$(database)/documents/friendships/$(pairId)).data.uids
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() > 0
+                      && request.resource.data.text.size() <= 2000;
+        allow update, delete: if false;
+      }
     }
   }
 }
