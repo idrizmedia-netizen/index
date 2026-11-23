@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
+import { resolveTarget, sendPost, deletePost, buildNewsHtml } from './telegram-post.js';
 import {
     getFirestore,
     collection,
@@ -143,7 +144,7 @@ function initNewsAdmin() {
     let editingId = null;
     let imageUrl = '';
 
-    const panel = registerExtraTab({ name: 'news', icon: 'fa-newspaper', label: 'Yangiliklar', before: 'content', onShow: () => { if (!loaded) loadList(); } });
+    const panel = registerExtraTab({ name: 'news', icon: 'fa-newspaper', label: 'Yangiliklar', before: 'content', onShow: () => { if (!loaded) loadList(); refreshTgNote(); } });
     if (!panel) return;
     panel.innerHTML = `
         <div class="card">
@@ -162,10 +163,12 @@ function initNewsAdmin() {
                 <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="nw-pinned"> Yuqorida mahkamlash</label>
                 <label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="nw-published" checked> E\u2019lon qilingan (bosh sahifada ko\u2018rinadi)</label>
             </div>
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn btn-primary" id="nw-save"><i class="fas fa-check"></i> Saqlash</button>
+                <button class="btn" id="nw-save-tg" style="background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;border:none"><i class="fab fa-telegram"></i> Saqlash va Telegramga yuborish</button>
                 <button class="btn" id="nw-reset" style="display:none">Bekor qilish</button>
             </div>
+            <p id="nw-tg-note" style="font-size:0.8rem;margin-top:8px;color:var(--muted)"></p>
             <p id="nw-status" style="font-size:0.85rem;margin-top:10px;min-height:18px"></p>
         </div>
         <div class="card">
@@ -255,16 +258,56 @@ function initNewsAdmin() {
         return null; // yaroqsiz
     }
 
-    $('nw-save').addEventListener('click', async () => {
+    /* ── Telegram ── */
+    let tgCfg = null;
+    async function getTg(force) {
+        if (tgCfg && !force) return tgCfg;
+        try {
+            const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
+            tgCfg = resolveTarget(snap.exists() ? snap.data() : {});
+        } catch (e) {
+            console.error('Telegram sozlamalari o\u2018qilmadi:', e);
+            tgCfg = resolveTarget({});
+        }
+        return tgCfg;
+    }
+    async function refreshTgNote() {
+        const t = await getTg(true);
+        const note = $('nw-tg-note');
+        if (!t.token || !t.chat) {
+            note.style.color = 'var(--red)';
+            note.textContent = 'Telegram sozlanmagan: \u201CTelegram\u201D bo\u2018limida bot tokeni va kanal username\u2019ni kiriting.';
+        } else {
+            note.style.color = 'var(--muted)';
+            note.textContent = t.fallback
+                ? 'Kanal kiritilmagan \u2014 post admin chatiga (Chat ID) yuboriladi.'
+                : 'Telegram: post ' + t.label + ' kanaliga yuboriladi (bot kanalda administrator bo\u2018lishi kerak).';
+        }
+    }
+    async function sendNewsToTelegram(n) {
+        const t = await getTg(true);
+        if (!t.token || !t.chat) throw new Error('Telegram sozlanmagan (bot tokeni yoki kanal yo\u2018q).');
+        const r = await sendPost({ token: t.token, chat: t.chat, html: buildNewsHtml(n, 'https://www.ziyomap.uz/#news'), photo: n.imageUrl });
+        await setDoc(doc(db, 'site-content', n.id), { telegramMessageId: r.message_id, telegramChat: t.chat, telegramPostedAt: serverTimestamp() }, { merge: true });
+        return r;
+    }
+
+    async function saveNews(sendTg) {
         const title = $('nw-title').value.trim();
         const body = $('nw-body').value.trim();
         if (!title) { setSt('Sarlavhani yozing.', 'var(--red)'); return; }
         if (!body) { setSt('Matnni yozing.', 'var(--red)'); return; }
         const link = safeLink($('nw-link').value);
         if (link === null) { setSt('Havola https:// bilan boshlansin (yoki sayt ichidagi .html sahifa bo\u2018lsin).', 'var(--red)'); return; }
+        if (sendTg && !$('nw-published').checked) { setSt('Telegramga yuborish uchun \u201CE\u2019lon qilingan\u201D belgisini yoqing.', 'var(--red)'); return; }
+        const existing = editingId ? items.find((x) => x.id === editingId) : null;
+        if (sendTg && existing && existing.telegramMessageId &&
+            !confirm('Bu yangilik Telegramga allaqachon yuborilgan. Yana yuborilsinmi (takroriy post chiqadi)?')) {
+            sendTg = false;
+        }
         const id = editingId || ('news_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
-        const btn = $('nw-save');
-        btn.disabled = true;
+        const btns = [$('nw-save'), $('nw-save-tg')];
+        btns.forEach((x) => { x.disabled = true; });
         try {
             const payload = {
                 type: 'news',
@@ -279,16 +322,26 @@ function initNewsAdmin() {
             };
             if (!editingId) payload.createdAt = serverTimestamp();
             await setDoc(doc(db, 'site-content', id), payload, { merge: true });
-            setSt('Saqlandi.', 'var(--green)');
+
+            let tgErr = '';
+            if (sendTg) {
+                setSt('Telegramga yuborilmoqda...');
+                try { await sendNewsToTelegram({ id, title, body, link, imageUrl: imageUrl || '' }); }
+                catch (e) { console.error(e); tgErr = e.message || 'noma\u2019lum xato'; }
+            }
             resetForm();
             await loadList();
+            if (tgErr) setSt('Saqlandi, lekin Telegramga yuborib bo\u2018lmadi: ' + tgErr, 'var(--red)');
+            else setSt(sendTg ? 'Saqlandi va Telegramga yuborildi \u2713' : 'Saqlandi.', 'var(--green)');
         } catch (err) {
             console.error('Yangilikni saqlashda xatolik:', err);
             setSt('Saqlanmadi \u2014 internetni tekshirib, qayta urinib ko\u2018ring.', 'var(--red)');
         } finally {
-            btn.disabled = false;
+            btns.forEach((x) => { x.disabled = false; });
         }
-    });
+    }
+    $('nw-save').addEventListener('click', () => saveNews(false));
+    $('nw-save-tg').addEventListener('click', () => saveNews(true));
 
     function renderList() {
         const el = $('nw-list');
@@ -303,10 +356,32 @@ function initNewsAdmin() {
             const chips = [
                 n.pinned ? '<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">Mahkamlangan</span>' : '',
                 n.published === false ? '<span style="background:#e2e8f0;color:#475569;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">Yashirin</span>' : '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">E\u2019lon qilingan</span>',
+                n.telegramMessageId ? '<span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:999px;font-size:0.7rem;font-weight:700">Telegramga yuborilgan</span>' : '',
             ].join(' ');
             row.innerHTML = `${thumb}
                 <div style="flex:1;min-width:180px"><div style="font-weight:700">${esc2(n.title)}</div>
                 <div style="font-size:0.78rem;color:var(--muted);margin:2px 0 4px">${esc2(n.date || '')}</div>${chips}</div>`;
+            const tgb = document.createElement('button');
+            tgb.type = 'button';
+            tgb.className = 'btn';
+            tgb.innerHTML = '<i class="fab fa-telegram"></i> Telegram';
+            tgb.title = 'Telegramga yuborish';
+            tgb.addEventListener('click', async () => {
+                $('nw-status').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (n.published === false) { setSt('Yashirin yangilik Telegramga yuborilmaydi \u2014 avval \u201CE\u2019lon qilingan\u201D qiling.', 'var(--red)'); return; }
+                if (n.telegramMessageId && !confirm('Bu yangilik Telegramga allaqachon yuborilgan. Yana yuborilsinmi (takroriy post chiqadi)?')) return;
+                tgb.disabled = true;
+                setSt('Telegramga yuborilmoqda...');
+                try {
+                    await sendNewsToTelegram(n);
+                    setSt('Telegramga yuborildi \u2713', 'var(--green)');
+                    await loadList();
+                } catch (e) {
+                    console.error(e);
+                    setSt('Telegramga yuborib bo\u2018lmadi: ' + (e.message || 'noma\u2019lum xato'), 'var(--red)');
+                    tgb.disabled = false;
+                }
+            });
             const edit = document.createElement('button');
             edit.type = 'button';
             edit.className = 'btn';
@@ -334,8 +409,15 @@ function initNewsAdmin() {
             del.title = 'O\u2018chirish';
             del.addEventListener('click', async () => {
                 if (!confirm(`\u201C${n.title}\u201D yangiligi o\u2018chirilsinmi?`)) return;
+                const alsoTg = !!n.telegramMessageId && confirm('Telegram kanaldagi postni ham o\u2018chiraymi?');
                 try {
                     await deleteDoc(doc(db, 'site-content', n.id));
+                    if (alsoTg) {
+                        try {
+                            const t = await getTg(true);
+                            await deletePost({ token: t.token, chat: n.telegramChat || t.chat, messageId: n.telegramMessageId });
+                        } catch (e) { console.error(e); setSt('Yangilik o\u2018chirildi, lekin Telegram postini o\u2018chirib bo\u2018lmadi: ' + e.message, 'var(--red)'); }
+                    }
                     if (editingId === n.id) resetForm();
                     await loadList();
                 } catch (err) {
@@ -343,7 +425,7 @@ function initNewsAdmin() {
                     setSt('O\u2018chirilmadi.', 'var(--red)');
                 }
             });
-            row.append(edit, del);
+            row.append(tgb, edit, del);
             el.appendChild(row);
         });
     }
