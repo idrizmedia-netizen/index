@@ -28,6 +28,17 @@ let items = [];            // [{id, status, ...data}]
 let cur = null;            // joriy tahrirlanayotgan: {id, status, telegramMessageId, publishedAt}
 let dirty = false;
 
+// Firestore xatosini tushunarli qiladi (ruxsat xatosida sabab va yechimni ko'rsatadi)
+function explain(e) {
+    if (e && (e.code === 'permission-denied' || /insufficient permissions/i.test(e.message || ''))) {
+        const uid = auth && auth.currentUser ? auth.currentUser.uid : '(aniqlanmadi)';
+        return 'Firestore ruxsat bermadi. Ehtimoliy sabablar:' +
+            '<br>1) <b>firestore.rules</b> Firebase konsolida hali <b>Publish</b> qilinmagan (<code>articles</code> va <code>article-drafts</code> qoidalari yo\'q).' +
+            '<br>2) Hisobingiz admin emas. Sizning UID: <code>' + esc(uid) + '</code> — uni qoidalardagi <code>ownerUid()</code> ga yozing yoki Firestore\'da <code>admins</code> kolleksiyasiga shu nomli hujjat qo\'shing.';
+    }
+    return esc((e && e.message) || String(e));
+}
+
 /* ───────── Yordamchilar ───────── */
 function notify(kind, html) {
     $('msg').innerHTML = html ? `<div class="notice ${kind}">${html}</div>` : '';
@@ -104,7 +115,7 @@ async function loadAll() {
             ...items.map((x) => x.category).filter(Boolean)])].map((c) => `<option value="${esc(c)}">`).join('');
     } catch (e) {
         console.error(e);
-        $('list-box').innerHTML = `<div class="notice err">Yuklab bo'lmadi: ${esc(e.message)}<br>Firestore qoidalarida <code>articles</code> va <code>article-drafts</code> qo'shilganini tekshiring.</div>`;
+        $('list-box').innerHTML = `<div class="notice err">Yuklab bo'lmadi. ${explain(e)}</div>`;
     }
 }
 
@@ -206,7 +217,7 @@ async function saveDraft() {
         cur.status = 'draft'; dirty = false;
         notify('ok', 'Qoralama saqlandi ✓');
         await loadAll();
-    } catch (e) { notify('err', 'Saqlab bo\'lmadi: ' + esc(e.message)); }
+    } catch (e) { notify('err', 'Saqlab bo\'lmadi. ' + explain(e)); }
     busy(btn, false);
 }
 
@@ -230,7 +241,7 @@ async function publish() {
         dirty = false;
     } catch (e) {
         busy(btn, false);
-        return notify('err', 'Nashr qilib bo\'lmadi: ' + esc(e.message));
+        return notify('err', 'Nashr qilib bo\'lmadi. ' + explain(e));
     }
 
     let tgMsg = '';
@@ -281,7 +292,7 @@ async function unpublish() {
         show('view-edit', false); show('view-list', true);
         notify('ok', 'Maqola qoralamaga qaytarildi.');
         await loadAll();
-    } catch (e) { notify('err', 'Bajarib bo\'lmadi: ' + esc(e.message)); }
+    } catch (e) { notify('err', 'Bajarib bo\'lmadi. ' + explain(e)); }
 }
 
 async function removeItem(id, status) {
@@ -295,7 +306,7 @@ async function removeItem(id, status) {
         }
         notify('ok', 'O\'chirildi.');
         await loadAll();
-    } catch (e) { notify('err', 'O\'chirib bo\'lmadi: ' + esc(e.message)); }
+    } catch (e) { notify('err', 'O\'chirib bo\'lmadi. ' + explain(e)); }
 }
 
 /* ───────── Rasm yuklash (brauzerda kichraytirish) ───────── */
