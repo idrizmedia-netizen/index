@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maqolalar | Ziyomap</title>
+<meta name="description" content="Ziyomap'dagi ilmiy maqolalar, ta'lim yangiliklari va foydali materiallar.">
+<link rel="canonical" href="https://www.ziyomap.uz/maqolalar.html">
+<meta property="og:title" content="Maqolalar | Ziyomap">
+<meta property="og:description" content="Ziyomap'dagi ilmiy maqolalar, ta'lim yangiliklari va foydali materiallar.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://www.ziyomap.uz/maqolalar.html">
+<meta property="og:image" content="https://www.ziyomap.uz/icon-512x512.png">
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/blog.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top-row">
+    <a class="back" href="index.html"><i class="fa-solid fa-arrow-left"></i> Bosh sahifa</a>
+    <button class="icon-btn" id="theme-btn" title="Tun/Kun"><i class="fas fa-moon"></i></button>
+  </div>
+  <h1 class="page-title">Ilmiy maqolalar va yangiliklar</h1>
+  <p class="sub">Fizika, kimyo, biologiya va ta'lim bo'yicha foydali materiallar.</p>
+  <div class="tools"><input id="article-search" type="search" placeholder="Maqola qidirish..."></div>
+  <div id="article-cats"></div>
+  <div id="articles-list"><p class="al-empty">Yuklanmoqda...</p></div>
+</div>
+<script src="js/md-lite.js"></script>
+<script type="module" src="js/blog.js"></script>
+<script>
+(function () {
+    function apply(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        var i = document.querySelector('#theme-btn i');
+        if (i) { i.classList.toggle('fa-sun', isDark); i.classList.toggle('fa-moon', !isDark); }
+    }
+    apply(localStorage.getItem('theme') === 'dark');
+    document.getElementById('theme-btn').addEventListener('click', function () {
+        var d = !document.body.classList.contains('dark-theme');
+        apply(d); localStorage.setItem('theme', d ? 'dark' : 'light');
+    });
+})();
+</script>
+</body>
+</html>

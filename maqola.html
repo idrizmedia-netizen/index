@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maqola | Ziyomap</title>
+<meta name="description" content="Ziyomap maqolasi">
+<link rel="canonical" href="https://www.ziyomap.uz/maqola.html">
+<meta property="og:title" content="Maqola | Ziyomap">
+<meta property="og:description" content="Ziyomap maqolasi">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://www.ziyomap.uz/maqola.html">
+<meta property="og:image" content="https://www.ziyomap.uz/icon-512x512.png">
+<link rel="icon" type="image/png" href="icon-192x192.png">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="css/blog.css">
+</head>
+<body>
+<div class="wrap narrow">
+  <div class="top-row">
+    <a class="back" href="maqolalar.html"><i class="fa-solid fa-arrow-left"></i> Barcha maqolalar</a>
+    <button class="icon-btn" id="theme-btn" title="Tun/Kun"><i class="fas fa-moon"></i></button>
+  </div>
+  <article id="article-view"><p class="al-empty">Yuklanmoqda...</p></article>
+  <section id="related"></section>
+</div>
+<script src="js/md-lite.js"></script>
+<script type="module" src="js/blog.js"></script>
+<script>
+(function () {
+    function apply(isDark) {
+        document.body.classList.toggle('dark-theme', isDark);
+        var i = document.querySelector('#theme-btn i');
+        if (i) { i.classList.toggle('fa-sun', isDark); i.classList.toggle('fa-moon', !isDark); }
+    }
+    apply(localStorage.getItem('theme') === 'dark');
+    document.getElementById('theme-btn').addEventListener('click', function () {
+        var d = !document.body.classList.contains('dark-theme');
+        apply(d); localStorage.setItem('theme', d ? 'dark' : 'light');
+    });
+})();
+</script>
+</body>
+</html>
