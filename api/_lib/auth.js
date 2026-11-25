@@ -99,6 +99,32 @@ export async function verifyFirebaseToken(req) {
     }
 }
 
+// ---------- Admin tekshiruvi ----------
+// js/admin-guard.js va firestore.rules dagi owner UID bilan bir xil bo'lishi shart
+const OWNER_UID = 'PhFPRmGQdnVNu3dsepFLem5Xzmg2';
+
+export function bearerToken(req) {
+    const m = (req.headers.get('authorization') || '').match(/^Bearer\s+(.+)$/i);
+    return m ? m[1].trim() : '';
+}
+
+// Foydalanuvchi owner yoki "admins" ro'yxatida ekanini tekshiradi.
+// Firestore REST'ga FOYDALANUVCHINING O'Z tokeni bilan murojaat qilinadi, shuning uchun
+// firestore.rules ("admins/{uid}" — faqat o'z hujjatini o'qiydi) ham qo'llanadi; servis kaliti kerak emas.
+export async function isAdminUser(req, user) {
+    if (!user || !user.uid) return false;
+    if (user.uid === OWNER_UID) return true;
+    try {
+        const r = await fetch(
+            `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/admins/${encodeURIComponent(user.uid)}`,
+            { headers: { Authorization: 'Bearer ' + bearerToken(req) } }
+        );
+        return r.status === 200;
+    } catch {
+        return false;
+    }
+}
+
 // ---------- Rate limit ----------
 // Upstash Redis (UPSTASH_REDIS_REST_URL va UPSTASH_REDIS_REST_TOKEN) sozlangan bo'lsa — barcha
 // instansiyalar uchun ishonchli hisoblagich. Aks holda — xotiradagi (har bir instansiya uchun alohida)
