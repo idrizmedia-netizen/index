@@ -134,7 +134,7 @@ td input[type="number"]{width:70px;padding:6px 8px;border-radius:8px;border:1px 
     <span class="sep">· Admin</span>
   </a>
   <div class="top-nav-right">
-    <a href="https://www.sanity.io/@onIr8G39c/studio/rvuzzqmwinncul6sh3kcalud/default/structure" target="_blank" rel="noopener" class="home" style="background:linear-gradient(135deg,#f97316,#db2777);color:#fff;padding:8px 14px;border-radius:10px"><i class="fas fa-newspaper"></i> Blog Studio</a>
+    <a href="admin-maqola.html" class="home" style="background:linear-gradient(135deg,#f97316,#db2777);color:#fff;padding:8px 14px;border-radius:10px"><i class="fas fa-newspaper"></i> Maqola yozish</a>
     <button class="icon-btn" id="theme-toggle-admin" title="Tun/Kun rejimi"><i class="fas fa-moon"></i></button>
     <a href="index.html" class="home"><i class="fas fa-house"></i> Bosh sahifa</a>
   </div>
@@ -751,19 +751,11 @@ Javob: A"></textarea>
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
         Yangi ro'yxatdan o'tish va "Men to'ladim" xabarlari haqida sizga (yoki xodimlar guruhingizga) Telegram orqali darhol xabar keladi.
       </p>
-      <p style="background:#fef3c7;color:#92400e;padding:12px 14px;border-radius:10px;font-size:0.8rem;margin-bottom:14px">
-        <b>⚠️ Xavfsizlik haqida muhim eslatma:</b> Sayt serversiz (faqat Firestore) ishlagani uchun, bot tokeni brauzer orqali yuboriladi va texnik jihatdan ko'rinishi mumkin. Shu sabab:
-        <br>1) <b>Faqat shu maqsad uchun alohida, yangi bot yarating</b> (boshqa joyda ishlatmang).
-        <br>2) Botga hech qanday moliyaviy yoki maxfiy funksiya bermang — u faqat xabar yuborish uchun ishlatiladi.
-        <br>3) Agar suiiste'mol sezsangiz, @BotFather orqali istalgan vaqtda tokenni bekor qilib, yangisini olishingiz mumkin.
-      </p>
+      <p id="telegram-token-status" style="background:#fef3c7;color:#92400e;padding:12px 14px;border-radius:10px;font-size:0.82rem;margin-bottom:14px">Telegram holati tekshirilmoqda...</p>
       <div class="field">
-        <label>1-qadam: Bot yaratish</label>
-        <p style="color:var(--muted);font-size:0.82rem">Telegram'da <a href="https://t.me/BotFather" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@BotFather</a>ga yozing → <code>/newbot</code> → nom bering → sizga bot tokeni beriladi (masalan <code>123456:ABC-DEF...</code>).</p>
-      </div>
-      <div class="field">
-        <label>Bot tokeni</label>
-        <input type="text" id="telegram-bot-token" placeholder="123456789:AAExampleTokenHere">
+        <label>1-qadam: Bot yaratish va tokenni Vercel'ga qo'yish</label>
+        <p style="color:var(--muted);font-size:0.82rem">Telegram'da <a href="https://t.me/BotFather" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700">@BotFather</a>dan bot tokenini oling (<code>/newbot</code> yoki <code>/mybots</code> → bot → <b>API Token</b>). Tokenni bu yerga <b>yozmang</b> — uni <b>Vercel → Loyiha → Settings → Environment Variables</b> bo'limida <code>TELEGRAM_BOT_TOKEN</code> nomi bilan saqlang (<b>Sensitive</b> belgisini yoqing), so'ng <b>Redeploy</b> qiling. Shunda token brauzerda va bazada ko'rinmaydi.</p>
+        <p style="color:var(--muted);font-size:0.78rem;margin-top:6px">Ixtiyoriy: <code>TELEGRAM_CHANNEL</code> (masalan <code>@ziyomap_kanal</code>) — post yuboriladigan kanalni ham Vercel'da qotirib qo'yish mumkin.</p>
       </div>
       <div class="field">
         <label>2-qadam: Chat ID topish</label>
@@ -815,6 +807,7 @@ Javob: A"></textarea>
 </div>
 
 <script src="js/ziyomap-usage.js"></script>
+<script src="js/api-auth.js"></script>
 <script src="js/auth-guard.js"></script>
 <script src="js/notifications.js"></script>
 <script src="js/admin-guard.js"></script>
