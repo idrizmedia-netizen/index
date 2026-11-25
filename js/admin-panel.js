@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
-import { resolveTarget, sendPost, deletePost, buildNewsHtml } from './telegram-post.js';
+import { tgStatus, resolveTarget, sendPost, deletePost, sendMessage, getUpdates, buildNewsHtml } from './telegram-post.js';
 import {
     getFirestore,
     collection,
@@ -262,21 +262,28 @@ function initNewsAdmin() {
     let tgCfg = null;
     async function getTg(force) {
         if (tgCfg && !force) return tgCfg;
+        let settings = {};
         try {
             const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
-            tgCfg = resolveTarget(snap.exists() ? snap.data() : {});
+            settings = snap.exists() ? snap.data() : {};
         } catch (e) {
             console.error('Telegram sozlamalari o\u2018qilmadi:', e);
-            tgCfg = resolveTarget({});
         }
+        tgCfg = await resolveTarget(settings);
         return tgCfg;
+    }
+    function tgProblem(t) {
+        if (!t.configured) return 'Bot tokeni Vercel\u2019da sozlanmagan (TELEGRAM_BOT_TOKEN).';
+        if (!t.ready) return 'Telegram kanal ko\u2018rsatilmagan: \u201CTelegram\u201D bo\u2018limida kanal username\u2019ni kiriting.';
+        return '';
     }
     async function refreshTgNote() {
         const t = await getTg(true);
         const note = $('nw-tg-note');
-        if (!t.token || !t.chat) {
+        const problem = tgProblem(t);
+        if (problem) {
             note.style.color = 'var(--red)';
-            note.textContent = 'Telegram sozlanmagan: \u201CTelegram\u201D bo\u2018limida bot tokeni va kanal username\u2019ni kiriting.';
+            note.textContent = problem;
         } else {
             note.style.color = 'var(--muted)';
             note.textContent = t.fallback
@@ -286,9 +293,10 @@ function initNewsAdmin() {
     }
     async function sendNewsToTelegram(n) {
         const t = await getTg(true);
-        if (!t.token || !t.chat) throw new Error('Telegram sozlanmagan (bot tokeni yoki kanal yo\u2018q).');
-        const r = await sendPost({ token: t.token, chat: t.chat, html: buildNewsHtml(n, 'https://www.ziyomap.uz/#news'), photo: n.imageUrl });
-        await setDoc(doc(db, 'site-content', n.id), { telegramMessageId: r.message_id, telegramChat: t.chat, telegramPostedAt: serverTimestamp() }, { merge: true });
+        const problem = tgProblem(t);
+        if (problem) throw new Error(problem);
+        const r = await sendPost({ html: buildNewsHtml(n, 'https://www.ziyomap.uz/#news'), photo: n.imageUrl, channel: t.chat });
+        await setDoc(doc(db, 'site-content', n.id), { telegramMessageId: r.message_id, telegramChat: r.chat || t.chat || null, telegramPostedAt: serverTimestamp() }, { merge: true });
         return r;
     }
 
@@ -415,7 +423,7 @@ function initNewsAdmin() {
                     if (alsoTg) {
                         try {
                             const t = await getTg(true);
-                            await deletePost({ token: t.token, chat: n.telegramChat || t.chat, messageId: n.telegramMessageId });
+                            await deletePost({ messageId: n.telegramMessageId, channel: n.telegramChat || t.chat });
                         } catch (e) { console.error(e); setSt('Yangilik o\u2018chirildi, lekin Telegram postini o\u2018chirib bo\u2018lmadi: ' + e.message, 'var(--red)'); }
                     }
                     if (editingId === n.id) resetForm();
@@ -2165,9 +2173,8 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
 
         // Telegram'ga ulangan ishtirokchilarga shaxsiy eslatma yuboramiz
         try {
-            const tgSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
-            const botToken = tgSnap.exists() ? tgSnap.data().botToken : null;
-            if (botToken) {
+            const tgSt = await tgStatus();
+            if (tgSt.configured) {
                 let notified = 0;
                 for (const r of currentRegistrants) {
                     if (!r.uid) continue;
@@ -2180,11 +2187,7 @@ document.getElementById('auto-schedule-btn')?.addEventListener('click', async ()
                         if (r.assignedInterviewStart) lines.push(`\u{1F3A4} Suhbat vaqtingiz: ${formatDateTime(r.assignedInterviewStart)}${r.assignedInterviewEnd ? ' \u2013 ' + formatDateTime(r.assignedInterviewEnd) : ''}`);
                         if (r.assignedTicketNumber) lines.push(`\u{1F3AB} Suhbat biletingiz: №${r.assignedTicketNumber}`);
                         lines.push('Batafsil: shaxsiy kabinetingizda (dashboard.html)');
-                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ chat_id: chatId, text: lines.join('\n') }),
-                        }).catch(() => {});
+                        await sendMessage(chatId, lines.join('\n'));
                         notified++;
                     } catch (err) {
                         console.error('Foydalanuvchiga xabar yuborishda xatolik:', r.uid, err);
@@ -2610,26 +2613,55 @@ document.getElementById('signature-save-btn')?.addEventListener('click', async (
 });
 
 /* ── TELEGRAM BILDIRISHNOMALARI ── */
+// Bot tokeni Firestore'da ham, kodda ham saqlanmaydi — u Vercel'dagi TELEGRAM_BOT_TOKEN o'zgaruvchisida.
+async function refreshTokenStatus(legacyToken) {
+    const el = document.getElementById('telegram-token-status');
+    if (!el) return;
+    try {
+        const st = await tgStatus();
+        if (st.configured) {
+            el.style.background = '#dcfce7'; el.style.color = '#166534';
+            el.innerHTML = '\u2705 Bot tokeni Vercel\u2019da sozlangan (<code>TELEGRAM_BOT_TOKEN</code>).' +
+                (st.envChannel ? ' Kanal: <b>' + st.envChannel + '</b> (<code>TELEGRAM_CHANNEL</code>).' : '');
+            if (legacyToken) {
+                // Eski token Firestore'da qolgan bo'lsa — endi kerak emas, o'chiramiz
+                try {
+                    await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken: null }, { merge: true });
+                    el.innerHTML += '<br>\u{1F9F9} Eski token Firestore\u2019dan o\u2018chirildi.';
+                } catch (e) { console.error(e); }
+            }
+        } else {
+            el.style.background = '#fee2e2'; el.style.color = '#991b1b';
+            el.innerHTML = '\u274c Bot tokeni hali Vercel\u2019da sozlanmagan. Vercel \u2192 Settings \u2192 Environment Variables \u2192 <code>TELEGRAM_BOT_TOKEN</code> qo\u2018shing va qayta deploy qiling.' +
+                (legacyToken ? '<br>\u26A0\uFE0F Eski token hali Firestore\u2019da turibdi \u2014 Vercel\u2019ga ko\u2018chirgach u avtomatik o\u2018chiriladi.' : '');
+        }
+    } catch (e) {
+        el.style.background = '#fef3c7'; el.style.color = '#92400e';
+        el.textContent = 'Telegram holatini tekshirib bo\u2018lmadi: ' + e.message;
+    }
+}
+
 async function loadTelegramSettings() {
+    let legacyToken = null;
     try {
         const snap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
         if (snap.exists()) {
             const data = snap.data();
-            document.getElementById('telegram-bot-token').value = data.botToken || '';
+            legacyToken = data.botToken || null;
             document.getElementById('telegram-chat-id').value = data.chatId || '';
             document.getElementById('telegram-bot-username').value = data.botUsername || '';
             document.getElementById('telegram-channel-username').value = data.channelUsername || '';
-            // Eski ma'lumotlarni ommaviy hujjatga bir marta ko'chirib qo'yamiz (token ko'chirilmaydi)
+            // Ommaviy hujjatga (token YO'Q) bot/kanal username'larini ko'chirib qo'yamiz
             setDoc(doc(db, 'site-content', 'telegram-public'), { botUsername: data.botUsername || null, channelUsername: data.channelUsername || null }, { merge: true }).catch(() => {});
         }
     } catch (err) {
         console.error(err);
     }
+    refreshTokenStatus(legacyToken);
 }
 loadTelegramSettings();
 
 document.getElementById('telegram-save-btn')?.addEventListener('click', async () => {
-    const botToken = document.getElementById('telegram-bot-token').value.trim() || null;
     const chatId = document.getElementById('telegram-chat-id').value.trim() || null;
     const botUsername = document.getElementById('telegram-bot-username').value.trim().replace(/^@/, '') || null;
     const channelUsername = document.getElementById('telegram-channel-username').value.trim().replace(/^@/, '') || null;
@@ -2637,8 +2669,8 @@ document.getElementById('telegram-save-btn')?.addEventListener('click', async ()
     const statusEl = document.getElementById('telegram-status');
     btn.disabled = true;
     try {
-        await setDoc(doc(db, 'site-content', 'telegram-settings'), { botToken, chatId, botUsername, channelUsername }, { merge: true });
-        // Ommaviy hujjat (token YO'Q): bot/kanal username'lari hammaga ko'rinadi
+        await setDoc(doc(db, 'site-content', 'telegram-settings'), { chatId, botUsername, channelUsername }, { merge: true });
+        // Ommaviy hujjat: bot/kanal username'lari hammaga ko'rinadi
         await setDoc(doc(db, 'site-content', 'telegram-public'), { botUsername, channelUsername }, { merge: true });
         statusEl.textContent = 'Saqlandi!';
         statusEl.style.color = 'var(--green)';
@@ -2654,18 +2686,10 @@ document.getElementById('telegram-save-btn')?.addEventListener('click', async ()
 async function notifyParticipantTelegram(uid, text) {
     if (!uid) return;
     try {
-        const [tgSnap, userSnap] = await Promise.all([
-            getDoc(doc(db, 'site-content', 'telegram-settings')),
-            getDoc(doc(db, 'users', uid)),
-        ]);
-        const botToken = tgSnap.exists() ? tgSnap.data().botToken : null;
+        const userSnap = await getDoc(doc(db, 'users', uid));
         const chatId = userSnap.exists() ? userSnap.data().telegramChatId : null;
-        if (!botToken || !chatId) return;
-        await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text }),
-        });
+        if (!chatId) return;
+        await sendMessage(chatId, text);
     } catch (err) {
         console.error('Ishtirokchiga Telegram xabar yuborishda xatolik:', err);
     }
@@ -2680,41 +2704,30 @@ document.getElementById('telegram-sync-btn')?.addEventListener('click', async ()
     try {
         const settingsSnap = await getDoc(doc(db, 'site-content', 'telegram-settings'));
         const settings = settingsSnap.exists() ? settingsSnap.data() : {};
-        const botToken = settings.botToken;
-        if (!botToken) {
-            statusEl.textContent = 'Avval bot tokenini saqlang.';
-            statusEl.style.color = 'var(--red)';
-            btn.disabled = false;
-            return;
-        }
         const lastUpdateId = settings.lastUpdateId || 0;
-        const resp = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates?offset=${lastUpdateId + 1}&limit=100`);
-        const data = await resp.json();
-        if (!data.ok) {
-            statusEl.textContent = 'Xatolik: ' + (data.description || 'noma\u2019lum xato');
+        let updates;
+        try {
+            updates = await getUpdates(lastUpdateId + 1);
+        } catch (e) {
+            statusEl.textContent = /webhook/i.test(e.message)
+                ? '\u274c Bu botda webhook yoqilgan (boshqa loyiha ishlatyapti), shu sabab yangi ulanishlarni tekshirib bo\u2018lmaydi. Ziyomap uchun alohida bot ishlating.'
+                : 'Xatolik: ' + (e.message || 'noma\u2019lum xato');
             statusEl.style.color = 'var(--red)';
-            btn.disabled = false;
             return;
         }
-        const updates = data.result || [];
         let linked = 0;
         let maxUpdateId = lastUpdateId;
         for (const upd of updates) {
             if (upd.update_id > maxUpdateId) maxUpdateId = upd.update_id;
-            const msg = upd.message;
-            if (!msg || !msg.text) continue;
-            const match = msg.text.match(/^\/start\s+(\S+)/);
+            if (!upd.text || upd.chat_id == null) continue;
+            const match = upd.text.match(/^\/start\s+(\S+)/);
             if (!match) continue;
             const uid = match[1];
             try {
-                await updateDoc(doc(db, 'users', uid), { telegramChatId: msg.chat.id });
+                await updateDoc(doc(db, 'users', uid), { telegramChatId: upd.chat_id });
                 linked++;
                 // Foydalanuvchiga ulanish muvaffaqiyatli bo'lgani haqida darhol tasdiq xabari
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: msg.chat.id, text: '\u2705 Ziyomap bildirishnomalari yoqildi! Endi test/suhbat vaqti, to\u2018lov holati va natijalar haqida shu yerga xabar keladi.' }),
-                }).catch(() => {});
+                sendMessage(upd.chat_id, '\u2705 Ziyomap bildirishnomalari yoqildi! Endi test/suhbat vaqti, to\u2018lov holati va natijalar haqida shu yerga xabar keladi.').catch(() => {});
             } catch (err) {
                 console.error('Foydalanuvchini ulashda xatolik:', uid, err);
             }
@@ -2734,46 +2747,32 @@ document.getElementById('telegram-sync-btn')?.addEventListener('click', async ()
 });
 
 document.getElementById('telegram-test-btn')?.addEventListener('click', async () => {
-    const botToken = document.getElementById('telegram-bot-token').value.trim();
     const chatId = document.getElementById('telegram-chat-id').value.trim();
     const statusEl = document.getElementById('telegram-status');
-    if (!botToken || !chatId) {
-        statusEl.textContent = 'Avval bot tokeni va Chat ID kiritib, saqlang.';
-        statusEl.style.color = 'var(--red)';
-        return;
-    }
-    const botIdPrefix = botToken.split(':')[0];
-    if (botIdPrefix && chatId === botIdPrefix) {
-        statusEl.textContent = '\u274c Chat ID bot tokenidagi raqam bilan bir xil chiqdi \u2014 bu botning o\u2018z ID\u2018si, sizniki emas. Yuqoridagi ko\u2018rsatmaga qarab @userinfobot orqali o\u2018zingizning shaxsiy Chat ID\u2018ingizni oling.';
+    if (!chatId) {
+        statusEl.textContent = 'Avval Chat ID kiritib, saqlang.';
         statusEl.style.color = 'var(--red)';
         return;
     }
     statusEl.textContent = 'Yuborilmoqda...';
     statusEl.style.color = 'var(--muted)';
     try {
-        const resp = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chatId, text: '\u2705 Ziyomap: test xabari muvaffaqiyatli yetib bordi!' }),
-        });
-        const data = await resp.json();
-        if (data.ok) {
-            statusEl.textContent = 'Test xabari yuborildi! Telegram\u2018ni tekshiring.';
-            statusEl.style.color = 'var(--green)';
-        } else {
-            const desc = data.description || '';
-            let friendly = 'Xatolik: ' + (desc || 'noma\u2019lum xato');
-            if (/forbidden|chat not found|bot was blocked/i.test(desc)) {
-                friendly = '\u274c Chat ID noto\u2018g\u2018ri yoki bot hali sizdan xabar olmagan. Avval botga o\u2018zingiz Telegram\u2018da "salom" deb yozing, so\u2018ng @userinfobot orqali olingan (bot tokenidagi raqamdan FARQLI) Chat ID\u2018ni qayta tekshirib kiriting.';
-            } else if (/not found/i.test(desc)) {
-                friendly = '\u274c Bot tokeni noto\u2018g\u2018ri ko\u2018rinadi \u2014 @BotFather bergan tokenni to\u2018liq, xatosiz nusxalab qayta kiriting.';
-            }
-            statusEl.textContent = friendly;
-            statusEl.style.color = 'var(--red)';
-        }
+        await sendMessage(chatId, '\u2705 Ziyomap: test xabari muvaffaqiyatli yetib bordi!');
+        statusEl.textContent = 'Test xabari yuborildi! Telegram\u2018ni tekshiring.';
+        statusEl.style.color = 'var(--green)';
     } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Xatolik yuz berdi \u2014 tokenni tekshiring.';
+        const desc = err.message || '';
+        let friendly = 'Xatolik: ' + (desc || 'noma\u2019lum xato');
+        if (desc === 'CHAT_ID_IS_BOT') {
+            friendly = '\u274c Chat ID bot tokenidagi raqam bilan bir xil chiqdi \u2014 bu botning o\u2018z ID\u2018si, sizniki emas. Yuqoridagi ko\u2018rsatmaga qarab @userinfobot orqali o\u2018zingizning shaxsiy Chat ID\u2018ingizni oling.';
+        } else if (/TELEGRAM_BOT_TOKEN/.test(desc)) {
+            friendly = '\u274c ' + desc;
+        } else if (/forbidden|chat not found|bot was blocked/i.test(desc)) {
+            friendly = '\u274c Chat ID noto\u2018g\u2018ri yoki bot hali sizdan xabar olmagan. Avval botga o\u2018zingiz Telegram\u2018da "salom" deb yozing, so\u2018ng @userinfobot orqali olingan (bot tokenidagi raqamdan FARQLI) Chat ID\u2018ni qayta tekshirib kiriting.';
+        } else if (/unauthorized|not found/i.test(desc)) {
+            friendly = '\u274c Bot tokeni noto\u2018g\u2018ri ko\u2018rinadi \u2014 Vercel\u2019dagi TELEGRAM_BOT_TOKEN ni @BotFather bergan tokenga to\u2018liq, xatosiz moslang va qayta deploy qiling.';
+        }
+        statusEl.textContent = friendly;
         statusEl.style.color = 'var(--red)';
     }
 });
